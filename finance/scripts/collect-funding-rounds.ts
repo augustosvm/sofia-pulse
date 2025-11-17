@@ -106,9 +106,9 @@ function getRecentFundingRounds(): FundingRound[] {
 // ============================================================================
 
 async function createTableIfNotExists(client: Client) {
-  // Dropar tabela existente (está vazia de qualquer forma)
+  // Dropar tabela existente COM CASCADE (views dependem dela, mas tabela está vazia)
   await client.query(`
-    DROP TABLE IF EXISTS sofia.funding_rounds;
+    DROP TABLE IF EXISTS sofia.funding_rounds CASCADE;
   `);
 
   // Recriar com estrutura correta
