@@ -106,8 +106,14 @@ function getRecentFundingRounds(): FundingRound[] {
 // ============================================================================
 
 async function createTableIfNotExists(client: Client) {
+  // Dropar tabela existente (está vazia de qualquer forma)
   await client.query(`
-    CREATE TABLE IF NOT EXISTS funding_rounds (
+    DROP TABLE IF EXISTS sofia.funding_rounds;
+  `);
+
+  // Recriar com estrutura correta
+  await client.query(`
+    CREATE TABLE sofia.funding_rounds (
       id SERIAL PRIMARY KEY,
       company_name VARCHAR(255) NOT NULL,
       sector VARCHAR(100),
@@ -122,18 +128,18 @@ async function createTableIfNotExists(client: Client) {
   `);
 
   await client.query(`
-    CREATE INDEX IF NOT EXISTS idx_funding_company ON funding_rounds(company_name);
+    CREATE INDEX idx_funding_company ON sofia.funding_rounds(company_name);
   `);
 
   await client.query(`
-    CREATE INDEX IF NOT EXISTS idx_funding_date ON funding_rounds(announced_date DESC);
+    CREATE INDEX idx_funding_date ON sofia.funding_rounds(announced_date DESC);
   `);
 }
 
 async function insertFundingRound(client: Client, round: FundingRound) {
   try {
     await client.query(`
-      INSERT INTO funding_rounds (
+      INSERT INTO sofia.funding_rounds (
         company_name, sector, round_type, amount_usd, valuation_usd, investors, announced_date
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (company_name, round_type, announced_date) DO NOTHING
