@@ -23,8 +23,12 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Verificar se docker-compose está instalado
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+# Verificar se docker-compose está instalado e definir comando correto
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+elif docker compose version &> /dev/null 2>&1; then
+    DOCKER_COMPOSE="docker compose"
+else
     echo -e "${YELLOW}⚠️  docker-compose não encontrado. Instale: https://docs.docker.com/compose/install/${NC}"
     exit 1
 fi
@@ -48,58 +52,58 @@ case $MODE in
 
     full)
         echo -e "${BLUE}🗄️  Rodando com PostgreSQL (modo completo)${NC}"
-        docker-compose up -d
+        $DOCKER_COMPOSE up -d
         echo ""
         echo -e "${GREEN}✅ Containers iniciados!${NC}"
         echo ""
-        echo -e "📊 Ver logs:     ${BLUE}docker-compose logs -f finance${NC}"
-        echo -e "🛑 Parar:        ${BLUE}docker-compose down${NC}"
+        echo -e "📊 Ver logs:     ${BLUE}$DOCKER_COMPOSE logs -f finance${NC}"
+        echo -e "🛑 Parar:        ${BLUE}$DOCKER_COMPOSE down${NC}"
         echo -e "📁 Outputs em:   ${BLUE}./output/${NC}"
         ;;
 
     build)
         echo -e "${BLUE}🔨 Rebuilding containers...${NC}"
-        docker-compose build --no-cache
+        $DOCKER_COMPOSE build --no-cache
         echo -e "${GREEN}✅ Build completo!${NC}"
         ;;
 
     migrate)
         echo -e "${BLUE}🗄️  Rodando migrations...${NC}"
-        docker-compose run --rm finance npm run migrate:market
+        $DOCKER_COMPOSE run --rm finance npm run migrate:market
         echo -e "${GREEN}✅ Migrations completas!${NC}"
         ;;
 
     collect)
         echo -e "${BLUE}📊 Coletando dados de mercado...${NC}"
-        docker-compose run --rm finance npm run collect:all
+        $DOCKER_COMPOSE run --rm finance npm run collect:all
         echo -e "${GREEN}✅ Coleta completa!${NC}"
         ;;
 
     signals)
         echo -e "${BLUE}🎯 Gerando sinais...${NC}"
-        docker-compose run --rm finance npm run signals
+        $DOCKER_COMPOSE run --rm finance npm run signals
         echo -e "${GREEN}✅ Sinais gerados! Veja em ./output/${NC}"
         ;;
 
     shell)
         echo -e "${BLUE}🐚 Abrindo shell no container...${NC}"
-        docker-compose run --rm finance /bin/bash
+        $DOCKER_COMPOSE run --rm finance /bin/bash
         ;;
 
     logs)
         echo -e "${BLUE}📋 Mostrando logs...${NC}"
-        docker-compose logs -f finance
+        $DOCKER_COMPOSE logs -f finance
         ;;
 
     stop)
         echo -e "${BLUE}🛑 Parando containers...${NC}"
-        docker-compose down
+        $DOCKER_COMPOSE down
         echo -e "${GREEN}✅ Containers parados!${NC}"
         ;;
 
     clean)
         echo -e "${BLUE}🧹 Limpando containers, volumes e imagens...${NC}"
-        docker-compose down -v --rmi all
+        $DOCKER_COMPOSE down -v --rmi all
         echo -e "${GREEN}✅ Limpeza completa!${NC}"
         ;;
 
