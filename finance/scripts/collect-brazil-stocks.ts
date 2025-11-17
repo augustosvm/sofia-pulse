@@ -17,11 +17,11 @@ dotenv.config();
 // ============================================================================
 
 const dbConfig = {
-  host: process.env.POSTGRES_HOST || 'localhost',
-  port: parseInt(process.env.POSTGRES_PORT || '5432'),
-  user: process.env.POSTGRES_USER || 'postgres',
-  password: process.env.POSTGRES_PASSWORD || 'postgres',
-  database: process.env.POSTGRES_DB || 'sofia_db',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  user: process.env.DB_USER || 'sofia',
+  password: process.env.DB_PASSWORD || 'sofia123strong',
+  database: process.env.DB_NAME || 'sofia_db',
 };
 
 // ============================================================================
