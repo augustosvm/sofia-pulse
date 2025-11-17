@@ -109,7 +109,7 @@ async function createTableIfNotExists(client: Client) {
   await client.query(`
     CREATE TABLE IF NOT EXISTS funding_rounds (
       id SERIAL PRIMARY KEY,
-      company VARCHAR(255) NOT NULL,
+      company_name VARCHAR(255) NOT NULL,
       sector VARCHAR(100),
       round_type VARCHAR(50),
       amount_usd BIGINT,
@@ -117,12 +117,12 @@ async function createTableIfNotExists(client: Client) {
       investors TEXT[],
       announced_date DATE,
       collected_at TIMESTAMP DEFAULT NOW(),
-      UNIQUE(company, round_type, announced_date)
+      UNIQUE(company_name, round_type, announced_date)
     );
   `);
 
   await client.query(`
-    CREATE INDEX IF NOT EXISTS idx_funding_company ON funding_rounds(company);
+    CREATE INDEX IF NOT EXISTS idx_funding_company ON funding_rounds(company_name);
   `);
 
   await client.query(`
@@ -134,9 +134,9 @@ async function insertFundingRound(client: Client, round: FundingRound) {
   try {
     await client.query(`
       INSERT INTO funding_rounds (
-        company, sector, round_type, amount_usd, valuation_usd, investors, announced_date
+        company_name, sector, round_type, amount_usd, valuation_usd, investors, announced_date
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      ON CONFLICT (company, round_type, announced_date) DO NOTHING
+      ON CONFLICT (company_name, round_type, announced_date) DO NOTHING
     `, [
       round.company,
       round.sector,
