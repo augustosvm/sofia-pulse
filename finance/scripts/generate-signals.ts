@@ -175,7 +175,16 @@ async function getLatestStocks(client: Client): Promise<StockData[]> {
     ORDER BY ticker, collected_at DESC
   `);
 
-  return result.rows;
+  // Convert PostgreSQL DECIMAL/BIGINT strings to numbers
+  return result.rows.map(row => ({
+    ticker: row.ticker,
+    company: row.company,
+    sector: row.sector,
+    price: parseFloat(row.price),
+    change_pct: parseFloat(row.change_pct),
+    volume: parseInt(row.volume),
+    market_cap: parseInt(row.market_cap),
+  }));
 }
 
 // ============================================================================
