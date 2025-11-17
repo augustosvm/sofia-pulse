@@ -57,25 +57,39 @@ npm run demo:all
 
 ---
 
-## 🔄 TABELAS DE FINANCE (Parcialmente Implementadas)
+## 🔄 FINANCE MODULE (Integrado ao Sofia Pulse)
 
-### Scripts na pasta `finance/`:
+### Módulo Finance - Collectors Financeiros:
 
-| Script | Tabela Esperada | Status |
-|--------|-----------------|--------|
-| `collect-brazil-stocks.ts` | `market_data_brazil` | ✅ Populada (32 registros) |
-| `collect-nasdaq-momentum.ts` | `market_data_nasdaq` | ✅ Populada (14 registros) |
-| `collect-funding-rounds.ts` | `funding_rounds` | ❌ Vazia |
+**Localização**: `finance/` (package.json e scripts próprios)
 
-**Nota**: Esses scripts existem mas não têm comandos npm configurados em `package.json`.
+| Script | Tabela | Status | Registros |
+|--------|--------|--------|-----------|
+| `collect-brazil-stocks.ts` | `market_data_brazil` | ✅ Hoje | 32 |
+| `collect-nasdaq-momentum.ts` | `market_data_nasdaq` | ✅ Hoje | 14 |
+| `collect-funding-rounds.ts` | `funding_rounds` | ❌ Vazia | 0 |
+| `demo-signals.ts` | N/A | ✅ Demo | Mock data |
+| `generate-signals.ts` | `market_signals` | ⚠️ Futuro | 0 |
 
-Para rodar:
+**Total Finance**: 46 registros (5% do total)
+
+### Como Rodar:
+
 ```bash
-# Manualmente:
-tsx finance/scripts/collect-brazil-stocks.ts
-tsx finance/scripts/collect-nasdaq-momentum.ts
-tsx finance/scripts/collect-funding-rounds.ts
+# Da raiz (package.json tem atalhos):
+npm run collect:brazil
+npm run collect:nasdaq
+npm run collect:funding
+npm run collect:finance-all
+
+# Do módulo finance:
+cd finance
+npm run demo           # Demo sem banco (2s)
+npm run invest:full    # Coleta tudo + gera sinais
+npm run invest:quick   # Só B3 + sinais
 ```
+
+**Documentação Finance**: Ver `FINANCE-SYSTEM.md` e `finance/QUICK-START.md`
 
 ---
 

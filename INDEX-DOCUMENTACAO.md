@@ -33,6 +33,7 @@
 | **RESUMO-FINAL.md** | 480 linhas | Resumo executivo completo | Entender tudo rapidamente |
 | **STATUS-REAL-17NOV.md** | 375 linhas | Status detalhado do banco | Ver números exatos |
 | **ANALISE-TABELAS.md** | 280 linhas | Origem de cada tabela | Entender arquitetura |
+| **FINANCE-SYSTEM.md** | 461 linhas | Módulo Finance completo | Uso do Finance |
 | **STATUS-BANCO.md** | 307 linhas | Status inicial (antes da investigação) | Histórico |
 
 ---
