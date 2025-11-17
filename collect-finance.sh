@@ -37,6 +37,9 @@ cd /home/ubuntu/sofia-pulse || {
   exit 1
 }
 
+# Create logs directory if not exists
+mkdir -p logs
+
 # Counters
 SUCCESS_COUNT=0
 FAIL_COUNT=0
@@ -46,7 +49,7 @@ FAIL_COUNT=0
 #============================================================================
 echo -e "${BLUE}📊 [1/3] Coletando B3 (Brasil)...${NC}"
 
-npm run collect:brazil >> /var/log/sofia-finance-b3.log 2>&1
+npm run collect:brazil >> logs/finance-b3.log 2>&1
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
@@ -54,7 +57,7 @@ if [ $EXIT_CODE -eq 0 ]; then
   ((SUCCESS_COUNT++))
 else
   echo -e "   ${RED}❌ B3: Falhou (exit code: $EXIT_CODE)${NC}"
-  echo -e "   ${YELLOW}Ver log: /var/log/sofia-finance-b3.log${NC}"
+  echo -e "   ${YELLOW}Ver log: logs/finance-b3.log${NC}"
   ((FAIL_COUNT++))
 fi
 
@@ -67,7 +70,7 @@ echo -e "   ${YELLOW}⏱️  Aguardando 60s (Alpha Vantage rate limit)...${NC}"
 
 sleep 60
 
-npm run collect:nasdaq >> /var/log/sofia-finance-nasdaq.log 2>&1
+npm run collect:nasdaq >> logs/finance-nasdaq.log 2>&1
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
@@ -75,7 +78,7 @@ if [ $EXIT_CODE -eq 0 ]; then
   ((SUCCESS_COUNT++))
 else
   echo -e "   ${RED}❌ NASDAQ: Falhou (exit code: $EXIT_CODE)${NC}"
-  echo -e "   ${YELLOW}Ver log: /var/log/sofia-finance-nasdaq.log${NC}"
+  echo -e "   ${YELLOW}Ver log: logs/finance-nasdaq.log${NC}"
   ((FAIL_COUNT++))
 fi
 
@@ -85,7 +88,7 @@ fi
 echo ""
 echo -e "${BLUE}💰 [3/3] Coletando Funding Rounds...${NC}"
 
-npm run collect:funding >> /var/log/sofia-finance-funding.log 2>&1
+npm run collect:funding >> logs/finance-funding.log 2>&1
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
@@ -93,7 +96,7 @@ if [ $EXIT_CODE -eq 0 ]; then
   ((SUCCESS_COUNT++))
 else
   echo -e "   ${RED}❌ Funding: Falhou (exit code: $EXIT_CODE)${NC}"
-  echo -e "   ${YELLOW}Ver log: /var/log/sofia-finance-funding.log${NC}"
+  echo -e "   ${YELLOW}Ver log: logs/finance-funding.log${NC}"
   ((FAIL_COUNT++))
 fi
 
@@ -113,7 +116,7 @@ if [ $FAIL_COUNT -eq 0 ]; then
   EXIT_STATUS=0
 else
   echo -e "${YELLOW}⚠️  Finance Collectors - Alguns collectors falharam${NC}"
-  echo -e "${YELLOW}   Verificar logs em /var/log/sofia-finance-*.log${NC}"
+  echo -e "${YELLOW}   Verificar logs em ~/sofia-pulse/logs/finance-*.log${NC}"
   EXIT_STATUS=1
 fi
 
