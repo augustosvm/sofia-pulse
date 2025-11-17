@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  finance:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sofia-finance
+    environment:
+      - NODE_ENV=production
+      - POSTGRES_HOST=${POSTGRES_HOST:-sofia-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-sofia_db}
+    volumes:
+      - ./output:/app/output
+      - ./scripts:/app/scripts
+    networks:
+      - sofia-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    command: npm run demo
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: sofia-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-sofia_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - sofia-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  sofia-network:
+    name: sofia-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: sofia-postgres-data

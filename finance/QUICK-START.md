@@ -2,10 +2,30 @@
 
 Sistema de geração de sinais de investimento com dados de mercado em tempo real.
 
+## 🐳 Quick Start com Docker (RECOMENDADO)
+
+```bash
+# Modo demo (sem banco, 2 segundos!)
+./docker-run.sh demo
+
+# Modo completo (com PostgreSQL)
+./docker-run.sh full
+```
+
+**Veja todos comandos Docker abaixo.**
+
+---
+
 ## ⚡ Modo Demo (2 segundos!)
 
 **NÃO precisa de banco de dados!** Rode instantaneamente:
 
+### Com Docker (recomendado):
+```bash
+./docker-run.sh demo
+```
+
+### Sem Docker:
 ```bash
 npm run demo
 ```
@@ -230,7 +250,53 @@ npm run collect:brazil  # Só B3, sem API keys
 
 ---
 
-## 📚 Comandos Disponíveis
+## 🐳 Comandos Docker
+
+### Modo Demo (sem banco)
+```bash
+./docker-run.sh demo
+```
+
+### Modo Completo (com PostgreSQL)
+```bash
+# Iniciar tudo
+./docker-run.sh full
+
+# Rodar migrations
+./docker-run.sh migrate
+
+# Coletar dados
+./docker-run.sh collect
+
+# Gerar sinais
+./docker-run.sh signals
+
+# Ver logs em tempo real
+./docker-run.sh logs
+
+# Abrir shell no container
+./docker-run.sh shell
+
+# Parar containers
+./docker-run.sh stop
+
+# Limpar tudo (containers + volumes + imagens)
+./docker-run.sh clean
+```
+
+### Acesso direto ao PostgreSQL
+```bash
+# Dentro do container
+docker exec -it sofia-postgres psql -U postgres -d sofia_db
+
+# Queries úteis
+\dt                           # Listar tabelas
+SELECT * FROM market_signals; # Ver sinais
+```
+
+---
+
+## 📚 Comandos NPM (sem Docker)
 
 | Comando | Descrição | Tempo | Requer DB |
 |---------|-----------|-------|-----------|
