@@ -34,6 +34,8 @@
     "demo": "npm run collect:cardboard:demo",
     "demo:ai": "npm run collect:arxiv-ai:demo && npm run collect:ai-companies:demo",
     "demo:all": "npm run collect:cardboard:demo && npm run collect:wipo-china:demo && npm run collect:hkex:demo && npm run collect:epo:demo && npm run collect:asia-universities:demo && npm run collect:arxiv-ai:demo && npm run collect:ai-companies:demo && npm run collect:openalex:demo && npm run collect:nih-grants:demo",
+    "audit": "tsx scripts/audit-database.ts",
+    "audit:tables": "tsx scripts/audit-database.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
