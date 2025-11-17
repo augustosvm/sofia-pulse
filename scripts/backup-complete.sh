@@ -54,20 +54,51 @@ echo ""
 
 log_info "Iniciando backup dos databases..."
 
-# 1.1 Sofia Pulse Database (sofia_db)
-log_info "Backupeando Sofia Pulse database (sofia_db)..."
-if docker exec sofia-postgres pg_dump -U postgres sofia_db > "${BACKUP_PATH}/sofia_pulse_db.sql" 2>/dev/null; then
-    log_success "Sofia Pulse database backed up: sofia_pulse_db.sql"
+# Auto-detectar containers Postgres disponíveis
+POSTGRES_CONTAINERS=$(docker ps --filter "ancestor=postgres" --format "{{.Names}}" 2>/dev/null || \
+                     docker ps --filter "name=postgres" --format "{{.Names}}" 2>/dev/null)
+
+if [ -z "$POSTGRES_CONTAINERS" ]; then
+    log_warning "Nenhum container Postgres encontrado em execução"
 else
-    log_error "Falha ao backupear Sofia Pulse database"
+    log_info "Containers Postgres encontrados: $(echo $POSTGRES_CONTAINERS | tr '\n' ' ')"
 fi
 
-# 1.2 Bressan Database
-log_info "Backupeando Bressan database..."
-if docker exec sofia-postgres pg_dump -U postgres bressan > "${BACKUP_PATH}/bressan_db.sql" 2>/dev/null; then
-    log_success "Bressan database backed up: bressan_db.sql"
+# Tentar múltiplos nomes de container Postgres
+POSTGRES_CANDIDATES=("sofia-postgres" "postgres" "bressan-postgres" $POSTGRES_CONTAINERS)
+POSTGRES_CONTAINER=""
+
+for candidate in "${POSTGRES_CANDIDATES[@]}"; do
+    if docker exec "$candidate" pg_isready -U postgres &>/dev/null; then
+        POSTGRES_CONTAINER="$candidate"
+        log_success "Container Postgres ativo encontrado: $POSTGRES_CONTAINER"
+        break
+    fi
+done
+
+if [ -z "$POSTGRES_CONTAINER" ]; then
+    log_error "Nenhum container Postgres acessível encontrado!"
 else
-    log_warning "Bressan database não encontrado ou erro no backup"
+    # Listar todos os databases disponíveis
+    log_info "Listando databases no container $POSTGRES_CONTAINER..."
+    DATABASES=$(docker exec "$POSTGRES_CONTAINER" psql -U postgres -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres');" 2>/dev/null | grep -v '^$' | xargs)
+
+    if [ -n "$DATABASES" ]; then
+        log_info "Databases encontrados: $DATABASES"
+
+        # Fazer backup de cada database
+        for db in $DATABASES; do
+            log_info "Backupeando database: $db..."
+            if docker exec "$POSTGRES_CONTAINER" pg_dump -U postgres "$db" > "${BACKUP_PATH}/${db}_db.sql" 2>/dev/null; then
+                DB_SIZE=$(du -h "${BACKUP_PATH}/${db}_db.sql" | cut -f1)
+                log_success "Database '$db' backed up: ${db}_db.sql ($DB_SIZE)"
+            else
+                log_warning "Falha ao backupear database: $db"
+            fi
+        done
+    else
+        log_warning "Nenhum database de usuário encontrado"
+    fi
 fi
 
 ###############################################################################
@@ -197,8 +228,14 @@ echo "☁️  Local: ${RCLONE_REMOTE}/"
 echo "🗑️  Retenção: ${RETENTION_DAYS} dias"
 echo ""
 echo "Conteúdo backupeado:"
-echo "  ✓ Sofia Pulse database (sofia_db)"
-echo "  ✓ Bressan database"
+if [ -n "$POSTGRES_CONTAINER" ]; then
+    echo "  ✓ Postgres Databases do container '$POSTGRES_CONTAINER':"
+    for db in $DATABASES; do
+        if [ -f "${BACKUP_PATH}/${db}_db.sql" ]; then
+            echo "    - $db"
+        fi
+    done
+fi
 echo "  ✓ Sofia Mastra RAG volumes (3)"
 echo "  ✓ n8n workflows e dados"
 echo "  ✓ postgres_data volume"
