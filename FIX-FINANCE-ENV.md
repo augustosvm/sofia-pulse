@@ -5,21 +5,37 @@
 ❌ password authentication failed for user "postgres"
 ```
 
-**Causa**: Scripts não estão encontrando o `.env` corretamente
+**Causa REAL**: Nomes de variáveis ERRADOS no `.env`!
 
-**Solução**: Copiar `.env` para o diretório `finance/`
+Scripts esperam: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+Mas o .env tinha: `DB_USER`, `DB_PASSWORD`, `DB_NAME`
+
+**Solução**: Criar `finance/.env` com nomes CORRETOS de variáveis
 
 ---
 
-## ⚡ FIX RÁPIDO (Execute NO SERVIDOR):
+## ⚡ FIX DEFINITIVO (Execute NO SERVIDOR):
 
 ```bash
 cd ~/sofia-pulse
 
-# 1. Copiar .env da raiz para finance/:
-cp .env finance/.env
+# 1. Criar finance/.env com variáveis CORRETAS:
+cat > finance/.env << 'EOF'
+# PostgreSQL - NOMES CORRETOS (POSTGRES_* não DB_*)
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=sofia
+POSTGRES_PASSWORD=sofia123strong
+POSTGRES_DB=sofia_db
 
-# 2. Verificar se copiou corretamente:
+# Connection string alternativa
+DATABASE_URL=postgresql://sofia:sofia123strong@localhost:5432/sofia_db
+
+# API Keys
+ALPHA_VANTAGE_API_KEY=TM3DVH1A35DUPPZ9
+EOF
+
+# 2. Verificar se criou corretamente:
 cat finance/.env | grep -E "POSTGRES_USER|POSTGRES_PASSWORD"
 
 # Deve mostrar:
@@ -27,7 +43,6 @@ cat finance/.env | grep -E "POSTGRES_USER|POSTGRES_PASSWORD"
 # POSTGRES_PASSWORD=sofia123strong
 
 # 3. Testar coleta:
-cd finance
 npm run collect:brazil
 ```
 

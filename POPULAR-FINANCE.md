@@ -12,8 +12,15 @@ cd ~/sofia-pulse
 # 1. Puxar últimas atualizações:
 git pull origin claude/resume-context-demo-01Jwa7QikzGJHnTZjJLMp5AE
 
-# 2. IMPORTANTE - Copiar .env para finance/:
-cp .env finance/.env
+# 2. CRÍTICO - Criar finance/.env com NOMES CORRETOS:
+cat > finance/.env << 'EOF'
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=sofia
+POSTGRES_PASSWORD=sofia123strong
+POSTGRES_DB=sofia_db
+ALPHA_VANTAGE_API_KEY=TM3DVH1A35DUPPZ9
+EOF
 
 # 3. Popular finance com dados REAIS:
 npm run collect:finance-all
@@ -22,9 +29,9 @@ npm run collect:finance-all
 npm run audit | grep -E "market_data|funding_rounds"
 ```
 
-**⚠️ IMPORTANTE**: O passo 2 é NECESSÁRIO! Scripts finance precisam do `.env` no diretório `finance/`.
+**⚠️ CRÍTICO**: Passo 2 usa `POSTGRES_*` não `DB_*`! Scripts esperam nomes exatos.
 
-Se você esquecer, verá erro: `password authentication failed for user "postgres"`
+Erro comum: usar `DB_USER` em vez de `POSTGRES_USER` causa: `password authentication failed for user "postgres"`
 → **Solução**: Ver `FIX-FINANCE-ENV.md`
 
 ---
