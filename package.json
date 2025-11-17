@@ -1,0 +1,47 @@
+{
+  "name": "sofia-pulse",
+  "version": "1.0.0",
+  "description": "Sofia Pulse - Multi-source intelligence platform collecting data from 11+ sources globally",
+  "main": "index.js",
+  "scripts": {
+    "collect:cardboard": "tsx scripts/collect-cardboard-production.ts",
+    "collect:cardboard:demo": "tsx scripts/collect-cardboard-production.ts --dry-run",
+    "collect:electricity": "echo 'Electricity collector - to be implemented'",
+    "collect:ports": "echo 'Port traffic collector - to be implemented'",
+    "collect:commodities": "echo 'Commodity prices collector - to be implemented'",
+    "collect:wipo-china": "echo 'WIPO China patents collector - to be implemented'",
+    "collect:openalex": "echo 'OpenAlex papers collector - to be implemented'",
+    "collect:economic-indicators": "npm run collect:cardboard",
+    "demo": "npm run collect:cardboard:demo",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "intelligence",
+    "data-collection",
+    "economic-indicators",
+    "leading-indicators",
+    "machine-learning",
+    "sofia",
+    "patents",
+    "research",
+    "finance"
+  ],
+  "author": "Sofia Intelligence Hub",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^20.10.0",
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.9"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

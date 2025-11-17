@@ -1,0 +1,40 @@
+# Environment variables (contains secrets!)
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+*.js.map
+
+# Data outputs
+output/
+*.csv
+data/*.json
+*.data.json
+
+# Backups
+backups/
+*.backup
+*.sql
+*.sql.gz
