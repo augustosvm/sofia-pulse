@@ -4,20 +4,28 @@
 
 ---
 
-## ⚡ Quick Start (3 comandos)
+## ⚡ Quick Start (4 comandos)
 
 ```bash
 cd ~/sofia-pulse
 
-# Puxar últimas atualizações:
+# 1. Puxar últimas atualizações:
 git pull origin claude/resume-context-demo-01Jwa7QikzGJHnTZjJLMp5AE
 
-# Popular funding_rounds (tabela vazia):
-npm run collect:funding
+# 2. IMPORTANTE - Copiar .env para finance/:
+cp .env finance/.env
 
-# Verificar resultado:
-npm run audit | grep -A 5 "funding_rounds"
+# 3. Popular finance com dados REAIS:
+npm run collect:finance-all
+
+# 4. Verificar resultado:
+npm run audit | grep -E "market_data|funding_rounds"
 ```
+
+**⚠️ IMPORTANTE**: O passo 2 é NECESSÁRIO! Scripts finance precisam do `.env` no diretório `finance/`.
+
+Se você esquecer, verá erro: `password authentication failed for user "postgres"`
+→ **Solução**: Ver `FIX-FINANCE-ENV.md`
 
 ---
 
