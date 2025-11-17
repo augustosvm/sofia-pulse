@@ -48,7 +48,8 @@ echo ""
 echo "6️⃣ Listando todas as tabelas com contagem aproximada..."
 docker exec sofia-postgres psql -U sofia -d sofia_db -c "
 SELECT
-  schemaname || '.' || tablename as tabela_completa,
+  schemaname,
+  relname as tabela,
   n_live_tup as registros
 FROM pg_stat_user_tables
 ORDER BY n_live_tup DESC

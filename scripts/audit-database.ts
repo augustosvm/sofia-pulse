@@ -38,34 +38,38 @@ async function auditDatabase() {
     console.log('🔍 SOFIA PULSE - DATABASE AUDIT');
     console.log('================================\n');
 
-    // 1. Listar todas as tabelas
+    // 1. Listar todas as tabelas (TODOS os schemas, não apenas 'public')
     const tablesResult = await pool.query(`
-      SELECT table_name
+      SELECT table_schema, table_name
       FROM information_schema.tables
-      WHERE table_schema = 'public'
+      WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
         AND table_type = 'BASE TABLE'
-      ORDER BY table_name;
+      ORDER BY table_schema, table_name;
     `);
 
-    const tables = tablesResult.rows.map(r => r.table_name);
+    const tables = tablesResult.rows.map(r => ({ schema: r.table_schema, name: r.table_name }));
     console.log(`📊 Encontradas ${tables.length} tabelas no banco\n`);
 
     const stats: TableStats[] = [];
 
     // 2. Para cada tabela, pegar estatísticas
-    for (const tableName of tables) {
-      console.log(`\n📋 Analisando: ${tableName}`);
+    for (const table of tables) {
+      const schemaName = table.schema;
+      const tableName = table.name;
+      const fullTableName = `${schemaName}.${tableName}`;
+
+      console.log(`\n📋 Analisando: ${fullTableName}`);
       console.log('─'.repeat(60));
 
       // Contar registros
-      const countResult = await pool.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
+      const countResult = await pool.query(`SELECT COUNT(*) as count FROM "${schemaName}"."${tableName}"`);
       const rowCount = parseInt(countResult.rows[0].count);
 
       console.log(`   Registros: ${rowCount.toLocaleString()}`);
 
       if (rowCount === 0) {
         stats.push({
-          table_name: tableName,
+          table_name: fullTableName,
           row_count: 0,
           oldest_date: null,
           newest_date: null,
@@ -85,8 +89,8 @@ async function auditDatabase() {
         const colCheck = await pool.query(`
           SELECT column_name
           FROM information_schema.columns
-          WHERE table_name = $1 AND column_name = $2
-        `, [tableName, col]);
+          WHERE table_schema = $1 AND table_name = $2 AND column_name = $3
+        `, [schemaName, tableName, col]);
 
         if (colCheck.rows.length > 0) {
           dateColumn = col;
@@ -96,7 +100,7 @@ async function auditDatabase() {
 
       if (!dateColumn) {
         stats.push({
-          table_name: tableName,
+          table_name: fullTableName,
           row_count: rowCount,
           oldest_date: null,
           newest_date: null,
@@ -112,7 +116,7 @@ async function auditDatabase() {
         SELECT
           MIN("${dateColumn}") as oldest,
           MAX("${dateColumn}") as newest
-        FROM "${tableName}"
+        FROM "${schemaName}"."${tableName}"
         WHERE "${dateColumn}" IS NOT NULL
       `;
       const dateResult = await pool.query(dateQuery);
@@ -146,7 +150,7 @@ async function auditDatabase() {
       }
 
       stats.push({
-        table_name: tableName,
+        table_name: fullTableName,
         row_count: rowCount,
         oldest_date: oldestDate,
         newest_date: newestDate,
@@ -157,7 +161,7 @@ async function auditDatabase() {
       console.log(`   ${status}`);
 
       // Mostrar amostra de dados (primeira linha)
-      const sampleResult = await pool.query(`SELECT * FROM "${tableName}" LIMIT 1`);
+      const sampleResult = await pool.query(`SELECT * FROM "${schemaName}"."${tableName}" LIMIT 1`);
       if (sampleResult.rows.length > 0) {
         const columns = Object.keys(sampleResult.rows[0]);
         console.log(`   Colunas: ${columns.slice(0, 5).join(', ')}${columns.length > 5 ? ', ...' : ''}`);
