@@ -1,0 +1,550 @@
+{
+  "universities": [
+    {
+      "name": "USP",
+      "full_name": "Universidade de São Paulo",
+      "location": "São Paulo, SP",
+      "ranking_latam": 1,
+      "expertises": [
+        "Agro-tech",
+        "Medicine",
+        "Engineering",
+        "Computer Science",
+        "Biotechnology",
+        "Materials Science",
+        "Economics"
+      ],
+      "top_research_areas": [
+        "Agricultural Engineering",
+        "Biomedical Engineering",
+        "Chemical Engineering",
+        "AI/ML",
+        "Public Health"
+      ],
+      "notable_programs": [
+        "Escola Politécnica (Engenharia)",
+        "IME (Matemática/Estatística)",
+        "ICMC (Computação)",
+        "Faculdade de Medicina",
+        "ESALQ (Agricultura)"
+      ],
+      "companies_founded_by_alumni": [
+        "Nubank",
+        "Stone",
+        "iFood",
+        "99",
+        "QuintoAndar"
+      ]
+    },
+    {
+      "name": "Unicamp",
+      "full_name": "Universidade Estadual de Campinas",
+      "location": "Campinas, SP",
+      "ranking_latam": 2,
+      "expertises": [
+        "Agro-tech",
+        "Energy",
+        "Materials Science",
+        "Computer Science",
+        "Telecommunications",
+        "Chemistry",
+        "Petroleum Engineering"
+      ],
+      "top_research_areas": [
+        "Renewable Energy",
+        "Nanotechnology",
+        "Biofuels",
+        "Software Engineering",
+        "Telecommunications"
+      ],
+      "notable_programs": [
+        "IC (Instituto de Computação)",
+        "FEE (Engenharia Elétrica)",
+        "FEQ (Engenharia Química)",
+        "IB (Biologia)"
+      ],
+      "companies_founded_by_alumni": [
+        "Movile (iFood, PlayKids)",
+        "Totvs",
+        "CI&T"
+      ]
+    },
+    {
+      "name": "UFRJ",
+      "full_name": "Universidade Federal do Rio de Janeiro",
+      "location": "Rio de Janeiro, RJ",
+      "ranking_latam": 5,
+      "expertises": [
+        "Petroleum Engineering",
+        "Ocean Engineering",
+        "Biotech",
+        "Chemistry",
+        "Computer Science",
+        "Civil Engineering",
+        "Medicine"
+      ],
+      "top_research_areas": [
+        "Deep-sea Oil Exploration",
+        "Marine Biology",
+        "Chemical Engineering",
+        "AI/ML",
+        "Nanotechnology"
+      ],
+      "notable_programs": [
+        "COPPE (Engenharia)",
+        "Instituto de Química",
+        "Escola Politécnica",
+        "Faculdade de Medicina"
+      ],
+      "companies_founded_by_alumni": [
+        "Globo.com",
+        "Petrobras (liderança)"
+      ]
+    },
+    {
+      "name": "ITA",
+      "full_name": "Instituto Tecnológico de Aeronáutica",
+      "location": "São José dos Campos, SP",
+      "ranking_latam": 8,
+      "expertises": [
+        "Aerospace Engineering",
+        "Defense Tech",
+        "Computer Science",
+        "Mechanical Engineering",
+        "Electronics",
+        "AI/ML"
+      ],
+      "top_research_areas": [
+        "Aeronautics",
+        "Satellite Systems",
+        "Embedded Systems",
+        "Control Systems",
+        "Software Engineering"
+      ],
+      "notable_programs": [
+        "Engenharia Aeronáutica",
+        "Engenharia de Computação",
+        "Engenharia Eletrônica"
+      ],
+      "companies_founded_by_alumni": [
+        "Embraer (liderança)",
+        "Buscapé",
+        "Peixe Urbano",
+        "TecToy"
+      ]
+    },
+    {
+      "name": "UFMG",
+      "full_name": "Universidade Federal de Minas Gerais",
+      "location": "Belo Horizonte, MG",
+      "ranking_latam": 9,
+      "expertises": [
+        "Mining Engineering",
+        "Computer Science",
+        "AI/ML",
+        "Medicine",
+        "Economics",
+        "Materials Science"
+      ],
+      "top_research_areas": [
+        "Data Mining",
+        "Artificial Intelligence",
+        "Mineral Processing",
+        "Bioinformatics",
+        "Software Engineering"
+      ],
+      "notable_programs": [
+        "DCC (Departamento de Ciência da Computação)",
+        "Escola de Engenharia",
+        "ICEx (Exatas)"
+      ],
+      "companies_founded_by_alumni": [
+        "Akwan (Google Brasil)",
+        "Sympla",
+        "Hotmart"
+      ]
+    },
+    {
+      "name": "UFRGS",
+      "full_name": "Universidade Federal do Rio Grande do Sul",
+      "location": "Porto Alegre, RS",
+      "ranking_latam": 12,
+      "expertises": [
+        "Computer Science",
+        "AI/ML",
+        "Software Engineering",
+        "Agronomy",
+        "Medicine",
+        "Materials Science"
+      ],
+      "top_research_areas": [
+        "Distributed Systems",
+        "Software Quality",
+        "Machine Learning",
+        "Agricultural Tech",
+        "Nanotechnology"
+      ],
+      "notable_programs": [
+        "Instituto de Informática",
+        "Escola de Engenharia",
+        "Faculdade de Agronomia"
+      ],
+      "companies_founded_by_alumni": [
+        "DBServer",
+        "CWI Software",
+        "SAP Labs (liderança)"
+      ]
+    },
+    {
+      "name": "UFSCar",
+      "full_name": "Universidade Federal de São Carlos",
+      "location": "São Carlos, SP",
+      "ranking_latam": 15,
+      "expertises": [
+        "Materials Science",
+        "Nanotechnology",
+        "AI/ML",
+        "Biotechnology",
+        "Chemical Engineering",
+        "Physics"
+      ],
+      "top_research_areas": [
+        "Advanced Materials",
+        "Nanomaterials",
+        "Biopolymers",
+        "Machine Learning",
+        "Photonics"
+      ],
+      "notable_programs": [
+        "Departamento de Física",
+        "Departamento de Química",
+        "Departamento de Computação"
+      ],
+      "companies_founded_by_alumni": []
+    },
+    {
+      "name": "PUC-Rio",
+      "full_name": "Pontifícia Universidade Católica do Rio de Janeiro",
+      "location": "Rio de Janeiro, RJ",
+      "ranking_latam": 18,
+      "expertises": [
+        "Computer Science",
+        "AI/ML",
+        "Economics",
+        "Design",
+        "Business",
+        "Civil Engineering"
+      ],
+      "top_research_areas": [
+        "Artificial Intelligence",
+        "Computer Graphics",
+        "Database Systems",
+        "Economics",
+        "Design Thinking"
+      ],
+      "notable_programs": [
+        "Departamento de Informática",
+        "IAG (Business School)",
+        "Departamento de Design"
+      ],
+      "companies_founded_by_alumni": [
+        "TecGraf (spin-off → Petrobras)",
+        "Lua (linguagem de programação)"
+      ]
+    },
+    {
+      "name": "UFPE",
+      "full_name": "Universidade Federal de Pernambuco",
+      "location": "Recife, PE",
+      "ranking_latam": 22,
+      "expertises": [
+        "Computer Science",
+        "Software Engineering",
+        "AI/ML",
+        "Ed-tech",
+        "Medicine",
+        "Economics"
+      ],
+      "top_research_areas": [
+        "Software Engineering",
+        "Requirements Engineering",
+        "Empirical Software Engineering",
+        "Machine Learning",
+        "Educational Tech"
+      ],
+      "notable_programs": [
+        "CIn (Centro de Informática)",
+        "Escola Politécnica",
+        "Departamento de Economia"
+      ],
+      "companies_founded_by_alumni": [
+        "Porto Digital (ecossistema)",
+        "In Loco",
+        "Neoway"
+      ]
+    },
+    {
+      "name": "UFSC",
+      "full_name": "Universidade Federal de Santa Catarina",
+      "location": "Florianópolis, SC",
+      "ranking_latam": 25,
+      "expertises": [
+        "Computer Science",
+        "Automation",
+        "Electrical Engineering",
+        "Ocean Engineering",
+        "Biotechnology"
+      ],
+      "top_research_areas": [
+        "Automation and Control",
+        "Embedded Systems",
+        "Software Engineering",
+        "Marine Biotechnology",
+        "Renewable Energy"
+      ],
+      "notable_programs": [
+        "Departamento de Informática e Estatística",
+        "Departamento de Automação",
+        "Engenharia Elétrica"
+      ],
+      "companies_founded_by_alumni": [
+        "Involves (Samsung adquiriu)",
+        "Softplan",
+        "Neogrid"
+      ]
+    },
+    {
+      "name": "UnB",
+      "full_name": "Universidade de Brasília",
+      "location": "Brasília, DF",
+      "ranking_latam": 28,
+      "expertises": [
+        "Computer Science",
+        "Public Policy",
+        "Law",
+        "Economics",
+        "Medicine",
+        "International Relations"
+      ],
+      "top_research_areas": [
+        "Software Engineering",
+        "AI/ML",
+        "Public Health",
+        "Environmental Science",
+        "Political Science"
+      ],
+      "notable_programs": [
+        "Departamento de Ciência da Computação",
+        "Faculdade de Direito",
+        "Instituto de Relações Internacionais"
+      ],
+      "companies_founded_by_alumni": []
+    },
+    {
+      "name": "UNESP",
+      "full_name": "Universidade Estadual Paulista",
+      "location": "São Paulo (multicampi)",
+      "ranking_latam": 30,
+      "expertises": [
+        "Agronomy",
+        "Veterinary",
+        "Dentistry",
+        "Physics",
+        "Biology",
+        "Computer Science"
+      ],
+      "top_research_areas": [
+        "Agricultural Science",
+        "Veterinary Medicine",
+        "Materials Science",
+        "Biotechnology",
+        "Environmental Science"
+      ],
+      "notable_programs": [
+        "FCAV (Agronomia Jaboticabal)",
+        "FC Bauru (Computação)",
+        "IB Botucatu (Biologia)"
+      ],
+      "companies_founded_by_alumni": []
+    },
+    {
+      "name": "IME",
+      "full_name": "Instituto Militar de Engenharia",
+      "location": "Rio de Janeiro, RJ",
+      "ranking_latam": null,
+      "expertises": [
+        "Defense Tech",
+        "Computer Science",
+        "Cybersecurity",
+        "Electrical Engineering",
+        "Mechanical Engineering",
+        "Materials Science"
+      ],
+      "top_research_areas": [
+        "Cybersecurity",
+        "Defense Systems",
+        "Control Systems",
+        "AI/ML",
+        "Infrastructure Engineering"
+      ],
+      "notable_programs": [
+        "Engenharia de Computação",
+        "Engenharia Elétrica",
+        "Engenharia Mecânica"
+      ],
+      "companies_founded_by_alumni": []
+    },
+    {
+      "name": "UFABC",
+      "full_name": "Universidade Federal do ABC",
+      "location": "Santo André, SP",
+      "ranking_latam": 35,
+      "expertises": [
+        "AI/ML",
+        "Neuroscience",
+        "Materials Science",
+        "Energy",
+        "Computer Science",
+        "Physics"
+      ],
+      "top_research_areas": [
+        "Artificial Intelligence",
+        "Neuroscience and Cognition",
+        "Nanoscience",
+        "Energy Systems",
+        "Data Science"
+      ],
+      "notable_programs": [
+        "Bacharelado em Ciência e Tecnologia",
+        "Neurociência",
+        "Ciência da Computação"
+      ],
+      "companies_founded_by_alumni": []
+    },
+    {
+      "name": "UFC",
+      "full_name": "Universidade Federal do Ceará",
+      "location": "Fortaleza, CE",
+      "ranking_latam": 38,
+      "expertises": [
+        "Computer Science",
+        "Telecommunications",
+        "Renewable Energy",
+        "Medicine",
+        "Business"
+      ],
+      "top_research_areas": [
+        "Wireless Communications",
+        "Software Engineering",
+        "Wind Energy",
+        "AI/ML",
+        "Public Health"
+      ],
+      "notable_programs": [
+        "Departamento de Computação",
+        "Engenharia de Teleinformática",
+        "Faculdade de Medicina"
+      ],
+      "companies_founded_by_alumni": []
+    },
+    {
+      "name": "Insper",
+      "full_name": "Instituto de Ensino e Pesquisa",
+      "location": "São Paulo, SP",
+      "ranking_latam": null,
+      "expertises": [
+        "Business",
+        "Economics",
+        "Computer Engineering",
+        "Data Science",
+        "Fintech",
+        "AI/ML"
+      ],
+      "top_research_areas": [
+        "Financial Economics",
+        "Data Science",
+        "Machine Learning",
+        "Business Strategy",
+        "Behavioral Economics"
+      ],
+      "notable_programs": [
+        "Engenharia de Computação",
+        "Administração",
+        "Economia"
+      ],
+      "companies_founded_by_alumni": [
+        "Guiabolso",
+        "Creditas (liderança)"
+      ]
+    },
+    {
+      "name": "FGV",
+      "full_name": "Fundação Getulio Vargas",
+      "location": "São Paulo/Rio de Janeiro",
+      "ranking_latam": null,
+      "expertises": [
+        "Economics",
+        "Business",
+        "Law",
+        "Public Policy",
+        "Data Science",
+        "Fintech"
+      ],
+      "top_research_areas": [
+        "Economics",
+        "Business Administration",
+        "Public Policy",
+        "Applied Math",
+        "Data Science"
+      ],
+      "notable_programs": [
+        "EAESP (Administração SP)",
+        "EBAPE (Administração RJ)",
+        "Escola de Direito",
+        "EMAp (Matemática Aplicada)"
+      ],
+      "companies_founded_by_alumni": [
+        "XP Investimentos",
+        "BTG Pactual (liderança)"
+      ]
+    }
+  ],
+  "sector_to_universities": {
+    "Agro-tech": ["USP (ESALQ)", "Unicamp", "UNESP", "UFSCar", "UFRGS"],
+    "AI/ML": ["USP", "UFMG", "UFRGS", "PUC-Rio", "UFPE", "UFABC", "Insper"],
+    "Fintech": ["Insper", "FGV", "USP", "Unicamp"],
+    "Aerospace": ["ITA"],
+    "Defense Tech": ["ITA", "IME"],
+    "Computer Science": ["USP", "Unicamp", "UFMG", "UFRGS", "UFPE", "UFSC", "PUC-Rio"],
+    "Biotechnology": ["USP", "UFSCar", "UFRJ", "UFSC"],
+    "Petroleum": ["UFRJ", "Unicamp"],
+    "Materials Science": ["UFSCar", "USP", "UFMG", "Unicamp"],
+    "Software Engineering": ["UFPE", "UFRGS", "UFMG", "USP", "UFC"],
+    "Telecommunications": ["Unicamp", "UFC"],
+    "Renewable Energy": ["Unicamp", "UFC", "UFSC"],
+    "Ed-tech": ["UFPE", "USP"],
+    "Healthcare Tech": ["USP", "UFRJ", "UFMG", "UFC"],
+    "Mining": ["UFMG"],
+    "Ocean Engineering": ["UFRJ", "UFSC"],
+    "Cybersecurity": ["IME", "UFSC"],
+    "Data Science": ["Insper", "FGV (EMAp)", "UFABC", "UFMG"]
+  },
+  "use_cases": {
+    "recruiting": {
+      "description": "Encontrar profissionais qualificados por área de expertise",
+      "example": "Procurando engenheiro de Agro-tech? Busque alumni de USP (ESALQ), Unicamp, UNESP"
+    },
+    "job_seekers": {
+      "description": "Profissionais encontram empresas atuando em sua área de formação",
+      "example": "Formado em ITA? Empresas: Embraer, Defense Tech startups, Aerospace"
+    },
+    "investors": {
+      "description": "Identificar ecossistemas de inovação por universidade",
+      "example": "UFMG gerou Akwan (Google), Sympla, Hotmart → ecossistema forte em MG"
+    },
+    "startups": {
+      "description": "Encontrar co-founders e early employees com expertise específica",
+      "example": "Startup de Fintech? Recrutar em Insper, FGV, USP"
+    }
+  }
+}
