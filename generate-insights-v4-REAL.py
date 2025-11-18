@@ -23,6 +23,29 @@ DB_CONFIG = {
 # MAPEAMENTOS GEOGRÁFICOS (da v2.0)
 # ============================================================================
 
+# Mapeamento de categorias ArXiv para nomes legíveis
+ARXIV_CATEGORIES = {
+    'cs.AI': 'Inteligência Artificial',
+    'cs.LG': 'Machine Learning',
+    'cs.CV': 'Visão Computacional',
+    'cs.CL': 'Processamento de Linguagem Natural (NLP)',
+    'cs.RO': 'Robótica',
+    'cs.NE': 'Computação Neural e Evolutiva',
+    'cs.MA': 'Sistemas Multi-Agente',
+    'cs.HC': 'Interação Humano-Computador',
+    'cs.IR': 'Recuperação de Informação',
+    'cs.CR': 'Criptografia e Segurança',
+    'stat.ML': 'Machine Learning (Estatística)',
+    'math.OC': 'Otimização e Controle',
+    'q-bio': 'Biologia Quantitativa',
+    'eess.IV': 'Processamento de Imagens',
+    'eess.AS': 'Processamento de Áudio',
+}
+
+def translate_category(cat):
+    """Traduz categoria ArXiv para português"""
+    return ARXIV_CATEGORIES.get(cat, cat)
+
 # Mapeamento de países para continentes
 CONTINENTS = {
     # América do Norte
@@ -229,7 +252,9 @@ insights = f"""
 
 for arxiv_id, title, authors, cats, pub_date, abstract in papers[:10]:
     authors_str = ', '.join(authors[:3]) if authors else 'N/A'
-    cats_str = ', '.join(cats[:3]) if cats else 'N/A'
+    # Traduzir categorias
+    cats_translated = [translate_category(c) for c in cats[:3]] if cats else ['N/A']
+    cats_str = ', '.join(cats_translated)
     insights += f"   📄 {title}\n"
     insights += f"      Autores: {authors_str}\n"
     insights += f"      Categorias: {cats_str}\n"
@@ -246,7 +271,8 @@ if papers:
     top_cats = Counter(all_cats).most_common(10)
     insights += "\n📊 TOP CATEGORIAS DE PESQUISA:\n\n"
     for cat, count in top_cats:
-        insights += f"   {cat:20s} | {count:3d} papers\n"
+        cat_translated = translate_category(cat)
+        insights += f"   {cat_translated:45s} | {count:3d} papers\n"
 
 insights += "\n\n🚀 AI COMPANIES GLOBAIS\n"
 insights += "-------------------------------------------------------------------\n\n"
