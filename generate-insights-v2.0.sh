@@ -10,16 +10,18 @@ echo "🚀 Sofia Pulse v2.0 - Premium Insights"
 echo "======================================"
 echo ""
 
-# Verificar Python
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Python3 não encontrado"
+# Ativar venv-analytics
+if [ ! -d "venv-analytics" ]; then
+    echo "❌ venv-analytics não encontrado. Execute: bash setup-data-mining.sh"
     exit 1
 fi
 
+source venv-analytics/bin/activate
+
 # Verificar psycopg2
 if ! python3 -c "import psycopg2" 2>/dev/null; then
-    echo "⚠️  Instalando psycopg2..."
-    pip3 install psycopg2-binary
+    echo "⚠️  Instalando psycopg2 no venv..."
+    pip install psycopg2-binary
 fi
 
 # Executar
