@@ -187,22 +187,14 @@ git pull origin claude/resume-context-demo-01Jwa7QikzGJHnTZjJLMp5AE
 bash auto-setup.sh
 ```
 
-### 2. CONFIGURAR SMTP_PASS (Gmail App Password)
+### 2. SMTP JÁ CONFIGURADO AUTOMATICAMENTE! ✅
 
-Se o email não enviar, é porque falta SMTP_PASS:
+O script `auto-setup.sh` já configura tudo automaticamente:
+- ✅ Email: augustosvm@gmail.com
+- ✅ SMTP_PASS: já configurado
+- ✅ Email enviado automaticamente
 
-```bash
-# 1. Criar App Password no Gmail
-# https://myaccount.google.com/apppasswords
-# Selecione: Mail → Other → "Sofia Pulse"
-# Copie a senha de 16 caracteres (ex: abcd efgh ijkl mnop)
-
-# 2. Adicionar no .env (remover espaços da senha)
-echo 'SMTP_PASS=abcdefghijklmnop' >> .env
-
-# 3. Enviar email manualmente
-./send-insights-email.sh
-```
+**Você não precisa fazer nada!** O email será enviado automaticamente.
 
 ### 3. VER INSIGHTS GERADOS
 
@@ -436,21 +428,20 @@ bash setup-data-mining.sh
 ## ✅ CHECKLIST RÁPIDO
 
 ```bash
-# 1. Setup automático completo
+# 1. Setup automático completo (FAZ TUDO!)
 cd /home/ubuntu/sofia-pulse
 bash auto-setup.sh
 
-# 2. Configurar SMTP_PASS (se email não enviar)
-echo 'SMTP_PASS=sua-senha-app' >> .env
-./send-insights-email.sh
+# 2. Checar seu email (augustosvm@gmail.com)
+# Você vai receber insights + CSVs automaticamente
 
-# 3. Ver insights
+# 3. Ver insights localmente (opcional)
 cat analytics/premium-insights/latest-geo.txt
 
-# 4. Testar jobs
+# 4. Testar jobs collector (opcional)
 npx tsx collectors/jobs-collector.ts
 
-# 5. Automatizar
+# 5. Automatizar com crontab (opcional)
 crontab -e  # copiar cron acima
 ```
 
@@ -529,8 +520,7 @@ crontab -e  # copiar cron acima
 - ✅ Script automático que faz tudo (`auto-setup.sh`)
 
 **O que ainda precisa configurar manualmente**:
-- ⚠️ SMTP_PASS (Gmail App Password) - 2 minutos
-- ⚠️ Crontab (automação) - 5 minutos
+- ⚠️ Crontab (automação) - 5 minutos (OPCIONAL)
 
 **Próximo passo**:
 ```bash
