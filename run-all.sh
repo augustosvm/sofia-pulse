@@ -50,33 +50,22 @@ else
 fi
 echo ""
 
-# 3. Coletar dados de mercado
-echo -e "${BLUE}📊 [3/7] Coletando dados de mercado...${NC}"
-cd finance
-
-echo -e "  ${BLUE}→ B3 (Brasil)...${NC}"
-npm run collect:brazil 2>&1 | grep -E "(Coletando|ações|Concluída|salvas)" || true
-
-echo -e "  ${BLUE}→ NASDAQ (USA)...${NC}"
-npm run collect:nasdaq 2>&1 | grep -E "(Coletando|ações|Concluída|salvas)" || true
-
-echo -e "  ${BLUE}→ Funding Rounds...${NC}"
-npm run collect:funding 2>&1 | grep -E "(Coletando|rodadas|Concluída|salvas)" || true
-
-cd "$BASE_DIR"
-echo -e "${GREEN}  ✅ Dados coletados${NC}"
+# 3. Coletar TODOS os dados
+echo -e "${BLUE}📊 [3/7] Coletando TODOS os dados (mercado, papers, patents, jobs, IPOs)...${NC}"
+bash collect-all-data.sh 2>&1 | tail -20
+echo -e "${GREEN}  ✅ Todos os dados coletados${NC}"
 echo ""
 
-# 4. Gerar insights
-echo -e "${BLUE}💎 [4/7] Gerando Premium Insights...${NC}"
-python3 generate-insights-simple.py 2>&1 | grep -E "(Coletando|Insights|gerados|Exportando|CSVs)"
-echo -e "${GREEN}  ✅ Insights gerados${NC}"
+# 4. Gerar insights v3.0 (com Gemini e análise completa)
+echo -e "${BLUE}💎 [4/7] Gerando Premium Insights v3.0...${NC}"
+python3 generate-premium-insights-v3.py 2>&1 | tail -30
+echo -e "${GREEN}  ✅ Insights v3.0 gerados${NC}"
 echo ""
 
 # 5. Ver preview dos insights
-echo -e "${BLUE}📊 [5/7] Preview dos Insights...${NC}"
+echo -e "${BLUE}📊 [5/7] Preview dos Insights v3.0...${NC}"
 echo -e "${YELLOW}──────────────────────────────────────────────────────────────${NC}"
-head -60 analytics/premium-insights/latest-geo.txt
+head -80 analytics/premium-insights/latest-v3.txt 2>/dev/null || head -80 analytics/premium-insights/latest-geo.txt
 echo -e "${YELLOW}──────────────────────────────────────────────────────────────${NC}"
 echo ""
 

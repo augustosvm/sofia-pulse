@@ -27,20 +27,25 @@ print(f"Para: {EMAIL_TO}")
 print(f"SMTP: {SMTP_HOST}:{SMTP_PORT}")
 print()
 
-# Ler insights
-insights_file = 'analytics/premium-insights/latest-geo.txt'
+# Ler insights (v3.0 ou fallback para geo)
+insights_file = 'analytics/premium-insights/latest-v3.txt'
+if not os.path.exists(insights_file):
+    insights_file = 'analytics/premium-insights/latest-geo.txt'
+
 if not os.path.exists(insights_file):
     print("❌ Arquivo de insights não encontrado!")
     exit(1)
 
-with open(insights_file, 'r') as f:
+with open(insights_file, 'r', encoding='utf-8') as f:
     insights_content = f.read()
+
+version = "v3.0" if "latest-v3" in insights_file else "v2.0"
 
 # Criar mensagem
 msg = MIMEMultipart()
 msg['From'] = EMAIL_FROM
 msg['To'] = EMAIL_TO
-msg['Subject'] = f'Sofia Pulse - Premium Insights - {datetime.now().strftime("%Y-%m-%d")}'
+msg['Subject'] = f'Sofia Pulse - Premium Insights {version} - {datetime.now().strftime("%Y-%m-%d")}'
 
 # Corpo do email
 body = f"""
@@ -78,6 +83,8 @@ msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
 # Anexar arquivos
 attachments = [
+    'analytics/premium-insights/latest-v3.txt',
+    'analytics/premium-insights/latest-v3.md',
     'analytics/premium-insights/latest-geo.txt',
     'analytics/premium-insights/latest-geo.md',
     'analytics/premium-insights/funding_rounds_30d.csv',
