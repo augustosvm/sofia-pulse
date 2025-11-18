@@ -179,7 +179,7 @@ print(f"   🇨🇳 WIPO China Patents: {len(patents_china)}")
 
 # 6. OPENALEX PAPERS
 cur.execute("""
-    SELECT title, authors_raw, publication_date, cited_by_count
+    SELECT title, authors, publication_date, cited_by_count
     FROM openalex_papers
     ORDER BY cited_by_count DESC NULLS LAST
     LIMIT 50
