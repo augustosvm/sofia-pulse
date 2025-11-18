@@ -56,10 +56,10 @@ bash collect-all-data.sh 2>&1 | tail -20
 echo -e "${GREEN}  ✅ Todos os dados coletados${NC}"
 echo ""
 
-# 4. Gerar insights v3.0 (com Gemini e análise completa)
-echo -e "${BLUE}💎 [4/7] Gerando Premium Insights v3.0...${NC}"
-python3 generate-premium-insights-v3.py 2>&1 | tail -30
-echo -e "${GREEN}  ✅ Insights v3.0 gerados${NC}"
+# 4. Gerar insights v3.0 (Geo-localizado + Gemini + Macro + Anomalias)
+echo -e "${BLUE}💎 [4/7] Gerando Premium Insights v3.0 (GEO + AI)...${NC}"
+python3 generate-premium-insights-v3-REAL.py 2>&1 | tail -40
+echo -e "${GREEN}  ✅ Insights v3.0 gerados (geo-localizados + AI)${NC}"
 echo ""
 
 # 5. Ver preview dos insights
