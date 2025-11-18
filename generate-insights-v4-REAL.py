@@ -159,9 +159,9 @@ print(f"   🚀 AI Companies: {len(companies)}")
 
 # 4. EPO PATENTS
 cur.execute("""
-    SELECT title, applicants, publication_date, classifications
+    SELECT title, applicant, filing_date, ipc_classification
     FROM epo_patents
-    ORDER BY publication_date DESC
+    ORDER BY filing_date DESC
     LIMIT 50
 """)
 patents_epo = cur.fetchall()
@@ -169,9 +169,9 @@ print(f"   📜 EPO Patents: {len(patents_epo)}")
 
 # 5. WIPO CHINA PATENTS
 cur.execute("""
-    SELECT title, applicants, publication_date, ipc_codes
+    SELECT title, applicant, filing_date, ipc_classification
     FROM wipo_china_patents
-    ORDER BY publication_date DESC
+    ORDER BY filing_date DESC
     LIMIT 50
 """)
 patents_china = cur.fetchall()
@@ -274,18 +274,18 @@ insights += f"🇨🇳 WIPO China: {len(patents_china)} patents recentes\n\n"
 
 if patents_epo:
     insights += "🔥 TOP PATENTS EPO:\n\n"
-    for title, applicants, date, classes in patents_epo[:5]:
-        appl_str = ', '.join(applicants[:2]) if applicants else 'N/A'
+    for title, applicant, date, ipc_class in patents_epo[:5]:
+        appl_str = applicant if applicant else 'N/A'
         insights += f"   • {title}\n"
-        insights += f"     Empresas: {appl_str}\n"
+        insights += f"     Empresa: {appl_str}\n"
         insights += f"     Data: {date}\n\n"
 
 if patents_china:
     insights += "🔥 TOP PATENTS CHINA:\n\n"
-    for title, applicants, date, ipc in patents_china[:5]:
-        appl_str = ', '.join(applicants[:2]) if applicants else 'N/A'
+    for title, applicant, date, ipc_class in patents_china[:5]:
+        appl_str = applicant if applicant else 'N/A'
         insights += f"   • {title}\n"
-        insights += f"     Empresas: {appl_str}\n"
+        insights += f"     Empresa: {appl_str}\n"
         insights += f"     Data: {date}\n\n"
 
 insights += "\n💰 FUNDING ROUNDS\n"
