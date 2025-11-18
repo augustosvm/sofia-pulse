@@ -441,29 +441,120 @@ if funding:
             insights += f"      {cont}: ${amount_b:.2f}B em {deals} deals\n"
         insights += "\n"
 
-insights += "\n💡 ANÁLISE INTELIGENTE\n"
-insights += "-------------------------------------------------------------------\n\n"
+insights += "\n🔥 INSIGHTS ACIONÁVEIS (ANÁLISE PROFUNDA)\n"
+insights += "═══════════════════════════════════════════════════════════════\n\n"
 
-# Detectar tendências
-ai_papers_count = sum(1 for _, _, _, cats, _, _ in papers if cats and any('AI' in c or 'LG' in c for c in cats))
-cv_papers_count = sum(1 for _, _, _, cats, _, _ in papers if cats and any('CV' in c for c in cats))
-nlp_papers_count = sum(1 for _, _, _, cats, _, _ in papers if cats and any('CL' in c for c in cats))
-
-insights += f"🎯 TENDÊNCIAS EM PESQUISA:\n\n"
-insights += f"   • AI/ML: {ai_papers_count} papers (últimos 30 dias)\n"
-insights += f"   • Computer Vision: {cv_papers_count} papers\n"
-insights += f"   • NLP: {nlp_papers_count} papers\n\n"
-
+# 1. ANÁLISE DE CONCENTRAÇÃO DE CAPITAL
 if companies:
     usa_companies = [c for c in companies if c[1] == 'USA']
     china_companies = [c for c in companies if c[1] == 'China']
     brasil_companies = [c for c in companies if c[1] in ['Brazil', 'Brasil', 'BR']]
 
-    insights += f"🌍 CONCENTRAÇÃO GEOGRÁFICA DE IA:\n\n"
-    insights += f"   • USA: {len(usa_companies)} empresas\n"
-    insights += f"   • China: {len(china_companies)} empresas\n"
-    insights += f"   • Brasil: {len(brasil_companies)} empresas\n"
-    insights += f"   • Europa: {len(patents_epo)} patents recentes\n\n"
+    usa_funding = sum(c[3] if c[3] else 0 for c in usa_companies)
+    china_funding = sum(c[3] if c[3] else 0 for c in china_companies)
+
+    insights += "💰 INSIGHT #1: CONCENTRAÇÃO DE CAPITAL EM IA\n\n"
+
+    if len(usa_companies) > 0:
+        avg_usa = usa_funding / len(usa_companies) / 1_000_000
+        insights += f"   📊 USA: {len(usa_companies)} empresas com ${usa_funding/1e9:.1f}B total\n"
+        insights += f"      → Média: ${avg_usa:.0f}M por empresa\n"
+
+    if len(china_companies) > 0:
+        avg_china = china_funding / len(china_companies) / 1_000_000
+        insights += f"   📊 China: {len(china_companies)} empresas com ${china_funding/1e9:.1f}B total\n"
+        insights += f"      → Média: ${avg_china:.0f}M por empresa\n\n"
+
+    if len(usa_companies) > 0 and len(china_companies) > 0:
+        if avg_usa > avg_china * 1.5:
+            insights += "   💡 CONCLUSÃO: USA aposta em unicórnios gigantes (mega-rounds).\n"
+            insights += "      China pulveriza capital em mais empresas (menor risco).\n\n"
+            insights += "   🎯 OPORTUNIDADE: Investidores conservadores → China (diversificação)\n"
+            insights += "      Investidores agressivos → USA (home runs)\n\n"
+
+    insights += f"   ⚠️  ALERTA BRASIL: {len(brasil_companies)} empresas de IA com funding significativo.\n"
+    insights += "      Mercado brasileiro está SUBPENETRADO em IA.\n"
+    insights += "      → OPORTUNIDADE: Blue Ocean para founders brasileiros em IA B2B.\n\n"
+
+# 2. ANÁLISE DE TENDÊNCIAS EM FUNDING
+if funding:
+    insights += "\n🎯 INSIGHT #2: PARA ONDE ESTÁ INDO O DINHEIRO?\n\n"
+
+    # Agrupar por setor
+    sector_funding = defaultdict(lambda: {'count': 0, 'total': 0, 'companies': []})
+    for company, sector, amount, val, round_type, date in funding:
+        sector_funding[sector]['count'] += 1
+        sector_funding[sector]['total'] += amount if amount else 0
+        sector_funding[sector]['companies'].append((company, amount))
+
+    # Top 3 setores
+    top_sectors = sorted(sector_funding.items(), key=lambda x: x[1]['total'], reverse=True)[:3]
+
+    for sector, data in top_sectors:
+        total_b = data['total'] / 1_000_000_000
+        insights += f"   🔥 {sector}: ${total_b:.1f}B em {data['count']} deals\n"
+        # Pegar maior deal
+        if data['companies']:
+            top_company, top_amount = max(data['companies'], key=lambda x: x[1] if x[1] else 0)
+            insights += f"      → Maior: {top_company} (${top_amount/1e9:.1f}B)\n"
+
+    insights += "\n   💡 CONCLUSÃO: "
+    if len(top_sectors) > 0:
+        top_sector_name = top_sectors[0][0]
+        top_sector_total = top_sectors[0][1]['total'] / 1e9
+        insights += f"{top_sector_name} domina com ${top_sector_total:.1f}B.\n"
+        insights += f"   🎯 OPORTUNIDADE: Startups em {top_sector_name} têm vento a favor.\n"
+        insights += f"      Investidores estão ATIVAMENTE procurando deals nesse setor.\n\n"
+
+# 3. ANÁLISE GEOPOLÍTICA (PESQUISA vs COMERCIALIZAÇÃO)
+insights += "\n🌍 INSIGHT #3: QUEM PESQUISA vs QUEM COMERCIALIZA\n\n"
+
+usa_papers = sum(1 for _, _, authors, _, _, _ in papers if authors and any('USA' in str(a) or 'US' in str(a) for a in authors))
+china_papers = sum(1 for _, _, authors, _, _, _ in papers if authors and any('China' in str(a) for a in authors))
+brasil_papers = sum(1 for _, _, authors, _, _, _ in papers if authors and any('Brazil' in str(a) or 'Brasil' in str(a) for a in authors))
+
+if companies:
+    insights += f"   📚 PESQUISA: USA={usa_papers} papers | China={china_papers} | Brasil={brasil_papers}\n"
+    insights += f"   💰 COMERCIALIZAÇÃO: USA={len(usa_companies)} empresas | China={len(china_companies)} | Brasil={len(brasil_companies)}\n\n"
+
+    if len(patents_epo) > 5 and len([c for c in companies if c[1] in ['Germany', 'France', 'UK']]) < 3:
+        insights += "   ⚠️  ALERTA EUROPA: {len(patents_epo)} patents mas poucas empresas de IA.\n"
+        insights += "      → Europa pesquisa mas NÃO comercializa (vale da morte).\n"
+        insights += "      🎯 OPORTUNIDADE: Licenciar patents europeus baratos e comercializar nos USA.\n\n"
+
+    if brasil_papers > 0 and len(brasil_companies) == 0:
+        insights += f"   ⚠️  ALERTA BRASIL: {brasil_papers} papers mas 0 empresas com funding significativo.\n"
+        insights += "      → Universidades brasileiras produzem pesquisa, mas não viram startups.\n"
+        insights += "      🎯 OPORTUNIDADE: Spin-offs de USP/Unicamp/UFMG em Agro-tech AI.\n"
+        insights += "         Founders técnicos precisam de: capital semente + mentoria go-to-market.\n\n"
+
+# 4. ANÁLISE DE MARKET TIMING (B3)
+if b3 and len(b3) > 0:
+    insights += "\n📈 INSIGHT #4: SINAIS DO MERCADO BRASILEIRO\n\n"
+
+    positive = [s for s in b3 if s[3] > 0]
+    negative = [s for s in b3 if s[3] < 0]
+
+    insights += f"   📊 Balanço: {len(positive)} em alta vs {len(negative)} em queda\n"
+
+    if len(positive) > len(negative) * 2:
+        insights += "   ✅ CONCLUSÃO: Mercado brasileiro em modo RISK-ON.\n"
+        insights += "      → Momento favorável para IPOs e captações.\n\n"
+    elif len(negative) > len(positive) * 2:
+        insights += "   ⚠️  CONCLUSÃO: Mercado brasileiro em modo RISK-OFF.\n"
+        insights += "      → Momento para consolidar posições, não para levantar capital.\n\n"
+
+    # Setores em alta
+    if positive:
+        sectors_up = defaultdict(int)
+        for ticker, company, price, change, sector in positive[:5]:
+            if sector:
+                sectors_up[sector] += 1
+
+        if sectors_up:
+            top_sector_up = max(sectors_up.items(), key=lambda x: x[1])
+            insights += f"   🔥 Setor em ALTA: {top_sector_up[0]} ({top_sector_up[1]} ações subindo)\n"
+            insights += f"      → Investidores estão rotacionando capital para {top_sector_up[0]}.\n\n"
 
 insights += """
 
