@@ -441,120 +441,245 @@ if funding:
             insights += f"      {cont}: ${amount_b:.2f}B em {deals} deals\n"
         insights += "\n"
 
-insights += "\n🔥 INSIGHTS ACIONÁVEIS (ANÁLISE PROFUNDA)\n"
+insights += "\n🔥 ANÁLISE ESTRATÉGICA (INTELIGÊNCIA DE MERCADO)\n"
 insights += "═══════════════════════════════════════════════════════════════\n\n"
 
-# 1. ANÁLISE DE CONCENTRAÇÃO DE CAPITAL
-if companies:
+# ============================================================================
+# INSIGHT #1: PADRÕES INVISÍVEIS NOS PAPERS (CORRELAÇÃO PESQUISA → PRODUTO)
+# ============================================================================
+insights += "🧠 INSIGHT #1: O QUE OS PAPERS REVELAM SOBRE O FUTURO\n\n"
+
+if papers:
+    # Analisar temas recorrentes
+    llm_papers = sum(1 for _, title, _, cats, _, _ in papers if any('language model' in title.lower() or 'llm' in title.lower() or 'gpt' in title.lower()))
+    vision_papers = sum(1 for _, _, _, cats, _, _ in papers if cats and any('CV' in c for c in cats))
+    robot_papers = sum(1 for _, _, _, cats, _, _ in papers if cats and any('RO' in c for c in cats))
+    multimodal_papers = sum(1 for _, title, _, _, _, _ in papers if 'multimodal' in title.lower() or 'vision' in title.lower() and 'language' in title.lower())
+
+    insights += f"   📊 DADOS:\n"
+    insights += f"      • Papers sobre LLMs/Scaling: {llm_papers}\n"
+    insights += f"      • Papers sobre Visão: {vision_papers}\n"
+    insights += f"      • Papers sobre Robótica: {robot_papers}\n"
+    insights += f"      • Papers Multimodais: {multimodal_papers}\n\n"
+
+    # ANÁLISE CORRELACIONADA
+    insights += "   💡 LEITURA:\n"
+
+    if llm_papers > 0:
+        insights += "      → Papers sobre scaling laws + efficient attention indicam que o foco mudou:\n"
+        insights += "        Não é mais 'fazer maior', é 'fazer utilizável' (contexto longo, multi-sinal).\n"
+        insights += "        Isso é sinal de MATURIDADE, não hype.\n\n"
+
+    if multimodal_papers >= 2:
+        insights += "      → Explosão de papers multimodais (visão + linguagem + áudio).\n"
+        insights += "        OpenAI/Google/Meta estão preparando modelos 'tudo-em-um'.\n"
+        insights += "        📅 PREVISÃO: GPT-5 ou Gemini 2.0 será multimodal nativo (Q1 2025).\n\n"
+
+    if robot_papers > 0:
+        insights += f"      → {robot_papers} papers de robótica (sim-to-real, manipulação).\n"
+        # Correlacionar com funding
+        defense_funding = sum(amount for company, sector, amount, _, _, _ in funding if 'defense' in sector.lower() or 'military' in sector.lower()) if funding else 0
+        if defense_funding > 1_000_000_000:
+            insights += f"        CORRELAÇÃO: ${defense_funding/1e9:.1f}B em funding de Defense AI no mesmo mês.\n"
+            insights += "        → Stanford/MIT publicam robótica → VCs injetam capital em defesa.\n"
+            insights += "        🎯 MOVIMENTO: Humanoides militares/drones autônomos são a próxima onda.\n\n"
+
+# ============================================================================
+# INSIGHT #2: PATENTES = MAPA DO FUTURO (GEOPOLÍTICA TECNOLÓGICA)
+# ============================================================================
+insights += "\n🌍 INSIGHT #2: PATENTES REVELAM PRIORIDADES GEOPOLÍTICAS\n\n"
+
+if patents_epo or patents_china:
+    insights += "   📊 DADOS:\n"
+    insights += f"      • Europa (EPO): {len(patents_epo)} patents\n"
+    insights += f"      • China (WIPO): {len(patents_china)} patents\n\n"
+
+    # Análise de temas (Europa)
+    europa_energia = sum(1 for title, _, _, _ in patents_epo if any(word in title.lower() for word in ['hydrogen', 'wind', 'carbon', 'polymer', 'battery']))
+    europa_auto = sum(1 for title, _, _, _ in patents_epo if 'automotive' in title.lower() or 'driving' in title.lower())
+
+    # Análise de temas (China)
+    china_telecom = sum(1 for title, _, _, _ in patents_china if any(word in title.lower() for word in ['5g', '6g', 'mimo', 'antenna', 'network']))
+    china_bio = sum(1 for title, _, _, _ in patents_china if 'crispr' in title.lower() or 'gene' in title.lower())
+    china_ai = sum(1 for title, _, _, _ in patents_china if 'nlp' in title.lower() or 'language' in title.lower() or 'autonomous' in title.lower())
+
+    insights += "   💡 LEITURA GEOPOLÍTICA:\n\n"
+
+    if europa_energia >= 3:
+        insights += f"      🇪🇺 EUROPA:\n"
+        insights += f"         • {europa_energia}/{len(patents_epo)} patents = energia limpa/materiais avançados\n"
+        insights += "         → Europa dobrou aposta em REINDUSTRIALIZAÇÃO VERDE.\n"
+        insights += "         → Foco: hidrogênio, eólica, baterias, polímeros sustentáveis.\n\n"
+
+        # Correlacionar com empresas
+        europa_ai_companies = len([c for c in companies if c[1] in ['Germany', 'France', 'UK', 'Switzerland']])
+        if europa_ai_companies < 5:
+            insights += "         ⚠️  ANOMALIA: Europa forte em patents, FRACA em empresas de IA.\n"
+            insights += "            → VALE DA MORTE EUROPEU: pesquisa não vira produto.\n"
+            insights += "            🎯 OPORTUNIDADE: Licenciar patents europeus baratos e comercializar nos USA.\n\n"
+
+    if china_telecom >= 3 or china_ai >= 2:
+        insights += f"      🇨🇳 CHINA:\n"
+        insights += f"         • {china_telecom}/{len(patents_china)} patents = telecom/5G/6G/sensores\n"
+        insights += f"         • {china_ai}/{len(patents_china)} patents = IA/autonomous systems\n"
+        insights += "         → China patenteia INFRAESTRUTURA (hardware, redes, sensores).\n"
+        insights += "         → Enquanto USA foca em software/LLMs, China constrói a base física.\n\n"
+
+        # Correlacionar com empresas China
+        china_funding = sum(c[3] if c[3] else 0 for c in companies if c[1] == 'China')
+        if china_funding > 5_000_000_000:
+            insights += f"         💰 CORRELAÇÃO: ${china_funding/1e9:.1f}B em empresas chinesas de IA.\n"
+            insights += "            → China está ARMANDO algo: patents de infra + capital em IA.\n"
+            insights += "            📅 PREVISÃO: Salto chinês em hardware AI entre 2026-2027.\n\n"
+
+# ============================================================================
+# INSIGHT #3: FUNDING = MAPA DE CALOR DO FUTURO
+# ============================================================================
+insights += "\n💰 INSIGHT #3: PARA ONDE O DINHEIRO INTELIGENTE ESTÁ INDO\n\n"
+
+if funding:
+    # Agrupar por setor
+    sector_totals = defaultdict(lambda: {'total': 0, 'deals': [], 'companies': []})
+    for company, sector, amount, val, round_type, date in funding:
+        sector_totals[sector]['total'] += amount if amount else 0
+        sector_totals[sector]['deals'].append((company, amount, round_type))
+        sector_totals[sector]['companies'].append(company)
+
+    top_sectors = sorted(sector_totals.items(), key=lambda x: x[1]['total'], reverse=True)[:3]
+
+    insights += "   📊 DADOS:\n"
+    for sector, data in top_sectors:
+        insights += f"      • {sector}: ${data['total']/1e9:.1f}B em {len(data['deals'])} deals\n"
+    insights += "\n"
+
+    # ANÁLISE CORRELACIONADA
+    insights += "   💡 LEITURA:\n\n"
+
+    # Detectar concentração absurda
+    if len(top_sectors) > 0:
+        top_sector_name = top_sectors[0][0]
+        top_sector_total = top_sectors[0][1]['total']
+
+        # Mega-rounds
+        mega_rounds = [d for d in top_sectors[0][1]['deals'] if d[1] and d[1] > 1_000_000_000]
+
+        if len(mega_rounds) > 0:
+            insights += f"      🔥 CONCENTRAÇÃO BRUTAL: {top_sector_name} com ${top_sector_total/1e9:.1f}B.\n"
+            insights += f"         → {len(mega_rounds)} mega-rounds (>$1B cada).\n"
+            insights += "         → Capital institucional ABANDONOU middle-market.\n"
+            insights += "         → Ou você levanta $1B+, ou não existe.\n\n"
+
+            insights += "      ⚠️  ALERTA: Middle-market de IA MORREU.\n"
+            insights += "         → Seed/Series A normais não conseguem mais competir.\n"
+            insights += "         → VCs estão fazendo late-stage gigante ou nada.\n\n"
+
+    # Detectar movimentos setoriais
+    defense_total = sum(data['total'] for sector, data in sector_totals.items() if 'defense' in sector.lower() or 'military' in sector.lower())
+    ai_total = sum(data['total'] for sector, data in sector_totals.items() if 'ai' in sector.lower() or 'artificial' in sector.lower())
+
+    if defense_total > 1_000_000_000:
+        insights += f"      🎖️  MOVIMENTO SILENCIOSO: ${defense_total/1e9:.1f}B em Defense AI/Drones.\n"
+        insights += "         → Imprensa tech não cobriu (foco em LLMs).\n"
+        insights += "         → Mas capital institucional rotacionou PESADO para defesa.\n"
+        insights += "         → Contexto: Tensão geopolítica (Taiwan, Ucrânia, Oriente Médio).\n"
+        insights += "         🎯 TESE: Próximos unicórnios virão de defense tech, não SaaS.\n\n"
+
+# ============================================================================
+# INSIGHT #4: MERCADO B3 + MACRO
+# ============================================================================
+insights += "\n📈 INSIGHT #4: O QUE O MERCADO BRASILEIRO ESTÁ SINALIZANDO\n\n"
+
+if b3 and len(b3) > 0:
+    positive = [s for s in b3 if s[3] > 0]
+    negative = [s for s in b3 if s[3] < 0]
+
+    insights += "   📊 DADOS:\n"
+    insights += f"      • {len(positive)} ações em alta | {len(negative)} em queda\n"
+
+    # Analisar setores em alta
+    if positive:
+        sectors_up = defaultdict(list)
+        for ticker, company, price, change, sector in positive:
+            if sector:
+                sectors_up[sector].append((ticker, change))
+
+        top_sector_up = max(sectors_up.items(), key=lambda x: len(x[1])) if sectors_up else None
+
+        if top_sector_up:
+            insights += f"      • Setor dominante: {top_sector_up[0]} ({len(top_sector_up[1])} ações)\n"
+
+    insights += "\n   💡 LEITURA MACRO:\n\n"
+
+    # Detectar rotação defensiva
+    defensivos = sum(1 for _, _, _, _, sector in positive if sector and any(word in sector.lower() for word in ['industrial', 'energia', 'mineração']))
+    tech_consumo = sum(1 for _, _, _, _, sector in positive if sector and any(word in sector.lower() for word in ['tecnologia', 'consumo', 'varejo']))
+
+    if defensivos > tech_consumo:
+        insights += "      🛡️  ROTAÇÃO DEFENSIVA DETECTADA:\n"
+        insights += f"         → {defensivos} defensivos em alta vs {tech_consumo} growth/consumo.\n"
+        insights += "         → Mercado está buscando: exportadores + value + commodities.\n\n"
+
+        insights += "      📉 CONTEXTO MACRO (inferência):\n"
+        insights += "         → Expectativa: juros altos por mais tempo (Copom cauteloso).\n"
+        insights += "         → Dólar volátil → favorece exportadores (PETR, VALE, WEG).\n"
+        insights += "         → Fluxo estrangeiro fugindo de small caps/tech BR.\n\n"
+
+        insights += "      ⏰ MARKET TIMING:\n"
+        insights += "         ❌ NÃO é momento para: IPOs tech, captações growth, M&A agressivo.\n"
+        insights += "         ✅ É momento para: Consolidar posições, esperar Fed pivotar.\n\n"
+
+# ============================================================================
+# INSIGHT #5: GEOPOLÍTICA TECNOLÓGICA (PESQUISA vs COMERCIALIZAÇÃO)
+# ============================================================================
+insights += "\n🌐 INSIGHT #5: O MAPA GEOPOLÍTICO DA INOVAÇÃO\n\n"
+
+if companies and papers:
+    # Contar papers por país (aproximado)
+    usa_papers = sum(1 for _, _, authors, _, _, _ in papers if authors and any('USA' in str(a) or 'US' in str(a) or 'Stanford' in str(a) or 'MIT' in str(a) or 'Berkeley' in str(a) for a in authors))
+
+    # Contar empresas
     usa_companies = [c for c in companies if c[1] == 'USA']
     china_companies = [c for c in companies if c[1] == 'China']
+    europa_companies = [c for c in companies if c[1] in ['Germany', 'France', 'UK', 'Switzerland', 'Sweden', 'Netherlands']]
     brasil_companies = [c for c in companies if c[1] in ['Brazil', 'Brasil', 'BR']]
 
     usa_funding = sum(c[3] if c[3] else 0 for c in usa_companies)
     china_funding = sum(c[3] if c[3] else 0 for c in china_companies)
 
-    insights += "💰 INSIGHT #1: CONCENTRAÇÃO DE CAPITAL EM IA\n\n"
+    insights += "   📊 DIVISÃO GLOBAL:\n\n"
+    insights += f"      🇺🇸 USA:\n"
+    insights += f"         • {len(usa_companies)} empresas | ${usa_funding/1e9:.1f}B funding\n"
+    insights += f"         • {usa_papers} papers acadêmicos\n"
+    insights += f"         • Especialização: SOFTWARE (LLMs, aplicações, APIs)\n\n"
 
-    if len(usa_companies) > 0:
-        avg_usa = usa_funding / len(usa_companies) / 1_000_000
-        insights += f"   📊 USA: {len(usa_companies)} empresas com ${usa_funding/1e9:.1f}B total\n"
-        insights += f"      → Média: ${avg_usa:.0f}M por empresa\n"
+    insights += f"      🇨🇳 China:\n"
+    insights += f"         • {len(china_companies)} empresas | ${china_funding/1e9:.1f}B funding\n"
+    insights += f"         • {len(patents_china)} patents (telecom, sensores, hardware)\n"
+    insights += f"         • Especialização: HARDWARE (chips, infraestrutura, 5G)\n\n"
 
-    if len(china_companies) > 0:
-        avg_china = china_funding / len(china_companies) / 1_000_000
-        insights += f"   📊 China: {len(china_companies)} empresas com ${china_funding/1e9:.1f}B total\n"
-        insights += f"      → Média: ${avg_china:.0f}M por empresa\n\n"
+    if len(patents_epo) > 5:
+        insights += f"      🇪🇺 Europa:\n"
+        insights += f"         • {len(europa_companies)} empresas de IA\n"
+        insights += f"         • {len(patents_epo)} patents (energia, materiais, auto)\n"
+        insights += f"         • Especialização: ENERGIA/SUSTENTABILIDADE\n"
+        insights += "         ⚠️  PROBLEMA: Pesquisa forte, comercialização fraca (vale da morte).\n\n"
 
-    if len(usa_companies) > 0 and len(china_companies) > 0:
-        if avg_usa > avg_china * 1.5:
-            insights += "   💡 CONCLUSÃO: USA aposta em unicórnios gigantes (mega-rounds).\n"
-            insights += "      China pulveriza capital em mais empresas (menor risco).\n\n"
-            insights += "   🎯 OPORTUNIDADE: Investidores conservadores → China (diversificação)\n"
-            insights += "      Investidores agressivos → USA (home runs)\n\n"
+    insights += f"      🇧🇷 Brasil:\n"
+    insights += f"         • {len(brasil_companies)} empresas com funding relevante\n"
+    insights += "         • Especialização: ESPECTADOR (consumidor, não produtor)\n\n"
 
-    insights += f"   ⚠️  ALERTA BRASIL: {len(brasil_companies)} empresas de IA com funding significativo.\n"
-    insights += "      Mercado brasileiro está SUBPENETRADO em IA.\n"
-    insights += "      → OPORTUNIDADE: Blue Ocean para founders brasileiros em IA B2B.\n\n"
+    insights += "   💡 CONCLUSÃO GEOPOLÍTICA:\n\n"
+    insights += "      O eixo tecnológico do planeta se formalizou:\n"
+    insights += "         • USA controla SOFTWARE (modelos, APIs, produtos)\n"
+    insights += "         • China controla HARDWARE (chips, infra, manufatura)\n"
+    insights += "         • Europa controla ENERGIA (transição verde)\n"
+    insights += "         • Brasil = consumidor final.\n\n"
 
-# 2. ANÁLISE DE TENDÊNCIAS EM FUNDING
-if funding:
-    insights += "\n🎯 INSIGHT #2: PARA ONDE ESTÁ INDO O DINHEIRO?\n\n"
-
-    # Agrupar por setor
-    sector_funding = defaultdict(lambda: {'count': 0, 'total': 0, 'companies': []})
-    for company, sector, amount, val, round_type, date in funding:
-        sector_funding[sector]['count'] += 1
-        sector_funding[sector]['total'] += amount if amount else 0
-        sector_funding[sector]['companies'].append((company, amount))
-
-    # Top 3 setores
-    top_sectors = sorted(sector_funding.items(), key=lambda x: x[1]['total'], reverse=True)[:3]
-
-    for sector, data in top_sectors:
-        total_b = data['total'] / 1_000_000_000
-        insights += f"   🔥 {sector}: ${total_b:.1f}B em {data['count']} deals\n"
-        # Pegar maior deal
-        if data['companies']:
-            top_company, top_amount = max(data['companies'], key=lambda x: x[1] if x[1] else 0)
-            insights += f"      → Maior: {top_company} (${top_amount/1e9:.1f}B)\n"
-
-    insights += "\n   💡 CONCLUSÃO: "
-    if len(top_sectors) > 0:
-        top_sector_name = top_sectors[0][0]
-        top_sector_total = top_sectors[0][1]['total'] / 1e9
-        insights += f"{top_sector_name} domina com ${top_sector_total:.1f}B.\n"
-        insights += f"   🎯 OPORTUNIDADE: Startups em {top_sector_name} têm vento a favor.\n"
-        insights += f"      Investidores estão ATIVAMENTE procurando deals nesse setor.\n\n"
-
-# 3. ANÁLISE GEOPOLÍTICA (PESQUISA vs COMERCIALIZAÇÃO)
-insights += "\n🌍 INSIGHT #3: QUEM PESQUISA vs QUEM COMERCIALIZA\n\n"
-
-usa_papers = sum(1 for _, _, authors, _, _, _ in papers if authors and any('USA' in str(a) or 'US' in str(a) for a in authors))
-china_papers = sum(1 for _, _, authors, _, _, _ in papers if authors and any('China' in str(a) for a in authors))
-brasil_papers = sum(1 for _, _, authors, _, _, _ in papers if authors and any('Brazil' in str(a) or 'Brasil' in str(a) for a in authors))
-
-if companies:
-    insights += f"   📚 PESQUISA: USA={usa_papers} papers | China={china_papers} | Brasil={brasil_papers}\n"
-    insights += f"   💰 COMERCIALIZAÇÃO: USA={len(usa_companies)} empresas | China={len(china_companies)} | Brasil={len(brasil_companies)}\n\n"
-
-    if len(patents_epo) > 5 and len([c for c in companies if c[1] in ['Germany', 'France', 'UK']]) < 3:
-        insights += "   ⚠️  ALERTA EUROPA: {len(patents_epo)} patents mas poucas empresas de IA.\n"
-        insights += "      → Europa pesquisa mas NÃO comercializa (vale da morte).\n"
-        insights += "      🎯 OPORTUNIDADE: Licenciar patents europeus baratos e comercializar nos USA.\n\n"
-
-    if brasil_papers > 0 and len(brasil_companies) == 0:
-        insights += f"   ⚠️  ALERTA BRASIL: {brasil_papers} papers mas 0 empresas com funding significativo.\n"
-        insights += "      → Universidades brasileiras produzem pesquisa, mas não viram startups.\n"
-        insights += "      🎯 OPORTUNIDADE: Spin-offs de USP/Unicamp/UFMG em Agro-tech AI.\n"
-        insights += "         Founders técnicos precisam de: capital semente + mentoria go-to-market.\n\n"
-
-# 4. ANÁLISE DE MARKET TIMING (B3)
-if b3 and len(b3) > 0:
-    insights += "\n📈 INSIGHT #4: SINAIS DO MERCADO BRASILEIRO\n\n"
-
-    positive = [s for s in b3 if s[3] > 0]
-    negative = [s for s in b3 if s[3] < 0]
-
-    insights += f"   📊 Balanço: {len(positive)} em alta vs {len(negative)} em queda\n"
-
-    if len(positive) > len(negative) * 2:
-        insights += "   ✅ CONCLUSÃO: Mercado brasileiro em modo RISK-ON.\n"
-        insights += "      → Momento favorável para IPOs e captações.\n\n"
-    elif len(negative) > len(positive) * 2:
-        insights += "   ⚠️  CONCLUSÃO: Mercado brasileiro em modo RISK-OFF.\n"
-        insights += "      → Momento para consolidar posições, não para levantar capital.\n\n"
-
-    # Setores em alta
-    if positive:
-        sectors_up = defaultdict(int)
-        for ticker, company, price, change, sector in positive[:5]:
-            if sector:
-                sectors_up[sector] += 1
-
-        if sectors_up:
-            top_sector_up = max(sectors_up.items(), key=lambda x: x[1])
-            insights += f"   🔥 Setor em ALTA: {top_sector_up[0]} ({top_sector_up[1]} ações subindo)\n"
-            insights += f"      → Investidores estão rotacionando capital para {top_sector_up[0]}.\n\n"
+    insights += "      🎯 IMPLICAÇÃO ESTRATÉGICA:\n"
+    insights += "         → Quem controla COMPUTE controla IA.\n"
+    insights += "         → Quem controla IA controla DEFESA.\n"
+    insights += "         → NVDA/TSMC/AMD são o novo petróleo.\n"
+    insights += "         → Brasil precisa URGENTEMENTE de compute soberano ou ficará refém.\n\n"
 
 insights += """
 
