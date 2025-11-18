@@ -38,3 +38,9 @@ backups/
 *.backup
 *.sql
 *.sql.gz
+
+# Python virtual environments
+venv-analytics/
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
