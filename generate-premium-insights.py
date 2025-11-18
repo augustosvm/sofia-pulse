@@ -178,7 +178,9 @@ if not df_b3.empty or not df_nasdaq.empty:
 
     if not df_b3.empty:
         b3_avg = df_b3['change_pct'].mean()
-        b3_top = df_b3.nlargest(5, 'change_pct')[['ticker', 'company', 'change_pct', 'sector']]
+        # FIX: Remover duplicatas por ticker antes de pegar top 5
+        b3_unique = df_b3.drop_duplicates(subset='ticker', keep='first')
+        b3_top = b3_unique.nlargest(5, 'change_pct')[['ticker', 'company', 'change_pct', 'sector']]
 
         insight_4 += f"**B3 (Brasil)**:\n- Performance média: {b3_avg:.2f}%\n\n"
         insight_4 += "Top 5 Performers:\n"
@@ -187,7 +189,9 @@ if not df_b3.empty or not df_nasdaq.empty:
 
     if not df_nasdaq.empty:
         nasdaq_avg = df_nasdaq['change_pct'].mean()
-        nasdaq_top = df_nasdaq.nlargest(5, 'change_pct')[['ticker', 'company', 'change_pct', 'sector']]
+        # FIX: Remover duplicatas por ticker antes de pegar top 5
+        nasdaq_unique = df_nasdaq.drop_duplicates(subset='ticker', keep='first')
+        nasdaq_top = nasdaq_unique.nlargest(5, 'change_pct')[['ticker', 'company', 'change_pct', 'sector']]
 
         insight_4 += f"\n\n**NASDAQ (US)**:\n- Performance média: {nasdaq_avg:.2f}%\n\n"
         insight_4 += "Top 5 Performers:\n"
