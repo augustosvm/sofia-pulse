@@ -156,7 +156,7 @@ if not GEMINI_API_KEY:
 else:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro')
 
         # Preparar summary
         data_summary = f"""
@@ -250,7 +250,7 @@ if not df_funding.empty:
 insights_md = f"""# Sofia Pulse - AI Insights
 
 **Gerado em**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-**Modelo**: Gemini 1.5 Flash
+**Modelo**: Gemini Pro
 **Custo**: ~$0.0013 por análise
 
 ---
