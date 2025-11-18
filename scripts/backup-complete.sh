@@ -172,6 +172,55 @@ else
     log_warning "Diretório Mastra RAG não encontrado: $MASTRA_RAG_DIR"
 fi
 
+# Backup dos arquivos do Sofia Pulse (Finance + Data Mining)
+log_info "Backupeando código e dados do Sofia Pulse..."
+
+SOFIA_PULSE_DIRS=(
+    "/home/ubuntu/sofia-pulse"
+    "/home/user/sofia-pulse"
+)
+
+SOFIA_PULSE_DIR=""
+for dir in "${SOFIA_PULSE_DIRS[@]}"; do
+    if [ -d "$dir" ]; then
+        SOFIA_PULSE_DIR="$dir"
+        break
+    fi
+done
+
+if [ -n "$SOFIA_PULSE_DIR" ]; then
+    tar czf "${BACKUP_PATH}/sofia-pulse-files.tar.gz" \
+        -C "$SOFIA_PULSE_DIR" \
+        --exclude='node_modules' \
+        --exclude='venv-analytics' \
+        --exclude='.next' \
+        --exclude='dist' \
+        --exclude='.git' \
+        --exclude='__pycache__' \
+        --exclude='*.pyc' \
+        . 2>/dev/null || log_warning "Alguns arquivos podem não ter sido backupeados"
+
+    SOFIA_SIZE=$(du -h "${BACKUP_PATH}/sofia-pulse-files.tar.gz" | cut -f1)
+    log_success "Sofia Pulse files backed up: sofia-pulse-files.tar.gz ($SOFIA_SIZE)"
+
+    # Listar o que foi backupeado
+    log_info "Conteúdo do Sofia Pulse backupeado:"
+    if [ -d "$SOFIA_PULSE_DIR/analytics/insights" ]; then
+        INSIGHTS_COUNT=$(find "$SOFIA_PULSE_DIR/analytics/insights" -type f 2>/dev/null | wc -l)
+        log_info "  ✓ Insights: $INSIGHTS_COUNT arquivos"
+    fi
+    if [ -d "$SOFIA_PULSE_DIR/analytics/notebooks" ]; then
+        NOTEBOOKS_COUNT=$(find "$SOFIA_PULSE_DIR/analytics/notebooks" -name "*.ipynb" 2>/dev/null | wc -l)
+        log_info "  ✓ Notebooks Jupyter: $NOTEBOOKS_COUNT arquivos"
+    fi
+    if [ -d "$SOFIA_PULSE_DIR/logs" ]; then
+        LOGS_COUNT=$(find "$SOFIA_PULSE_DIR/logs" -type f 2>/dev/null | wc -l)
+        log_info "  ✓ Logs: $LOGS_COUNT arquivos"
+    fi
+else
+    log_warning "Diretório Sofia Pulse não encontrado"
+fi
+
 ###############################################################################
 # 4. COMPACTAR TUDO
 ###############################################################################
@@ -240,5 +289,8 @@ echo "  ✓ Sofia Mastra RAG volumes (3)"
 echo "  ✓ n8n workflows e dados"
 echo "  ✓ postgres_data volume"
 echo "  ✓ Mastra RAG código e configs"
+if [ -n "$SOFIA_PULSE_DIR" ]; then
+    echo "  ✓ Sofia Pulse (Finance + Data Mining + Insights)"
+fi
 echo ""
 echo "════════════════════════════════════════════════════════════════"
