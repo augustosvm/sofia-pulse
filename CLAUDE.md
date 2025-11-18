@@ -263,7 +263,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 - 🎯 Especialização Regional (Brasil=Agro, USA=AI, etc)
 - 🔥 Países em Destaque
 - 💰 Próximos IPOs (NASDAQ, B3)
-- 📊 Top 5 B3/NASDAQ (sem duplicatas!)
+- 📊 **Oceano Vermelho vs Azul**:
+  - 🔥 Top 50 Maiores ALTAS (alta visibilidade)
+  - 💎 Top 50 Maiores QUEDAS (oportunidades escondidas - menos observadas!)
 - 🤖 Resumo Executivo (narrativa Gemini AI)
 
 ### Dados RAW (CSVs):
@@ -281,6 +283,46 @@ summary_by_country.json   → Resumo agregado
 **Você pode**:
 - Usar insights prontos (latest-geo.txt)
 - Ou pegar CSVs e mandar pra ChatGPT/Claude gerar insights customizados
+
+---
+
+## 🌊 ESTRATÉGIA: OCEANO VERMELHO vs OCEANO AZUL
+
+### 🔥 Oceano Vermelho (Alta Visibilidade)
+**Top 50 Maiores ALTAS**:
+- Ações que todo mundo está vendo
+- Alta cobertura de analistas
+- Muita competição
+- Insights já precificados
+
+**Quando usar**:
+- Confirmar tendências de mercado
+- Ver setores em alta
+- Benchmark de performance
+
+### 💎 Oceano Azul (Oportunidades Escondidas)
+**Top 50 Maiores QUEDAS**:
+- Ações menos observadas pelo mercado
+- Baixa cobertura de analistas
+- Menor competição
+- **INSIGHTS ÚNICOS** - é aqui que você encontra alpha!
+
+**Por que são valiosas**:
+- Small caps têm maior variação
+- Menos gente olhando = menos competição
+- Potencial de reversão não precificado
+- Oportunidades antes do mercado perceber
+
+**Quando usar**:
+- Buscar oportunidades contrarian
+- Identificar setores/empresas subvalorizadas
+- Encontrar insights que ninguém mais tem
+
+**Exemplo real**:
+```
+Oceano Vermelho: NVDA +150% → Todo mundo sabe (saturado)
+Oceano Azul: Small cap mining -40% → Ninguém olhando (oportunidade)
+```
 
 ---
 
