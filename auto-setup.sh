@@ -128,24 +128,21 @@ echo -e "${BLUE}🗄️  [4/8] Criando tabelas no banco...${NC}"
 
 # Verificar se PostgreSQL está acessível
 if command -v psql &> /dev/null; then
-    # Criar tabela IPO Calendar
-    if psql -U sofia -d sofia_db -c "SELECT 1 FROM sofia.ipo_calendar LIMIT 1;" > /dev/null 2>&1; then
-        echo -e "${GREEN}  ✅ Tabela sofia.ipo_calendar já existe${NC}"
-    else
-        if [ -f "db/migrations/007_create_ipo_calendar.sql" ]; then
-            psql -U sofia -d sofia_db -f db/migrations/007_create_ipo_calendar.sql > /dev/null 2>&1
-            echo -e "${GREEN}  ✅ Tabela sofia.ipo_calendar criada${NC}"
-        fi
+    # Carregar credenciais do .env se existir
+    if [ -f ".env" ]; then
+        export $(grep -v '^#' .env | grep -E '^PG' | xargs)
     fi
 
-    # Criar tabela Jobs
-    if psql -U sofia -d sofia_db -c "SELECT 1 FROM sofia.jobs LIMIT 1;" > /dev/null 2>&1; then
-        echo -e "${GREEN}  ✅ Tabela sofia.jobs já existe${NC}"
-    else
-        if [ -f "db/migrations/008_create_jobs_table.sql" ]; then
-            psql -U sofia -d sofia_db -f db/migrations/008_create_jobs_table.sql > /dev/null 2>&1
-            echo -e "${GREEN}  ✅ Tabela sofia.jobs criada${NC}"
-        fi
+    # Criar tabela IPO Calendar (ignora erros se já existe)
+    if [ -f "db/migrations/007_create_ipo_calendar.sql" ]; then
+        psql -U sofia -d sofia_db -f db/migrations/007_create_ipo_calendar.sql > /dev/null 2>&1 || true
+        echo -e "${GREEN}  ✅ Tabela sofia.ipo_calendar verificada${NC}"
+    fi
+
+    # Criar tabela Jobs (ignora erros se já existe)
+    if [ -f "db/migrations/008_create_jobs_table.sql" ]; then
+        psql -U sofia -d sofia_db -f db/migrations/008_create_jobs_table.sql > /dev/null 2>&1 || true
+        echo -e "${GREEN}  ✅ Tabela sofia.jobs verificada${NC}"
     fi
 else
     echo -e "${YELLOW}  ⚠️  psql não encontrado, pulando criação de tabelas${NC}"
