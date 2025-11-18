@@ -166,7 +166,18 @@ def get_temporal_comparison(cur, table, date_col, value_col=None, group_col=None
                                  AND {date_col} < CURRENT_DATE - INTERVAL '60 days') as count_90d,
             {value_sum} FILTER (WHERE {date_col} >= CURRENT_DATE - INTERVAL '30 days') as sum_30d,
             {value_sum} FILTER (WHERE {date_col} >= CURRENT_DATE - INTERVAL '60 days'
-                                         AND {date_col} < CURRENT_DATE - INTERVAL '30 days') as sum_60d
+                                         AND {date_col} < CURRENT_DATE - INTERVAL '30 days') as sum_60d,
+            CASE
+                WHEN COUNT(*) FILTER (WHERE {date_col} >= CURRENT_DATE - INTERVAL '60 days'
+                                         AND {date_col} < CURRENT_DATE - INTERVAL '30 days') > 0
+                THEN ROUND(((
+                    COUNT(*) FILTER (WHERE {date_col} >= CURRENT_DATE - INTERVAL '30 days')::float -
+                    COUNT(*) FILTER (WHERE {date_col} >= CURRENT_DATE - INTERVAL '60 days'
+                                         AND {date_col} < CURRENT_DATE - INTERVAL '30 days')
+                ) / COUNT(*) FILTER (WHERE {date_col} >= CURRENT_DATE - INTERVAL '60 days'
+                                         AND {date_col} < CURRENT_DATE - INTERVAL '30 days') * 100)::numeric, 1)
+                ELSE NULL
+            END as growth_pct
         FROM {table}
         {group_clause}
     )
@@ -177,10 +188,7 @@ def get_temporal_comparison(cur, table, date_col, value_col=None, group_col=None
         count_90d,
         sum_30d,
         sum_60d,
-        CASE
-            WHEN count_60d > 0 THEN ROUND(((count_30d::float - count_60d) / count_60d * 100)::numeric, 1)
-            ELSE NULL
-        END as growth_pct
+        growth_pct
     FROM periods
     WHERE count_30d > 0 OR count_60d > 0
     ORDER BY ABS(COALESCE(growth_pct, 0)) DESC
