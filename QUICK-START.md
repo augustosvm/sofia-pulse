@@ -1,6 +1,6 @@
 # 🚀 Sofia Pulse - Quick Start
 
-Geração automática de insights de mercado + email diário.
+Geração automática de insights de mercado **GEO-LOCALIZADOS** + email diário.
 
 ## ⚡ Executar TUDO Automaticamente
 
@@ -10,10 +10,21 @@ bash run-all.sh
 ```
 
 **Isso vai:**
-1. ✅ Coletar dados do mercado (B3, NASDAQ, Funding)
-2. ✅ Gerar insights premium
-3. ✅ Exportar CSVs
+1. ✅ Coletar TODOS os dados (ArXiv, OpenAlex, EPO Patents, WIPO, AI Companies, Funding, B3)
+2. ✅ Gerar insights premium v4.0 **COM GEO-LOCALIZAÇÃO**
+3. ✅ Exportar CSVs (papers, companies, funding, market)
 4. ✅ Enviar email para **augustosvm@gmail.com**
+
+## 🌍 Novidade: Insights Geo-Localizados v4.0
+
+Os insights agora incluem:
+- 📚 **Papers por continente/país/universidade** (MIT, Stanford, USP, Unicamp, etc)
+- 🚀 **Empresas de IA por região** com especialização (Brasil=Agro-tech, USA=AI, China=Manufacturing)
+- 💰 **Investimentos por continente**
+- 🎓 **Universidades brasileiras** mapeadas (USP, Unicamp, ITA, UFMG, UFRGS, UFRJ)
+- 🌐 **50+ países** mapeados para continentes
+
+Ver detalhes completos em: **[INSIGHTS-V4-GEO-LOCALIZADOS.md](INSIGHTS-V4-GEO-LOCALIZADOS.md)**
 
 ## 📧 O que você recebe no email
 
