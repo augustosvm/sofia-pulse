@@ -1,0 +1,17 @@
+[Unit]
+Description=Jupyter Lab - Sofia Pulse Data Mining
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/sofia-pulse
+Environment="PATH=/home/ubuntu/sofia-pulse/venv-analytics/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/ubuntu/sofia-pulse/venv-analytics/bin/jupyter lab --ip=0.0.0.0 --port=8889 --no-browser --allow-root
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/ubuntu/jupyter.log
+StandardError=append:/home/ubuntu/jupyter.log
+
+[Install]
+WantedBy=multi-user.target
