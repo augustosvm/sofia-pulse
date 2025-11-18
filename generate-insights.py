@@ -156,7 +156,16 @@ if not GEMINI_API_KEY:
 else:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-pro')
+
+        # Listar modelos disponíveis e escolher o primeiro que suporta generateContent
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+
+        if available_models:
+            model_name = available_models[0]
+            print(f"   ℹ️  Usando modelo: {model_name}")
+            model = genai.GenerativeModel(model_name)
+        else:
+            raise Exception("Nenhum modelo disponível suporta generateContent")
 
         # Preparar summary
         data_summary = f"""
