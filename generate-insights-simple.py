@@ -35,11 +35,17 @@ cur.execute("""
 """)
 funding_data = cur.fetchall()
 
-# B3 stocks
+# B3 stocks (última coleta de cada ticker)
 cur.execute("""
+    WITH latest_data AS (
+        SELECT ticker, company, price, change_pct, volume,
+               ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY collected_at DESC) as rn
+        FROM market_data_brazil
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+    )
     SELECT ticker, company, price, change_pct, volume
-    FROM market_data_brazil
-    WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+    FROM latest_data
+    WHERE rn = 1
     ORDER BY change_pct DESC
 """)
 b3_data = cur.fetchall()
@@ -155,12 +161,18 @@ with open('analytics/premium-insights/funding_rounds_30d.csv', 'w') as f:
     for row in cur.fetchall():
         f.write(','.join(str(x) if x is not None else '' for x in row) + '\n')
 
-# B3 CSV
+# B3 CSV (última coleta de cada ticker)
 cur.execute("""
+    WITH latest_data AS (
+        SELECT ticker, company, price, change_pct, volume, collected_at,
+               ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY collected_at DESC) as rn
+        FROM market_data_brazil
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+    )
     SELECT ticker, company, price, change_pct, volume, collected_at
-    FROM market_data_brazil
-    WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
-    ORDER BY collected_at DESC, change_pct DESC
+    FROM latest_data
+    WHERE rn = 1
+    ORDER BY change_pct DESC
 """)
 with open('analytics/premium-insights/market_b3_30d.csv', 'w') as f:
     f.write("ticker,company,price,change_pct,volume,collected_at\n")
