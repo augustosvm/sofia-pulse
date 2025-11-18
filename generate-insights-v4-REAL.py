@@ -255,14 +255,14 @@ if companies:
     # Por país
     from collections import defaultdict
     by_country = defaultdict(list)
-    for name, country, category, funding, employees, year in companies:
-        by_country[country or 'Unknown'].append((name, category, funding))
+    for name, country, category, comp_funding, employees, year in companies:
+        by_country[country or 'Unknown'].append((name, category, comp_funding))
 
     insights += "🌍 EMPRESAS DE IA POR PAÍS:\n\n"
     for country, comps in sorted(by_country.items(), key=lambda x: len(x[1]), reverse=True)[:10]:
         insights += f"   {country}: {len(comps)} empresas\n"
-        for name, cat, funding in comps[:3]:
-            funding_m = funding / 1_000_000 if funding else 0
+        for name, cat, comp_funding in comps[:3]:
+            funding_m = comp_funding / 1_000_000 if comp_funding else 0
             insights += f"      • {name} ({cat}) - ${funding_m:.1f}M funding\n"
         insights += "\n"
 
@@ -364,11 +364,11 @@ if companies:
     companies_by_continent = defaultdict(list)
     companies_by_country = defaultdict(list)
 
-    for name, country, category, funding, employees, year in companies:
+    for name, country, category, comp_funding, employees, year in companies:
         if country:
             continent = get_continent(country)
-            companies_by_continent[continent].append((name, country, funding))
-            companies_by_country[country].append((name, category, funding))
+            companies_by_continent[continent].append((name, country, comp_funding))
+            companies_by_country[country].append((name, category, comp_funding))
 
     if companies_by_continent:
         insights += "   🗺️  Por Continente:\n"
