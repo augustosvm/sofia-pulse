@@ -59,7 +59,7 @@ python3 analytics/entity-resolution.py > analytics/entity-resolution-latest.txt 
 
 python3 analytics/nlg-playbooks-gemini.py 2>&1 | tail -5 && echo "   ✅ NLG Playbooks" || echo "   ⚠️  NLG falhou"
 
-python3 analytics/special-sectors-analysis.py 2>&1 | tail -10 && echo "   ✅ Special Sectors Analysis" || echo "   ⚠️  Special Sectors falhou"
+python3 analytics/special_sectors_analysis.py 2>&1 | tail -10 && echo "   ✅ Special Sectors Analysis" || echo "   ⚠️  Special Sectors falhou"
 
 bash run-insights.sh 2>&1 | tail -10 && echo "   ✅ Insights consolidados" || echo "   ⚠️  Insights falhou"
 
