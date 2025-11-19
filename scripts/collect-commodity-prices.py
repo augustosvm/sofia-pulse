@@ -12,6 +12,10 @@ from psycopg2.extras import execute_batch
 from datetime import datetime
 from typing import List, Dict, Any
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Database configuration
 DB_CONFIG = {

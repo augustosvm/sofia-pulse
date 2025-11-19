@@ -13,6 +13,10 @@ from datetime import datetime
 from typing import List, Dict, Any
 import pandas as pd
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Database configuration
 DB_CONFIG = {
