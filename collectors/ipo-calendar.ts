@@ -9,6 +9,16 @@
  * Tabela: sofia.ipo_calendar
  */
 
+// Fix for Node.js 18 + undici compatibility issue
+// @ts-ignore
+if (typeof File === 'undefined') {
+  globalThis.File = class File extends Blob {
+    constructor(bits: any[], name: string, options?: any) {
+      super(bits, options);
+    }
+  };
+}
+
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { db } from '../db';
