@@ -301,18 +301,30 @@ def main():
         conn = psycopg2.connect(**DB_CONFIG)
 
         print("📄 Analyzing papers...")
-        papers_stats = analyze_papers_by_sector(conn)
-        print(f"   ✅ {len(papers_stats)} sectors found")
+        try:
+            papers_stats = analyze_papers_by_sector(conn)
+            print(f"   ✅ {len(papers_stats)} sectors found")
+        except psycopg2.errors.UndefinedTable as e:
+            print(f"   ⚠️  Table not found (skipping)")
+            papers_stats = {}
         print()
 
         print("💰 Analyzing funding...")
-        funding_stats = analyze_funding_by_sector(conn)
-        print(f"   ✅ {len(funding_stats)} sectors found")
+        try:
+            funding_stats = analyze_funding_by_sector(conn)
+            print(f"   ✅ {len(funding_stats)} sectors found")
+        except psycopg2.errors.UndefinedTable as e:
+            print(f"   ⚠️  Table not found (skipping)")
+            funding_stats = {}
         print()
 
         print("🌍 Analyzing GDELT events...")
-        gdelt_stats = analyze_gdelt_events(conn)
-        print(f"   ✅ {len(gdelt_stats)} sectors found")
+        try:
+            gdelt_stats = analyze_gdelt_events(conn)
+            print(f"   ✅ {len(gdelt_stats)} sectors found")
+        except psycopg2.errors.UndefinedTable as e:
+            print(f"   ⚠️  Table not found (skipping)")
+            gdelt_stats = {}
         print()
 
         print_report(papers_stats, funding_stats, gdelt_stats)
