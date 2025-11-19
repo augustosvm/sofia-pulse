@@ -112,13 +112,74 @@ try:
     print("   ✅ ai_regulation criada")
     print()
 
+    # Create gdelt_events table
+    print("🌍 Creating gdelt_events table...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.gdelt_events (
+            id SERIAL PRIMARY KEY,
+            event_id VARCHAR(100) UNIQUE NOT NULL,
+            event_date DATE NOT NULL,
+            event_time TIMESTAMP,
+
+            actor1_name VARCHAR(500),
+            actor1_country VARCHAR(10),
+            actor2_name VARCHAR(500),
+            actor2_country VARCHAR(10),
+
+            event_code VARCHAR(10),
+            event_base_code VARCHAR(10),
+            event_root_code VARCHAR(10),
+            quad_class INT,
+            goldstein_scale DECIMAL(5,2),
+            num_mentions INT DEFAULT 0,
+            num_sources INT DEFAULT 0,
+            num_articles INT DEFAULT 0,
+            avg_tone DECIMAL(6,3),
+
+            action_geo_country VARCHAR(10),
+            action_geo_lat DECIMAL(10,6),
+            action_geo_lon DECIMAL(10,6),
+            action_geo_fullname TEXT,
+
+            categories TEXT[],
+            is_tech_related BOOLEAN DEFAULT FALSE,
+            is_market_relevant BOOLEAN DEFAULT FALSE,
+
+            source_url TEXT,
+            collected_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gdelt_date ON sofia.gdelt_events(event_date DESC);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gdelt_countries ON sofia.gdelt_events(actor1_country, actor2_country);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gdelt_goldstein ON sofia.gdelt_events(goldstein_scale);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gdelt_tone ON sofia.gdelt_events(avg_tone);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gdelt_categories ON sofia.gdelt_events USING GIN(categories);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gdelt_tech ON sofia.gdelt_events(is_tech_related) WHERE is_tech_related = TRUE;
+    """)
+
+    conn.commit()
+    print("   ✅ gdelt_events criada")
+    print()
+
     # Verify tables exist
     print("🔍 Verificando tabelas...")
     cursor.execute("""
         SELECT table_name
         FROM information_schema.tables
         WHERE table_schema = 'sofia'
-          AND table_name IN ('space_industry', 'ai_regulation', 'cybersecurity_events')
+          AND table_name IN ('space_industry', 'ai_regulation', 'cybersecurity_events', 'gdelt_events')
         ORDER BY table_name;
     """)
 

@@ -45,6 +45,10 @@ echo "⚖️  Coletando AI Regulation..."
 npm run collect:ai-regulation 2>&1 | tail -5 || true
 sleep 2
 
+echo "🌍 Coletando GDELT Events..."
+npm run collect:gdelt 2>&1 | tail -5 || true
+sleep 2
+
 echo ""
 echo "📊 3. Gerando TODAS as análises..."
 echo ""

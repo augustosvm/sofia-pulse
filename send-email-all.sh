@@ -74,6 +74,10 @@ if command -v psql &> /dev/null; then
     PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
         -c "\COPY (SELECT title, jurisdiction, status, impact_level, announced_date FROM sofia.ai_regulation ORDER BY announced_date DESC) TO 'data/exports/ai_regulation.csv' CSV HEADER" 2>/dev/null || true
 
+    # GDELT Events
+    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+        -c "\COPY (SELECT event_date, actor1_name, actor2_name, goldstein_scale, avg_tone, num_mentions, action_geo_country FROM sofia.gdelt_events WHERE event_date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY event_date DESC LIMIT 100) TO 'data/exports/gdelt_events_30d.csv' CSV HEADER" 2>/dev/null || true
+
     echo "   ✅ CSVs exportados"
 fi
 
