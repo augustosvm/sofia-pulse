@@ -322,8 +322,8 @@ try:
             id SERIAL PRIMARY KEY,
             region VARCHAR(100) NOT NULL,
             year INTEGER NOT NULL,
-            quarter VARCHAR(10),
-            month VARCHAR(20),
+            quarter VARCHAR(10) DEFAULT '',
+            month VARCHAR(20) DEFAULT '',
             sales_usd_billions DECIMAL(10,2),
             yoy_growth_pct DECIMAL(6,2),
             qoq_growth_pct DECIMAL(6,2),
@@ -331,7 +331,7 @@ try:
             notes TEXT,
             collected_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(region, year, COALESCE(quarter, ''), COALESCE(month, ''))
+            UNIQUE(region, year, quarter, month)
         );
     """)
 

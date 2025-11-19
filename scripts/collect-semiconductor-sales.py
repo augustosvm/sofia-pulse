@@ -179,7 +179,7 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
             (region, year, quarter, month, sales_usd_billions,
              yoy_growth_pct, qoq_growth_pct, data_source, notes, collected_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-            ON CONFLICT (region, year, COALESCE(quarter, ''), COALESCE(month, ''))
+            ON CONFLICT (region, year, quarter, month)
             DO UPDATE SET
                 sales_usd_billions = EXCLUDED.sales_usd_billions,
                 yoy_growth_pct = EXCLUDED.yoy_growth_pct,
@@ -194,8 +194,8 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
             batch_data.append((
                 record.get('region', 'Global'),
                 safe_int(record.get('year')),
-                record.get('quarter'),
-                record.get('month'),
+                record.get('quarter') or '',  # Convert None to empty string
+                record.get('month') or '',    # Convert None to empty string
                 safe_float(record.get('sales_billions')),
                 safe_float(record.get('yoy_growth')),
                 safe_float(record.get('qoq_growth')),
