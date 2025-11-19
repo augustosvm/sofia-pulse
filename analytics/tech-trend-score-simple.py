@@ -392,15 +392,19 @@ def print_report(scores: List[Tuple[str, float, Dict[str, float]]]):
     print("-" * 80)
 
     frameworks = {
-        'React', 'Vue', 'Angular', 'Svelte', 'Next.js', 'Django',
-        'Flask', 'Rails', 'Laravel', 'TensorFlow', 'PyTorch', 'Kubernetes', 'Docker'
+        'React', 'Vue', 'Angular', 'Svelte', 'Next.js', 'Nuxt', 'Remix',
+        'Django', 'Flask', 'FastAPI', 'Rails', 'Laravel', 'Spring',
+        'TensorFlow', 'PyTorch', 'JAX', 'scikit-learn',
+        'Kubernetes', 'Docker', 'Terraform', 'Ansible',
+        'PostgreSQL', 'MongoDB', 'Redis', 'Elasticsearch',
+        'GraphQL', 'tRPC', 'Prisma', 'Drizzle'
     }
 
     fw_scores = [
         (tech, score, metrics)
         for tech, score, metrics in scores
         if tech in frameworks
-    ][:10]
+    ][:15]
 
     for idx, (tech, score, metrics) in enumerate(fw_scores, 1):
         print(

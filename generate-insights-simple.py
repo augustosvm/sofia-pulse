@@ -68,12 +68,26 @@ inovação, investimentos e ações de alta performance.
 """
 
 if funding_data:
-    insights += "\n🔥 TOP RODADAS DE INVESTIMENTO:\n\n"
-    for company, sector, amount, valuation, round_type in funding_data[:10]:
+    # Dividir em oceano vermelho (>$500M) e azul (<$100M)
+    red_ocean = [(c, s, a, v, r) for c, s, a, v, r in funding_data if a and a >= 500_000_000]
+    blue_ocean = [(c, s, a, v, r) for c, s, a, v, r in funding_data if a and a < 100_000_000]
+
+    insights += "\n🔥 TOP RODADAS DE INVESTIMENTO (Oceano Vermelho >$500M):\n\n"
+    for company, sector, amount, valuation, round_type in red_ocean[:10]:
         amount_b = amount / 1_000_000_000 if amount else 0
         val_b = valuation / 1_000_000_000 if valuation else 0
         insights += f"   • {company} ({sector})\n"
         insights += f"     {round_type} - ${amount_b:.1f}B | Valuation: ${val_b:.1f}B\n\n"
+
+    insights += "\n💎 OCEANO AZUL - EMERGENTES (<$100M):\n\n"
+    for company, sector, amount, valuation, round_type in blue_ocean[:15]:
+        amount_m = amount / 1_000_000 if amount else 0
+        val_m = valuation / 1_000_000 if valuation else 0
+        insights += f"   • {company} ({sector})\n"
+        insights += f"     {round_type} - ${amount_m:.1f}M"
+        if val_m > 0:
+            insights += f" | Valuation: ${val_m:.1f}M"
+        insights += "\n\n"
 
     # Análise por setor
     cur.execute("""
@@ -84,13 +98,14 @@ if funding_data:
         WHERE announced_date >= CURRENT_DATE - INTERVAL '30 days'
         GROUP BY sector
         ORDER BY total_invested DESC
+        LIMIT 15
     """)
     sectors = cur.fetchall()
 
-    insights += "\n📊 INVESTIMENTO POR SETOR:\n\n"
+    insights += "\n📊 INVESTIMENTO POR SETOR (Top 15):\n\n"
     for sector, deals, total in sectors:
         total_b = total / 1_000_000_000 if total else 0
-        insights += f"   {sector:30s} | {deals:2d} deals | ${total_b:6.1f}B\n"
+        insights += f"   {sector:35s} | {deals:2d} deals | ${total_b:6.2f}B\n"
 
 insights += "\n\n📈 MERCADO B3 (BRASIL)\n"
 insights += "-------------------------------------------------------------------\n"
@@ -107,26 +122,76 @@ insights += "\n\n💎 INSIGHTS ESTRATÉGICOS\n"
 insights += "-------------------------------------------------------------------\n\n"
 
 if funding_data:
-    # Encontrar tendências
-    ai_deals = sum(1 for _, sector, _, _, _ in funding_data if sector and ('AI' in sector or 'Intelligence' in sector))
-    defense_deals = sum(1 for _, sector, _, _, _ in funding_data if sector and ('Defense' in sector or 'Military' in sector))
-    fintech_deals = sum(1 for _, sector, _, _, _ in funding_data if sector and ('Fintech' in sector or 'Finance' in sector))
+    # Análise profunda por categoria
+    from collections import defaultdict
 
-    insights += f"🎯 SETORES EM ALTA:\n\n"
-    if ai_deals > 0:
-        insights += f"   • Inteligência Artificial: {ai_deals} rodadas\n"
-        insights += f"     > IA está dominando os investimentos globais\n"
-        insights += f"     > Grandes valuations (>$10B) indicam maturidade do setor\n\n"
+    sector_analysis = defaultdict(lambda: {'count': 0, 'total': 0, 'avg': 0, 'companies': []})
 
-    if defense_deals > 0:
-        insights += f"   • Defense Tech: {defense_deals} rodadas\n"
-        insights += f"     > Drones militares e AI defense em alta\n"
-        insights += f"     > Oportunidade: empresas com contratos governamentais\n\n"
+    for company, sector, amount, valuation, round_type in funding_data:
+        if sector:
+            sector_analysis[sector]['count'] += 1
+            sector_analysis[sector]['total'] += amount if amount else 0
+            sector_analysis[sector]['companies'].append(company)
 
-    if fintech_deals > 0:
-        insights += f"   • Fintech: {fintech_deals} rodadas\n"
-        insights += f"     > América Latina continua atraindo capital\n"
-        insights += f"     > Nubank como unicórnio regional consolidado\n\n"
+    # Calcular médias
+    for sector in sector_analysis:
+        if sector_analysis[sector]['count'] > 0:
+            sector_analysis[sector]['avg'] = sector_analysis[sector]['total'] / sector_analysis[sector]['count']
+
+    # Ordenar por total investido
+    top_sectors = sorted(sector_analysis.items(), key=lambda x: x[1]['total'], reverse=True)[:10]
+
+    insights += f"🎯 SETORES EM ALTA (Top 10 por capital investido):\n\n"
+
+    # Insights dinâmicos baseados em keywords
+    sector_insights = {
+        'AI': 'Competição acirrada entre OpenAI, Anthropic, DeepMind',
+        'Intelligence': 'Empresas de LLM dominam valuations bilionárias',
+        'Defense': 'Geopolítica global impulsiona demanda por autonomia militar',
+        'Military': 'Drones e AI tactical systems em crescimento exponencial',
+        'Fintech': 'América Latina e África como novos hubs de inovação',
+        'Finance': 'Automação bancária e embedded finance em alta',
+        'Biotech': 'CRISPR e AI drug discovery convergindo',
+        'Health': 'Telemedicina e wearables pós-pandemia',
+        'Climate': 'Carbon capture e green hydrogen atraindo capital',
+        'Energy': 'Transição energética: baterias, solar, nuclear modular',
+        'Robotics': 'Humanoides (Tesla Optimus, Figure AI) virando realidade',
+        'Automation': 'RPA + AI agents substituindo workflows manuais',
+        'Quantum': 'Corrida quântica: IBM, Google, startups chinesas',
+        'Space': 'SpaceX consolidado, Blue Origin/Rocket Lab emergindo',
+        'Crypto': 'Após crash: foco em infraestrutura e stablecoins',
+        'Web3': 'Social graphs descentralizados ganhando tração',
+        'Gaming': 'AAA studios + AI-generated content',
+        'EdTech': 'AI tutors personalizados democratizando educação',
+        'Agro': 'Vertical farming e precision agriculture com drones',
+        'Manufacturing': 'Indústria 4.0: digital twins e predictive maintenance'
+    }
+
+    for sector, data in top_sectors:
+        total_b = data['total'] / 1_000_000_000
+        avg_m = data['avg'] / 1_000_000
+
+        insights += f"   • {sector}: {data['count']} rodadas | ${total_b:.2f}B total\n"
+        insights += f"     Ticket médio: ${avg_m:.1f}M\n"
+
+        # Buscar insight relevante
+        insight_found = False
+        for keyword, insight in sector_insights.items():
+            if keyword.lower() in sector.lower():
+                insights += f"     → {insight}\n"
+                insight_found = True
+                break
+
+        if not insight_found:
+            # Insight genérico baseado em dados
+            if data['count'] >= 3:
+                insights += f"     → Setor aquecido com múltiplos players competindo\n"
+            elif total_b >= 1.0:
+                insights += f"     → Mega-rounds indicam maturidade e consolidação\n"
+            else:
+                insights += f"     → Oportunidade emergente para early investors\n"
+
+        insights += "\n"
 
 insights += """
 
