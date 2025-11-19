@@ -65,6 +65,8 @@ python3 analytics/nlg-playbooks-gemini.py 2>&1 | tail -5 && echo "   ✅ NLG Pla
 
 python3 analytics/special_sectors_analysis.py 2>&1 | tail -10 && echo "   ✅ Special Sectors Analysis" || echo "   ⚠️  Special Sectors falhou"
 
+python3 analytics/early-stage-deep-dive.py 2>&1 | tail -10 && echo "   ✅ Early-Stage Deep Dive" || echo "   ⚠️  Early-Stage falhou"
+
 bash run-insights.sh 2>&1 | tail -10 && echo "   ✅ Insights consolidados" || echo "   ⚠️  Insights falhou"
 
 echo ""

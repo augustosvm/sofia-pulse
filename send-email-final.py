@@ -57,6 +57,7 @@ Este relatório contém TODAS as análises:
 - NLG Playbooks (Gemini AI)
 - Premium Insights v2.0 (regional + temporal)
 - 🔥 Special Sectors Analysis (Cybersecurity, Space, Robotics, AI Regulation, Quantum, Defense) [NEW!]
+- 💎 Early-Stage Deep Dive (Seed/Angel <$10M | Papers | Universities | Tech Stack | Patents) [NEW!]
 
 📁 ANEXOS:
 - Relatórios completos (TXT)
@@ -78,6 +79,7 @@ reports = [
     ('analytics/entity-resolution-latest.txt', 'entity-resolution.txt'),
     ('analytics/playbook-latest.txt', 'nlg-playbooks-gemini.txt'),
     ('analytics/special-sectors-latest.txt', 'special-sectors-analysis.txt'),
+    ('analytics/early-stage-latest.txt', 'early-stage-deep-dive.txt'),
 ]
 
 attached = 0

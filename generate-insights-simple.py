@@ -68,26 +68,32 @@ inovação, investimentos e ações de alta performance.
 """
 
 if funding_data:
-    # Dividir em oceano vermelho (>$500M) e azul (<$100M)
-    red_ocean = [(c, s, a, v, r) for c, s, a, v, r in funding_data if a and a >= 500_000_000]
-    blue_ocean = [(c, s, a, v, r) for c, s, a, v, r in funding_data if a and a < 100_000_000]
+    # Dividir em oceano vermelho (>$100M), growth ($10M-$100M) e seed (<$10M)
+    red_ocean = [(c, s, a, v, r) for c, s, a, v, r in funding_data if a and a >= 100_000_000]
+    growth_stage = [(c, s, a, v, r) for c, s, a, v, r in funding_data if a and 10_000_000 <= a < 100_000_000]
+    seed_stage = [(c, s, a, v, r) for c, s, a, v, r in funding_data if a and a < 10_000_000]
 
-    insights += "\n🔥 TOP RODADAS DE INVESTIMENTO (Oceano Vermelho >$500M):\n\n"
-    for company, sector, amount, valuation, round_type in red_ocean[:10]:
-        amount_b = amount / 1_000_000_000 if amount else 0
+    insights += "\n🔥 OCEANO VERMELHO (>$100M) - Late Stage:\n\n"
+    for company, sector, amount, valuation, round_type in red_ocean[:8]:
+        amount_m = amount / 1_000_000 if amount else 0
         val_b = valuation / 1_000_000_000 if valuation else 0
         insights += f"   • {company} ({sector})\n"
-        insights += f"     {round_type} - ${amount_b:.1f}B | Valuation: ${val_b:.1f}B\n\n"
-
-    insights += "\n💎 OCEANO AZUL - EMERGENTES (<$100M):\n\n"
-    for company, sector, amount, valuation, round_type in blue_ocean[:15]:
-        amount_m = amount / 1_000_000 if amount else 0
-        val_m = valuation / 1_000_000 if valuation else 0
-        insights += f"   • {company} ({sector})\n"
-        insights += f"     {round_type} - ${amount_m:.1f}M"
-        if val_m > 0:
-            insights += f" | Valuation: ${val_m:.1f}M"
+        insights += f"     {round_type} - ${amount_m:.0f}M"
+        if val_b > 0:
+            insights += f" | Valuation: ${val_b:.1f}B"
         insights += "\n\n"
+
+    insights += "\n📈 GROWTH STAGE ($10M-$100M) - Series A/B:\n\n"
+    for company, sector, amount, valuation, round_type in growth_stage[:12]:
+        amount_m = amount / 1_000_000 if amount else 0
+        insights += f"   • {company} ({sector})\n"
+        insights += f"     {round_type} - ${amount_m:.1f}M\n\n"
+
+    insights += "\n💎 SEED/ANGEL (<$10M) - Early Stage:\n\n"
+    for company, sector, amount, valuation, round_type in seed_stage[:20]:
+        amount_m = amount / 1_000_000 if amount else 0
+        insights += f"   • {company} ({sector})\n"
+        insights += f"     {round_type} - ${amount_m:.2f}M\n\n"
 
     # Análise por setor
     cur.execute("""
