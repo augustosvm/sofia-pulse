@@ -55,16 +55,25 @@ Sofia Pulse coleta dados de **19+ fontes**, analisa **6 setores críticos**, e e
 4. **Entity Resolution** - Links researchers → companies
 5. **NLG Playbooks** - Narrativas Gemini AI
 6. **Premium Insights v2.0** - Regional + Temporal + 3 stages (Late/Growth/Seed)
-7. **🔥 Special Sectors** - Análise profunda de 6 setores críticos
+7. **🔥 Special Sectors** - Análise profunda de 14 setores críticos
 8. **💎 Early-Stage Deep Dive** - Seed/Angel (<$10M) → Papers → Universities → Tech Stack → Patents
+9. **🌍 Global Energy Map** - Capacidade renovável + Mix energético por país (200+ países)
 
-**Setores Monitorados**:
-- Cybersecurity (ataques, CVEs)
-- Space Industry (corrida espacial, SpaceX vs Blue Origin)
-- Robotics & Automation (humanoides, industrial)
-- AI Regulation (leis, GDPR, LGPD)
-- Quantum Computing
-- Defense Tech
+**Setores Monitorados** (14):
+1. **Cybersecurity** (ataques, CVEs, NVD, CISA)
+2. **Space Industry** (corrida espacial, SpaceX vs Blue Origin)
+3. **Robotics & Automation** (humanoides, industrial)
+4. **AI Regulation** (leis, GDPR, LGPD, EU AI Act)
+5. **Quantum Computing** (IBM, Google, qubits)
+6. **Defense Tech** (drones, Anduril, Palantir)
+7. **Electric Vehicles & Batteries** 🔋 (Tesla, BYD, CATL, lithium)
+8. **Autonomous Driving** 🚗 (Waymo, FSD, Lidar)
+9. **Smartphones & Mobile** 📱 (Samsung, Apple, Qualcomm, 5G)
+10. **Edge AI & Embedded** 🤖 (Jetson, TinyML, on-device AI)
+11. **Renewable Energy** ☀️ (Solar, Wind, Hydro - **CRITICAL**)
+12. **Nuclear Energy** ☢️ (SMRs, Fusion, ITER)
+13. **Energy Storage & Grid** 🔌 (Hydrogen, Grid batteries)
+14. **Databases & Data Infrastructure** 🗄️ (PostgreSQL, MongoDB, Redis)
 
 ---
 
@@ -147,11 +156,13 @@ bash update-crontab-simple.sh  # Aplica crontab (execução diária 22:00 UTC)
 - `collect-cybersecurity.ts` 🔥
 - `collect-space-industry.ts` 🔥
 - `collect-ai-regulation.ts` 🔥
+- `collect-energy-global.py` 🌍 - Our World in Data (energia)
 
 **Analytics** (analytics/):
 - `special_sectors_analysis.py` 🔥
-- `special_sectors_config.py` - Keywords por setor
+- `special_sectors_config.py` - Keywords por setor (14 setores)
 - `early-stage-deep-dive.py` 💎 - Seed/Angel analysis
+- `energy-global-map.py` 🌍 - Global energy intelligence
 
 ---
 
@@ -160,7 +171,7 @@ bash update-crontab-simple.sh  # Aplica crontab (execução diária 22:00 UTC)
 1. **Cybersecurity Tracking**: CVEs, breaches, advisories (NVD, GitHub, CISA)
 2. **Space Industry**: Launches, missions (SpaceX, Blue Origin, etc)
 3. **AI Regulation**: EU AI Act, LGPD, US Executive Order, China, UK, California SB 1047
-4. **Special Sectors Analysis**: Análise automática de 6 setores críticos
+4. **Special Sectors Analysis**: Expandido de 6 para **14 setores** críticos
 5. **Keywords Tracking**: Detecta automaticamente menções a space, robotics, cybersecurity, etc
 6. **💎 Early-Stage Deep Dive**: Análise cross-referenciada de seed/angel (<$10M)
    - Conecta: Funding → Papers (ArXiv) → Universities → Tech Stack (GitHub) → Patents (WIPO/EPO)
@@ -171,6 +182,13 @@ bash update-crontab-simple.sh  # Aplica crontab (execução diária 22:00 UTC)
    - 15 frameworks rastreados (antes 2)
    - 3 stages: Late (>$100M), Growth ($10M-$100M), Seed (<$10M)
    - 20+ sector-specific insights (Biotech, Quantum, Climate, etc)
+8. **🌍 EXPANSÃO GLOBAL** (NOVO!):
+   - **8 novos setores**: EVs/Baterias, Autonomous Driving, Smartphones, Edge AI, Renewable Energy, Nuclear, Grid Storage, Databases
+   - **Global Energy Map**: Capacidade renovável por país (200+ países)
+   - **Fontes gratuitas**: Our World in Data, EIA API, IRENA, World Bank
+   - **Mapa completo**: Solar/Wind/Hydro/Nuclear/Fossil por país
+   - **Ranking global**: Top 20 líderes em renováveis, emissores de CO2, capacidade instalada
+   - **DATA_SOURCES.md**: Guia completo de fontes FREE e PAID
 
 ---
 
