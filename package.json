@@ -28,6 +28,7 @@
     "collect:github-trending:demo": "tsx scripts/collect-github-trending.ts --dry-run",
     "collect:hackernews": "tsx scripts/collect-hackernews.ts",
     "collect:hackernews:demo": "tsx scripts/collect-hackernews.ts --dry-run",
+    "collect:gdelt": "tsx scripts/collect-gdelt.ts",
     "collect:brazil": "tsx finance/scripts/collect-brazil-stocks.ts",
     "collect:nasdaq": "tsx finance/scripts/collect-nasdaq-momentum.ts",
     "collect:funding": "tsx finance/scripts/collect-funding-rounds.ts",
