@@ -115,6 +115,26 @@ async function fetchTrendingRepos(
     `created:>${fromDateStr} stars:>100`,
     // Recently active repos with high stars growth
     `pushed:>${fromDateStr} stars:>500`,
+    // Popular frameworks and libraries
+    `topic:react stars:>50000`,
+    `topic:vue stars:>50000`,
+    `topic:angular stars:>50000`,
+    `topic:svelte stars:>10000`,
+    `topic:nextjs stars:>10000`,
+    `topic:nuxt stars:>10000`,
+    `topic:tailwind stars:>10000`,
+    `topic:vite stars:>10000`,
+    `topic:astro stars:>5000`,
+    `topic:solid stars:>5000`,
+    `topic:qwik stars:>5000`,
+    `topic:remix stars:>5000`,
+    `topic:fastapi stars:>10000`,
+    `topic:django stars:>10000`,
+    `topic:flask stars:>10000`,
+    `topic:laravel stars:>10000`,
+    `topic:spring-boot stars:>10000`,
+    `topic:express stars:>10000`,
+    `topic:nestjs stars:>10000`,
   ];
 
   const allRepos: GitHubRepo[] = [];

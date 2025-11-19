@@ -5,10 +5,11 @@ CREATE TABLE IF NOT EXISTS sofia.pypi_stats (
     version VARCHAR(50),
     description TEXT,
     keywords TEXT[],
-    collected_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(package_name, DATE(collected_at))
+    collected_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Create unique index on package_name and date (using expression)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pypi_package_date ON sofia.pypi_stats(package_name, DATE(collected_at));
 CREATE INDEX IF NOT EXISTS idx_pypi_package ON sofia.pypi_stats(package_name);
 CREATE INDEX IF NOT EXISTS idx_pypi_downloads ON sofia.pypi_stats(downloads_month DESC);
 CREATE INDEX IF NOT EXISTS idx_pypi_date ON sofia.pypi_stats(collected_at DESC);
