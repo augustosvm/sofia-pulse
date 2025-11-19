@@ -86,12 +86,16 @@ def safe_int(value, max_value=9223372036854775807):
     except (ValueError, OverflowError):
         return None
 
-def safe_float(value):
-    """Safely convert to float, handling NaN"""
+def safe_float(value, max_value=None):
+    """Safely convert to float, handling NaN and max values"""
     if pd.isna(value):
         return None
     try:
-        return float(value)
+        float_val = float(value)
+        # Check max value if specified
+        if max_value and abs(float_val) > max_value:
+            return None
+        return float_val
     except (ValueError, TypeError):
         return None
 
@@ -112,31 +116,31 @@ def save_to_database(df, conn):
             safe_int(row.get('population')),
             safe_int(row.get('gdp')),
 
-            # Electricity generation by source (TWh)
-            safe_float(row.get('electricity_generation')),
-            safe_float(row.get('solar_electricity')),
-            safe_float(row.get('wind_electricity')),
-            safe_float(row.get('hydro_electricity')),
-            safe_float(row.get('nuclear_electricity')),
-            safe_float(row.get('coal_electricity')),
-            safe_float(row.get('gas_electricity')),
-            safe_float(row.get('oil_electricity')),
+            # Electricity generation by source (TWh) - DECIMAL(10,2) max 99999999.99
+            safe_float(row.get('electricity_generation'), max_value=99999999.99),
+            safe_float(row.get('solar_electricity'), max_value=99999999.99),
+            safe_float(row.get('wind_electricity'), max_value=99999999.99),
+            safe_float(row.get('hydro_electricity'), max_value=99999999.99),
+            safe_float(row.get('nuclear_electricity'), max_value=99999999.99),
+            safe_float(row.get('coal_electricity'), max_value=99999999.99),
+            safe_float(row.get('gas_electricity'), max_value=99999999.99),
+            safe_float(row.get('oil_electricity'), max_value=99999999.99),
 
-            # Renewable share
-            safe_float(row.get('renewables_electricity')),
-            safe_float(row.get('low_carbon_electricity')),
+            # Renewable share - DECIMAL(5,2) max 999.99 (percentage)
+            safe_float(row.get('renewables_electricity'), max_value=999.99),
+            safe_float(row.get('low_carbon_electricity'), max_value=999.99),
 
-            # Consumption
-            safe_float(row.get('energy_per_capita')),
-            safe_float(row.get('energy_per_gdp')),
+            # Consumption - DECIMAL(10,2) and DECIMAL(10,4)
+            safe_float(row.get('energy_per_capita'), max_value=99999999.99),
+            safe_float(row.get('energy_per_gdp'), max_value=999999.9999),
 
-            # Emissions
-            safe_float(row.get('co2')),
-            safe_float(row.get('co2_per_capita')),
+            # Emissions - DECIMAL(12,2) and DECIMAL(10,2)
+            safe_float(row.get('co2'), max_value=9999999999.99),
+            safe_float(row.get('co2_per_capita'), max_value=99999999.99),
 
-            # Capacity (GW)
-            safe_float(row.get('solar_capacity')),
-            safe_float(row.get('wind_capacity')),
+            # Capacity (GW) - DECIMAL(10,2)
+            safe_float(row.get('solar_capacity'), max_value=99999999.99),
+            safe_float(row.get('wind_capacity'), max_value=99999999.99),
         ))
 
     # Insert
