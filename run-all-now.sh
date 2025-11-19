@@ -10,6 +10,11 @@ SOFIA_DIR="/home/ubuntu/sofia-pulse"
 [ -d "$SOFIA_DIR" ] || SOFIA_DIR="$(pwd)"
 cd "$SOFIA_DIR"
 
+# 0. Executar migrations
+echo "🗄️  0. Executando migrations do banco..."
+bash run-migrations.sh 2>&1 | tail -10
+echo ""
+
 # 1. Corrigir DB configs
 echo "🔧 1. Corrigindo configurações de DB..."
 bash fix-all-db-configs.sh

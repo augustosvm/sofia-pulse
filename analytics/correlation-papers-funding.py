@@ -19,11 +19,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', 'localhost'),
-    'port': int(os.getenv('POSTGRES_PORT', '5432')),
-    'user': os.getenv('POSTGRES_USER', 'postgres'),
-    'password': os.getenv('POSTGRES_PASSWORD', 'postgres'),
-    'database': os.getenv('POSTGRES_DB', 'sofia_db'),
+    'host': os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST') or 'localhost',
+    'port': int(os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT') or '5432'),
+    'user': os.getenv('POSTGRES_USER') or os.getenv('DB_USER') or 'sofia',
+    'password': os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD') or '',
+    'database': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME') or 'sofia_db',
 }
 
 def get_papers_by_sector(conn, days_back=180):
@@ -31,14 +31,21 @@ def get_papers_by_sector(conn, days_back=180):
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     query = """
+    WITH flattened AS (
+        SELECT
+            primary_category,
+            DATE_TRUNC('month', published_date) as month,
+            unnest(keywords) as keyword
+        FROM arxiv_ai_papers
+        WHERE published_date >= CURRENT_DATE - INTERVAL '%s days'
+    )
     SELECT
         primary_category,
-        DATE_TRUNC('month', published_date) as month,
+        month,
         COUNT(*) as paper_count,
-        ARRAY_AGG(DISTINCT unnest(keywords)) as keywords
-    FROM arxiv_ai_papers
-    WHERE published_date >= CURRENT_DATE - INTERVAL '%s days'
-    GROUP BY primary_category, DATE_TRUNC('month', published_date)
+        ARRAY_AGG(DISTINCT keyword) as keywords
+    FROM flattened
+    GROUP BY primary_category, month
     ORDER BY month DESC, paper_count DESC;
     """ % days_back
 
