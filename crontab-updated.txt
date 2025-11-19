@@ -1,0 +1,69 @@
+# ============================================================================
+# SOFIA PULSE - CRONTAB ATUALIZADO (2025-11-19)
+# ============================================================================
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# ============================================================================
+# SOFIA PULSE - ANÁLISES COMPLETAS (NOVO!)
+# ============================================================================
+
+# Run TUDO: Migrations + Coleta + Análises + Email - Seg-Sex às 22:00 UTC (19:00 BRT)
+0 22 * * 1-5 cd /home/ubuntu/sofia-pulse && bash run-all-now.sh >> /var/log/sofia-pulse-complete.log 2>&1
+
+# ============================================================================
+# DATA COLLECTION (INDIVIDUAL) - Manter para rodar ao longo do dia
+# ============================================================================
+
+# GitHub Trending - Diariamente às 10:00 UTC (07:00 BRT)
+0 10 * * * cd /home/ubuntu/sofia-pulse && npm run collect:github-trending >> /var/log/sofia-github.log 2>&1 || true
+
+# HackerNews - 4x ao dia (manhã, tarde, noite, madrugada)
+0 6,12,18,0 * * * cd /home/ubuntu/sofia-pulse && npm run collect:hackernews >> /var/log/sofia-hackernews.log 2>&1 || true
+
+# Finance B3 - Seg-Sex às 21:00 UTC (18:00 BRT - após fechamento)
+0 21 * * 1-5 cd /home/ubuntu/sofia-pulse && npm run collect:brazil >> /var/log/sofia-finance-b3.log 2>&1 || true
+
+# Finance NASDAQ - Seg-Sex às 21:05 UTC (18:05 BRT)
+5 21 * * 1-5 cd /home/ubuntu/sofia-pulse && npm run collect:nasdaq >> /var/log/sofia-finance-nasdaq.log 2>&1 || true
+
+# Funding - Diariamente às 21:10 UTC (18:10 BRT)
+10 21 * * * cd /home/ubuntu/sofia-pulse && npm run collect:funding >> /var/log/sofia-finance-funding.log 2>&1 || true
+
+# GDELT - 2x ao dia (manhã e noite)
+0 9,21 * * * cd /home/ubuntu/sofia-pulse && npm run collect:gdelt >> /var/log/sofia-gdelt.log 2>&1 || true
+
+# Reddit Tech - Diariamente às 20:00 UTC (17:00 BRT)
+0 20 * * * cd /home/ubuntu/sofia-pulse && npm run collect:reddit >> /var/log/sofia-reddit.log 2>&1 || true
+
+# NPM Stats - Diariamente às 20:05 UTC
+5 20 * * * cd /home/ubuntu/sofia-pulse && npm run collect:npm-stats >> /var/log/sofia-npm.log 2>&1 || true
+
+# PyPI Stats - Diariamente às 20:10 UTC
+10 20 * * * cd /home/ubuntu/sofia-pulse && npm run collect:pypi-stats >> /var/log/sofia-pypi.log 2>&1 || true
+
+# ============================================================================
+# BACKUPS (mantidos do cron original)
+# ============================================================================
+
+# Auto-recovery
+*/1 * * * * /home/ubuntu/infraestrutura/scripts/auto-recovery.sh 2>/dev/null || true
+
+# Backups diversos
+0 3 * * * /home/ubuntu/infraestrutura/scripts/comprehensive-backup.sh 2>/dev/null || true
+0 2 * * * /home/ubuntu/infraestrutura/scripts/backup-dashboards.sh 2>/dev/null || true
+0 2 * * 3 /home/ubuntu/infraestrutura/scripts/full-backup.sh 2>/dev/null || true
+
+# Sofia backup
+0 4 * * * cd /home/ubuntu/sofia-pulse && ./scripts/backup-complete.sh >> /var/log/sofia-backup.log 2>&1 || true
+
+# ============================================================================
+# RESUMO
+# ============================================================================
+# - 1x ANÁLISE COMPLETA + EMAIL (22:00 UTC / 19:00 BRT) → run-all-now.sh
+# - 9x COLLECTORS individuais ao longo do dia
+# - 5x BACKUPS e auto-recovery
+# ============================================================================
+# TOTAL: 15 jobs
+# ============================================================================
