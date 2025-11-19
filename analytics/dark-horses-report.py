@@ -35,14 +35,22 @@ def get_dark_horses(conn):
 
     # Papers por setor (últimos 90 dias)
     cursor.execute("""
+        WITH flattened AS (
+            SELECT
+                primary_category as sector,
+                is_breakthrough,
+                unnest(keywords) as keyword
+            FROM arxiv_ai_papers
+            WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
+                AND keywords IS NOT NULL
+        )
         SELECT
-            primary_category as sector,
+            sector,
             COUNT(*) as paper_count,
             COUNT(*) FILTER (WHERE is_breakthrough) as breakthrough_count,
-            ARRAY_AGG(DISTINCT unnest(keywords)) FILTER (WHERE keywords IS NOT NULL) as keywords
-        FROM arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
-        GROUP BY primary_category
+            ARRAY_AGG(DISTINCT keyword) as keywords
+        FROM flattened
+        GROUP BY sector
         HAVING COUNT(*) >= 5
         ORDER BY paper_count DESC;
     """)
