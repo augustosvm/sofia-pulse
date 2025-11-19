@@ -80,7 +80,7 @@ Sofia Pulse coleta dados de **19+ fontes**, analisa **6 setores críticos**, e e
 
 **CSVs**:
 - github_trending, npm_stats, pypi_stats, reddit_stats, funding_30d
-- **cybersecurity_30d** 🔥, **space_launches** 🔥, **ai_regulation** 🔥
+- **cybersecurity_30d** 🔥, **space_launches** 🔥, **ai_regulation** 🔥, **gdelt_events_30d** 🔥
 
 ---
 
@@ -126,8 +126,8 @@ bash update-crontab-simple.sh  # Aplica crontab (execução diária 22:00 UTC)
 **Tabelas Principais**:
 - github_trending, hackernews_stories, reddit_tech
 - npm_stats, pypi_stats, arxiv_ai_papers
-- funding_rounds, ipo_calendar, jobs, gdelt_events
-- **cybersecurity_events** 🔥, **space_industry** 🔥, **ai_regulation** 🔥
+- funding_rounds, ipo_calendar, jobs
+- **gdelt_events**, **cybersecurity_events** 🔥, **space_industry** 🔥, **ai_regulation** 🔥
 
 **Migrations**: 17 (015-017 são novos setores)
 
@@ -141,6 +141,7 @@ bash update-crontab-simple.sh  # Aplica crontab (execução diária 22:00 UTC)
 - `send-email-all.sh` + `send-email-final.py` - Email
 
 **Collectors** (scripts/):
+- `collect-gdelt.ts` - Eventos geopolíticos
 - `collect-cybersecurity.ts` 🔥
 - `collect-space-industry.ts` 🔥
 - `collect-ai-regulation.ts` 🔥
