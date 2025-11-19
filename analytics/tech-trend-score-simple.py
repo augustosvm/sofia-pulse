@@ -100,17 +100,26 @@ def get_github_technologies(conn) -> Dict[str, Dict[str, float]]:
         'express', 'nestjs', 'rails', 'blazor', 'flutter'
     ]
 
+    # Use CTE to avoid "set-returning functions not allowed in WHERE" error
     topic_query = """
+    WITH exploded_topics AS (
+        SELECT
+            repo_id,
+            unnest(topics) as topic,
+            stars,
+            is_archived
+        FROM sofia.github_trending
+        WHERE topics IS NOT NULL
+            AND array_length(topics, 1) > 0
+            AND is_archived = FALSE
+    )
     SELECT
-        unnest(topics) as tech,
+        topic as tech,
         COUNT(DISTINCT repo_id) as repo_count,
         SUM(stars) as total_stars
-    FROM sofia.github_trending
-    WHERE topics IS NOT NULL
-        AND array_length(topics, 1) > 0
-        AND is_archived = FALSE
-        AND unnest(topics) = ANY(%s)
-    GROUP BY tech
+    FROM exploded_topics
+    WHERE topic = ANY(%s)
+    GROUP BY topic
     HAVING COUNT(*) >= 1
     ORDER BY total_stars DESC
     LIMIT 50;

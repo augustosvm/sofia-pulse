@@ -104,6 +104,35 @@ async function fixDatabaseSchemas() {
 
     console.log('   ✅ NPM Stats fixed\n');
 
+    // 4. Create cybersecurity_events table if not exists
+    console.log('4️⃣  Creating cybersecurity_events table...');
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS sofia.cybersecurity_events (
+        id SERIAL PRIMARY KEY,
+        event_type VARCHAR(50) NOT NULL,
+        event_id VARCHAR(100) UNIQUE,
+        title TEXT NOT NULL,
+        description TEXT,
+        severity VARCHAR(20),
+        cvss_score DECIMAL(3,1),
+        affected_products TEXT[],
+        vendors TEXT[],
+        published_date DATE NOT NULL,
+        source VARCHAR(100),
+        source_url TEXT,
+        affected_count INTEGER,
+        tags TEXT[],
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_cyber_type ON sofia.cybersecurity_events(event_type);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_cyber_severity ON sofia.cybersecurity_events(severity);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_cyber_date ON sofia.cybersecurity_events(published_date);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_cyber_cvss ON sofia.cybersecurity_events(cvss_score);`);
+
+    console.log('   ✅ Cybersecurity Events table created\n');
+
     console.log('✅ Database schemas fixed successfully!\n');
 
   } catch (error) {
