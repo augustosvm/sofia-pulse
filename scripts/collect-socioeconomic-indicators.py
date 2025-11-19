@@ -32,13 +32,33 @@ WORLD_BANK_BASE_URL = "https://api.worldbank.org/v2/country/all/indicator"
 # Key socioeconomic and health indicators from World Bank
 # Format: (field_name, description, unit)
 INDICATORS = {
-    # ═══ ECONOMIA ═══
+    # ═══ ECONOMIA - BÁSICO ═══
     'NY.GDP.MKTP.CD': ('gdp_current_usd', 'GDP (current US$)', 'USD'),
     'NY.GDP.PCAP.CD': ('gdp_per_capita', 'GDP per capita (current US$)', 'USD'),
     'SP.POP.TOTL': ('population', 'Population, total', 'people'),
     'SL.UEM.TOTL.ZS': ('unemployment_rate', 'Unemployment, total (% of total labor force)', '%'),
     'FP.CPI.TOTL.ZG': ('inflation_rate', 'Inflation, consumer prices (annual %)', '%'),
     'SI.POV.GINI': ('gini_index', 'Gini index (World Bank estimate)', 'index'),
+
+    # ═══ ECONOMIA - FISCAL E MILITAR ═══
+    'MS.MIL.XPND.GD.ZS': ('military_expenditure_gdp', 'Military expenditure (% of GDP)', '%'),
+    'GC.DOD.TOTL.GD.ZS': ('public_debt_gdp', 'Central government debt (% of GDP)', '%'),
+    'FI.RES.TOTL.CD': ('international_reserves', 'Total reserves (USD)', 'USD'),
+
+    # ═══ ECONOMIA - COMÉRCIO INTERNACIONAL ═══
+    'NE.EXP.GNFS.ZS': ('exports_gdp', 'Exports of goods and services (% of GDP)', '%'),
+    'NE.IMP.GNFS.ZS': ('imports_gdp', 'Imports of goods and services (% of GDP)', '%'),
+    'BX.KLT.DINV.CD.WD': ('fdi_inflows', 'Foreign direct investment, net inflows (USD)', 'USD'),
+
+    # ═══ POBREZA ═══
+    'SI.POV.DDAY': ('poverty_extreme', 'Poverty headcount ratio at $2.15/day (% of population)', '%'),
+    'SI.POV.NAHC': ('poverty_national', 'Poverty headcount ratio at national poverty lines (% of population)', '%'),
+
+    # ═══ DEMOGRAFIA ═══
+    'SP.DYN.TFRT.IN': ('fertility_rate', 'Fertility rate, total (births per woman)', 'births/woman'),
+    'SH.DYN.NMRT': ('neonatal_mortality_rate', 'Neonatal mortality rate (per 1,000 live births)', 'per 1000'),
+    'SP.URB.TOTL.IN.ZS': ('urban_population', 'Urban population (% of total)', '%'),
+    'SP.POP.GROW': ('population_growth', 'Population growth (annual %)', '%'),
 
     # ═══ SAÚDE - EXPECTATIVA DE VIDA E MORTALIDADE ═══
     'SP.DYN.LE00.IN': ('life_expectancy', 'Life expectancy at birth, total (years)', 'years'),
@@ -83,6 +103,10 @@ INDICATORS = {
     # ═══ TECNOLOGIA E CONECTIVIDADE ═══
     'IT.NET.USER.ZS': ('internet_users', 'Internet users (% of population)', '%'),
     'IT.CEL.SETS.P2': ('mobile_subscriptions', 'Mobile subscriptions (per 100)', 'per 100'),
+    'IT.NET.BBND.P2': ('broadband_subscriptions', 'Fixed broadband subscriptions (per 100)', 'per 100'),
+
+    # ═══ INOVAÇÃO E P&D ═══
+    'GB.XPD.RSDV.GD.ZS': ('research_development_gdp', 'Research & development expenditure (% of GDP)', '%'),
 
     # ═══ INFRAESTRUTURA E ACESSO ═══
     'IS.ROD.PAVE.ZS': ('paved_roads', 'Paved roads (% of total)', '%'),
@@ -252,13 +276,18 @@ def main():
     print(f"📊 Collecting {len(INDICATORS)} indicators from World Bank (2015-2024)")
     print()
     print("Categories:")
-    print("   💰 Economy (6 indicators)")
+    print("   💰 Economy - Basic (6 indicators)")
+    print("   🏦 Economy - Fiscal & Military (3 indicators)")
+    print("   🌐 Economy - International Trade (3 indicators)")
+    print("   🏚️  Poverty (2 indicators)")
+    print("   👨‍👩‍👧‍👦 Demographics (4 indicators)")
     print("   ❤️  Health - Mortality (4 indicators)")
     print("   🏥 Health - Diseases (7 indicators)")
     print("   💉 Health - Resources (6 indicators)")
     print("   📚 Education (7 indicators)")
     print("   🌍 Environment & Climate (6 indicators)")
-    print("   📱 Technology (2 indicators)")
+    print("   📱 Technology & Connectivity (3 indicators)")
+    print("   🔬 Innovation & R&D (1 indicator)")
     print("   🏗️  Infrastructure (4 indicators)")
     print()
 

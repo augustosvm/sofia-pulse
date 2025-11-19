@@ -2,11 +2,13 @@
 
 ## 📊 Visão Geral
 
-Coletor automático de **12 indicadores socioeconômicos** para todos os países usando **World Bank API** (gratuita, sem API key).
+Coletor automático de **56 indicadores socioeconômicos** para todos os países usando **World Bank API** (gratuita, sem API key).
 
 **Período**: 2015-2024
 **Atualização**: Diária (junto com outros Python collectors)
 **Fonte**: World Bank Open Data
+
+**Expansão v2.0**: Adicionados 14 novos indicadores (pobreza, demografia, comércio, inovação)
 
 ---
 
@@ -97,6 +99,116 @@ Coletor automático de **12 indicadores socioeconômicos** para todos os países
 - **Nome**: Individuals using the Internet (% of population)
 - **Unidade**: %
 - **O que mede**: Porcentagem da população com acesso à internet
+
+---
+
+## 🆕 Novos Indicadores (v2.0)
+
+### 🏚️ Pobreza
+
+#### 13. **Extreme Poverty**
+- **Código**: `SI.POV.DDAY`
+- **Nome**: Poverty headcount ratio at $2.15/day
+- **Unidade**: %
+- **O que mede**: População vivendo com menos de $2.15/dia (linha de pobreza extrema do Banco Mundial)
+
+#### 14. **National Poverty**
+- **Código**: `SI.POV.NAHC`
+- **Nome**: Poverty headcount ratio at national poverty lines
+- **Unidade**: %
+- **O que mede**: População abaixo da linha de pobreza nacional definida por cada país
+
+---
+
+### 🏦 Economia - Fiscal e Militar
+
+#### 15. **Military Expenditure**
+- **Código**: `MS.MIL.XPND.GD.ZS`
+- **Nome**: Military expenditure (% of GDP)
+- **Unidade**: %
+- **O que mede**: Gastos militares como porcentagem do PIB
+
+#### 16. **Public Debt**
+- **Código**: `GC.DOD.TOTL.GD.ZS`
+- **Nome**: Central government debt, total (% of GDP)
+- **Unidade**: %
+- **O que mede**: Dívida do governo central como % do PIB
+
+#### 17. **International Reserves**
+- **Código**: `FI.RES.TOTL.CD`
+- **Nome**: Total reserves (includes gold, current US$)
+- **Unidade**: USD
+- **O que mede**: Reservas internacionais totais em dólares
+
+---
+
+### 🌐 Comércio Internacional
+
+#### 18. **Exports**
+- **Código**: `NE.EXP.GNFS.ZS`
+- **Nome**: Exports of goods and services (% of GDP)
+- **Unidade**: %
+- **O que mede**: Exportações de bens e serviços como % do PIB
+
+#### 19. **Imports**
+- **Código**: `NE.IMP.GNFS.ZS`
+- **Nome**: Imports of goods and services (% of GDP)
+- **Unidade**: %
+- **O que mede**: Importações de bens e serviços como % do PIB
+
+#### 20. **FDI Inflows**
+- **Código**: `BX.KLT.DINV.CD.WD`
+- **Nome**: Foreign direct investment, net inflows (BoP, current US$)
+- **Unidade**: USD
+- **O que mede**: Investimento Estrangeiro Direto (IED) líquido recebido
+
+---
+
+### 👨‍👩‍👧‍👦 Demografia
+
+#### 21. **Fertility Rate**
+- **Código**: `SP.DYN.TFRT.IN`
+- **Nome**: Fertility rate, total (births per woman)
+- **Unidade**: births/woman
+- **O que mede**: Número médio de filhos por mulher
+
+#### 22. **Neonatal Mortality**
+- **Código**: `SH.DYN.NMRT`
+- **Nome**: Mortality rate, neonatal (per 1,000 live births)
+- **Unidade**: per 1000
+- **O que mede**: Mortes neonatais (primeiros 28 dias de vida) por 1000 nascimentos
+
+#### 23. **Urban Population**
+- **Código**: `SP.URB.TOTL.IN.ZS`
+- **Nome**: Urban population (% of total population)
+- **Unidade**: %
+- **O que mede**: Porcentagem da população vivendo em áreas urbanas
+
+#### 24. **Population Growth**
+- **Código**: `SP.POP.GROW`
+- **Nome**: Population growth (annual %)
+- **Unidade**: %
+- **O que mede**: Taxa de crescimento populacional anual
+
+---
+
+### 📱 Tecnologia (Novo)
+
+#### 25. **Broadband Subscriptions**
+- **Código**: `IT.NET.BBND.P2`
+- **Nome**: Fixed broadband subscriptions (per 100 people)
+- **Unidade**: per 100
+- **O que mede**: Assinaturas de banda larga fixa por 100 habitantes
+
+---
+
+### 🔬 Inovação
+
+#### 26. **R&D Expenditure**
+- **Código**: `GB.XPD.RSDV.GD.ZS`
+- **Nome**: Research and development expenditure (% of GDP)
+- **Unidade**: %
+- **O que mede**: Gastos em Pesquisa & Desenvolvimento como % do PIB
 
 ---
 
@@ -224,6 +336,105 @@ WHERE g.gdp_per_capita IS NOT NULL
 ORDER BY g.gdp_per_capita DESC;
 ```
 
+### 7. 🆕 Países com maior pobreza extrema (2023)
+```sql
+SELECT
+    country_name,
+    value as extreme_poverty_pct
+FROM sofia.socioeconomic_indicators
+WHERE indicator_code = 'SI.POV.DDAY'
+  AND year = 2023
+  AND value IS NOT NULL
+ORDER BY value DESC
+LIMIT 20;
+```
+
+### 8. 🆕 Top 10 países em gastos militares vs PIB (2023)
+```sql
+SELECT
+    country_name,
+    value as military_expenditure_pct_gdp
+FROM sofia.socioeconomic_indicators
+WHERE indicator_code = 'MS.MIL.XPND.GD.ZS'
+  AND year = 2023
+  AND value IS NOT NULL
+ORDER BY value DESC
+LIMIT 10;
+```
+
+### 9. 🆕 Comparação: Fertilidade vs Urbanização (2023)
+```sql
+WITH fertility AS (
+    SELECT country_code, country_name, value as fertility_rate
+    FROM sofia.socioeconomic_indicators
+    WHERE indicator_code = 'SP.DYN.TFRT.IN' AND year = 2023
+),
+urban AS (
+    SELECT country_code, value as urban_pct
+    FROM sofia.socioeconomic_indicators
+    WHERE indicator_code = 'SP.URB.TOTL.IN.ZS' AND year = 2023
+)
+SELECT
+    f.country_name,
+    f.fertility_rate,
+    u.urban_pct
+FROM fertility f
+JOIN urban u ON f.country_code = u.country_code
+WHERE f.fertility_rate IS NOT NULL AND u.urban_pct IS NOT NULL
+ORDER BY f.fertility_rate DESC
+LIMIT 20;
+```
+
+### 10. 🆕 Top países em P&D (inovação) - 2023
+```sql
+SELECT
+    country_name,
+    value as rd_expenditure_pct_gdp
+FROM sofia.socioeconomic_indicators
+WHERE indicator_code = 'GB.XPD.RSDV.GD.ZS'
+  AND year = 2023
+  AND value IS NOT NULL
+ORDER BY value DESC
+LIMIT 15;
+```
+
+### 11. 🆕 Balança comercial estimada (Exports - Imports)
+```sql
+WITH exports AS (
+    SELECT country_code, country_name, value as exports_pct
+    FROM sofia.socioeconomic_indicators
+    WHERE indicator_code = 'NE.EXP.GNFS.ZS' AND year = 2023
+),
+imports AS (
+    SELECT country_code, value as imports_pct
+    FROM sofia.socioeconomic_indicators
+    WHERE indicator_code = 'NE.IMP.GNFS.ZS' AND year = 2023
+)
+SELECT
+    e.country_name,
+    e.exports_pct,
+    i.imports_pct,
+    (e.exports_pct - i.imports_pct) as trade_balance
+FROM exports e
+JOIN imports i ON e.country_code = i.country_code
+WHERE e.exports_pct IS NOT NULL AND i.imports_pct IS NOT NULL
+ORDER BY trade_balance DESC
+LIMIT 20;
+```
+
+### 12. 🆕 Países com maior IED (Foreign Direct Investment) - 2023
+```sql
+SELECT
+    country_name,
+    value / 1e9 as fdi_billions_usd
+FROM sofia.socioeconomic_indicators
+WHERE indicator_code = 'BX.KLT.DINV.CD.WD'
+  AND year = 2023
+  AND value IS NOT NULL
+ORDER BY value DESC
+LIMIT 20;
+```
+
 ---
 
 ## 🚀 Como Executar
@@ -248,10 +459,25 @@ O coletor roda automaticamente todos os dias às **13:00 UTC (10:00 BRT)** via c
 
 ```
 ================================================================================
-🌍 SOCIOECONOMIC INDICATORS COLLECTOR
+🌍 SOCIOECONOMIC & HEALTH INDICATORS COLLECTOR
 ================================================================================
 
-📊 Collecting 12 indicators from World Bank (2015-2024)
+📊 Collecting 56 indicators from World Bank (2015-2024)
+
+Categories:
+   💰 Economy - Basic (6 indicators)
+   🏦 Economy - Fiscal & Military (3 indicators)
+   🌐 Economy - International Trade (3 indicators)
+   🏚️  Poverty (2 indicators)
+   👨‍👩‍👧‍👦 Demographics (4 indicators)
+   ❤️  Health - Mortality (4 indicators)
+   🏥 Health - Diseases (7 indicators)
+   💉 Health - Resources (6 indicators)
+   📚 Education (7 indicators)
+   🌍 Environment & Climate (6 indicators)
+   📱 Technology & Connectivity (3 indicators)
+   🔬 Innovation & R&D (1 indicator)
+   🏗️  Infrastructure (4 indicators)
 
 📈 GDP (current US$)
    Fetching NY.GDP.MKTP.CD... ✅ 1847 records
@@ -261,15 +487,15 @@ O coletor roda automaticamente todos os dias às **13:00 UTC (10:00 BRT)** via c
    Fetching NY.GDP.PCAP.CD... ✅ 1847 records
    ✅ Processed 1847 valid records
 
-... (outros 10 indicadores)
+... (outros 54 indicadores)
 
 💾 Inserting to database...
-✅ Inserted/updated 18,250 records
+✅ Inserted/updated 95,000+ records
 
 📊 Summary:
-   Total indicators: 12
-   Total records: 18,250
-   Inserted/updated: 18,250
+   Total indicators: 56
+   Total records: 95,000+
+   Inserted/updated: 95,000+
 
 📈 Records by indicator:
    co2_emissions_per_capita: 1520
@@ -293,7 +519,8 @@ O coletor roda automaticamente todos os dias às **13:00 UTC (10:00 BRT)** via c
    Source: World Bank Open Data (api.worldbank.org)
 ```
 
-**Total de registros**: ~18,000-20,000 (varia por disponibilidade de dados)
+**Total de registros**: ~90,000-100,000 (varia por disponibilidade de dados)
+**Expansão v2.0**: De 42 para 56 indicadores (+14 novos)
 
 ---
 
@@ -361,17 +588,24 @@ Aproximadamente:
 
 ## ✅ Status
 
+### v2.0 (2025-11-19 - Expansão)
+- ✅ **56 indicadores** configurados (+14 novos)
+- ✅ Novos indicadores: Pobreza, Demografia, Comércio, Inovação
+- ✅ Documentação expandida com 12 exemplos de queries
+- ✅ 13 categorias organizadas
+
+### v1.0 (2025-11-19 - Inicial)
 - ✅ Coletor criado
 - ✅ Tabela no banco criada
-- ✅ 12 indicadores configurados
+- ✅ 42 indicadores iniciais
 - ✅ Integrado ao `run-all-with-venv.sh`
-- ✅ Documentação completa
-- ⏰ Execução automática (crontab)
+- ✅ Execução automática (crontab)
 
 **Sistema pronto para uso! 🚀**
 
 ---
 
-**Última atualização**: 2025-11-19
+**Última atualização**: 2025-11-19 (v2.0)
 **Fonte**: World Bank Open Data API
 **Licença**: Dados públicos (World Bank Open License)
+**Total de indicadores**: 56 (42 originais + 14 novos)
