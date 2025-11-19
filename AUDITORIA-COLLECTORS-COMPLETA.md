@@ -213,4 +213,34 @@ tail -f /var/log/sofia-*.log
 
 ---
 
-**Status**: ✅ Auditoria completa! Pronto para implementar.
+## ✅ SOLUÇÃO IMPLEMENTADA
+
+### Arquivos Criados:
+
+1. **`install-clean-crontab.sh`** - Script automático de instalação
+   - Faz backup do cron atual
+   - Remove linhas duplicadas e inexistentes
+   - Adiciona 11 collectors faltantes
+   - Atualiza de v1.0 para v2.0
+   - Cria diretórios de log
+
+2. **`GUIA-INSTALACAO-CRON-LIMPO.md`** - Guia completo de instalação
+   - Passo-a-passo detalhado
+   - Troubleshooting
+   - Verificação pós-instalação
+
+3. **`package.json`** - Atualizado com collectors avulsos
+   - ✅ Adicionado: `collect:ipo-calendar`
+   - ✅ Adicionado: `collect:jobs`
+
+### Para Instalar no Servidor:
+
+```bash
+cd /home/ubuntu/sofia-pulse
+git pull origin claude/resume-context-demo-01Jwa7QikzGJHnTZjJLMp5AE
+bash install-clean-crontab.sh
+```
+
+---
+
+**Status**: ✅ Solução pronta! Execute `bash install-clean-crontab.sh` no servidor.

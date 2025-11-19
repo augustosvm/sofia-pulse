@@ -22,6 +22,8 @@
     "collect:openalex:demo": "tsx scripts/collect-openalex.ts --dry-run",
     "collect:nih-grants": "tsx scripts/collect-nih-grants.ts",
     "collect:nih-grants:demo": "tsx scripts/collect-nih-grants.ts --dry-run",
+    "collect:ipo-calendar": "tsx collectors/ipo-calendar.ts",
+    "collect:jobs": "tsx collectors/jobs-collector.ts",
     "collect:brazil": "tsx finance/scripts/collect-brazil-stocks.ts",
     "collect:nasdaq": "tsx finance/scripts/collect-nasdaq-momentum.ts",
     "collect:funding": "tsx finance/scripts/collect-funding-rounds.ts",
