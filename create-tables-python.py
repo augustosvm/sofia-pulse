@@ -226,13 +226,140 @@ try:
     print("   ✅ energy_global criada")
     print()
 
+    # Create electricity_consumption table
+    print("⚡ Creating electricity_consumption table...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.electricity_consumption (
+            id SERIAL PRIMARY KEY,
+            country VARCHAR(100) NOT NULL,
+            year INTEGER NOT NULL,
+            iso_code VARCHAR(10),
+            consumption_twh DECIMAL(10,2),
+            generation_twh DECIMAL(10,2),
+            per_capita_kwh DECIMAL(8,2),
+            population BIGINT,
+            data_source VARCHAR(100),
+            collected_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(country, year)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_elec_country ON sofia.electricity_consumption(country);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_elec_year ON sofia.electricity_consumption(year DESC);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_elec_consumption ON sofia.electricity_consumption(consumption_twh DESC);
+    """)
+
+    conn.commit()
+    print("   ✅ electricity_consumption criada")
+    print()
+
+    # Create port_traffic table
+    print("🚢 Creating port_traffic table...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.port_traffic (
+            id SERIAL PRIMARY KEY,
+            country VARCHAR(100) NOT NULL,
+            country_code VARCHAR(10),
+            year INTEGER NOT NULL,
+            teu BIGINT,
+            collected_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(country, year)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_port_country ON sofia.port_traffic(country);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_port_year ON sofia.port_traffic(year DESC);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_port_teu ON sofia.port_traffic(teu DESC);
+    """)
+
+    conn.commit()
+    print("   ✅ port_traffic criada")
+    print()
+
+    # Create commodity_prices table
+    print("📈 Creating commodity_prices table...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.commodity_prices (
+            id SERIAL PRIMARY KEY,
+            commodity VARCHAR(100) NOT NULL,
+            price DECIMAL(12,4),
+            unit VARCHAR(50),
+            data_source VARCHAR(100),
+            price_date DATE NOT NULL,
+            collected_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(commodity, price_date)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_commodity_name ON sofia.commodity_prices(commodity);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_commodity_date ON sofia.commodity_prices(price_date DESC);
+    """)
+
+    conn.commit()
+    print("   ✅ commodity_prices criada")
+    print()
+
+    # Create semiconductor_sales table
+    print("💾 Creating semiconductor_sales table...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.semiconductor_sales (
+            id SERIAL PRIMARY KEY,
+            region VARCHAR(100) NOT NULL,
+            year INTEGER NOT NULL,
+            quarter VARCHAR(10),
+            month VARCHAR(20),
+            sales_usd_billions DECIMAL(10,2),
+            yoy_growth_pct DECIMAL(6,2),
+            qoq_growth_pct DECIMAL(6,2),
+            data_source VARCHAR(100),
+            notes TEXT,
+            collected_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(region, year, COALESCE(quarter, ''), COALESCE(month, ''))
+        );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_semi_region ON sofia.semiconductor_sales(region);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_semi_year ON sofia.semiconductor_sales(year DESC);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_semi_sales ON sofia.semiconductor_sales(sales_usd_billions DESC);
+    """)
+
+    conn.commit()
+    print("   ✅ semiconductor_sales criada")
+    print()
+
     # Verify tables exist
     print("🔍 Verificando tabelas...")
     cursor.execute("""
         SELECT table_name
         FROM information_schema.tables
         WHERE table_schema = 'sofia'
-          AND table_name IN ('space_industry', 'ai_regulation', 'cybersecurity_events', 'gdelt_events', 'energy_global')
+          AND table_name IN (
+              'space_industry', 'ai_regulation', 'cybersecurity_events', 'gdelt_events',
+              'energy_global', 'electricity_consumption', 'port_traffic',
+              'commodity_prices', 'semiconductor_sales'
+          )
         ORDER BY table_name;
     """)
 

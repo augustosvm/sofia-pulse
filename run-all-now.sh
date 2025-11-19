@@ -49,6 +49,26 @@ echo "🌍 Coletando GDELT Events..."
 npm run collect:gdelt 2>&1 | tail -5 || true
 sleep 2
 
+echo "🌍 Coletando Global Energy Data..."
+python3 scripts/collect-energy-global.py 2>&1 | tail -10 || true
+sleep 2
+
+echo "⚡ Coletando Electricity Consumption..."
+python3 scripts/collect-electricity-consumption.py 2>&1 | tail -5 || true
+sleep 2
+
+echo "🚢 Coletando Port Traffic..."
+python3 scripts/collect-port-traffic.py 2>&1 | tail -10 || true
+sleep 2
+
+echo "📈 Coletando Commodity Prices..."
+python3 scripts/collect-commodity-prices.py 2>&1 | tail -5 || true
+sleep 2
+
+echo "💾 Coletando Semiconductor Sales..."
+python3 scripts/collect-semiconductor-sales.py 2>&1 | tail -5 || true
+sleep 2
+
 echo ""
 echo "📊 3. Gerando TODAS as análises..."
 echo ""
