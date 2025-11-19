@@ -229,7 +229,13 @@ cd ~/sofia-pulse
 git checkout claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH
 git pull origin claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH
 
-# 2. Criar arquivo .env (IMPORTANTE!)
+# 2. Configurar .env
+# ⚠️  IMPORTANTE: Se .env já existe, NÃO SOBRESCREVA!
+# Use o script configure-smtp.sh se precisar restaurar apenas SMTP:
+
+bash configure-smtp.sh
+
+# OU se o .env não existir, crie manualmente:
 cat > .env << 'EOF'
 # Database
 POSTGRES_HOST=localhost
@@ -251,16 +257,11 @@ EMAIL_TO=augustosvm@gmail.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=augustosvm@gmail.com
-SMTP_PASS=xxxx-xxxx-xxxx-xxxx
+SMTP_PASS=msnxttcudgfhveel
 
 # Environment
 NODE_ENV=production
 EOF
-
-# 2.1. Configurar senha de app do Gmail (se ainda não tiver)
-# Acesse: https://myaccount.google.com/apppasswords
-# Gere uma senha de 16 caracteres
-# Substitua xxxx-xxxx-xxxx-xxxx no .env pela senha gerada
 
 # 3. Fixar schemas do banco (dropa e recria tabelas problemáticas)
 npx tsx fix-database-schemas.ts
@@ -512,22 +513,9 @@ npx tsx fix-database-schemas.ts
 cd ~/sofia-pulse
 git pull origin claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH
 
-# 2. Criar .env (se não existe)
-cat > .env << 'EOF'
-POSTGRES_USER=sofia
-POSTGRES_PASSWORD=sofia123strong
-POSTGRES_DB=sofia_db
-DB_USER=sofia
-DB_PASSWORD=sofia123strong
-DB_NAME=sofia_db
-EMAIL_TO=augustosvm@gmail.com
-SMTP_USER=augustosvm@gmail.com
-SMTP_PASS=xxxx-xxxx-xxxx-xxxx
-EOF
-
-# 2.1. Gerar Gmail App Password e substituir no .env
-# Acesse: https://myaccount.google.com/apppasswords
-# Gere senha e substitua xxxx-xxxx-xxxx-xxxx
+# 2. Configurar .env (se não existe, use configure-smtp.sh)
+# ⚠️  Se .env já existe, NÃO sobrescreva! Use:
+bash configure-smtp.sh
 
 # 3. Fix schemas (UMA VEZ)
 npx tsx fix-database-schemas.ts
