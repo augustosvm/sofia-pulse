@@ -44,6 +44,9 @@ Este relatório contém TODAS as análises:
 - Papers (ArXiv, OpenAlex)
 - Funding Rounds
 - B3, NASDAQ
+- 🔒 Cybersecurity (CVEs, Breaches, Security Advisories) [NEW!]
+- 🚀 Space Industry (Launches, Missions, Contracts) [NEW!]
+- ⚖️  AI Regulation (Laws, Policies, Compliance) [NEW!]
 
 📈 ANÁLISES INCLUÍDAS:
 - Tech Trend Score (ranking completo)
@@ -53,6 +56,7 @@ Este relatório contém TODAS as análises:
 - Entity Resolution (fuzzy matching)
 - NLG Playbooks (Gemini AI)
 - Premium Insights v2.0 (regional + temporal)
+- 🔥 Special Sectors Analysis (Cybersecurity, Space, Robotics, AI Regulation, Quantum, Defense) [NEW!]
 
 📁 ANEXOS:
 - Relatórios completos (TXT)
@@ -73,6 +77,7 @@ reports = [
     ('analytics/dark-horses-latest.txt', 'dark-horses-report.txt'),
     ('analytics/entity-resolution-latest.txt', 'entity-resolution.txt'),
     ('analytics/playbook-latest.txt', 'nlg-playbooks-gemini.txt'),
+    ('analytics/special-sectors-latest.txt', 'special-sectors-analysis.txt'),
 ]
 
 attached = 0

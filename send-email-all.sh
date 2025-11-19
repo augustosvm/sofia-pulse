@@ -62,6 +62,18 @@ if command -v psql &> /dev/null; then
     PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
         -c "\COPY (SELECT * FROM sofia.funding_rounds WHERE announced_date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY announced_date DESC LIMIT 100) TO 'data/exports/funding_30d.csv' CSV HEADER" 2>/dev/null || true
 
+    # Cybersecurity
+    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+        -c "\COPY (SELECT event_type, title, severity, cvss_score, published_date, source FROM sofia.cybersecurity_events WHERE published_date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY published_date DESC LIMIT 100) TO 'data/exports/cybersecurity_30d.csv' CSV HEADER" 2>/dev/null || true
+
+    # Space Industry
+    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+        -c "\COPY (SELECT company, mission_name, launch_date, status, rocket_type FROM sofia.space_industry ORDER BY launch_date DESC LIMIT 100) TO 'data/exports/space_launches.csv' CSV HEADER" 2>/dev/null || true
+
+    # AI Regulation
+    PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+        -c "\COPY (SELECT title, jurisdiction, status, impact_level, announced_date FROM sofia.ai_regulation ORDER BY announced_date DESC) TO 'data/exports/ai_regulation.csv' CSV HEADER" 2>/dev/null || true
+
     echo "   ✅ CSVs exportados"
 fi
 
@@ -81,5 +93,6 @@ echo "   - Correlações Papers ↔ Funding"
 echo "   - Dark Horses Report"
 echo "   - Entity Resolution"
 echo "   - NLG Playbooks (Gemini AI)"
-echo "   - CSVs de dados RAW"
+echo "   - Special Sectors Analysis (NEW!) 🔒🚀⚖️"
+echo "   - CSVs de dados RAW (incluindo Cybersecurity, Space, AI Regulation)"
 echo ""

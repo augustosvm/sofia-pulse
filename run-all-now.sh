@@ -33,6 +33,18 @@ sleep 2
 npm run collect:pypi-stats 2>&1 | tail -5 || true
 sleep 2
 
+echo "🔒 Coletando Cybersecurity..."
+npm run collect:cybersecurity 2>&1 | tail -5 || true
+sleep 2
+
+echo "🚀 Coletando Space Industry..."
+npm run collect:space-industry 2>&1 | tail -5 || true
+sleep 2
+
+echo "⚖️  Coletando AI Regulation..."
+npm run collect:ai-regulation 2>&1 | tail -5 || true
+sleep 2
+
 echo ""
 echo "📊 3. Gerando TODAS as análises..."
 echo ""
@@ -46,6 +58,8 @@ python3 analytics/top10-tech-trends.py > analytics/top10-latest.txt 2>&1 && echo
 python3 analytics/entity-resolution.py > analytics/entity-resolution-latest.txt 2>&1 && echo "   ✅ Entity Resolution" || echo "   ⚠️  Entity Resolution falhou"
 
 python3 analytics/nlg-playbooks-gemini.py 2>&1 | tail -5 && echo "   ✅ NLG Playbooks" || echo "   ⚠️  NLG falhou"
+
+python3 analytics/special-sectors-analysis.py 2>&1 | tail -10 && echo "   ✅ Special Sectors Analysis" || echo "   ⚠️  Special Sectors falhou"
 
 bash run-insights.sh 2>&1 | tail -10 && echo "   ✅ Insights consolidados" || echo "   ⚠️  Insights falhou"
 
@@ -69,6 +83,7 @@ echo "   - analytics/correlation-latest.txt"
 echo "   - analytics/dark-horses-latest.txt"
 echo "   - analytics/entity-resolution-latest.txt"
 echo "   - analytics/playbook-latest.txt"
+echo "   - analytics/special-sectors-latest.txt (NEW!)"
 echo ""
 echo "✅ Pronto!"
 echo ""
