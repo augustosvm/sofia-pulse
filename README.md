@@ -135,226 +135,390 @@ Sofia Pulse combina dados de **11+ fontes diferentes** para gerar inteligência 
 
 ---
 
-## 📊 Fontes de Dados
+## 📊 Fontes de Dados (EM PRODUÇÃO)
 
-### 1. Academia & Pesquisa
+> **Status**: ✅ 14 collectors ativos | ⏰ Automação via cron | 💾 PostgreSQL 15+
 
-#### ArXiv (`collect-arxiv.ts`)
-- **URL**: https://arxiv.org
-- **Dados**: Pre-prints científicos
-- **Categorias**: Physics, Math, CS, Biology, Economics
-- **Volume**: ~200k papers/ano
-- **API**: ArXiv API (gratuita)
-- **Frequência**: Diária (novos submissions)
-
-**Schema:**
-```sql
-CREATE TABLE arxiv_papers (
-  id SERIAL PRIMARY KEY,
-  arxiv_id VARCHAR(50) UNIQUE,
-  title TEXT,
-  abstract TEXT,
-  authors TEXT[],
-  categories VARCHAR(100)[],
-  published_date DATE,
-  updated_date DATE,
-  citation_count INT,
-  collected_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-#### BDTD (`collect-bdtd.ts`)
-- **URL**: https://bdtd.ibict.br
-- **Dados**: Teses e dissertações brasileiras
-- **Instituições**: 100+ universidades
-- **Volume**: ~500k documentos
-- **Frequência**: Mensal
-
-**Schema:**
-```sql
-CREATE TABLE bdtd_theses (
-  id SERIAL PRIMARY KEY,
-  bdtd_id VARCHAR(100) UNIQUE,
-  title TEXT,
-  author VARCHAR(255),
-  advisor VARCHAR(255),
-  university VARCHAR(255),
-  program VARCHAR(255),
-  degree_type VARCHAR(50), -- mestrado/doutorado
-  area VARCHAR(100),
-  abstract TEXT,
-  keywords TEXT[],
-  defense_date DATE,
-  collected_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-#### SciELO (`collect-scielo.ts`)
-- **URL**: https://scielo.org
-- **Dados**: Artigos científicos revisados por pares
-- **Região**: América Latina e Caribe
-- **Journals**: 1,200+
-- **Frequência**: Semanal
-
-**Schema:**
-```sql
-CREATE TABLE scielo_articles (
-  id SERIAL PRIMARY KEY,
-  doi VARCHAR(100) UNIQUE,
-  title TEXT,
-  authors TEXT[],
-  journal VARCHAR(255),
-  issue VARCHAR(50),
-  year INT,
-  abstract TEXT,
-  keywords TEXT[],
-  citations INT,
-  url TEXT,
-  collected_at TIMESTAMP DEFAULT NOW()
-);
-```
+Sofia Pulse coleta dados de **14 fontes diferentes** em produção. Abaixo está a lista COMPLETA de todos os collectors atualmente rodando no sistema.
 
 ---
 
-### 2. Inovação & Saúde
+### 📈 1. Finance & Market Intelligence (3 collectors)
 
-#### Clinical Trials (`collect-clinical-trials.ts`)
-- **URLs**:
-  - ClinicalTrials.gov (global)
-  - REBEC (Brasil)
-- **Dados**: Estudos clínicos em andamento
-- **Fases**: I, II, III, IV
-- **Frequência**: Semanal
+Dados de mercado financeiro brasileiro e internacional.
+
+#### 1.1. B3 Stocks (`collect:brazil`)
+- **Script**: `finance/scripts/collect-brazil-stocks.ts`
+- **Tabela**: `market_data_brazil`
+- **Dados**: Ações da Bolsa Brasileira (B3)
+- **Frequência**: Segunda a Sexta, 21:00 UTC (18:00 BRT)
+- **Empresas**: PETR4, VALE3, ITUB4, BBDC4, WEGE3, ABEV3, RENT3, etc
+- **Campos**: ticker, company, sector, price, change_pct, volume, market_cap
 
 **Schema:**
 ```sql
-CREATE TABLE clinical_trials (
+CREATE TABLE market_data_brazil (
   id SERIAL PRIMARY KEY,
-  trial_id VARCHAR(50) UNIQUE,
-  title TEXT,
-  sponsor VARCHAR(255),
-  phase VARCHAR(20),
-  condition TEXT,
-  intervention TEXT,
-  status VARCHAR(50),
-  start_date DATE,
-  completion_date DATE,
-  enrollment INT,
+  ticker VARCHAR(10),
+  company VARCHAR(255),
+  sector VARCHAR(100),
+  price DECIMAL(10,2),
+  change_pct DECIMAL(5,2),
+  volume BIGINT,
+  market_cap BIGINT,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+#### 1.2. NASDAQ Stocks (`collect:nasdaq`)
+- **Script**: `finance/scripts/collect-nasdaq-momentum.ts`
+- **Tabela**: `market_data_nasdaq`
+- **Dados**: High-momentum tech stocks (NASDAQ)
+- **Frequência**: Segunda a Sexta, 21:00 UTC (18:00 BRT)
+- **Empresas**: NVDA, TSLA, MSFT, AAPL, GOOGL, META, AMD, etc
+- **Campos**: ticker, company, sector, price, change_pct, volume, market_cap
+- **Rate Limit**: 60s de delay (Alpha Vantage API)
+
+**Schema:**
+```sql
+CREATE TABLE market_data_nasdaq (
+  id SERIAL PRIMARY KEY,
+  ticker VARCHAR(10),
+  company VARCHAR(255),
+  sector VARCHAR(100),
+  price DECIMAL(10,2),
+  change_pct DECIMAL(5,2),
+  volume BIGINT,
+  market_cap BIGINT,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+#### 1.3. Funding Rounds (`collect:funding`)
+- **Script**: `finance/scripts/collect-funding-rounds.ts`
+- **Tabela**: `sofia.funding_rounds`
+- **Dados**: Rodadas de investimento VC/PE
+- **Frequência**: Segunda a Sexta, 21:00 UTC (18:00 BRT)
+- **Setores**: AI, Defense AI, Fintech, Biotech, SaaS, etc
+- **Rounds**: Seed, Series A-H, Growth, etc
+- **Campos**: company, sector, round_type, amount_usd, valuation_usd, investors, announced_date, country
+
+**Schema:**
+```sql
+CREATE TABLE sofia.funding_rounds (
+  id SERIAL PRIMARY KEY,
+  company VARCHAR(255),
+  sector VARCHAR(100),
+  round_type VARCHAR(50),
+  amount_usd BIGINT,
+  valuation_usd BIGINT,
+  investors TEXT[],
+  announced_date DATE,
   country VARCHAR(100),
   collected_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
-**Insights possíveis:**
-- Áreas de pesquisa médica em alta
-- Empresas farmacêuticas mais ativas
-- Doenças com mais investimento em P&D
+---
 
-#### Patents (`collect-patents.ts`)
-- **URLs**:
-  - USPTO (EUA)
-  - EPO (Europa)
-  - INPI (Brasil)
-- **Dados**: Patentes de invenção
-- **Frequência**: Mensal
+### 🔬 2. Research & Academia (2 collectors)
+
+Papers científicos e artigos de pesquisa ANTES de serem publicados.
+
+#### 2.1. ArXiv AI/ML Papers (`collect:arxiv-ai`)
+- **Script**: `scripts/collect-arxiv-ai.ts`
+- **Tabela**: `arxiv_ai_papers`
+- **Fonte**: ArXiv.org (pre-prints)
+- **Frequência**: Diário, 20:00 UTC
+- **Categorias**: cs.AI, cs.LG, cs.CV, cs.CL, cs.NE, cs.RO
+- **Por que é crítico**: Papers aparecem 6-12 MESES ANTES de journals. GPT, BERT, Transformers, Diffusion - todos no ArXiv primeiro!
+- **Campos**: arxiv_id, title, authors, categories, abstract, published_date, pdf_url, keywords, is_breakthrough
 
 **Schema:**
 ```sql
-CREATE TABLE patents (
+CREATE TABLE arxiv_ai_papers (
   id SERIAL PRIMARY KEY,
-  patent_number VARCHAR(50) UNIQUE,
+  arxiv_id VARCHAR(50) UNIQUE,
+  title TEXT NOT NULL,
+  authors TEXT[],
+  categories VARCHAR(20)[],
+  abstract TEXT,
+  published_date DATE,
+  updated_date DATE,
+  pdf_url TEXT,
+  primary_category VARCHAR(20),
+  keywords TEXT[],
+  is_breakthrough BOOLEAN DEFAULT FALSE,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+#### 2.2. OpenAlex Papers (`collect:openalex`)
+- **Script**: `scripts/collect-openalex.ts`
+- **Tabela**: `openalex_papers`
+- **Fonte**: OpenAlex.org (catálogo global de pesquisa científica)
+- **Frequência**: Diário, 20:05 UTC
+- **Dados**: 240M+ papers, citações, autores, instituições
+- **Campos**: openalex_id, doi, title, authors, institutions, concepts, publication_year, cited_by_count
+
+**Schema:**
+```sql
+CREATE TABLE openalex_papers (
+  id SERIAL PRIMARY KEY,
+  openalex_id VARCHAR(100) UNIQUE,
+  doi VARCHAR(100),
+  title TEXT,
+  authors TEXT[],
+  institutions TEXT[],
+  concepts TEXT[],
+  publication_year INT,
+  cited_by_count INT,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### 🤖 3. AI & Innovation (1 collector)
+
+Empresas de IA e suas tecnologias.
+
+#### 3.1. AI Companies (`collect:ai-companies`)
+- **Script**: `scripts/collect-ai-companies.ts`
+- **Tabela**: `ai_companies`
+- **Frequência**: Diário, 20:10 UTC
+- **Dados**: Empresas de IA, tecnologias, casos de uso
+- **Campos**: company, description, category, technologies, use_cases, founded_year, funding_total, website
+
+**Schema:**
+```sql
+CREATE TABLE ai_companies (
+  id SERIAL PRIMARY KEY,
+  company VARCHAR(255),
+  description TEXT,
+  category VARCHAR(100),
+  technologies TEXT[],
+  use_cases TEXT[],
+  founded_year INT,
+  funding_total BIGINT,
+  website TEXT,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### 📜 4. Patents & IP (2 collectors)
+
+Propriedade intelectual e patentes de inovação.
+
+#### 4.1. WIPO China Patents (`collect:wipo-china`)
+- **Script**: `scripts/collect-wipo-china-patents.ts`
+- **Tabela**: `wipo_china_patents`
+- **Fonte**: WIPO (World Intellectual Property Organization)
+- **Frequência**: Diário, 01:00 UTC
+- **Foco**: Patentes chinesas (líder global em patentes AI, hardware, manufacturing)
+- **Campos**: publication_number, title, abstract, applicant, filing_date, publication_date, ipc_codes
+
+**Schema:**
+```sql
+CREATE TABLE wipo_china_patents (
+  id SERIAL PRIMARY KEY,
+  publication_number VARCHAR(50) UNIQUE,
   title TEXT,
   abstract TEXT,
-  inventors TEXT[],
-  assignee VARCHAR(255), -- empresa/instituição
+  applicant VARCHAR(255),
   filing_date DATE,
-  grant_date DATE,
-  classifications VARCHAR(50)[],
-  citations_count INT,
-  country VARCHAR(10),
+  publication_date DATE,
+  ipc_codes VARCHAR(20)[],
   collected_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
----
-
-### 3. Tecnologia & Desenvolvimento
-
-#### GitHub (`collect-github.ts`)
-- **API**: GitHub REST API v3
-- **Dados**: Repositórios trending, stars, forks
-- **Rate Limit**: 5000 requests/hora (autenticado)
-- **Frequência**: Diária
+#### 4.2. EPO Patents (`collect:epo`)
+- **Script**: `scripts/collect-epo-patents.ts`
+- **Tabela**: `epo_patents`
+- **Fonte**: EPO (European Patent Office)
+- **Frequência**: Diário, 01:00 UTC
+- **Foco**: Patentes europeias (Green Tech, Privacy Tech, Mobility)
+- **Campos**: publication_number, title, abstract, applicants, inventors, filing_date, ipc_codes
 
 **Schema:**
 ```sql
-CREATE TABLE github_repos (
+CREATE TABLE epo_patents (
   id SERIAL PRIMARY KEY,
-  repo_id BIGINT UNIQUE,
-  full_name VARCHAR(255),
-  description TEXT,
-  language VARCHAR(50),
-  stars INT,
-  forks INT,
-  watchers INT,
-  issues_count INT,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP,
-  topics TEXT[],
-  license VARCHAR(50),
-  collected_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-#### Software Packages (`collect-packages.ts`)
-- **Registries**: npm, PyPI, RubyGems, Maven
-- **Dados**: Downloads, versões, dependências
-- **Frequência**: Semanal
-
-**Schema:**
-```sql
-CREATE TABLE software_packages (
-  id SERIAL PRIMARY KEY,
-  package_name VARCHAR(255),
-  registry VARCHAR(20), -- npm, pypi, etc
-  version VARCHAR(50),
-  downloads_week BIGINT,
-  downloads_month BIGINT,
-  dependencies JSONB,
-  description TEXT,
-  keywords TEXT[],
-  collected_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(package_name, registry, collected_at)
-);
-```
-
-#### StackOverflow (`collect-stackoverflow.ts`)
-- **API**: StackExchange API
-- **Dados**: Perguntas, respostas, tags
-- **Rate Limit**: 10000 requests/dia
-- **Frequência**: Diária
-
-**Schema:**
-```sql
-CREATE TABLE stackoverflow_questions (
-  id SERIAL PRIMARY KEY,
-  question_id BIGINT UNIQUE,
+  publication_number VARCHAR(50) UNIQUE,
   title TEXT,
-  tags VARCHAR(50)[],
-  score INT,
-  view_count INT,
-  answer_count INT,
-  is_answered BOOLEAN,
-  created_at TIMESTAMP,
+  abstract TEXT,
+  applicants TEXT[],
+  inventors TEXT[],
+  filing_date DATE,
+  publication_date DATE,
+  ipc_codes VARCHAR(20)[],
   collected_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
 ---
 
-### 4. Finance (Já Implementado)
+### 💼 5. IPOs & Public Markets (1 collector)
 
-Ver documentação detalhada em [`finance/README.md`](finance/README.md)
+#### 5.1. HKEX IPOs (`collect:hkex`)
+- **Script**: `scripts/collect-hkex-ipos.ts`
+- **Tabela**: `hkex_ipos`
+- **Fonte**: Hong Kong Exchanges and Clearing Limited
+- **Frequência**: Segunda a Sexta, 02:00 UTC
+- **Dados**: IPOs de empresas asiáticas (China, Hong Kong, etc)
+- **Campos**: stock_code, company_name, listing_date, offer_price, shares_offered, market_cap
+
+**Schema:**
+```sql
+CREATE TABLE hkex_ipos (
+  id SERIAL PRIMARY KEY,
+  stock_code VARCHAR(10),
+  company_name VARCHAR(255),
+  listing_date DATE,
+  offer_price DECIMAL(10,2),
+  shares_offered BIGINT,
+  market_cap BIGINT,
+  sector VARCHAR(100),
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### 🏥 6. Biotech & Healthcare (1 collector)
+
+#### 6.1. NIH Grants (`collect:nih-grants`)
+- **Script**: `scripts/collect-nih-grants.ts`
+- **Tabela**: `nih_grants`
+- **Fonte**: NIH Reporter (National Institutes of Health)
+- **Frequência**: Semanal (Segunda, 03:00 UTC)
+- **Dados**: Grants federais para pesquisa biomédica
+- **Campos**: project_num, pi_name, org_name, project_title, fiscal_year, award_amount, project_start, project_end
+
+**Schema:**
+```sql
+CREATE TABLE nih_grants (
+  id SERIAL PRIMARY KEY,
+  project_num VARCHAR(50) UNIQUE,
+  pi_name VARCHAR(255),
+  org_name VARCHAR(255),
+  project_title TEXT,
+  fiscal_year INT,
+  award_amount BIGINT,
+  project_start DATE,
+  project_end DATE,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### 🎓 7. Universities & Academia (1 collector)
+
+#### 7.1. Asia Universities (`collect:asia-universities`)
+- **Script**: `scripts/collect-asia-universities.ts`
+- **Tabela**: `asia_universities`
+- **Frequência**: Mensal (dia 1, 04:00 UTC)
+- **Dados**: Universidades asiáticas, rankings, especialização
+- **Campos**: university_name, country, rank_global, rank_regional, specializations, research_output
+
+**Schema:**
+```sql
+CREATE TABLE asia_universities (
+  id SERIAL PRIMARY KEY,
+  university_name VARCHAR(255),
+  country VARCHAR(100),
+  rank_global INT,
+  rank_regional INT,
+  specializations TEXT[],
+  research_output INT,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### 📦 8. Economic Indicators (1 collector)
+
+#### 8.1. Cardboard Production (`collect:cardboard`)
+- **Script**: `scripts/collect-cardboard-production.ts`
+- **Tabela**: `cardboard_production`
+- **Fonte**: Leading indicator de atividade econômica
+- **Frequência**: Semanal (Segunda, 05:00 UTC)
+- **Por que é relevante**: Produção de papelão correlaciona com e-commerce, manufatura, logística. Antecede PIB em 3-6 meses!
+- **Campos**: country, month, production_tons, change_pct, sector
+
+**Schema:**
+```sql
+CREATE TABLE cardboard_production (
+  id SERIAL PRIMARY KEY,
+  country VARCHAR(100),
+  month DATE,
+  production_tons BIGINT,
+  change_pct DECIMAL(5,2),
+  sector VARCHAR(50),
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### 📅 9. IPO Calendar (1 collector)
+
+#### 9.1. IPO Calendar (`collect:ipo-calendar`)
+- **Script**: `collectors/ipo-calendar.ts`
+- **Tabela**: `sofia.ipo_calendar`
+- **Fontes**: NASDAQ, B3, SEC/EDGAR
+- **Frequência**: Diário, 06:00 UTC
+- **Dados**: Empresas que VÃO abrir capital (próximos 30 dias)
+- **Campos**: company, exchange, expected_date, sector, price_range_low, price_range_high, shares_offered
+
+**Schema:**
+```sql
+CREATE TABLE sofia.ipo_calendar (
+  id SERIAL PRIMARY KEY,
+  company VARCHAR(255),
+  exchange VARCHAR(20),
+  expected_date DATE,
+  sector VARCHAR(100),
+  price_range_low DECIMAL(10,2),
+  price_range_high DECIMAL(10,2),
+  shares_offered BIGINT,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### 💼 10. Jobs Market (1 collector)
+
+#### 10.1. Tech Jobs (`collect:jobs`)
+- **Script**: `collectors/jobs-collector.ts`
+- **Tabela**: `sofia.jobs`
+- **Fontes**: Indeed, LinkedIn Jobs API, AngelList/Wellfound
+- **Frequência**: Diário, 07:00 UTC
+- **Dados**: Vagas de emprego tech por país, setor, remote
+- **Campos**: title, company, location, country, sector, remote, salary_range, posted_date, url
+
+**Schema:**
+```sql
+CREATE TABLE sofia.jobs (
+  id SERIAL PRIMARY KEY,
+  title TEXT,
+  company VARCHAR(255),
+  location VARCHAR(255),
+  country VARCHAR(100),
+  sector VARCHAR(100),
+  remote BOOLEAN,
+  salary_range VARCHAR(100),
+  posted_date DATE,
+  url TEXT,
+  collected_at TIMESTAMP DEFAULT NOW()
+);
+```
 
 ---
 
@@ -584,100 +748,163 @@ ORDER BY papers DESC;
 
 ## ⚙️ Automação
 
-### Cron Jobs
+### Cron Jobs (EM PRODUÇÃO)
 
-#### Setup
+> **Status**: ✅ Cron LIMPO instalado | 📊 14 collectors + 2 insights/email + 5 backups = 21 jobs
+
+Sofia Pulse usa cron jobs para automação completa. O sistema roda 24/7 sem intervenção manual.
+
+#### Instalação Rápida
 
 ```bash
-# Editar crontab
-crontab -e
+# No servidor
+cd /home/ubuntu/sofia-pulse
+git pull origin claude/resume-context-demo-01Jwa7QikzGJHnTZjJLMp5AE
+bash install-clean-crontab.sh
 ```
 
-#### Jobs Recomendados
+Ver guia completo: [`GUIA-INSTALACAO-CRON-LIMPO.md`](GUIA-INSTALACAO-CRON-LIMPO.md)
 
+---
+
+#### Cronograma Completo (todos os horários em UTC)
+
+**Diário:**
 ```bash
-# 1. Backup PostgreSQL - 2h da manhã
-0 2 * * * /home/ubuntu/sofia-pulse/scripts/backup-complete.sh >> /var/log/sofia-backup.log 2>&1
-
-# 2. Coleta diária - 6h da manhã
-0 6 * * * cd /home/ubuntu/sofia-pulse && ./cron-daily.sh >> /var/log/sofia-daily.log 2>&1
-
-# 3. Coleta semanal - domingo 3h
-0 3 * * 0 cd /home/ubuntu/sofia-pulse && ./cron-weekly.sh >> /var/log/sofia-weekly.log 2>&1
-
-# 4. Coleta mensal - dia 1, 4h
-0 4 1 * * cd /home/ubuntu/sofia-pulse && ./cron-monthly.sh >> /var/log/sofia-monthly.log 2>&1
-
-# 5. Finance signals - dias úteis 18h
-0 18 * * 1-5 cd /home/ubuntu/sofia-pulse/finance && npm run invest:full >> /var/log/sofia-finance.log 2>&1
-
-# 6. Limpeza de backups antigos - domingo 5h
-0 5 * * 0 find /var/backups/postgres/ -name "*.sql.gz" -mtime +7 -delete
-
-# 7. Limpeza de logs antigos - domingo 6h
-0 6 * * 0 find /home/ubuntu/sofia-pulse/logs/ -name "*.log" -mtime +30 -delete
+20:00 - ArXiv AI Papers
+20:05 - OpenAlex Papers
+20:10 - AI Companies
+01:00 - Patentes (WIPO China + EPO)
+06:00 - IPO Calendar (NASDAQ, B3, SEC)
+07:00 - Jobs (Indeed, LinkedIn, AngelList)
 ```
 
-### Scripts de Automação
-
-#### `cron-daily.sh` - Coleta Diária
-
+**Segunda a Sexta (dias úteis):**
 ```bash
-#!/bin/bash
-set -e
-
-# ArXiv papers novos
-npm run collect:arxiv
-
-# GitHub trending
-npm run collect:github
-
-# StackOverflow questions
-npm run collect:stackoverflow
-
-# Finance (B3 + NASDAQ)
-cd finance && npm run collect:all && cd ..
-
-echo "✅ Daily collection completed at $(date)"
+21:00 - Finance (B3, NASDAQ, Funding)
+22:00 - Premium Insights v2.0
+23:00 - Email com Insights + CSVs
+02:00 - HKEX IPOs
 ```
 
-#### `cron-weekly.sh` - Coleta Semanal
-
+**Semanal (Segundas):**
 ```bash
-#!/bin/bash
-set -e
-
-# SciELO articles
-npm run collect:scielo
-
-# Clinical trials updates
-npm run collect:clinical
-
-# Package stats
-npm run collect:packages
-
-# Funding rounds
-cd finance && npm run collect:funding && cd ..
-
-echo "✅ Weekly collection completed at $(date)"
+03:00 - NIH Grants (biomedicina)
+05:00 - Cardboard Production (leading indicator)
 ```
 
-#### `cron-monthly.sh` - Coleta Mensal
+**Mensal (Dia 1):**
+```bash
+04:00 - Universidades Ásia
+```
+
+**Backups (mantidos do cron original):**
+```bash
+*/1 * * * * - Auto-recovery
+03:00 - Comprehensive backup
+02:00 - Dashboard backup
+02:00 (Qua) - Full backup
+04:00 - Sofia backup
+```
+
+---
+
+### Crontab Completo (Copy-Paste)
 
 ```bash
-#!/bin/bash
-set -e
+# ============================================================================
+# SOFIA PULSE - Cron Jobs (LIMPO - v2.0)
+# ============================================================================
 
-# BDTD theses
-npm run collect:bdtd
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# Patents
-npm run collect:patents
+# ============================================================================
+# 1. COLLECTORS - Dados Reais
+# ============================================================================
 
-# Generate monthly report
-npm run report:monthly
+# Finance (B3, NASDAQ, Funding) - Seg-Sex às 21:00 UTC (18:00 BRT)
+0 21 * * 1-5 cd /home/ubuntu/sofia-pulse && ./collect-finance.sh >> /var/log/sofia-finance.log 2>&1
 
-echo "✅ Monthly collection completed at $(date)"
+# ArXiv AI Papers - Diário às 20:00 UTC
+0 20 * * * cd /home/ubuntu/sofia-pulse && npm run collect:arxiv-ai >> /var/log/sofia-arxiv.log 2>&1
+
+# OpenAlex Papers - Diário às 20:05 UTC
+5 20 * * * cd /home/ubuntu/sofia-pulse && npm run collect:openalex >> /var/log/sofia-openalex.log 2>&1
+
+# AI Companies - Diário às 20:10 UTC
+10 20 * * * cd /home/ubuntu/sofia-pulse && npm run collect:ai-companies >> /var/log/sofia-ai-companies.log 2>&1
+
+# Patentes (WIPO China, EPO) - Diário às 01:00 UTC
+0 1 * * * cd /home/ubuntu/sofia-pulse && npm run collect:patents-all >> /var/log/sofia-patents.log 2>&1
+
+# IPOs Hong Kong - Seg-Sex às 02:00 UTC
+0 2 * * 1-5 cd /home/ubuntu/sofia-pulse && npm run collect:hkex >> /var/log/sofia-hkex.log 2>&1
+
+# NIH Grants (Biotech) - Semanal (segunda às 03:00 UTC)
+0 3 * * 1 cd /home/ubuntu/sofia-pulse && npm run collect:nih-grants >> /var/log/sofia-nih.log 2>&1
+
+# Universidades Ásia - Mensal (dia 1 às 04:00 UTC)
+0 4 1 * * cd /home/ubuntu/sofia-pulse && npm run collect:asia-universities >> /var/log/sofia-unis.log 2>&1
+
+# Cardboard Production - Semanal (segunda às 05:00 UTC)
+0 5 * * 1 cd /home/ubuntu/sofia-pulse && npm run collect:cardboard >> /var/log/sofia-cardboard.log 2>&1
+
+# IPO Calendar (NASDAQ, B3, SEC) - Diário às 06:00 UTC
+0 6 * * * cd /home/ubuntu/sofia-pulse && npm run collect:ipo-calendar >> /var/log/sofia-ipo.log 2>&1
+
+# Jobs (Indeed, LinkedIn, AngelList) - Diário às 07:00 UTC
+0 7 * * * cd /home/ubuntu/sofia-pulse && npm run collect:jobs >> /var/log/sofia-jobs.log 2>&1
+
+# ============================================================================
+# 2. INSIGHTS GENERATION (v2.0 - Com Análise Temporal!)
+# ============================================================================
+
+# Premium Insights v2.0 - Seg-Sex às 22:00 UTC (19:00 BRT)
+0 22 * * 1-5 cd /home/ubuntu/sofia-pulse && source venv-analytics/bin/activate && ./generate-insights-v2.0.sh >> /var/log/sofia-insights-v2.log 2>&1
+
+# ============================================================================
+# 3. EMAIL & REPORTING
+# ============================================================================
+
+# Email com Insights - Seg-Sex às 23:00 UTC (20:00 BRT)
+0 23 * * 1-5 cd /home/ubuntu/sofia-pulse && ./send-insights-email.sh >> /var/log/sofia-email.log 2>&1
+
+# ============================================================================
+# 4. BACKUPS
+# ============================================================================
+
+# Auto-recovery (a cada 1 minuto)
+*/1 * * * * /home/ubuntu/infraestrutura/scripts/auto-recovery.sh
+
+# Backups diversos
+0 3 * * * /home/ubuntu/infraestrutura/scripts/comprehensive-backup.sh
+0 2 * * * /home/ubuntu/infraestrutura/scripts/backup-dashboards.sh
+0 2 * * 3 /home/ubuntu/infraestrutura/scripts/full-backup.sh
+
+# Sofia Pulse backup
+0 4 * * * cd /home/ubuntu/sofia-pulse && ./scripts/backup-complete.sh >> /var/log/sofia-backup.log 2>&1
+```
+
+---
+
+### Comandos Úteis
+
+```bash
+# Ver cron instalado
+crontab -l
+
+# Ver logs em tempo real
+tail -f /var/log/sofia-*.log
+
+# Ver último erro de um collector
+grep -i error /var/log/sofia-arxiv.log | tail -20
+
+# Testar collector manualmente
+npm run collect:arxiv-ai
+
+# Ver status dos jobs
+ps aux | grep "collect"
 ```
 
 ---
@@ -699,28 +926,37 @@ GET  /api/v1/clinical-trials      # Active trials
 
 ### Database Schema Completo
 
-Ver [`docs/SCHEMA.md`](docs/SCHEMA.md) para schema completo com todos os índices e constraints.
-
-**Resumo das tabelas:**
+**Resumo das tabelas (14 em produção):**
 
 ```
 sofia_db
-├── Academia (3 tabelas)
-│   ├── arxiv_papers
-│   ├── bdtd_theses
-│   └── scielo_articles
-├── Inovação (2 tabelas)
-│   ├── clinical_trials
-│   └── patents
-├── Tech (3 tabelas)
-│   ├── github_repos
-│   ├── software_packages
-│   └── stackoverflow_questions
-└── Finance (3 tabelas)
-    ├── market_data_brazil
-    ├── market_data_nasdaq
-    └── funding_rounds
+├── Finance (3 tabelas)
+│   ├── market_data_brazil        # B3 stocks
+│   ├── market_data_nasdaq        # NASDAQ stocks
+│   └── sofia.funding_rounds      # VC/PE deals
+├── Research & Academia (2 tabelas)
+│   ├── arxiv_ai_papers           # AI/ML pre-prints
+│   └── openalex_papers           # Global research papers
+├── AI & Innovation (1 tabela)
+│   └── ai_companies              # AI companies & tech
+├── Patents & IP (2 tabelas)
+│   ├── wipo_china_patents        # Patentes China
+│   └── epo_patents               # Patentes Europa
+├── Public Markets (1 tabela)
+│   └── hkex_ipos                 # IPOs Hong Kong
+├── Biotech (1 tabela)
+│   └── nih_grants                # NIH biomedical grants
+├── Academia (1 tabela)
+│   └── asia_universities         # Universidades Ásia
+├── Economic Indicators (1 tabela)
+│   └── cardboard_production      # Leading indicator
+├── IPO Pipeline (1 tabela)
+│   └── sofia.ipo_calendar        # Upcoming IPOs
+└── Jobs Market (1 tabela)
+    └── sofia.jobs                # Tech jobs
 ```
+
+**Total**: 14 tabelas coletando dados 24/7
 
 ---
 
