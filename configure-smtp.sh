@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ###############################################################################
-# Sofia Pulse - Configurar SMTP Password
-# Adiciona senha do Gmail automaticamente
+# Sofia Pulse - Configurar TODAS as credenciais
+# Restaura SMTP + API Keys automaticamente
 ###############################################################################
 
 set -e
@@ -11,22 +11,58 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
-echo "🔐 Configurando SMTP Password..."
+echo "🔐 Configurando credenciais completas..."
 
-# Senha do Gmail App Password
+# SMTP Password
 SMTP_PASS="msnxttcudgfhveel"
+
+# API Keys
+ALPHA_KEY="JFVYRODTWGO1W5M6"
+EIA_KEY="QKUixUcUGWnmT7ffUKPeIzeS7OrInmtd471qboys"
+NINJAS_KEY="IsggR55vW5kTD5w71PKRzg==DU8KUx0G1gYwbO2I"
 
 # Atualizar .env
 if [ -f ".env" ]; then
-    # Verificar se SMTP_PASS já existe
+    # SMTP
     if grep -q "^SMTP_PASS=" .env; then
-        # Atualizar existente
-        sed -i "s/^SMTP_PASS=.*/SMTP_PASS=$SMTP_PASS/" .env
-        echo "✅ SMTP_PASS atualizado no .env"
+        sed -i "s|^SMTP_PASS=.*|SMTP_PASS=$SMTP_PASS|" .env
+        echo "✅ SMTP_PASS atualizado"
     else
-        # Adicionar novo
         echo "SMTP_PASS=$SMTP_PASS" >> .env
-        echo "✅ SMTP_PASS adicionado ao .env"
+        echo "✅ SMTP_PASS adicionado"
+    fi
+
+    if grep -q "^SMTP_USER=" .env; then
+        sed -i "s|^SMTP_USER=.*|SMTP_USER=augustosvm@gmail.com|" .env
+    else
+        echo "SMTP_USER=augustosvm@gmail.com" >> .env
+    fi
+
+    # Alpha Vantage
+    if grep -q "^ALPHA_VANTAGE_API_KEY=" .env; then
+        sed -i "s|^ALPHA_VANTAGE_API_KEY=.*|ALPHA_VANTAGE_API_KEY=$ALPHA_KEY|" .env
+        echo "✅ ALPHA_VANTAGE_API_KEY atualizado"
+    else
+        echo "ALPHA_VANTAGE_API_KEY=$ALPHA_KEY" >> .env
+        echo "✅ ALPHA_VANTAGE_API_KEY adicionado"
+    fi
+
+    # EIA
+    if grep -q "^EIA_API_KEY=" .env; then
+        sed -i "s|^EIA_API_KEY=.*|EIA_API_KEY=$EIA_KEY|" .env
+        echo "✅ EIA_API_KEY atualizado"
+    else
+        echo "EIA_API_KEY=$EIA_KEY" >> .env
+        echo "✅ EIA_API_KEY adicionado"
+    fi
+
+    # API Ninjas
+    if grep -q "^API_NINJAS_KEY=" .env; then
+        sed -i "s|^API_NINJAS_KEY=.*|API_NINJAS_KEY=$NINJAS_KEY|" .env
+        echo "✅ API_NINJAS_KEY atualizado"
+    else
+        echo "API_NINJAS_KEY=$NINJAS_KEY" >> .env
+        echo "✅ API_NINJAS_KEY adicionado"
     fi
 else
     echo "❌ Arquivo .env não encontrado"
@@ -35,8 +71,9 @@ fi
 
 echo ""
 echo "✅ Configuração completa!"
-echo "📧 Email configurado: augustosvm@gmail.com"
-echo "🔐 SMTP Password: configurado"
+echo "📧 Email: augustosvm@gmail.com"
+echo "🔐 SMTP: configurado"
+echo "🔑 Alpha Vantage: ${ALPHA_KEY:0:15}..."
+echo "🔑 EIA: ${EIA_KEY:0:15}..."
+echo "🔑 API Ninjas: ${NINJAS_KEY:0:15}..."
 echo ""
-echo "Teste o envio de email:"
-echo "  bash send-insights-email.sh"
