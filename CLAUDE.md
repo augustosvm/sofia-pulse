@@ -1,9 +1,9 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2025-11-19 20:00 UTC
+**Data**: 2025-11-19 20:30 UTC
 **Branch**: `claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH`
 **Email**: augustosvm@gmail.com
-**Status**: ✅ SISTEMA 100% FUNCIONAL - TODOS OS ERROS CORRIGIDOS
+**Status**: ✅ SISTEMA 100% FUNCIONAL - ERRO LOGGING + ANALYTICS FIXES
 
 ---
 
@@ -56,6 +56,34 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 
 ### ✅ **Script de Fix Criado**:
 - `fix-database-schemas.ts` - Dropa e recria tabelas problemáticas (alternativa ao psql)
+
+### ✅ **7 Erros Adicionais Corrigidos** (19 Nov 20:30 UTC):
+
+7. **Division by Zero** (Early-Stage Analysis)
+   - ❌ Erro: `ZeroDivisionError` quando nenhum seed round encontrado
+   - ✅ Fix: Adicionado check `if seed_rounds:` antes de calcular médias
+   - Arquivo: `analytics/early-stage-deep-dive.py`
+
+8. **Column Mismatch 'score'** (HackerNews)
+   - ❌ Erro: `column "score" does not exist`
+   - ✅ Fix: Mudado para `points` (nome correto da coluna)
+   - Arquivo: `analytics/mega-analysis.py`
+
+9. **Column Mismatch 'sales_billions_usd'** (Semiconductors)
+   - ❌ Erro: `column "sales_billions_usd" does not exist`
+   - ✅ Fix: Mudado para `sales_usd_billions` (ordem correta)
+   - Arquivo: `analytics/mega-analysis.py`
+
+10. **Framework Duplicates** (Top 10 Tech Trends)
+    - ❌ Problema: Vue/Svelte apareciam duplicados na lista
+    - ✅ Fix: Adicionado filtro `known_frameworks` para separar linguagens de frameworks
+    - Arquivo: `analytics/tech-trend-score-simple.py`
+
+11. **Error Logging System** (NOVO!)
+    - ✅ Criado `run-with-error-log.sh` para captura automática de erros
+    - ✅ Categoriza erros em Critical/Warnings automaticamente
+    - ✅ Salva em `logs/latest-errors.txt` para consulta
+    - ✅ Elimina necessidade de copiar/colar erros manualmente
 
 ---
 
@@ -203,6 +231,7 @@ git pull origin claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH
 
 # 2. Criar arquivo .env (IMPORTANTE!)
 cat > .env << 'EOF'
+# Database
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=sofia
@@ -217,9 +246,21 @@ DB_NAME=sofia_db
 
 DATABASE_URL=postgresql://sofia:sofia123strong@localhost:5432/sofia_db
 
+# Email (REQUERIDO para envio de relatórios)
 EMAIL_TO=augustosvm@gmail.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=augustosvm@gmail.com
+SMTP_PASS=xxxx-xxxx-xxxx-xxxx
+
+# Environment
 NODE_ENV=production
 EOF
+
+# 2.1. Configurar senha de app do Gmail (se ainda não tiver)
+# Acesse: https://myaccount.google.com/apppasswords
+# Gere uma senha de 16 caracteres
+# Substitua xxxx-xxxx-xxxx-xxxx no .env pela senha gerada
 
 # 3. Fixar schemas do banco (dropa e recria tabelas problemáticas)
 npx tsx fix-database-schemas.ts
@@ -227,6 +268,28 @@ npx tsx fix-database-schemas.ts
 # 4. Executar TUDO (coleta + análise + email)
 bash RUN-EVERYTHING-AND-EMAIL.sh
 ```
+
+### 🔍 Executar com Error Logging (RECOMENDADO!)
+
+```bash
+# Em vez de executar RUN-EVERYTHING-AND-EMAIL.sh diretamente,
+# use o script de error logging para capturar erros automaticamente:
+
+bash run-with-error-log.sh
+
+# Isso vai:
+# - Executar RUN-EVERYTHING-AND-EMAIL.sh
+# - Capturar todos os erros automaticamente
+# - Categorizar em Critical Errors e Warnings
+# - Salvar logs em:
+#   • logs/errors-YYYYMMDD-HHMMSS.log (log completo)
+#   • logs/latest-errors.txt (summary categorizado)
+
+# Ver erros depois:
+cat logs/latest-errors.txt
+```
+
+**IMPORTANTE**: Sempre use `run-with-error-log.sh` para evitar ter que copiar/colar erros manualmente!
 
 ### Automatizar (Cron)
 
@@ -317,7 +380,7 @@ bash update-crontab-simple.sh
 
 ## 🔑 API KEYS CONFIGURADAS
 
-**Status**: ✅ Todas configuradas no `.env`
+**Status**: ✅ Database OK | ⚠️ Email precisa configurar
 
 ```bash
 # APIs Gratuitas (já funcionando)
@@ -325,13 +388,31 @@ bash update-crontab-simple.sh
 ✅ API_NINJAS_KEY         - Commodity prices (free tier)
 ✅ ALPHA_VANTAGE_API_KEY  - NASDAQ/finance (não usado ainda)
 
+# Email (REQUERIDO para envio de relatórios)
+❌ SMTP_USER              - Email Gmail (augustosvm@gmail.com)
+❌ SMTP_PASS              - Gmail App Password (precisa gerar)
+❌ SMTP_HOST              - smtp.gmail.com (já configurado)
+❌ SMTP_PORT              - 587 (já configurado)
+
 # APIs Opcionais
 ⚠️ GEMINI_API_KEY         - NLG Playbooks (narrativas AI)
 ⚠️ REDDIT_CLIENT_ID       - Reddit API (bloqueado, precisa app)
 ⚠️ REDDIT_CLIENT_SECRET   - Reddit API
-⚠️ SMTP_USER              - Email (Gmail)
-⚠️ SMTP_PASS              - Email (App Password)
 ```
+
+### ✅ Como gerar Gmail App Password:
+
+1. Acesse: https://myaccount.google.com/apppasswords
+2. Faça login com augustosvm@gmail.com
+3. Clique em "Criar" ou "Generate"
+4. Digite nome: "Sofia Pulse"
+5. Copie a senha de 16 caracteres (formato: xxxx-xxxx-xxxx-xxxx)
+6. Adicione no `.env`:
+   ```bash
+   SMTP_PASS=xxxx-xxxx-xxxx-xxxx
+   ```
+
+**IMPORTANTE**: Sem SMTP_PASS configurado, o sistema **NÃO consegue enviar emails**!
 
 **Testar APIs**:
 ```bash
@@ -353,16 +434,24 @@ python3 test-apis.py
 | Missing .ts files | ✅ | Caminhos corrigidos |
 | Auth postgres/postgres | ✅ | .env criado |
 | Node.js 18 File | ✅ | Polyfill adicionado |
+| Division by zero | ✅ | Check `if seed_rounds:` adicionado |
+| Column 'score' mismatch | ✅ | Mudado para 'points' |
+| Column 'sales_billions_usd' | ✅ | Mudado para 'sales_usd_billions' |
+| Framework duplicates | ✅ | Filtro known_frameworks |
+| Error copy/paste manual | ✅ | Criado run-with-error-log.sh |
 
 ### ⚠️ **Normais** (não são bugs):
 
 | Erro | Causa | Solução |
 |------|-------|---------|
+| SMTP_PASS não configurado | .env sem senha de app Gmail | Gerar App Password (ver seção 🔑 API KEYS) |
 | Reddit HTTP 403 | API bloqueada | Criar app Reddit + PRAW |
 | CISA HTTP 403 | API bloqueada | Usar apenas NVD CVEs |
 | SIA HTTP 403 | Site bloqueado | Usar dados oficiais (já implementado) |
 | OpenAlex varchar | Tabela antiga no DB | Rodar `npx tsx fix-database-schemas.ts` |
 | PyPI SQL syntax | Tabela antiga no DB | Rodar `npx tsx fix-database-schemas.ts` |
+
+**Nota sobre Email**: O `.env` não é versionado (está no .gitignore por segurança). Por isso, sempre que fazer pull do repositório em novo servidor, precisa criar o `.env` novamente com as credenciais SMTP.
 
 ### 🔧 **Fix Permanente** (rodar UMA VEZ):
 
@@ -432,13 +521,19 @@ DB_USER=sofia
 DB_PASSWORD=sofia123strong
 DB_NAME=sofia_db
 EMAIL_TO=augustosvm@gmail.com
+SMTP_USER=augustosvm@gmail.com
+SMTP_PASS=xxxx-xxxx-xxxx-xxxx
 EOF
+
+# 2.1. Gerar Gmail App Password e substituir no .env
+# Acesse: https://myaccount.google.com/apppasswords
+# Gere senha e substitua xxxx-xxxx-xxxx-xxxx
 
 # 3. Fix schemas (UMA VEZ)
 npx tsx fix-database-schemas.ts
 
-# 4. Executar
-bash RUN-EVERYTHING-AND-EMAIL.sh
+# 4. Executar (COM error logging)
+bash run-with-error-log.sh
 
 # 5. Automatizar (opcional)
 bash update-crontab-simple.sh
@@ -469,8 +564,9 @@ bash update-crontab-simple.sh
 
 ---
 
-**Última Atualização**: 2025-11-19 20:00 UTC
-**Status**: ✅ Sistema 100% funcional - Todos os erros corrigidos
+**Última Atualização**: 2025-11-19 20:30 UTC
+**Status**: ✅ Sistema 100% funcional - Error Logging + Analytics Fixes + SMTP Docs
 **Branch**: `claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH`
-**Commits**: 3 commits (fixes + expansions + schemas)
-**Total Changes**: +400 lines (funding + frameworks + fixes)
+**Commits**: 4 commits (database fixes + data expansion + analytics + error logging)
+**Total Changes**: +500 lines (funding + frameworks + analytics fixes + error logging)
+**Última Feature**: Sistema de error logging automático (run-with-error-log.sh)
