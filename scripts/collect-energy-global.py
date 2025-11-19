@@ -212,15 +212,24 @@ def main():
     print("✅ GLOBAL ENERGY DATA COLLECTION COMPLETE")
     print("=" * 80)
     print()
-    print("📊 Top 10 renewable capacity (solar + wind GW):")
 
-    # Print preview
-    latest_df['renewable_capacity'] = (
-        latest_df['solar_capacity'].fillna(0) +
-        latest_df['wind_capacity'].fillna(0)
-    )
-    top10 = latest_df.nlargest(10, 'renewable_capacity')[['country', 'solar_capacity', 'wind_capacity', 'renewable_capacity']]
-    print(top10.to_string(index=False))
+    # Print preview if columns exist
+    try:
+        if 'solar_capacity' in latest_df.columns and 'wind_capacity' in latest_df.columns:
+            print("📊 Top 10 renewable capacity (solar + wind GW):")
+            latest_df['renewable_capacity'] = (
+                latest_df['solar_capacity'].fillna(0) +
+                latest_df['wind_capacity'].fillna(0)
+            )
+            top10 = latest_df.nlargest(10, 'renewable_capacity')[['country', 'solar_capacity', 'wind_capacity', 'renewable_capacity']]
+            print(top10.to_string(index=False))
+        else:
+            print("📊 Preview: Data columns available:")
+            print(f"   Countries: {len(latest_df)}")
+            if 'country' in latest_df.columns:
+                print(f"   Sample countries: {', '.join(latest_df['country'].head(5).tolist())}")
+    except Exception as e:
+        print(f"⚠️  Preview skipped: {e}")
 
     print()
 
