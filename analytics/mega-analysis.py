@@ -179,9 +179,9 @@ def get_tech_trends_summary():
 
         # HackerNews top
         cur.execute("""
-            SELECT title, score, url
+            SELECT title, points, url
             FROM sofia.hackernews_stories
-            ORDER BY score DESC
+            ORDER BY points DESC
             LIMIT 10
         """)
         summary['hackernews_top'] = cur.fetchall()
@@ -350,7 +350,7 @@ def get_global_economy_summary():
 
         # Semiconductor sales (latest)
         cur.execute("""
-            SELECT region, sales_billions_usd, quarter, year
+            SELECT region, sales_usd_billions, quarter, year
             FROM sofia.semiconductor_sales
             ORDER BY year DESC, quarter DESC
             LIMIT 10

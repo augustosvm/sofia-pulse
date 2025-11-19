@@ -91,7 +91,15 @@ def get_github_technologies(conn) -> Dict[str, Dict[str, float]]:
             'github_avg_stars': float(row['avg_stars'] or 0),
         }
 
-    # Também extrair de topics
+    # Também extrair frameworks específicos de topics (não linguagens)
+    # Lista de frameworks populares que devem ser rastreados
+    known_frameworks = [
+        'react', 'vue', 'angular', 'svelte', 'nextjs', 'nuxt',
+        'astro', 'solid', 'qwik', 'remix', 'vite', 'tailwind',
+        'fastapi', 'django', 'flask', 'laravel', 'spring-boot',
+        'express', 'nestjs', 'rails', 'blazor', 'flutter'
+    ]
+
     topic_query = """
     SELECT
         unnest(topics) as tech,
@@ -101,13 +109,14 @@ def get_github_technologies(conn) -> Dict[str, Dict[str, float]]:
     WHERE topics IS NOT NULL
         AND array_length(topics, 1) > 0
         AND is_archived = FALSE
+        AND unnest(topics) = ANY(%s)
     GROUP BY tech
-    HAVING COUNT(*) >= 3
+    HAVING COUNT(*) >= 1
     ORDER BY total_stars DESC
     LIMIT 50;
     """
 
-    cursor.execute(topic_query)
+    cursor.execute(topic_query, (known_frameworks,))
     topic_results = cursor.fetchall()
 
     for row in topic_results:

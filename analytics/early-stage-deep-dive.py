@@ -168,9 +168,22 @@ Conectando: Funding → Papers → Universities → Tech Stack → Patents
 {'-'*80}
 
 Total de rounds seed/angel: {len(seed_rounds)}
-Ticket médio: ${sum(r['amount_usd'] for r in seed_rounds) / len(seed_rounds) / 1e6:.2f}M
-Range: ${min(r['amount_usd'] for r in seed_rounds) / 1e6:.2f}M - ${max(r['amount_usd'] for r in seed_rounds) / 1e6:.2f}M
+"""
 
+    if seed_rounds:
+        avg_ticket = sum(r['amount_usd'] for r in seed_rounds) / len(seed_rounds) / 1e6
+        min_ticket = min(r['amount_usd'] for r in seed_rounds) / 1e6
+        max_ticket = max(r['amount_usd'] for r in seed_rounds) / 1e6
+        report += f"""Ticket médio: ${avg_ticket:.2f}M
+Range: ${min_ticket:.2f}M - ${max_ticket:.2f}M
+"""
+    else:
+        report += """
+⚠️  Nenhum round seed/angel (<$10M) encontrado no período.
+💡 Ajuste o filtro de amount_usd ou período para encontrar deals menores.
+"""
+
+    report += f"""
 {'='*80}
 
 🌍 GEOGRAFIA - ONDE ESTÃO OS FOUNDERS?
