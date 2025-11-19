@@ -73,6 +73,28 @@ def filter_latest_data(df):
 
     return latest
 
+def safe_int(value, max_value=9223372036854775807):
+    """Safely convert to int, handling NaN and out-of-range values"""
+    if pd.isna(value):
+        return None
+    try:
+        int_val = int(value)
+        # Check if within BIGINT range
+        if abs(int_val) > max_value:
+            return None
+        return int_val
+    except (ValueError, OverflowError):
+        return None
+
+def safe_float(value):
+    """Safely convert to float, handling NaN"""
+    if pd.isna(value):
+        return None
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
 def save_to_database(df, conn):
     """Save energy data to PostgreSQL"""
     print("💾 Saving to database...")
@@ -85,36 +107,36 @@ def save_to_database(df, conn):
     for _, row in df.iterrows():
         insert_data.append((
             row['country'],
-            int(row['year']) if pd.notna(row['year']) else None,
+            safe_int(row.get('year')),
             row.get('iso_code', None),
-            row.get('population', None),
-            row.get('gdp', None),
+            safe_int(row.get('population')),
+            safe_int(row.get('gdp')),
 
             # Electricity generation by source (TWh)
-            row.get('electricity_generation', None),
-            row.get('solar_electricity', None),
-            row.get('wind_electricity', None),
-            row.get('hydro_electricity', None),
-            row.get('nuclear_electricity', None),
-            row.get('coal_electricity', None),
-            row.get('gas_electricity', None),
-            row.get('oil_electricity', None),
+            safe_float(row.get('electricity_generation')),
+            safe_float(row.get('solar_electricity')),
+            safe_float(row.get('wind_electricity')),
+            safe_float(row.get('hydro_electricity')),
+            safe_float(row.get('nuclear_electricity')),
+            safe_float(row.get('coal_electricity')),
+            safe_float(row.get('gas_electricity')),
+            safe_float(row.get('oil_electricity')),
 
             # Renewable share
-            row.get('renewables_electricity', None),
-            row.get('low_carbon_electricity', None),
+            safe_float(row.get('renewables_electricity')),
+            safe_float(row.get('low_carbon_electricity')),
 
             # Consumption
-            row.get('energy_per_capita', None),
-            row.get('energy_per_gdp', None),
+            safe_float(row.get('energy_per_capita')),
+            safe_float(row.get('energy_per_gdp')),
 
             # Emissions
-            row.get('co2', None),
-            row.get('co2_per_capita', None),
+            safe_float(row.get('co2')),
+            safe_float(row.get('co2_per_capita')),
 
             # Capacity (GW)
-            row.get('solar_capacity', None),
-            row.get('wind_capacity', None),
+            safe_float(row.get('solar_capacity')),
+            safe_float(row.get('wind_capacity')),
         ))
 
     # Insert
