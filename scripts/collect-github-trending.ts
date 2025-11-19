@@ -1,4 +1,6 @@
-// Fix for Node.js 18 + undici - MUST BE FIRST!
+#!/usr/bin/env tsx
+
+// Fix for Node.js 18 + undici - MUST BE AFTER SHEBANG!
 // @ts-ignore
 if (typeof File === 'undefined') {
   // @ts-ignore
@@ -9,7 +11,6 @@ if (typeof File === 'undefined') {
   };
 }
 
-#!/usr/bin/env tsx
 
 /**
  * Sofia Pulse - GitHub Trending Collector
