@@ -48,8 +48,7 @@ def analyze_papers_by_sector(conn):
             abstract,
             primary_category,
             keywords,
-            published_date,
-            citation_count
+            published_date
         FROM arxiv_ai_papers
         WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
         ORDER BY published_date DESC
@@ -60,8 +59,6 @@ def analyze_papers_by_sector(conn):
     # Agrupar por setor especial
     sector_stats = defaultdict(lambda: {
         'count': 0,
-        'citations': 0,
-        'breakthrough': 0,
         'recent_titles': []
     })
 
@@ -71,7 +68,6 @@ def analyze_papers_by_sector(conn):
 
         for sector in matched_sectors:
             sector_stats[sector]['count'] += 1
-            sector_stats[sector]['citations'] += paper['citation_count'] or 0
 
             if len(sector_stats[sector]['recent_titles']) < 5:
                 sector_stats[sector]['recent_titles'].append(paper['title'])
@@ -223,7 +219,6 @@ def print_report(papers_stats, funding_stats, gdelt_stats):
             stats = papers_stats[sector]
             print(f"📄 RESEARCH:")
             print(f"   Papers (90d): {stats['count']}")
-            print(f"   Total Citations: {stats['citations']}")
             if stats['recent_titles']:
                 print(f"   Recent papers:")
                 for title in stats['recent_titles'][:3]:
