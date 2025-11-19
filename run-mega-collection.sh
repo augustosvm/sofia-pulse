@@ -103,17 +103,17 @@ echo ""
 
 # Funding & Finance
 echo "🔹 Funding & Finance"
-npx tsx scripts/collect-funding-rounds.ts || echo "⚠️  Skipped"
-npx tsx scripts/collect-b3-stocks.ts || echo "⚠️  Skipped"
-npx tsx scripts/collect-nasdaq.ts || echo "⚠️  Skipped"
+npx tsx finance/scripts/collect-funding-rounds.ts || echo "⚠️  Skipped"
+npx tsx finance/scripts/collect-brazil-stocks.ts || echo "⚠️  Skipped"
+npx tsx finance/scripts/collect-nasdaq-momentum.ts || echo "⚠️  Skipped"
 npx tsx scripts/collect-hkex-ipos.ts || echo "⚠️  Skipped"
-npx tsx scripts/collect-ipo-calendar.ts || echo "⚠️  Skipped"
+npx tsx collectors/ipo-calendar.ts || echo "⚠️  Skipped"
 echo ""
 
 # Patents
 echo "🔹 Patents"
 npx tsx scripts/collect-epo-patents.ts || echo "⚠️  Skipped"
-npx tsx scripts/collect-wipo-cn-patents.ts || echo "⚠️  Skipped"
+npx tsx scripts/collect-wipo-china-patents.ts || echo "⚠️  Skipped"
 echo ""
 
 # Critical Sectors (NEW!)

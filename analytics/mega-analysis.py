@@ -341,9 +341,9 @@ def get_global_economy_summary():
 
         # Commodity prices (latest)
         cur.execute("""
-            SELECT commodity, price, unit, last_updated
+            SELECT commodity, price, unit, updated_at
             FROM sofia.commodity_prices
-            ORDER BY last_updated DESC
+            ORDER BY updated_at DESC
             LIMIT 10
         """)
         summary['commodity_prices'] = cur.fetchall()

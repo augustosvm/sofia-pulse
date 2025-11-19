@@ -35,6 +35,7 @@ interface FundingRound {
   amount_usd: number;
   valuation_usd?: number;
   investors: string[];
+  country?: string;
   announced_date: string;
 }
 
@@ -51,6 +52,7 @@ function getRecentFundingRounds(): FundingRound[] {
       amount_usd: 1500000000,
       valuation_usd: 8500000000,
       investors: ['Founders Fund', 'a16z', 'Valor Equity'],
+      country: 'USA',
       announced_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
     {
@@ -60,6 +62,7 @@ function getRecentFundingRounds(): FundingRound[] {
       amount_usd: 500000000,
       valuation_usd: 2800000000,
       investors: ['Riot Ventures', 'Point72 Ventures'],
+      country: 'USA',
       announced_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
     {
@@ -69,6 +72,7 @@ function getRecentFundingRounds(): FundingRound[] {
       amount_usd: 750000000,
       valuation_usd: 45000000000,
       investors: ['Berkshire Hathaway', 'Tencent', 'Sequoia'],
+      country: 'Brazil',
       announced_date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
     {
@@ -78,6 +82,7 @@ function getRecentFundingRounds(): FundingRound[] {
       amount_usd: 10000000000,
       valuation_usd: 86000000000,
       investors: ['Microsoft', 'Thrive Capital'],
+      country: 'USA',
       announced_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
     {
@@ -87,6 +92,7 @@ function getRecentFundingRounds(): FundingRound[] {
       amount_usd: 500000000,
       valuation_usd: 43000000000,
       investors: ['T. Rowe Price', 'Morgan Stanley'],
+      country: 'USA',
       announced_date: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
     {
@@ -96,6 +102,7 @@ function getRecentFundingRounds(): FundingRound[] {
       amount_usd: 4000000000,
       valuation_usd: 18000000000,
       investors: ['Google', 'Spark Capital', 'Salesforce'],
+      country: 'USA',
       announced_date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
   ];
@@ -121,6 +128,7 @@ async function createTableIfNotExists(client: Client) {
       amount_usd BIGINT,
       valuation_usd BIGINT,
       investors TEXT[],
+      country VARCHAR(100),
       announced_date DATE,
       collected_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(company_name, round_type, announced_date)
@@ -140,8 +148,8 @@ async function insertFundingRound(client: Client, round: FundingRound) {
   try {
     await client.query(`
       INSERT INTO sofia.funding_rounds (
-        company_name, sector, round_type, amount_usd, valuation_usd, investors, announced_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        company_name, sector, round_type, amount_usd, valuation_usd, investors, country, announced_date
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       ON CONFLICT (company_name, round_type, announced_date) DO NOTHING
     `, [
       round.company,
@@ -150,6 +158,7 @@ async function insertFundingRound(client: Client, round: FundingRound) {
       round.amount_usd,
       round.valuation_usd,
       round.investors,
+      round.country,
       round.announced_date,
     ]);
   } catch (error) {

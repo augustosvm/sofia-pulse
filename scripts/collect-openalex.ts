@@ -76,7 +76,7 @@ async function createTableIfNotExists(client: Client): Promise<void> {
       publication_year INT,
       authors TEXT[],
       author_institutions TEXT[],
-      author_countries VARCHAR(10)[],
+      author_countries TEXT[],
       concepts TEXT[],
       primary_concept VARCHAR(255),
       cited_by_count INT DEFAULT 0,
