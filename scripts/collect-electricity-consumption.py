@@ -52,7 +52,8 @@ def fetch_eia_data() -> List[Dict[str, Any]]:
 
             if 'response' in data and 'data' in data['response']:
                 print(f"✅ Fetched {len(data['response']['data'])} records from EIA API")
-                return data['response']['data']
+                # EIA API data structure is incompatible - always use CSV for proper country/year mapping
+                print("⚠️  EIA API data requires processing, using CSV fallback for complete data...")
         except Exception as e:
             print(f"⚠️  EIA API failed: {e}, falling back to CSV...")
 
@@ -151,7 +152,7 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
                 updated_at = CURRENT_TIMESTAMP
         """
 
-        data_source = 'EIA' if EIA_API_KEY else 'Our World in Data'
+        data_source = 'Our World in Data'  # Always using CSV for complete country/year data
 
         batch_data = []
         for record in records:

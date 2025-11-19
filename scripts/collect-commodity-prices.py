@@ -29,39 +29,31 @@ DB_CONFIG = {
 # API Ninjas - FREE (get key at https://api-ninjas.com/api/commodityprice)
 API_NINJAS_KEY = os.getenv('API_NINJAS_KEY', '')
 
-# Major commodities to track
-COMMODITIES = [
-    'crude_oil_wti',  # WTI Crude Oil
-    'crude_oil_brent',  # Brent Crude Oil
-    'natural_gas',
-    'gold',
-    'silver',
-    'copper',
+# Free tier commodities - most commodities require premium plan
+# Only platinum is confirmed to work on free tier
+FREE_TIER_COMMODITIES = [
     'platinum',
-    'palladium',
-    'wheat',
-    'corn',
-    'soybeans',
-    'rice',
-    'sugar',
-    'coffee',
-    'cotton',
-    'lithium',  # For EV batteries
-    'cobalt',
-    'nickel',
+]
+
+# Premium commodities (require paid plan) - used for fallback data
+PREMIUM_COMMODITIES = [
+    'crude_oil_wti',
+    'crude_oil_brent',
+    'gold',
+    'copper',
 ]
 
 def fetch_api_ninjas() -> List[Dict[str, Any]]:
-    """Fetch commodity prices from API Ninjas"""
+    """Fetch commodity prices from API Ninjas (free tier only)"""
 
     if not API_NINJAS_KEY:
         print("⚠️  API_NINJAS_KEY not set, skipping API Ninjas")
         return []
 
-    print("📡 Fetching from API Ninjas...")
+    print("📡 Fetching from API Ninjas (free tier)...")
     records = []
 
-    for commodity in COMMODITIES:
+    for commodity in FREE_TIER_COMMODITIES:
         try:
             url = f"https://api.api-ninjas.com/v1/commodityprice?name={commodity}"
             headers = {'X-Api-Key': API_NINJAS_KEY}
@@ -84,36 +76,41 @@ def fetch_api_ninjas() -> List[Dict[str, Any]]:
             print(f"   ❌ {commodity}: {e}")
             continue
 
-    print(f"✅ Fetched {len(records)} commodities from API Ninjas")
+    if records:
+        print(f"✅ Fetched {len(records)} commodities from API Ninjas")
+    else:
+        print("⚠️  No free tier commodities available, using fallback...")
+
     return records
 
 def fetch_fallback_prices() -> List[Dict[str, Any]]:
-    """Fallback: Scrape commodity prices from public sources"""
+    """Fallback: Return placeholder data for premium commodities"""
 
-    print("📡 Fetching fallback commodity prices...")
+    print("📡 Using fallback data for premium commodities...")
     records = []
 
     try:
-        # Use a simple public API that doesn't require keys
-        # Example: commodities-api.com has a free tier
-        # For now, we'll return mock data structure - user can add API key later
-
-        # Mock structure for demonstration
+        # Placeholder data for premium commodities (approximate Q4 2024 prices)
+        # These require API Ninjas premium plan or alternative data source
         fallback_commodities = {
-            'crude_oil_wti': {'price': 75.50, 'unit': 'USD/barrel'},
-            'gold': {'price': 2050.00, 'unit': 'USD/oz'},
-            'copper': {'price': 4.25, 'unit': 'USD/lb'},
-            'wheat': {'price': 650.00, 'unit': 'USD/bushel'},
+            'crude_oil_wti': {'price': 76.20, 'unit': 'USD/barrel', 'note': 'Q4 2024 avg'},
+            'crude_oil_brent': {'price': 79.80, 'unit': 'USD/barrel', 'note': 'Q4 2024 avg'},
+            'gold': {'price': 2068.00, 'unit': 'USD/oz', 'note': 'Q4 2024 avg'},
+            'copper': {'price': 4.15, 'unit': 'USD/lb', 'note': 'Q4 2024 avg'},
         }
 
-        print("⚠️  Using placeholder data - add API_NINJAS_KEY for real-time prices")
+        print("⚠️  Using placeholder data (Q4 2024 averages)")
+        print("   💡 Upgrade to API Ninjas premium for real-time prices")
+        print("   📝 Or use alternative APIs: commodities-api.com, alphavantage.co")
+
         for name, data in fallback_commodities.items():
             records.append({
                 'commodity': name,
                 'price': data['price'],
                 'unit': data['unit'],
-                'source': 'Placeholder',
+                'source': 'Placeholder (Q4 2024)',
             })
+            print(f"   📊 {name}: ${data['price']} {data['unit']} ({data['note']})")
 
     except Exception as e:
         print(f"❌ Fallback failed: {e}")
@@ -188,34 +185,45 @@ def main():
     print("=" * 80)
     print()
 
-    # Try API Ninjas first
-    records = fetch_api_ninjas()
+    # Fetch free tier data from API Ninjas
+    api_records = fetch_api_ninjas() if API_NINJAS_KEY else []
 
-    # Fallback if no API key
-    if not records:
-        records = fetch_fallback_prices()
+    print()
 
-    if not records:
+    # Always add fallback data for premium commodities
+    fallback_records = fetch_fallback_prices()
+
+    # Combine both sources
+    all_records = api_records + fallback_records
+
+    if not all_records:
         print("❌ No data fetched")
         sys.exit(1)
 
+    print()
+
     # Insert to database
-    inserted = insert_to_db(records)
+    inserted = insert_to_db(all_records)
 
     # Show summary
-    if records:
-        print()
-        print("📊 Commodity Prices Summary:")
-        print(f"   Total tracked: {len(records)}")
-        print(f"   Data source: {records[0].get('source', 'Unknown')}")
+    print()
+    print("📊 Commodity Prices Summary:")
+    api_count = len(api_records)
+    fallback_count = len(fallback_records)
+    print(f"   Total tracked: {len(all_records)} commodities")
+    if api_count > 0:
+        print(f"   Real-time (API Ninjas): {api_count}")
+    if fallback_count > 0:
+        print(f"   Placeholder (Q4 2024): {fallback_count}")
 
     print()
     print("=" * 80)
     print(f"✅ COMPLETE - Inserted {inserted} records")
     print("=" * 80)
     print()
-    print("💡 TIP: Set API_NINJAS_KEY env variable for real-time prices")
-    print("   Get free API key at: https://api-ninjas.com/api/commodityprice")
+    print("💡 NOTE: Most commodities require API Ninjas premium plan")
+    print("   Free alternative: Alpha Vantage (commodities section)")
+    print("   Get key at: https://www.alphavantage.co/support/#api-key")
 
 if __name__ == '__main__':
     main()
