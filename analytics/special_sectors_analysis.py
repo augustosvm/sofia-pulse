@@ -86,8 +86,7 @@ def analyze_funding_by_sector(conn):
             amount_usd,
             round_type,
             announced_date,
-            investors,
-            country
+            investors
         FROM sofia.funding_rounds
         WHERE announced_date >= CURRENT_DATE - INTERVAL '90 days'
             AND amount_usd > 0
@@ -101,8 +100,7 @@ def analyze_funding_by_sector(conn):
         'total_funding': 0,
         'deal_count': 0,
         'avg_ticket': 0,
-        'top_deals': [],
-        'countries': set()
+        'top_deals': []
     })
 
     for round_data in rounds:
@@ -112,13 +110,11 @@ def analyze_funding_by_sector(conn):
         for sector in matched_sectors:
             sector_stats[sector]['total_funding'] += round_data['amount_usd']
             sector_stats[sector]['deal_count'] += 1
-            sector_stats[sector]['countries'].add(round_data['country'])
 
             if len(sector_stats[sector]['top_deals']) < 5:
                 sector_stats[sector]['top_deals'].append({
                     'company': round_data['company_name'],
-                    'amount': round_data['amount_usd'],
-                    'country': round_data['country']
+                    'amount': round_data['amount_usd']
                 })
 
     # Calcular avg ticket
@@ -232,11 +228,10 @@ def print_report(papers_stats, funding_stats, gdelt_stats):
             print(f"   Total (90d): ${stats['total_funding']/1e9:.2f}B")
             print(f"   Deal Count: {stats['deal_count']}")
             print(f"   Avg Ticket: ${stats['avg_ticket']/1e6:.1f}M")
-            print(f"   Countries: {len(stats['countries'])}")
             if stats['top_deals']:
                 print(f"   Top deals:")
                 for deal in stats['top_deals'][:3]:
-                    print(f"      • {deal['company']}: ${deal['amount']/1e6:.1f}M ({deal['country']})")
+                    print(f"      • {deal['company']}: ${deal['amount']/1e6:.1f}M")
             print()
 
         # GDELT Events
