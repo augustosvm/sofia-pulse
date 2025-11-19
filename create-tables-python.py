@@ -349,6 +349,42 @@ try:
     print("   ✅ semiconductor_sales criada")
     print()
 
+    # Create socioeconomic_indicators table
+    print("📊 Creating socioeconomic_indicators table...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.socioeconomic_indicators (
+            id SERIAL PRIMARY KEY,
+            country_code VARCHAR(10) NOT NULL,
+            country_name VARCHAR(200),
+            year INTEGER NOT NULL,
+            indicator_code VARCHAR(50) NOT NULL,
+            indicator_name VARCHAR(100),
+            value DECIMAL(18,4),
+            unit VARCHAR(50),
+            data_source VARCHAR(100),
+            collected_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(country_code, year, indicator_code)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_socio_country ON sofia.socioeconomic_indicators(country_code);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_socio_year ON sofia.socioeconomic_indicators(year DESC);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_socio_indicator ON sofia.socioeconomic_indicators(indicator_code);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_socio_country_year ON sofia.socioeconomic_indicators(country_code, year DESC);
+    """)
+
+    conn.commit()
+    print("   ✅ socioeconomic_indicators criada")
+    print()
+
     # Verify tables exist
     print("🔍 Verificando tabelas...")
     cursor.execute("""
@@ -358,7 +394,7 @@ try:
           AND table_name IN (
               'space_industry', 'ai_regulation', 'cybersecurity_events', 'gdelt_events',
               'energy_global', 'electricity_consumption', 'port_traffic',
-              'commodity_prices', 'semiconductor_sales'
+              'commodity_prices', 'semiconductor_sales', 'socioeconomic_indicators'
           )
         ORDER BY table_name;
     """)

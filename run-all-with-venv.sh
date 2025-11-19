@@ -61,9 +61,11 @@ echo "💾 Semiconductor Sales..."
 python3 scripts/collect-semiconductor-sales.py
 
 echo ""
+echo "🌍 Socioeconomic Indicators..."
+python3 scripts/collect-socioeconomic-indicators.py
+
+echo ""
 echo "════════════════════════════════════════════════════════════════════════════════"
 echo "✅ ALL COLLECTORS COMPLETED!"
 echo "════════════════════════════════════════════════════════════════════════════════"
-echo ""
-echo "💡 Check if commodity_prices shows REAL prices (not placeholder)"
 echo ""
