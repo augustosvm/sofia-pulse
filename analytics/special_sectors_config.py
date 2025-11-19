@@ -84,6 +84,103 @@ SPECIAL_SECTORS = {
         ],
         'priority': 'medium',
         'description': 'Military technology, defense contractors, dual-use AI'
+    },
+
+    # NOVOS SETORES GLOBAIS - 2025-11-19
+
+    'Electric Vehicles & Batteries': {
+        'keywords': [
+            'electric vehicle', 'ev', 'battery', 'tesla', 'byd', 'rivian',
+            'lucid', 'nio', 'xpeng', 'catl', 'lg energy', 'panasonic',
+            'lithium', 'solid state battery', 'charging', 'range',
+            'battery pack', 'battery cell', 'gigafactory', 'supercharger',
+            'fast charging', 'battery chemistry', 'cobalt', 'nickel',
+            'lithium iron phosphate', 'lfp', 'ncm', 'nmc'
+        ],
+        'priority': 'critical',
+        'description': 'EVs, battery technology, charging infrastructure'
+    },
+
+    'Autonomous Driving': {
+        'keywords': [
+            'autonomous', 'self-driving', 'waymo', 'cruise', 'fsd',
+            'autopilot', 'lidar', 'adas', 'level 4', 'level 5',
+            'robotaxi', 'mobileye', 'comma ai', 'openpilot',
+            'autonomous vehicle', 'av', 'perception', 'path planning',
+            'sensor fusion', 'camera', 'radar', 'ultrasonic'
+        ],
+        'priority': 'high',
+        'description': 'Self-driving cars, ADAS, autonomous systems'
+    },
+
+    'Smartphones & Mobile': {
+        'keywords': [
+            'smartphone', 'iphone', 'android', 'samsung', 'xiaomi',
+            'oppo', 'vivo', 'huawei', 'mobile', '5g', 'foldable',
+            'qualcomm', 'snapdragon', 'mediatek', 'exynos', 'tensor',
+            'apple silicon', 'a17', 'mobile chip', 'arm', 'tsmc'
+        ],
+        'priority': 'high',
+        'description': 'Smartphones, mobile processors, 5G, foldables'
+    },
+
+    'Edge AI & Embedded': {
+        'keywords': [
+            'edge ai', 'edge computing', 'embedded ai', 'nvidia jetson',
+            'qualcomm ai', 'tpu', 'neural engine', 'on-device ai',
+            'tinyml', 'edge inference', 'iot ai', 'embedded ml',
+            'coral', 'hailo', 'kneron', 'onnx', 'quantization'
+        ],
+        'priority': 'high',
+        'description': 'AI on edge devices, embedded systems, on-device ML'
+    },
+
+    'Renewable Energy': {
+        'keywords': [
+            'solar', 'wind', 'renewable', 'clean energy', 'solar panel',
+            'wind turbine', 'photovoltaic', 'offshore wind', 'pv',
+            'solar farm', 'wind farm', 'perovskite', 'bifacial',
+            'energy transition', 'decarbonization', 'net zero',
+            'green energy', 'renewable capacity', 'utility scale'
+        ],
+        'priority': 'critical',
+        'description': 'Solar, wind, hydro, renewable energy projects'
+    },
+
+    'Nuclear Energy': {
+        'keywords': [
+            'nuclear', 'nuclear power', 'reactor', 'smr', 'fusion',
+            'fission', 'uranium', 'thorium', 'nuscale', 'terrapower',
+            'iter', 'tokamak', 'nuclear plant', 'gen 4', 'gen iv',
+            'molten salt', 'breeder reactor', 'fast reactor',
+            'commonwealth fusion', 'tae technologies'
+        ],
+        'priority': 'high',
+        'description': 'Nuclear power plants, SMRs, fusion reactors'
+    },
+
+    'Energy Storage & Grid': {
+        'keywords': [
+            'energy storage', 'grid', 'battery storage', 'pumped hydro',
+            'hydrogen', 'green hydrogen', 'fuel cell', 'microgrid',
+            'transmission', 'smart grid', 'grid scale', 'bess',
+            'flow battery', 'compressed air', 'thermal storage',
+            'virtual power plant', 'demand response', 'grid balancing'
+        ],
+        'priority': 'high',
+        'description': 'Grid modernization, energy storage, hydrogen economy'
+    },
+
+    'Databases & Data Infrastructure': {
+        'keywords': [
+            'postgresql', 'postgres', 'mongodb', 'mysql', 'redis',
+            'elasticsearch', 'cassandra', 'neo4j', 'clickhouse',
+            'snowflake', 'databricks', 'database', 'data warehouse',
+            'olap', 'oltp', 'vector database', 'graph database',
+            'time series', 'influxdb', 'timescale', 'cockroachdb'
+        ],
+        'priority': 'medium',
+        'description': 'Databases, data warehouses, data infrastructure'
     }
 }
 

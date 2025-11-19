@@ -173,13 +173,66 @@ try:
     print("   ✅ gdelt_events criada")
     print()
 
+    # Create energy_global table
+    print("🌍 Creating energy_global table...")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.energy_global (
+            id SERIAL PRIMARY KEY,
+            country VARCHAR(100) NOT NULL,
+            year INTEGER NOT NULL,
+            iso_code VARCHAR(10),
+            population BIGINT,
+            gdp BIGINT,
+
+            electricity_generation_twh DECIMAL(10,2),
+            solar_generation_twh DECIMAL(10,2),
+            wind_generation_twh DECIMAL(10,2),
+            hydro_generation_twh DECIMAL(10,2),
+            nuclear_generation_twh DECIMAL(10,2),
+            coal_generation_twh DECIMAL(10,2),
+            gas_generation_twh DECIMAL(10,2),
+            oil_generation_twh DECIMAL(10,2),
+
+            renewables_share_pct DECIMAL(5,2),
+            low_carbon_share_pct DECIMAL(5,2),
+
+            energy_per_capita DECIMAL(10,2),
+            energy_per_gdp DECIMAL(10,4),
+
+            co2_mt DECIMAL(12,2),
+            co2_per_capita DECIMAL(10,2),
+
+            solar_capacity_gw DECIMAL(10,2),
+            wind_capacity_gw DECIMAL(10,2),
+
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+
+            UNIQUE(country, year)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_energy_country ON sofia.energy_global(country);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_energy_year ON sofia.energy_global(year DESC);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_energy_renewables ON sofia.energy_global(renewables_share_pct DESC);
+    """)
+
+    conn.commit()
+    print("   ✅ energy_global criada")
+    print()
+
     # Verify tables exist
     print("🔍 Verificando tabelas...")
     cursor.execute("""
         SELECT table_name
         FROM information_schema.tables
         WHERE table_schema = 'sofia'
-          AND table_name IN ('space_industry', 'ai_regulation', 'cybersecurity_events', 'gdelt_events')
+          AND table_name IN ('space_industry', 'ai_regulation', 'cybersecurity_events', 'gdelt_events', 'energy_global')
         ORDER BY table_name;
     """)
 
