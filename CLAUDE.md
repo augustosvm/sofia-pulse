@@ -49,13 +49,14 @@ Sofia Pulse coleta dados de **19+ fontes**, analisa **6 setores críticos**, e e
 
 ## 🧠 ANÁLISES
 
-1. **Top 10 Tech Trends** - Ranking ponderado de tecnologias
+1. **Top 10 Tech Trends** - Ranking ponderado de tecnologias (15 frameworks)
 2. **Correlações Papers ↔ Funding** - Detecta lag temporal (6-12 meses)
 3. **Dark Horses** - Oportunidades escondidas (alto potencial + baixa visibilidade)
 4. **Entity Resolution** - Links researchers → companies
 5. **NLG Playbooks** - Narrativas Gemini AI
-6. **Premium Insights v2.0** - Regional + Temporal + Oceano Azul/Vermelho
+6. **Premium Insights v2.0** - Regional + Temporal + 3 stages (Late/Growth/Seed)
 7. **🔥 Special Sectors** - Análise profunda de 6 setores críticos
+8. **💎 Early-Stage Deep Dive** - Seed/Angel (<$10M) → Papers → Universities → Tech Stack → Patents
 
 **Setores Monitorados**:
 - Cybersecurity (ataques, CVEs)
@@ -69,7 +70,7 @@ Sofia Pulse coleta dados de **19+ fontes**, analisa **6 setores críticos**, e e
 
 ## 📧 EMAIL DIÁRIO (19h BRT)
 
-**7 Relatórios TXT**:
+**8 Relatórios TXT**:
 1. Sofia Complete Report
 2. Top 10 Tech Trends
 3. Correlações Papers ↔ Funding
@@ -77,6 +78,7 @@ Sofia Pulse coleta dados de **19+ fontes**, analisa **6 setores críticos**, e e
 5. Entity Resolution
 6. NLG Playbooks (Gemini)
 7. **Special Sectors Analysis** 🔥
+8. **Early-Stage Deep Dive** 💎
 
 **CSVs**:
 - github_trending, npm_stats, pypi_stats, reddit_stats, funding_30d
@@ -147,8 +149,9 @@ bash update-crontab-simple.sh  # Aplica crontab (execução diária 22:00 UTC)
 - `collect-ai-regulation.ts` 🔥
 
 **Analytics** (analytics/):
-- `special-sectors-analysis.py` 🔥
-- `special-sectors-config.py` - Keywords por setor
+- `special_sectors_analysis.py` 🔥
+- `special_sectors_config.py` - Keywords por setor
+- `early-stage-deep-dive.py` 💎 - Seed/Angel analysis
 
 ---
 
@@ -159,6 +162,15 @@ bash update-crontab-simple.sh  # Aplica crontab (execução diária 22:00 UTC)
 3. **AI Regulation**: EU AI Act, LGPD, US Executive Order, China, UK, California SB 1047
 4. **Special Sectors Analysis**: Análise automática de 6 setores críticos
 5. **Keywords Tracking**: Detecta automaticamente menções a space, robotics, cybersecurity, etc
+6. **💎 Early-Stage Deep Dive**: Análise cross-referenciada de seed/angel (<$10M)
+   - Conecta: Funding → Papers (ArXiv) → Universities → Tech Stack (GitHub) → Patents (WIPO/EPO)
+   - Geografia global (onde estão os founders)
+   - Top 20 seed deals com contexto completo
+   - Hubs emergentes fora USA
+7. **Insights Enriquecidos**:
+   - 15 frameworks rastreados (antes 2)
+   - 3 stages: Late (>$100M), Growth ($10M-$100M), Seed (<$10M)
+   - 20+ sector-specific insights (Biotech, Quantum, Climate, etc)
 
 ---
 
