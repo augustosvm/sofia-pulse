@@ -183,11 +183,104 @@ function extractKeywords(title: string, abstract: string): string[] {
   return [...new Set(keywords)];
 }
 
+/**
+ * Coleta grants REAIS do NIH RePORTER API (GRATUITA!)
+ * API: https://api.reporter.nih.gov/v2/projects/search
+ * Docs: https://api.reporter.nih.gov/
+ */
 async function collectNIHGrants(): Promise<NIHGrant[]> {
-  console.log('💊 Collecting NIH grants...');
-  console.log('   (Mock data - production would use NIH RePORTER API)');
-  console.log('   API: https://api.reporter.nih.gov');
-  console.log('');
+  console.log('💊 Collecting NIH grants from REAL API...');
+
+  const grants: NIHGrant[] = [];
+  const currentYear = new Date().getFullYear();
+
+  // Research areas para buscar (keywords mais relevantes)
+  const searchTerms = [
+    'CRISPR gene editing',
+    'mRNA vaccine',
+    'CAR-T immunotherapy',
+    'artificial intelligence drug discovery',
+    'stem cell therapy',
+  ];
+
+  for (const term of searchTerms) {
+    try {
+      const url = 'https://api.reporter.nih.gov/v2/projects/search';
+
+      console.log(`   Fetching grants for: ${term}...`);
+
+      // NIH API usa POST com JSON payload
+      const payload = {
+        criteria: {
+          advanced_text_search: {
+            operator: 'advanced',
+            search_field: 'terms',
+            search_text: term,
+          },
+          fiscal_years: [currentYear, currentYear - 1], // Last 2 years
+        },
+        offset: 0,
+        limit: 20, // 20 per term = 100 total
+        sort_field: 'award_amount',
+        sort_order: 'desc',
+      };
+
+      const response = await axios.post(url, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const results = response.data.results || [];
+
+      for (const project of results) {
+        // Extract org info
+        const org = project.organization || {};
+        const pi = project.principal_investigators?.[0] || {};
+
+        // Extract keywords from abstract and title
+        const abstract = project.abstract_text || '';
+        const title = project.project_title || '';
+        const keywords = extractKeywords(title, abstract);
+
+        grants.push({
+          project_number: project.core_project_num || project.appl_id?.toString() || '',
+          title: title,
+          principal_investigator: pi.full_name || 'Unknown',
+          organization: org.org_name || 'Unknown',
+          city: org.org_city || null,
+          state: org.org_state || null,
+          country: org.org_country || 'USA',
+          fiscal_year: project.fiscal_year || currentYear,
+          award_amount_usd: project.award_amount || 0,
+          nih_institute: project.agency_ic_admin || 'NIH',
+          project_start_date: project.project_start_date || null,
+          project_end_date: project.project_end_date || null,
+          funding_mechanism: project.activity_code || 'R01',
+          research_area: keywords[0] || term.split(' ')[0], // First keyword or search term
+          abstract: abstract || null,
+          keywords: keywords.length > 0 ? keywords : null,
+        });
+      }
+
+      console.log(`   ✅ ${results.length} grants from "${term}"`);
+
+      // Rate limit: Be nice to NIH servers
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error: any) {
+      console.log(`   ⚠️  Error fetching "${term}":`, error.message);
+    }
+  }
+
+  console.log(`   ✅ Total: ${grants.length} grants collected`);
+
+  return grants;
+}
+
+/**
+ * FALLBACK: Mock data case API falhar
+ */
+async function collectNIHGrants_MOCK(): Promise<NIHGrant[]> {
+  console.log('💊 Using MOCK data (API unavailable)...');
 
   const currentYear = new Date().getFullYear();
 
