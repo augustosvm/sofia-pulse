@@ -56,6 +56,16 @@ const NICHES = {
   'Big Data': ['hadoop', 'spark', 'kafka', 'flink', 'databricks', 'airflow'],
   'Data Engineering': ['data-engineering', 'etl', 'data-pipeline', 'data-warehouse', 'dbt'],
   'DevOps': ['devops', 'cicd', 'jenkins', 'github-actions', 'gitlab-ci'],
+  'Business Intelligence': ['business-intelligence', 'bi', 'powerbi', 'tableau', 'looker', 'metabase'],
+  'Data Lake': ['data-lake', 'datalake', 'delta-lake', 'lakehouse', 'iceberg', 's3'],
+  'ERP Systems': ['erp', 'enterprise-resource-planning', 'sap', 'odoo', 'oracle-erp', 'netsuite'],
+  'Servers & Infrastructure': ['server', 'infrastructure', 'nginx', 'apache', 'linux', 'monitoring'],
+  'Gaming Consoles': ['playstation', 'xbox', 'nintendo', 'console', 'emulator', 'homebrew'],
+  'Game Development': ['game-development', 'unity', 'unreal-engine', 'godot', 'gamedev', 'phaser'],
+  'Streaming & Media': ['streaming', 'video-streaming', 'live-streaming', 'ffmpeg', 'obs', 'media-server'],
+  'Telecom': ['telecom', 'telecommunications', '5g', 'voip', 'sip', 'webrtc'],
+  'Hardware': ['hardware', 'iot', 'raspberry-pi', 'arduino', 'embedded', 'fpga'],
+  'Network & SDN': ['networking', 'network', 'sdn', 'openflow', 'cisco', 'routing'],
 };
 
 async function createTable(client: Client): Promise<void> {
