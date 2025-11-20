@@ -64,6 +64,16 @@ if [ -f ".env" ]; then
         echo "API_NINJAS_KEY=$NINJAS_KEY" >> .env
         echo "✅ API_NINJAS_KEY adicionado"
     fi
+
+    # Gemini
+    GEMINI_KEY="AIzaSyAS1uHXDupa5nEzbpnq7BGrZ4M-iD9nsv8"
+    if grep -q "^GEMINI_API_KEY=" .env; then
+        sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=$GEMINI_KEY|" .env
+        echo "✅ GEMINI_API_KEY atualizado"
+    else
+        echo "GEMINI_API_KEY=$GEMINI_KEY" >> .env
+        echo "✅ GEMINI_API_KEY adicionado"
+    fi
 else
     echo "❌ Arquivo .env não encontrado"
     exit 1
@@ -76,4 +86,5 @@ echo "🔐 SMTP: configurado"
 echo "🔑 Alpha Vantage: ${ALPHA_KEY:0:15}..."
 echo "🔑 EIA: ${EIA_KEY:0:15}..."
 echo "🔑 API Ninjas: ${NINJAS_KEY:0:15}..."
+echo "🔑 Gemini: ${GEMINI_KEY:0:15}..."
 echo ""
