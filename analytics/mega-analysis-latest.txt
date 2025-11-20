@@ -1,0 +1,104 @@
+================================================================================
+🌍 SOFIA PULSE - MEGA ANALYSIS REPORT
+================================================================================
+Generated: 2025-11-20 03:16:30 UTC
+
+This report combines data from 30+ sources:
+• Socioeconomic indicators (World Bank - 56 indicators)
+• Tech trends (GitHub, NPM, PyPI, HackerNews, Reddit)
+• Research (ArXiv, OpenAlex, NIH, Universities)
+• Funding (Venture capital, IPOs, M&A)
+• Critical sectors (Cybersecurity, Space, AI Regulation)
+• Global economy (Electricity, Ports, Commodities, Semiconductors)
+• Geopolitics (GDELT events)
+
+================================================================================
+📊 DATABASE SUMMARY
+================================================================================
+
+Total Records: 145
+Total Tables: 30
+
+Records by table:
+  • asia_universities: 36
+  • funding_rounds: 24
+  • ai_companies: 20
+  • cardboard_production: 20
+  • epo_patents: 11
+  • hkex_ipos: 10
+  • wipo_china_patents: 10
+  • market_data_brazil: 8
+  • ai_regulation: 6
+  • arxiv_ai_papers: 0
+  • commodity_prices: 0
+  • cybersecurity_events: 0
+  • electricity_consumption: 0
+  • energy_global: 0
+  • gdelt_events: 0
+  • github_niches: 0
+  • github_trending: 0
+  • hackernews_stories: 0
+  • ipo_calendar: 0
+  • jobs: 0
+  • market_data_nasdaq: 0
+  • nih_grants: 0
+  • npm_stats: 0
+  • openalex_papers: 0
+  • port_traffic: 0
+  • pypi_stats: 0
+  • reddit_tech: 0
+  • semiconductor_sales: 0
+  • socioeconomic_indicators: 0
+  • space_industry: 0
+
+================================================================================
+💰 SOCIOECONOMIC INDICATORS (World Bank)
+================================================================================
+
+Total Records: 0
+Countries: 0
+Indicators: 0
+
+================================================================================
+📈 TECH TRENDS
+================================================================================
+
+================================================================================
+💵 FUNDING & INVESTMENT (Last 30 days)
+================================================================================
+
+Total Deals: 4
+Total Amount: $12,750,000,000.00
+
+🏆 Top 10 Deals:
+   1. OpenAI                         $10,000,000,000.00 Series C        USA       
+   2. Anduril Industries             $1,500,000,000.00 Series F        USA       
+   3. Nubank                         $ 750,000,000.00 Series H        Brazil    
+   4. Shield AI                      $ 500,000,000.00 Series E        USA       
+
+🌍 Top 10 Countries by Funding:
+   1. USA                               3 deals  $12,000,000,000.00
+   2. Brazil                            1 deals  $ 750,000,000.00
+
+================================================================================
+🔒 CRITICAL SECTORS
+================================================================================
+
+Cybersecurity Events (30d): 0
+Space Launches: 0
+AI Regulations: 6
+
+================================================================================
+🌐 GLOBAL ECONOMY
+================================================================================
+
+Electricity Data (countries): 0
+Port Traffic Records: 0
+
+================================================================================
+✅ MEGA ANALYSIS COMPLETE
+================================================================================
+
+Report generated: 2025-11-20 03:16:30 UTC
+Total data sources: 30+
+Total records analyzed: 145

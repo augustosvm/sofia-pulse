@@ -1,0 +1,106 @@
+================================================================================
+SPECIAL SECTORS ANALYSIS - Sofia Pulse
+================================================================================
+
+Generated: 2025-11-20 03:16:26
+
+Tracking critical sectors:
+   ⚡ Space Industry (high)
+   ⚡ Robotics & Automation (high)
+   🔥 Cybersecurity (critical)
+   ⚡ AI Regulation (high)
+   📊 Quantum Computing (medium)
+   📊 Defense Tech (medium)
+   🔥 Electric Vehicles & Batteries (critical)
+   ⚡ Autonomous Driving (high)
+   ⚡ Smartphones & Mobile (high)
+   ⚡ Edge AI & Embedded (high)
+   🔥 Renewable Energy (critical)
+   ⚡ Nuclear Energy (high)
+   ⚡ Energy Storage & Grid (high)
+   📊 Databases & Data Infrastructure (medium)
+
+================================================================================
+
+⚡ AI REGULATION
+--------------------------------------------------------------------------------
+Description: AI laws, privacy regulations, compliance, ethics
+
+💰 FUNDING:
+   Total (90d): $4.00B
+   Deal Count: 1
+   Avg Ticket: $4000.0M
+   Top deals:
+      • Anthropic: $4000.0M
+
+================================================================================
+
+📊 DATABASES & DATA INFRASTRUCTURE
+--------------------------------------------------------------------------------
+Description: Databases, data warehouses, data infrastructure
+
+💰 FUNDING:
+   Total (90d): $0.50B
+   Deal Count: 1
+   Avg Ticket: $500.0M
+   Top deals:
+      • Databricks: $500.0M
+
+================================================================================
+
+📊 DEFENSE TECH
+--------------------------------------------------------------------------------
+Description: Military technology, defense contractors, dual-use AI
+
+💰 FUNDING:
+   Total (90d): $2.00B
+   Deal Count: 2
+   Avg Ticket: $1000.0M
+   Top deals:
+      • Anduril Industries: $1500.0M
+      • Shield AI: $500.0M
+
+================================================================================
+
+⚡ ROBOTICS & AUTOMATION
+--------------------------------------------------------------------------------
+Description: Humanoid robots, industrial automation, autonomous systems
+
+💰 FUNDING:
+   Total (90d): $0.50B
+   Deal Count: 1
+   Avg Ticket: $500.0M
+   Top deals:
+      • Shield AI: $500.0M
+
+================================================================================
+
+⚡ SMARTPHONES & MOBILE
+--------------------------------------------------------------------------------
+Description: Smartphones, mobile processors, 5G, foldables
+
+💰 FUNDING:
+   Total (90d): $0.24B
+   Deal Count: 1
+   Avg Ticket: $239.0M
+   Top deals:
+      • Recursion Pharmaceuticals: $239.0M
+
+================================================================================
+
+🎯 EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+💰 HOTTEST SECTORS (by funding):
+   AI Regulation: $4.00B
+   Defense Tech: $2.00B
+   Robotics & Automation: $0.50B
+
+📄 HOTTEST SECTORS (by research):
+
+🔥 CRITICAL ALERTS:
+
+================================================================================
+
+✅ Analysis complete!
+
