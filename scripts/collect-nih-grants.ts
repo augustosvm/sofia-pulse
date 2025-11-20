@@ -32,6 +32,7 @@ if (typeof File === 'undefined') {
 
 import { Client } from 'pg';
 import * as dotenv from 'dotenv';
+import axios from 'axios';
 
 dotenv.config();
 
