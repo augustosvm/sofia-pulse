@@ -161,21 +161,25 @@ def get_tech_trends_summary():
 
         # NPM top packages
         cur.execute("""
-            SELECT package_name, downloads_month
+            SELECT DISTINCT ON (package_name) package_name, downloads_month
             FROM sofia.npm_stats
-            ORDER BY downloads_month DESC
+            ORDER BY package_name, collected_at DESC, downloads_month DESC
             LIMIT 10
         """)
-        summary['npm_top'] = cur.fetchall()
+        npm_results = cur.fetchall()
+        # Re-sort by downloads after deduplication
+        summary['npm_top'] = sorted(npm_results, key=lambda x: x[1], reverse=True)[:10]
 
         # PyPI top packages
         cur.execute("""
-            SELECT package_name, downloads_month
+            SELECT DISTINCT ON (package_name) package_name, downloads_month
             FROM sofia.pypi_stats
-            ORDER BY downloads_month DESC
+            ORDER BY package_name, collected_at DESC, downloads_month DESC
             LIMIT 10
         """)
-        summary['pypi_top'] = cur.fetchall()
+        pypi_results = cur.fetchall()
+        # Re-sort by downloads after deduplication
+        summary['pypi_top'] = sorted(pypi_results, key=lambda x: x[1], reverse=True)[:10]
 
         # HackerNews top
         cur.execute("""
