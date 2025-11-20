@@ -195,12 +195,96 @@ function isPotentialBreakthrough(title: string, abstract: string, authors: strin
 // ============================================================================
 
 /**
- * Mock data - Em produção, seria ArXiv API
+ * Coleta papers REAIS do ArXiv API (GRATUITA!)
  * API: http://export.arxiv.org/api/query
+ *
+ * Categorias:
+ * - cs.AI: Artificial Intelligence
+ * - cs.LG: Machine Learning
+ * - cs.CV: Computer Vision
+ * - cs.CL: NLP
+ * - cs.RO: Robotics
  */
 async function collectArxivAI(): Promise<ArxivAIPaper[]> {
-  console.log('🤖 Collecting ArXiv AI/ML papers...');
-  console.log('   (Mock data - production would use ArXiv API)');
+  console.log('🤖 Collecting ArXiv AI/ML papers from REAL API...');
+
+  const papers: ArxivAIPaper[] = [];
+
+  // Categorias para buscar
+  const categories = ['cs.AI', 'cs.LG', 'cs.CV', 'cs.CL', 'cs.RO'];
+
+  for (const category of categories) {
+    try {
+      // ArXiv API URL
+      // max_results=20 por categoria = 100 papers total
+      const url = `http://export.arxiv.org/api/query?search_query=cat:${category}&sortBy=submittedDate&sortOrder=descending&max_results=20`;
+
+      console.log(`   Fetching ${category}...`);
+
+      const response = await axios.get(url);
+      const xml = response.data;
+
+      // Parse XML (simple regex - production would use xml2js)
+      const entries = xml.match(/<entry>([\s\S]*?)<\/entry>/g) || [];
+
+      for (const entry of entries) {
+        // Extract fields with regex
+        const arxiv_id = entry.match(/<id>http:\/\/arxiv.org\/abs\/(.*?)<\/id>/)?.[1] || '';
+        const title = entry.match(/<title>([\s\S]*?)<\/title>/)?.[1]?.trim().replace(/\n/g, ' ') || '';
+        const abstract = entry.match(/<summary>([\s\S]*?)<\/summary>/)?.[1]?.trim().replace(/\n/g, ' ') || '';
+        const published = entry.match(/<published>(.*?)<\/published>/)?.[1]?.split('T')[0] || '';
+        const updated = entry.match(/<updated>(.*?)<\/updated>/)?.[1]?.split('T')[0] || '';
+
+        // Authors
+        const authorMatches = entry.match(/<author>[\s\S]*?<name>(.*?)<\/name>[\s\S]*?<\/author>/g) || [];
+        const authors = authorMatches.map(a => a.match(/<name>(.*?)<\/name>/)?.[1] || '');
+
+        // Categories
+        const catMatches = entry.match(/<category term="(.*?)"\/>/g) || [];
+        const cats = catMatches.map(c => c.match(/term="(.*?)"/)?.[1] || '');
+
+        // PDF URL
+        const pdf_url = `https://arxiv.org/pdf/${arxiv_id}.pdf`;
+
+        // Extract keywords and check breakthrough
+        const keywords = extractKeywords(title, abstract);
+        const is_breakthrough = isPotentialBreakthrough(title, abstract, authors);
+
+        papers.push({
+          arxiv_id,
+          title,
+          authors,
+          categories: cats,
+          abstract,
+          published_date: published,
+          updated_date: updated,
+          pdf_url,
+          primary_category: category,
+          keywords,
+          is_breakthrough,
+        });
+      }
+
+      console.log(`   ✅ ${entries.length} papers from ${category}`);
+
+      // Rate limit: 1 request per second
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      console.log(`   ⚠️  Error fetching ${category}:`, error);
+    }
+  }
+
+  console.log(`   ✅ Total: ${papers.length} papers collected`);
+
+  return papers;
+}
+
+/**
+ * FALLBACK: Mock data case API falhar
+ */
+async function collectArxivAI_MOCK(): Promise<ArxivAIPaper[]> {
+  console.log('🤖 Using MOCK data (API unavailable)...');
 
   // Mock papers baseados em papers reais recentes
   const mockPapers: ArxivAIPaper[] = [

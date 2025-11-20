@@ -161,15 +161,112 @@ async function insertPaper(client: Client, paper: OpenAlexPaper): Promise<void> 
 // ============================================================================
 
 /**
- * Mock data - Em produção, seria OpenAlex API
+ * Coleta papers REAIS do OpenAlex API (GRATUITA!)
  * API: https://api.openalex.org/works
  * Docs: https://docs.openalex.org
+ *
+ * Conceitos buscados:
+ * - Artificial Intelligence
+ * - Machine Learning
+ * - Deep Learning
+ * - Natural Language Processing
+ * - Biotechnology
  */
 async function collectOpenAlex(): Promise<OpenAlexPaper[]> {
-  console.log('📚 Collecting OpenAlex papers...');
-  console.log('   (Mock data - production would use OpenAlex API)');
-  console.log('   API: https://api.openalex.org/works');
-  console.log('');
+  console.log('📚 Collecting OpenAlex papers from REAL API...');
+
+  const papers: OpenAlexPaper[] = [];
+
+  // Conceitos para buscar (IDs do OpenAlex)
+  const concepts = [
+    { id: 'C154945302', name: 'Artificial Intelligence' },
+    { id: 'C119857082', name: 'Machine Learning' },
+    { id: 'C204787440', name: 'Deep Learning' },
+    { id: 'C41008148', name: 'Computer Science' },
+    { id: 'C17744445', name: 'Biotechnology' },
+  ];
+
+  for (const concept of concepts) {
+    try {
+      // OpenAlex API - top cited papers from last year
+      const url = `https://api.openalex.org/works?filter=concepts.id:${concept.id},from_publication_date:2023-01-01&sort=cited_by_count:desc&per-page=20&mailto=augustosvm@gmail.com`;
+
+      console.log(`   Fetching ${concept.name}...`);
+
+      const response = await axios.get(url);
+      const results = response.data.results || [];
+
+      for (const work of results) {
+        // Extract authors
+        const authors = (work.authorships || [])
+          .slice(0, 10)
+          .map((a: any) => a.author?.display_name || 'Unknown')
+          .filter((n: string) => n !== 'Unknown');
+
+        // Extract institutions
+        const institutions = (work.authorships || [])
+          .flatMap((a: any) => (a.institutions || []).map((i: any) => i.display_name))
+          .filter((i: string) => i)
+          .slice(0, 5);
+
+        // Extract countries
+        const countries = (work.authorships || [])
+          .flatMap((a: any) => (a.institutions || []).map((i: any) => i.country_code))
+          .filter((c: string) => c)
+          .slice(0, 5);
+
+        // Extract concepts
+        const conceptsList = (work.concepts || [])
+          .slice(0, 8)
+          .map((c: any) => c.display_name);
+
+        // Primary concept
+        const primaryConcept = work.concepts?.[0]?.display_name || concept.name;
+
+        // Publication date
+        const pubDate = work.publication_date || '';
+        const pubYear = work.publication_year || parseInt(pubDate.split('-')[0]) || 2024;
+
+        papers.push({
+          openalex_id: work.id?.replace('https://openalex.org/', '') || '',
+          doi: work.doi?.replace('https://doi.org/', '') || null,
+          title: work.title || '',
+          publication_date: pubDate,
+          publication_year: pubYear,
+          authors: authors.length > 0 ? authors : ['Unknown'],
+          author_institutions: institutions.length > 0 ? institutions : null,
+          author_countries: countries.length > 0 ? countries : null,
+          concepts: conceptsList.length > 0 ? conceptsList : [concept.name],
+          primary_concept: primaryConcept,
+          cited_by_count: work.cited_by_count || 0,
+          referenced_works_count: work.referenced_works_count || 0,
+          is_open_access: work.open_access?.is_oa || false,
+          journal: work.primary_location?.source?.display_name || null,
+          publisher: work.primary_location?.source?.host_organization_name || null,
+          abstract: work.abstract || null,
+        });
+      }
+
+      console.log(`   ✅ ${results.length} papers from ${concept.name}`);
+
+      // Rate limit: 10 requests per second (safe: 1 per second)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      console.log(`   ⚠️  Error fetching ${concept.name}:`, error);
+    }
+  }
+
+  console.log(`   ✅ Total: ${papers.length} papers collected`);
+
+  return papers;
+}
+
+/**
+ * FALLBACK: Mock data case API falhar
+ */
+async function collectOpenAlex_MOCK(): Promise<OpenAlexPaper[]> {
+  console.log('📚 Using MOCK data (API unavailable)...');
 
   // Mock papers cobrindo várias áreas
   const mockPapers: OpenAlexPaper[] = [
