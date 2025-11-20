@@ -1,0 +1,71 @@
+🔍 Testando cada collector TypeScript individualmente...
+
+Testing collectors/ipo-calendar.ts... ❌ FAILED
+   Error output:
+Testing finance/scripts/collect-brazil-stocks.ts... ❌ FAILED
+   Error output:
+Testing finance/scripts/collect-funding-rounds.ts... ❌ FAILED
+   Error output:
+Testing finance/scripts/collect-nasdaq-momentum.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-ai-companies.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-ai-regulation.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-arxiv-ai.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-asia-universities.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-cardboard-production.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-cybersecurity.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-epo-patents.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-gdelt.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-github-trending.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-hackernews.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-hkex-ipos.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-nih-grants.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-npm-stats.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-openalex.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-pypi-stats.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-reddit-tech.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-space-industry.ts... ❌ FAILED
+   Error output:
+Testing scripts/collect-wipo-china-patents.ts... ❌ FAILED
+   Error output:
+
+═══════════════════════════════════════════════════
+❌ Collectors com erro (22):
+   - collectors/ipo-calendar.ts
+   - finance/scripts/collect-brazil-stocks.ts
+   - finance/scripts/collect-funding-rounds.ts
+   - finance/scripts/collect-nasdaq-momentum.ts
+   - scripts/collect-ai-companies.ts
+   - scripts/collect-ai-regulation.ts
+   - scripts/collect-arxiv-ai.ts
+   - scripts/collect-asia-universities.ts
+   - scripts/collect-cardboard-production.ts
+   - scripts/collect-cybersecurity.ts
+   - scripts/collect-epo-patents.ts
+   - scripts/collect-gdelt.ts
+   - scripts/collect-github-trending.ts
+   - scripts/collect-hackernews.ts
+   - scripts/collect-hkex-ipos.ts
+   - scripts/collect-nih-grants.ts
+   - scripts/collect-npm-stats.ts
+   - scripts/collect-openalex.ts
+   - scripts/collect-pypi-stats.ts
+   - scripts/collect-reddit-tech.ts
+   - scripts/collect-space-industry.ts
+   - scripts/collect-wipo-china-patents.ts
