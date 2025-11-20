@@ -8,6 +8,9 @@
 
 set -e  # Exit on error
 
+# Fix Node.js 18 + undici compatibility - Load polyfill FIRST!
+export NODE_OPTIONS="--require $(pwd)/node-polyfill.cjs"
+
 SOFIA_DIR="/home/ubuntu/sofia-pulse"
 [ -d "$SOFIA_DIR" ] || SOFIA_DIR="$(pwd)"
 cd "$SOFIA_DIR"
