@@ -105,12 +105,17 @@ async function searchGitHub(niche: string, topic: string): Promise<any[]> {
     // GitHub API: search repos by topic
     const url = `https://api.github.com/search/repositories?q=topic:${topic}+stars:>100&sort=stars&order=desc&per_page=10`;
 
-    const response = await axios.get(url, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'Sofia-Pulse-Collector',
-      },
-    });
+    // Use GitHub token if available (increases rate limit from 60/hr to 5000/hr)
+    const headers: any = {
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Sofia-Pulse-Collector',
+    };
+
+    if (process.env.GITHUB_TOKEN) {
+      headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
+
+    const response = await axios.get(url, { headers });
 
     const repos = response.data.items || [];
     console.log(`   ✅ ${repos.length} repos for ${niche} (${topic})`);
@@ -168,6 +173,16 @@ async function main() {
   console.log('🚀 Sofia Pulse - GitHub Niches Collector');
   console.log('='.repeat(60));
   console.log('');
+
+  // Check GitHub token
+  if (process.env.GITHUB_TOKEN) {
+    console.log('✅ GitHub token detected (5000 req/hour)');
+  } else {
+    console.log('⚠️  No GitHub token - using unauthenticated API (60 req/hour)');
+    console.log('   Add GITHUB_TOKEN to .env to increase rate limit');
+  }
+  console.log('');
+
   console.log('🎯 Nichos:');
   Object.keys(NICHES).forEach(niche => {
     console.log(`   • ${niche}`);

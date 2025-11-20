@@ -74,6 +74,13 @@ if [ -f ".env" ]; then
         echo "GEMINI_API_KEY=$GEMINI_KEY" >> .env
         echo "✅ GEMINI_API_KEY adicionado"
     fi
+
+    # GitHub Token (opcional - aumenta rate limit de 60/h para 5000/h)
+    # Se não tiver, adiciona placeholder
+    if ! grep -q "^GITHUB_TOKEN=" .env; then
+        echo "GITHUB_TOKEN=your-github-token-here" >> .env
+        echo "⚠️  GITHUB_TOKEN placeholder adicionado (configure manualmente)"
+    fi
 else
     echo "❌ Arquivo .env não encontrado"
     exit 1
