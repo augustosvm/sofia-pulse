@@ -22,7 +22,10 @@ if (typeof File === 'undefined') {
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { db } from '../db';
+import { Client } from 'pg';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 interface IPO {
   company: string;
