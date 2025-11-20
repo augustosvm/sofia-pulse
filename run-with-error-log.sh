@@ -23,8 +23,9 @@ echo "🔍 Sofia Pulse - Error Analysis" > "$SUMMARY_LOG"
 echo "Generated: $(date)" >> "$SUMMARY_LOG"
 echo "" >> "$SUMMARY_LOG"
 
-# Buscar padrões de erro (case insensitive)
-grep -iE "error|exception|fatal|failed|traceback|errno|cannot|no such|not found|permission denied|connection refused" "$ERROR_LOG" > "$SUMMARY_LOG.tmp" 2>/dev/null || true
+# Buscar padrões de erro (case insensitive) - EXCLUINDO HTTP 403 (normais)
+grep -iE "error|exception|fatal|failed|traceback|errno|cannot|no such|not found|permission denied|connection refused" "$ERROR_LOG" | \
+  grep -v "HTTP 403\|403 Client Error\|Request failed with status code 403" > "$SUMMARY_LOG.tmp" 2>/dev/null || true
 
 # Categorizar
 echo "═══════════════════════════════════════════════════════════" >> "$SUMMARY_LOG"
