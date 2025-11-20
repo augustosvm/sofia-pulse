@@ -1,4 +1,16 @@
 #!/usr/bin/env node
+
+// Fix for Node.js 18 + undici - MUST BE AFTER SHEBANG!
+// @ts-ignore
+if (typeof File === 'undefined') {
+  // @ts-ignore
+  globalThis.File = class File extends Blob {
+    constructor(bits: any[], name: string, options?: any) {
+      super(bits, options);
+    }
+  };
+}
+
 /**
  * AI Regulation Collector - Sofia Pulse
  *
