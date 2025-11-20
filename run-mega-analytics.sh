@@ -76,6 +76,10 @@ echo "8️⃣  Global Energy Map"
 python3 analytics/energy-global-map.py || echo "⚠️  Skipped"
 echo ""
 
+echo "9️⃣  Causal Insights ML (Sklearn + Clustering + NLP + Time Series)"
+bash run-causal-insights.sh || echo "⚠️  Skipped"
+echo ""
+
 # ============================================================================
 # AI-POWERED ANALYTICS
 # ============================================================================
@@ -85,7 +89,7 @@ echo "🤖 AI-POWERED ANALYTICS"
 echo "════════════════════════════════════════════════════════════════════════════"
 echo ""
 
-echo "9️⃣  NLG Playbooks (Gemini AI)"
+echo "🔟 NLG Playbooks (Gemini AI)"
 if [ -n "$GEMINI_API_KEY" ] && [ "$GEMINI_API_KEY" != "your-gemini-api-key-here" ]; then
     python3 analytics/nlg-playbooks-gemini.py || echo "⚠️  Skipped"
 else
@@ -102,7 +106,7 @@ echo "🌍 MEGA ANALYSIS (ALL DATA SOURCES)"
 echo "════════════════════════════════════════════════════════════════════════════"
 echo ""
 
-echo "🔟 MEGA Analysis (Comprehensive Cross-Database)"
+echo "1️⃣1️⃣  MEGA Analysis (Comprehensive Cross-Database)"
 python3 analytics/mega-analysis.py || echo "⚠️  Skipped"
 echo ""
 
@@ -127,6 +131,7 @@ echo "   Advanced Analytics:"
 echo "   • analytics/special-sectors-latest.txt"
 echo "   • analytics/early-stage-latest.txt"
 echo "   • analytics/energy-global-latest.txt"
+echo "   • analytics/causal-insights-latest.txt (ML + Clustering + NLP + Forecast)"
 echo ""
 echo "   AI-Powered:"
 echo "   • analytics/playbook-latest.txt (if Gemini configured)"

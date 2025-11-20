@@ -11,6 +11,12 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import json
 from dotenv import load_dotenv
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from scipy.stats import pearsonr
+import re
 
 load_dotenv()
 
@@ -99,10 +105,10 @@ def analyze_temporal_lag(conn):
     # Papers count por mês
     cur.execute("""
         SELECT
-            DATE_TRUNC('month', publication_date) as month,
+            DATE_TRUNC('month', published_date) as month,
             COUNT(*) as paper_count
         FROM sofia.arxiv_ai_papers
-        WHERE publication_date >= CURRENT_DATE - INTERVAL '12 months'
+        WHERE published_date >= CURRENT_DATE - INTERVAL '12 months'
         GROUP BY month
         ORDER BY month
     """)
@@ -264,6 +270,327 @@ def detect_geographic_arbitrage(conn):
     return gaps
 
 # ============================================================================
+# 5. ML CORRELATION & REGRESSION (Sklearn)
+# ============================================================================
+
+def ml_correlation_analysis(conn):
+    """
+    Usa sklearn para encontrar correlações e fazer previsões
+
+    Análise:
+    - Correlação Papers vs Funding (Pearson r)
+    - Regressão Linear para previsão de funding baseado em papers
+    - Score de confiança da previsão
+    """
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Buscar dados temporais
+    cur.execute("""
+        SELECT
+            DATE_TRUNC('month', published_date) as month,
+            COUNT(*) as paper_count
+        FROM sofia.arxiv_ai_papers
+        WHERE published_date >= CURRENT_DATE - INTERVAL '12 months'
+        GROUP BY month
+        ORDER BY month
+    """)
+
+    papers_data = cur.fetchall()
+
+    cur.execute("""
+        SELECT
+            DATE_TRUNC('month', announced_date) as month,
+            COUNT(*) as funding_count,
+            SUM(amount_usd) as total_amount
+        FROM sofia.funding_rounds
+        WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
+        GROUP BY month
+        ORDER BY month
+    """)
+
+    funding_data = {r['month']: {'count': r['funding_count'], 'amount': float(r['total_amount'] or 0)} for r in cur.fetchall()}
+
+    # Preparar dados para ML
+    X = []  # Papers count
+    y = []  # Funding amount
+    months = []
+
+    for p in papers_data:
+        month = p['month']
+        # Lag de 6 meses: papers em Jan → funding em Jul
+        future_month = month + timedelta(days=180)
+
+        if future_month in funding_data:
+            X.append([p['paper_count']])
+            y.append([funding_data[future_month]['amount']])
+            months.append((month, future_month))
+
+    if len(X) < 2:
+        return None
+
+    X = np.array(X)
+    y = np.array(y)
+
+    # Regressão Linear
+    model = LinearRegression()
+    model.fit(X, y)
+
+    # Score (R²)
+    score = model.score(X, y)
+
+    # Correlação de Pearson
+    if len(X) > 0:
+        correlation, p_value = pearsonr(X.flatten(), y.flatten())
+    else:
+        correlation, p_value = 0, 1
+
+    # Previsão: Se tivermos N papers este mês, quanto funding em 6 meses?
+    latest_papers = papers_data[-1]['paper_count'] if papers_data else 0
+    predicted_funding = model.predict([[latest_papers]])[0][0] if latest_papers > 0 else 0
+
+    return {
+        'correlation': correlation,
+        'p_value': p_value,
+        'r_squared': score,
+        'latest_papers': latest_papers,
+        'predicted_funding_6m': predicted_funding,
+        'confidence': 'ALTA' if score > 0.7 else 'MÉDIA' if score > 0.4 else 'BAIXA'
+    }
+
+# ============================================================================
+# 6. SECTOR CLUSTERING (KMeans)
+# ============================================================================
+
+def cluster_sectors(conn):
+    """
+    Agrupa setores similares usando KMeans
+
+    Features:
+    - Total funding
+    - Number of deals
+    - Average deal size
+    - Growth rate
+    """
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Dados de funding por setor
+    cur.execute("""
+        SELECT
+            sector,
+            COUNT(*) as deals,
+            SUM(amount_usd) as total_funding,
+            AVG(amount_usd) as avg_deal_size
+        FROM sofia.funding_rounds
+        WHERE announced_date >= CURRENT_DATE - INTERVAL '90 days'
+            AND sector IS NOT NULL
+        GROUP BY sector
+        HAVING COUNT(*) >= 2
+    """)
+
+    sectors_data = cur.fetchall()
+
+    if len(sectors_data) < 3:
+        return []
+
+    # Preparar features
+    sectors = []
+    features = []
+
+    for s in sectors_data:
+        sectors.append(s['sector'])
+        features.append([
+            float(s['total_funding']),
+            float(s['deals']),
+            float(s['avg_deal_size'])
+        ])
+
+    # Normalizar
+    scaler = StandardScaler()
+    features_scaled = scaler.fit_transform(features)
+
+    # KMeans clustering (3 clusters: High/Medium/Low activity)
+    n_clusters = min(3, len(sectors_data))
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+    clusters = kmeans.fit_predict(features_scaled)
+
+    # Agrupar resultados
+    result = []
+    for i, sector in enumerate(sectors):
+        result.append({
+            'sector': sector,
+            'cluster': int(clusters[i]),
+            'total_funding': float(sectors_data[i]['total_funding']),
+            'deals': int(sectors_data[i]['deals'])
+        })
+
+    # Ordenar por cluster
+    result.sort(key=lambda x: (x['cluster'], -x['total_funding']))
+
+    return result
+
+# ============================================================================
+# 7. NLP TOPIC EXTRACTION
+# ============================================================================
+
+def extract_topics_nlp(conn):
+    """
+    Extrai tópicos automaticamente de papers usando NLP básico
+
+    Técnica: TF-IDF simplificado + keyword frequency
+    """
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Buscar papers recentes
+    cur.execute("""
+        SELECT title, abstract, keywords
+        FROM sofia.arxiv_ai_papers
+        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
+        LIMIT 100
+    """)
+
+    papers = cur.fetchall()
+
+    if not papers:
+        return []
+
+    # Contar keywords
+    keyword_freq = defaultdict(int)
+
+    for paper in papers:
+        keywords = paper.get('keywords') or []
+        for kw in keywords:
+            keyword_freq[kw] += 1
+
+    # Extrair termos técnicos dos títulos/abstracts
+    tech_terms = defaultdict(int)
+
+    # Padrões técnicos comuns
+    patterns = [
+        r'\b(transformer|attention|bert|gpt|llm)\b',
+        r'\b(diffusion|gan|vae|autoencoder)\b',
+        r'\b(reinforcement learning|supervised|unsupervised)\b',
+        r'\b(vision|nlp|robotics|speech)\b',
+        r'\b(neural network|deep learning|machine learning)\b',
+        r'\b(quantum|edge|federated|distributed)\b',
+    ]
+
+    for paper in papers:
+        text = f"{paper['title']} {paper['abstract']}".lower()
+
+        for pattern in patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for match in matches:
+                tech_terms[match.lower()] += 1
+
+    # Top topics
+    topics = []
+
+    # Keywords estruturados
+    for kw, count in sorted(keyword_freq.items(), key=lambda x: -x[1])[:10]:
+        topics.append({
+            'topic': kw,
+            'count': count,
+            'source': 'keywords'
+        })
+
+    # Termos técnicos
+    for term, count in sorted(tech_terms.items(), key=lambda x: -x[1])[:5]:
+        topics.append({
+            'topic': term,
+            'count': count,
+            'source': 'nlp_extraction'
+        })
+
+    return topics
+
+# ============================================================================
+# 8. TIME SERIES FORECASTING
+# ============================================================================
+
+def forecast_time_series(conn):
+    """
+    Previsão para próximos 3-6 meses usando regressão linear simples
+
+    Prevê:
+    - Número de papers
+    - Volume de funding
+    - Tendências de setores
+    """
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Histórico de papers (últimos 12 meses)
+    cur.execute("""
+        SELECT
+            DATE_TRUNC('month', published_date) as month,
+            COUNT(*) as paper_count
+        FROM sofia.arxiv_ai_papers
+        WHERE published_date >= CURRENT_DATE - INTERVAL '12 months'
+        GROUP BY month
+        ORDER BY month
+    """)
+
+    papers_history = cur.fetchall()
+
+    # Histórico de funding
+    cur.execute("""
+        SELECT
+            DATE_TRUNC('month', announced_date) as month,
+            SUM(amount_usd) as total_funding
+        FROM sofia.funding_rounds
+        WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
+        GROUP BY month
+        ORDER BY month
+    """)
+
+    funding_history = cur.fetchall()
+
+    predictions = []
+
+    # Previsão de Papers
+    if len(papers_history) >= 3:
+        X = np.array([[i] for i in range(len(papers_history))])
+        y = np.array([r['paper_count'] for r in papers_history])
+
+        model = LinearRegression()
+        model.fit(X, y)
+
+        # Próximos 3 meses
+        future_months = []
+        for i in range(1, 4):
+            future_idx = len(papers_history) + i
+            pred = model.predict([[future_idx]])[0]
+            future_months.append(int(max(0, pred)))
+
+        predictions.append({
+            'metric': 'Papers (próximos 3 meses)',
+            'values': future_months,
+            'trend': 'CRESCENDO' if future_months[-1] > papers_history[-1]['paper_count'] else 'ESTÁVEL'
+        })
+
+    # Previsão de Funding
+    if len(funding_history) >= 3:
+        X = np.array([[i] for i in range(len(funding_history))])
+        y = np.array([float(r['total_funding'] or 0) for r in funding_history])
+
+        model = LinearRegression()
+        model.fit(X, y)
+
+        # Próximos 3 meses
+        future_funding = []
+        for i in range(1, 4):
+            future_idx = len(funding_history) + i
+            pred = model.predict([[future_idx]])[0]
+            future_funding.append(max(0, pred))
+
+        predictions.append({
+            'metric': 'Funding (próximos 3 meses)',
+            'values': future_funding,
+            'trend': 'CRESCENDO' if future_funding[-1] > y[-1] else 'ESTÁVEL'
+        })
+
+    return predictions
+
+# ============================================================================
 # MAIN - Gerar Relatório
 # ============================================================================
 
@@ -349,8 +676,104 @@ def generate_report(conn):
     else:
         report.append("(Nenhuma arbitragem detectada)")
 
+    # 5. ML Correlation & Regression
     report.append("=" * 80)
-    report.append("✅ Análise completa!")
+    report.append("🤖 ML CORRELATION & REGRESSION (Sklearn)")
+    report.append("=" * 80)
+    report.append("")
+
+    ml_corr = ml_correlation_analysis(conn)
+
+    if ml_corr:
+        report.append("📊 CORRELAÇÃO PAPERS → FUNDING:")
+        report.append("")
+        report.append(f"• Correlação de Pearson: {ml_corr['correlation']:.3f}")
+        report.append(f"• P-value: {ml_corr['p_value']:.4f}")
+        report.append(f"• R² Score: {ml_corr['r_squared']:.3f}")
+        report.append(f"• Confiança: {ml_corr['confidence']}")
+        report.append("")
+        report.append(f"📈 PREVISÃO (próximos 6 meses):")
+        report.append(f"• Papers este mês: {ml_corr['latest_papers']}")
+        report.append(f"• Funding previsto: ${ml_corr['predicted_funding_6m']/1e9:.2f}B")
+        report.append("")
+    else:
+        report.append("(Dados insuficientes para correlação)")
+
+    # 6. Sector Clustering
+    report.append("=" * 80)
+    report.append("🎯 SECTOR CLUSTERING (KMeans)")
+    report.append("=" * 80)
+    report.append("")
+
+    clusters = cluster_sectors(conn)
+
+    if clusters:
+        report.append("🔬 SETORES AGRUPADOS POR SIMILARIDADE:")
+        report.append("")
+
+        # Agrupar por cluster
+        cluster_groups = defaultdict(list)
+        for c in clusters:
+            cluster_groups[c['cluster']].append(c)
+
+        for cluster_id, sectors in cluster_groups.items():
+            total = sum(s['total_funding'] for s in sectors)
+            report.append(f"• Cluster {cluster_id} (${total/1e9:.2f}B total):")
+            for s in sectors[:3]:  # Top 3 por cluster
+                report.append(f"  - {s['sector']}: ${s['total_funding']/1e9:.2f}B ({s['deals']} deals)")
+            report.append("")
+    else:
+        report.append("(Dados insuficientes para clustering)")
+
+    # 7. NLP Topic Extraction
+    report.append("=" * 80)
+    report.append("💬 NLP TOPIC EXTRACTION")
+    report.append("=" * 80)
+    report.append("")
+
+    topics = extract_topics_nlp(conn)
+
+    if topics:
+        report.append("🔥 TÓPICOS EMERGENTES (extraídos automaticamente):")
+        report.append("")
+
+        for topic in topics[:10]:
+            source_label = "Keywords" if topic['source'] == 'keywords' else "NLP"
+            report.append(f"• {topic['topic']}: {topic['count']} menções ({source_label})")
+
+        report.append("")
+    else:
+        report.append("(Nenhum tópico detectado)")
+
+    # 8. Time Series Forecasting
+    report.append("=" * 80)
+    report.append("📈 TIME SERIES FORECASTING")
+    report.append("=" * 80)
+    report.append("")
+
+    forecasts = forecast_time_series(conn)
+
+    if forecasts:
+        report.append("🔮 PREVISÕES (próximos 3 meses):")
+        report.append("")
+
+        for forecast in forecasts:
+            report.append(f"• {forecast['metric']}:")
+            if forecast['metric'].startswith('Papers'):
+                report.append(f"  Mês 1: {forecast['values'][0]} papers")
+                report.append(f"  Mês 2: {forecast['values'][1]} papers")
+                report.append(f"  Mês 3: {forecast['values'][2]} papers")
+            else:
+                report.append(f"  Mês 1: ${forecast['values'][0]/1e9:.2f}B")
+                report.append(f"  Mês 2: ${forecast['values'][1]/1e9:.2f}B")
+                report.append(f"  Mês 3: ${forecast['values'][2]/1e9:.2f}B")
+            report.append(f"  Tendência: {forecast['trend']}")
+            report.append("")
+    else:
+        report.append("(Dados insuficientes para previsões)")
+
+    report.append("=" * 80)
+    report.append("✅ Análise completa com ML!")
     report.append("")
 
     return "\n".join(report)
