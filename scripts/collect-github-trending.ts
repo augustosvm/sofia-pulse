@@ -37,7 +37,7 @@ if (typeof File === 'undefined') {
 
 import { Client } from 'pg';
 import * as dotenv from 'dotenv';
-import axios from 'axios';
+import { rateLimiters } from './utils/rate-limiter.js';
 
 dotenv.config();
 
@@ -164,7 +164,7 @@ async function fetchTrendingRepos(
     }
 
     try {
-      const response = await axios.get<GitHubSearchResponse>(url, {
+      const response = await rateLimiters.github.get<GitHubSearchResponse>(url, {
         headers,
         maxRedirects: 10,
         timeout: 30000,
@@ -204,8 +204,7 @@ async function fetchTrendingRepos(
 
       allRepos.push(...repos);
 
-      // Respect GitHub rate limits
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Rate limiting now handled automatically by rateLimiters.github
     } catch (error: any) {
       if (error.response?.status === 403) {
         console.warn('⚠️  GitHub API rate limit reached. Use GITHUB_TOKEN for higher limits.');
