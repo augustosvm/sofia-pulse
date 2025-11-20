@@ -90,6 +90,7 @@ fi
 # Tech Trends
 echo "🔹 Tech Trends & Open Source"
 npx tsx scripts/collect-github-trending.ts || echo "⚠️  Skipped"
+npx tsx scripts/collect-github-niches.ts || echo "⚠️  Skipped"
 npx tsx scripts/collect-hackernews.ts || echo "⚠️  Skipped"
 npx tsx scripts/collect-reddit-tech.ts || echo "⚠️  Skipped"
 npx tsx scripts/collect-npm-stats.ts || echo "⚠️  Skipped"
