@@ -210,13 +210,13 @@ def get_funding_summary():
     }
 
     try:
-        thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+        ninety_days_ago = (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')
 
-        # Total funding rounds last 30 days
+        # Total funding rounds last 90 days (increased from 30 for more data)
         cur.execute(f"""
             SELECT COUNT(*), SUM(amount_usd)
             FROM sofia.funding_rounds
-            WHERE announced_date >= '{thirty_days_ago}'
+            WHERE announced_date >= '{ninety_days_ago}'
         """)
         row = cur.fetchone()
         summary['total_30d'] = row[0] or 0
@@ -226,7 +226,7 @@ def get_funding_summary():
         cur.execute(f"""
             SELECT company_name, amount_usd, round_type, country, announced_date
             FROM sofia.funding_rounds
-            WHERE announced_date >= '{thirty_days_ago}'
+            WHERE announced_date >= '{ninety_days_ago}'
               AND amount_usd IS NOT NULL
             ORDER BY amount_usd DESC
             LIMIT 10
@@ -237,7 +237,7 @@ def get_funding_summary():
         cur.execute(f"""
             SELECT country, COUNT(*) as deals, SUM(amount_usd) as total_amount
             FROM sofia.funding_rounds
-            WHERE announced_date >= '{thirty_days_ago}'
+            WHERE announced_date >= '{ninety_days_ago}'
               AND country IS NOT NULL
             GROUP BY country
             ORDER BY total_amount DESC
@@ -249,7 +249,7 @@ def get_funding_summary():
         cur.execute(f"""
             SELECT sector, COUNT(*) as deals, SUM(amount_usd) as total_amount
             FROM sofia.funding_rounds
-            WHERE announced_date >= '{thirty_days_ago}'
+            WHERE announced_date >= '{ninety_days_ago}'
               AND sector IS NOT NULL
             GROUP BY sector
             ORDER BY total_amount DESC

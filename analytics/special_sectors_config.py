@@ -66,10 +66,14 @@ SPECIAL_SECTORS = {
 
     'Quantum Computing': {
         'keywords': [
-            'quantum', 'quantum computing', 'qubit', 'quantum algorithm',
+            'quantum', 'qubit', 'qbit', 'quantum-computing', 'quantum algorithm',
             'quantum supremacy', 'quantum advantage', 'ibm quantum',
             'google quantum', 'quantum annealing', 'quantum cryptography',
-            'post-quantum', 'quantum resistant'
+            'post-quantum', 'quantum resistant', 'superposition', 'entanglement',
+            'quantum gate', 'quantum circuit', 'quantum error', 'error correction',
+            'topological quantum', 'majorana', 'superconducting qubit',
+            'trapped ion', 'photonic quantum', 'quantum simulation',
+            'variational quantum', 'vqe', 'qaoa', 'quantum machine learning'
         ],
         'priority': 'medium',
         'description': 'Quantum computers, algorithms, cryptography'
@@ -173,11 +177,16 @@ SPECIAL_SECTORS = {
 
     'Databases & Data Infrastructure': {
         'keywords': [
-            'postgresql', 'postgres', 'mongodb', 'mysql', 'redis',
-            'elasticsearch', 'cassandra', 'neo4j', 'clickhouse',
-            'snowflake', 'databricks', 'database', 'data warehouse',
-            'olap', 'oltp', 'vector database', 'graph database',
-            'time series', 'influxdb', 'timescale', 'cockroachdb'
+            'database', 'db', 'sql', 'nosql', 'postgresql', 'postgres', 'mongodb',
+            'mysql', 'mariadb', 'redis', 'elasticsearch', 'cassandra', 'neo4j',
+            'clickhouse', 'snowflake', 'databricks', 'data warehouse', 'datalake',
+            'olap', 'oltp', 'vector database', 'graph database', 'embedding database',
+            'time series', 'influxdb', 'timescale', 'cockroachdb', 'yugabyte',
+            'distributed database', 'acid', 'transaction', 'index', 'indexing',
+            'query optimization', 'b-tree', 'lsm tree', 'raft', 'paxos',
+            'replication', 'sharding', 'partitioning', 'consistency',
+            'data modeling', 'etl', 'data pipeline', 'streaming database',
+            'real-time analytics', 'bi', 'business intelligence'
         ],
         'priority': 'medium',
         'description': 'Databases, data warehouses, data infrastructure'
