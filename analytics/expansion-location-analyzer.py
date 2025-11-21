@@ -49,7 +49,8 @@ def analyze_locations(conn):
 
     for city in cities:
         score = 0
-        signals = []
+        advantages = []
+        disadvantages = []
 
         # Universidades/Papers (proxy via país/região)
         cur.execute("""
@@ -60,38 +61,57 @@ def analyze_locations(conn):
         papers_data = cur.fetchone()
         if papers_data['papers'] > 50:
             score += 25
-            signals.append(f"Research output: {papers_data['papers']} papers (regional)")
+            advantages.append(f"Research output: {papers_data['papers']} papers (regional)")
+        else:
+            disadvantages.append(f"Limited research: {papers_data['papers']} papers only")
 
-        # Funding activity (proxy)
+        # Funding activity - FILTRADO POR PAÍS
         cur.execute("""
-            SELECT COUNT(*) as deals
+            SELECT COUNT(*) as deals, SUM(amount_usd) as total_funding
             FROM sofia.funding_rounds
             WHERE announced_date >= CURRENT_DATE - INTERVAL '365 days'
-        """)
+            AND country = %s
+        """, (city['country'],))
         funding_data = cur.fetchone()
-        if funding_data['deals'] > 10:
+        deals_count = funding_data['deals'] or 0
+
+        if deals_count > 10:
             score += 25
-            signals.append(f"Startup activity: {funding_data['deals']} funding deals")
+            advantages.append(f"Strong startup ecosystem: {deals_count} funding deals")
+        elif deals_count > 5:
+            score += 15
+            advantages.append(f"Moderate startup activity: {deals_count} deals")
+        elif deals_count > 0:
+            score += 5
+            disadvantages.append(f"Limited startup ecosystem: only {deals_count} deals")
+        else:
+            disadvantages.append(f"No recent funding deals (weak ecosystem)")
 
         # Cost adjustment
         if city['cost'] == 'Low':
             score += 20
-            signals.append(f"Cost of living: Low (advantage)")
+            advantages.append(f"Cost of living: Low (salary advantage)")
         elif city['cost'] == 'Medium':
             score += 10
-            signals.append(f"Cost of living: Medium")
+            advantages.append(f"Cost of living: Medium (balanced)")
+        else:  # High
+            disadvantages.append(f"High cost of living (expensive salaries)")
 
         # Tech hub bonus
         if city['name'] in ['Austin, TX', 'Montreal, QC', 'Singapore', 'Berlin']:
             score += 15
-            signals.append(f"Recognized tech hub")
+            advantages.append(f"Recognized tech hub (established ecosystem)")
+        else:
+            disadvantages.append(f"Not a primary tech hub")
 
         city_scores.append({
             'city': city['name'],
             'country': city['country'],
             'score': score,
             'cost': city['cost'],
-            'signals': signals
+            'advantages': advantages,
+            'disadvantages': disadvantages,
+            'deals_count': deals_count
         })
 
     # Sort by score
@@ -125,11 +145,22 @@ def generate_report(locations):
         report.append(f"{i}. {loc['city']} ({loc['country']})")
         report.append(f"   Expansion Score: {loc['score']}/100")
         report.append(f"   Cost Level: {loc['cost']}")
+        report.append(f"   Funding Deals (12 months): {loc['deals_count']}")
         report.append("")
-        report.append("   Advantages:")
-        for signal in loc['signals']:
-            report.append(f"   • {signal}")
-        report.append("")
+
+        # Advantages
+        if loc['advantages']:
+            report.append("   ✅ Advantages:")
+            for advantage in loc['advantages']:
+                report.append(f"   • {advantage}")
+            report.append("")
+
+        # Disadvantages
+        if loc['disadvantages']:
+            report.append("   ⚠️  Disadvantages:")
+            for disadvantage in loc['disadvantages']:
+                report.append(f"   • {disadvantage}")
+            report.append("")
 
         # Recommendation
         if loc['score'] >= 75:
@@ -139,7 +170,7 @@ def generate_report(locations):
         else:
             recommendation = "🟠 CONSIDER CAREFULLY - Weigh tradeoffs"
 
-        report.append(f"   ✅ RATING: {recommendation}")
+        report.append(f"   📊 RATING: {recommendation}")
         report.append("")
         report.append("   " + "-" * 70)
         report.append("")

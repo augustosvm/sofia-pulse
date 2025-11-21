@@ -25,20 +25,48 @@ def detect_dying_sectors(conn):
     """Detecta tecnologias/setores em declínio"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Tecnologias legacy conhecidas
+    # Tecnologias REALMENTE legacy/mortas (não confundir com maduras!)
     legacy_tech = [
+        # Web Frameworks antigas (realmente mortas)
         'AngularJS', 'Angular.js', 'Backbone', 'Ember', 'Knockout',
-        'Hadoop', 'MapReduce', 'Hive', 'Pig',
-        'PHP 5', 'PHP Enterprise', 'CakePHP',
-        'Ruby on Rails', 'Rails',
-        'jQuery', 'Prototype.js',
-        'Flash', 'Silverlight',
-        'Perl', 'CGI',
-        'Teradata', 'Oracle Database', 'SQL Server',
-        'MongoDB < 4', 'CouchDB',
-        'SOAP', 'XML-RPC',
-        'SVN', 'CVS'
+
+        # Big Data legacy (Hadoop era, sendo substituído por Spark/cloud)
+        'Hadoop 1.x', 'MapReduce', 'Hive', 'Pig',
+
+        # PHP antigo
+        'PHP 5', 'CakePHP 2',
+
+        # JS frameworks antigos
+        'jQuery', 'Prototype.js', 'Mootools', 'Dojo',
+
+        # Tecnologias completamente mortas
+        'Flash', 'Silverlight', 'ActiveX',
+        'Perl CGI', 'Cold Fusion',
+
+        # SOAP/XML-RPC sendo substituídos por REST/GraphQL
+        'SOAP', 'XML-RPC', 'WSDL',
+
+        # Version control antigo
+        'SVN', 'CVS', 'SourceSafe',
+
+        # Mobile antigo
+        'Cordova', 'PhoneGap', 'Ionic 3',
+
+        # Build tools antigos
+        'Grunt', 'Gulp', 'Bower',
     ]
+
+    # BLACKLIST: Tecnologias MADURAS que NÃO devem ser marcadas como mortas
+    # (mesmo se não aparecerem em trending - isso é NORMAL para tech madura)
+    mature_stable_tech = {
+        'oracle', 'sql server', 'mongodb', 'postgresql', 'mysql',
+        'redis', 'elasticsearch', 'cassandra', 'dynamodb',
+        'java', 'c++', 'c#', '.net', 'spring', 'hibernate',
+        'ruby on rails', 'rails', 'django', 'flask',
+        'react', 'vue', 'angular', 'next.js', 'nuxt',
+        'docker', 'kubernetes', 'terraform', 'ansible',
+        'aws', 'azure', 'gcp', 'jenkins', 'gitlab',
+    }
 
     dying_tech = []
 
