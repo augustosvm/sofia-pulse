@@ -49,8 +49,8 @@ def fetch_energy_data(conn):
             energy_per_capita,
             co2_mt,
             co2_per_capita,
-            solar_capacity_gw,
-            wind_capacity_gw
+            solar_capacity AS solar_capacity_gw,
+            wind_capacity AS wind_capacity_gw
         FROM sofia.energy_global
         ORDER BY renewables_share_pct DESC
     """)
