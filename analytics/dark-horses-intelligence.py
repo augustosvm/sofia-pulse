@@ -50,7 +50,7 @@ def detect_dark_horses(conn):
         cur.execute("""
             SELECT COUNT(*) as papers
             FROM sofia.arxiv_ai_papers
-            WHERE published_date >= CURRENT_DATE - INTERVAL '180 days'
+            WHERE publication_date >= CURRENT_DATE - INTERVAL '180 days'
             AND (LOWER(title) LIKE %s OR %s = ANY(keywords))
         """, (f'%{area.lower()}%', area.lower()))
         papers_count = cur.fetchone()['papers']
@@ -62,9 +62,9 @@ def detect_dark_horses(conn):
 
         # 2. Funding (Market hype)
         cur.execute("""
-            SELECT COUNT(*) as deals, SUM(CAST(amount_millions AS NUMERIC)) as total
+            SELECT COUNT(*) as deals, SUM(CAST(amount_usd / 1000000.0 AS NUMERIC)) as total
             FROM sofia.funding_rounds
-            WHERE deal_date >= CURRENT_DATE - INTERVAL '365 days'
+            WHERE announced_date >= CURRENT_DATE - INTERVAL '365 days'
             AND (LOWER(company) LIKE %s OR LOWER(sector) LIKE %s)
         """, (f'%{area.lower()}%', f'%{area.lower()}%'))
         funding_data = cur.fetchone()
@@ -72,7 +72,7 @@ def detect_dark_horses(conn):
         if funding_data['deals'] == 0:
             low_signals.append(f"Funding: $0 (no VC attention)")
         else:
-            high_signals.append(f"Funding: ${funding_data['total'] or 0:.1f}M")
+            high_signals.append(f"Funding: ${float(funding_data['total'] or 0) / 1000000.0:.1f}M")
 
         # 3. GitHub (Public technical activity)
         cur.execute("""

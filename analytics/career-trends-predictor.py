@@ -55,12 +55,12 @@ def analyze_career_trends(conn):
     cur.execute("""
         SELECT
             title,
-            score,
+            points,
             url
         FROM sofia.hackernews_stories
         WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
-        AND score >= 50
-        ORDER BY score DESC
+        AND points >= 50
+        ORDER BY points DESC
         LIMIT 100
     """)
     hn_stories = cur.fetchall()
@@ -72,7 +72,7 @@ def analyze_career_trends(conn):
         title_lower = story['title'].lower()
         for tech in tech_keywords:
             if tech.lower() in title_lower:
-                hn_mentions[tech] += story['score']
+                hn_mentions[tech] += story["points"]
 
     # 3. Papers: Research acadêmico
     cur.execute("""
@@ -80,7 +80,7 @@ def analyze_career_trends(conn):
             UNNEST(keywords) as keyword,
             COUNT(*) as paper_count
         FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
+        WHERE published_at >= CURRENT_DATE - INTERVAL '90 days'
         GROUP BY keyword
         HAVING COUNT(*) >= 3
         ORDER BY paper_count DESC

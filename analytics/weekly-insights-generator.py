@@ -46,12 +46,12 @@ def generate_weekly_insights(conn):
     cur.execute("""
         SELECT
             title,
-            score,
+            points,
             url
         FROM sofia.hackernews_stories
         WHERE collected_at >= CURRENT_DATE - INTERVAL '7 days'
         AND score >= 100
-        ORDER BY score DESC
+        ORDER BY points DESC
         LIMIT 15
     """)
     hn_hot = cur.fetchall()
@@ -91,7 +91,7 @@ def generate_weekly_insights(conn):
             'title': top_story['title'],
             'angle': f"Deep dive: {top_story['title']}",
             'evidence': [
-                f"HackerNews: {top_story['score']} upvotes (#1 trending)",
+                f"HackerNews: {top_story["points"]} upvotes (#1 trending)",
                 f"URL: {top_story['url']}"
             ],
             'seo': ' '.join(top_story['title'].lower().split()[:5]),

@@ -36,19 +36,19 @@ def analyze_capital_flow(conn):
         SELECT
             sector,
             COUNT(*) as deal_count,
-            SUM(CAST(amount_millions AS NUMERIC)) as total_millions,
-            AVG(CAST(amount_millions AS NUMERIC)) as avg_millions
+            SUM(amount_usd) as total_usd,
+            AVG(amount_usd) as avg_usd
         FROM sofia.funding_rounds
-        WHERE deal_date >= CURRENT_DATE - INTERVAL '180 days'
-        AND amount_millions IS NOT NULL
+        WHERE announced_date >= CURRENT_DATE - INTERVAL '180 days'
+        AND amount_usd / 1000000.0 IS NOT NULL
         GROUP BY sector
-        ORDER BY total_millions DESC
+        ORDER BY total_usd DESC
         LIMIT 20
     """)
     funding_by_sector = {row['sector']: {
         'deals': row['deal_count'],
-        'total': float(row['total_millions']) if row['total_millions'] else 0,
-        'avg': float(row['avg_millions']) if row['avg_millions'] else 0
+        'total': float(row['total_usd']) / 1000000.0 if row['total_usd'] else 0,
+        'avg': float(row['avg_usd']) / 1000000.0 if row['avg_usd'] else 0
     } for row in cur.fetchall()}
 
     # 2. Papers por área (proxy para setores)

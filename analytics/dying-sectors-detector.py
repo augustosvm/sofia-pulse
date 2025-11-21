@@ -15,7 +15,9 @@ load_dotenv()
 
 DB_CONFIG = {
     'host': os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST') or 'localhost',
-    'port': int(os.getenv('POSTGRES_PORT') or os.getenv('DB_PASSWORD') or '',
+    'port': int(os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT') or '5432'),
+    'user': os.getenv('POSTGRES_USER') or os.getenv('DB_USER') or 'sofia',
+    'password': os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD') or '',
     'database': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME') or 'sofia_db',
 }
 
@@ -64,7 +66,7 @@ def detect_dying_sectors(conn):
         cur.execute("""
             SELECT COUNT(*) as deals
             FROM sofia.funding_rounds
-            WHERE deal_date >= CURRENT_DATE - INTERVAL '365 days'
+            WHERE announced_date >= CURRENT_DATE - INTERVAL '365 days'
             AND (LOWER(company) LIKE %s OR LOWER(sector) LIKE %s)
         """, (f'%{tech.lower()}%', f'%{tech.lower()}%'))
         funding_data = cur.fetchone()
@@ -77,7 +79,7 @@ def detect_dying_sectors(conn):
         cur.execute("""
             SELECT COUNT(*) as papers
             FROM sofia.arxiv_ai_papers
-            WHERE published_date >= CURRENT_DATE - INTERVAL '180 days'
+            WHERE publication_date >= CURRENT_DATE - INTERVAL '180 days'
             AND (LOWER(title) LIKE %s OR %s = ANY(keywords))
         """, (f'%{tech.lower()}%', tech.lower()))
         papers_data = cur.fetchone()
