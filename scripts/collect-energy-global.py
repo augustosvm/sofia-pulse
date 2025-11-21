@@ -138,9 +138,9 @@ def save_to_database(df, conn):
             safe_float(row.get('co2'), max_value=9999999999.99),
             safe_float(row.get('co2_per_capita'), max_value=99999999.99),
 
-            # Capacity (GW) - DECIMAL(10,2)
-            safe_float(row.get('solar_capacity'), max_value=99999999.99),
-            safe_float(row.get('wind_capacity'), max_value=99999999.99),
+            # Capacity (GW) - DECIMAL(10,2) - NOT AVAILABLE in OWID dataset
+            None,  # solar_capacity_gw - not in dataset
+            None,  # wind_capacity_gw - not in dataset
         ))
 
     # Insert
