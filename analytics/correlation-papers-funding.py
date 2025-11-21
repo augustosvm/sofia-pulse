@@ -76,14 +76,95 @@ def get_funding_by_sector(conn, days_back=180):
 def map_paper_to_sector(primary_category):
     """Mapeia categoria ArXiv para setor de mercado"""
     mapping = {
+        # AI/ML
         'cs.AI': 'Artificial Intelligence',
         'cs.LG': 'Artificial Intelligence',
-        'cs.CV': 'Artificial Intelligence',
-        'cs.CL': 'Artificial Intelligence',
+        'cs.CV': 'Computer Vision',
+        'cs.CL': 'NLP',
+        'cs.NE': 'AI',
+
+        # Robotics/Hardware
         'cs.RO': 'Robotics',
-        'cs.NE': 'Artificial Intelligence',
+        'cs.SY': 'Systems',
+        'cs.AR': 'Hardware',
+
+        # Software/Web
+        'cs.SE': 'Software',
+        'cs.DC': 'Cloud',
+        'cs.DB': 'Database',
+        'cs.NI': 'Networking',
+        'cs.CR': 'Cybersecurity',
+
+        # Other CS
+        'cs.HC': 'UX/Design',
+        'cs.IR': 'Search',
+        'cs.SI': 'Social Networks',
+
+        # Physics/Math
+        'quant-ph': 'Quantum Computing',
+        'cond-mat': 'Materials',
+        'physics': 'Physics',
+        'math': 'Mathematics',
+
+        # Bio/Health
+        'q-bio': 'Biotech',
+        'stat.ML': 'Artificial Intelligence',
     }
+
+    # Tentar match parcial para categorias não mapeadas
+    if primary_category not in mapping:
+        if 'AI' in primary_category or 'ML' in primary_category:
+            return 'Artificial Intelligence'
+        elif 'bio' in primary_category.lower():
+            return 'Biotech'
+        elif 'quant' in primary_category.lower():
+            return 'Quantum Computing'
+
     return mapping.get(primary_category, 'Technology')
+
+def normalize_sector(sector):
+    """Normaliza nome de setor para matching"""
+    if not sector:
+        return 'Other'
+
+    sector_lower = sector.lower().strip()
+
+    # Mapeamento fuzzy
+    fuzzy_map = {
+        'ai': 'Artificial Intelligence',
+        'artificial intelligence': 'Artificial Intelligence',
+        'machine learning': 'Artificial Intelligence',
+        'ml': 'Artificial Intelligence',
+        'deep learning': 'Artificial Intelligence',
+
+        'robotics': 'Robotics',
+        'robot': 'Robotics',
+
+        'biotech': 'Biotech',
+        'biotechnology': 'Biotech',
+        'healthcare': 'Biotech',
+        'health': 'Biotech',
+
+        'fintech': 'Fintech',
+        'finance': 'Fintech',
+        'financial': 'Fintech',
+
+        'cybersecurity': 'Cybersecurity',
+        'security': 'Cybersecurity',
+        'infosec': 'Cybersecurity',
+
+        'quantum': 'Quantum Computing',
+        'quantum computing': 'Quantum Computing',
+
+        'nlp': 'NLP',
+        'natural language': 'NLP',
+
+        'computer vision': 'Computer Vision',
+        'vision': 'Computer Vision',
+        'cv': 'Computer Vision',
+    }
+
+    return fuzzy_map.get(sector_lower, sector.title())
 
 def calculate_correlation(papers, funding):
     """Calcula correlação entre papers e funding com lag temporal"""
@@ -94,11 +175,12 @@ def calculate_correlation(papers, funding):
 
     for paper in papers:
         sector = map_paper_to_sector(paper['primary_category'])
+        sector = normalize_sector(sector)
         month = paper['month']
         papers_by_sector[sector][month] += paper['paper_count']
 
     for fund in funding:
-        sector = fund['sector']
+        sector = normalize_sector(fund['sector'])
         month = fund['month']
         funding_by_sector[sector][month] += float(fund['total_amount'] or 0)
 

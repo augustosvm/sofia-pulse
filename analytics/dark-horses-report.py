@@ -137,14 +137,26 @@ def get_dark_horses(conn):
                 'keywords': paper_data.get('keywords', [])[:5] if paper_data.get('keywords') else [],
             })
 
-    # GitHub Dark Horses
+    # GitHub Dark Horses (excluir linguagens mainstream)
+    mainstream_langs = {
+        'JavaScript', 'Python', 'Java', 'C++', 'C', 'C#', 'TypeScript',
+        'PHP', 'Ruby', 'Go', 'Swift', 'Kotlin', 'Rust', 'HTML', 'CSS',
+        'Shell', 'Objective-C', 'Scala', 'R', 'Perl', 'Lua', 'Dart', 'Haskell'
+    }
+
     for tech, gh_data in github.items():
+        # Pular linguagens mainstream
+        if tech in mainstream_langs:
+            continue
+
         total_stars = int(gh_data['total_stars'])
+        repo_count = int(gh_data['repo_count'])
         hn_data = hn.get(tech, {'mentions': 0})
         hn_mentions = int(hn_data.get('mentions', 0))
 
-        # Dark Horse: Alto GitHub, baixo HN = não descoberto ainda
-        if total_stars >= 50000 and hn_mentions < 10:
+        # Dark Horse: Linguagem emergente com tração mas baixa visibilidade
+        # Critérios mais estritos: 10k-500k stars (não milhões), múltiplos repos
+        if 10000 <= total_stars <= 500000 and repo_count >= 3 and hn_mentions < 5:
             dark_horse_score = total_stars / (hn_mentions + 1)
 
             dark_horses.append({
@@ -155,6 +167,7 @@ def get_dark_horses(conn):
                 'total_funding': 0,
                 'deal_count': 0,
                 'github_stars': total_stars,
+                'github_repos': repo_count,
                 'hn_mentions': hn_mentions,
                 'dark_horse_score': dark_horse_score,
                 'keywords': [tech],

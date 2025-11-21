@@ -50,10 +50,10 @@ UNIVERSITIES = {
 }
 
 def analyze_early_stage(conn):
-    """Analisa startups seed/angel (<$10M)"""
+    """Analisa startups seed/angel (<$50M para capturar mais dados)"""
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Seed rounds dos últimos 12 meses
+    # Tentar primeiro <$10M
     cursor.execute("""
         SELECT
             company_name,
@@ -72,6 +72,46 @@ def analyze_early_stage(conn):
     """)
 
     seed_rounds = cursor.fetchall()
+
+    # Se não encontrou nada, tentar <$50M
+    if not seed_rounds:
+        cursor.execute("""
+            SELECT
+                company_name,
+                sector,
+                amount_usd,
+                valuation_usd,
+                round_type,
+                announced_date,
+                investors,
+                country
+            FROM sofia.funding_rounds
+            WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
+                AND amount_usd > 0
+                AND amount_usd < 50000000
+            ORDER BY amount_usd ASC
+            LIMIT 30
+        """)
+        seed_rounds = cursor.fetchall()
+
+    # Se ainda não encontrou, pegar qualquer funding recente
+    if not seed_rounds:
+        cursor.execute("""
+            SELECT
+                company_name,
+                sector,
+                amount_usd,
+                valuation_usd,
+                round_type,
+                announced_date,
+                investors,
+                country
+            FROM sofia.funding_rounds
+            WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
+            ORDER BY announced_date DESC
+            LIMIT 20
+        """)
+        seed_rounds = cursor.fetchall()
 
     return seed_rounds
 
@@ -152,6 +192,18 @@ def find_patents(conn, sector):
 def generate_report(seed_rounds, tech_stack, conn):
     """Gera relatório completo"""
 
+    # Determinar qual filtro foi usado
+    if seed_rounds:
+        max_amount = max(r['amount_usd'] for r in seed_rounds) / 1e6
+        if max_amount < 10:
+            filter_desc = "(<$10M - Seed/Angel only)"
+        elif max_amount < 50:
+            filter_desc = "(<$50M - Early-stage)"
+        else:
+            filter_desc = "(All recent funding - fallback)"
+    else:
+        filter_desc = "(No data available)"
+
     report = f"""
 {'='*80}
 💎 EARLY-STAGE DEEP DIVE - Sofia Pulse
@@ -159,7 +211,7 @@ def generate_report(seed_rounds, tech_stack, conn):
 
 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-Análise de startups SEED/ANGEL (<$10M) dos últimos 12 meses
+Análise de startups dos últimos 12 meses {filter_desc}
 Conectando: Funding → Papers → Universities → Tech Stack → Patents
 
 {'='*80}
@@ -167,7 +219,7 @@ Conectando: Funding → Papers → Universities → Tech Stack → Patents
 📊 RESUMO EXECUTIVO
 {'-'*80}
 
-Total de rounds seed/angel: {len(seed_rounds)}
+Total de rounds encontrados: {len(seed_rounds)}
 """
 
     if seed_rounds:
@@ -176,11 +228,20 @@ Total de rounds seed/angel: {len(seed_rounds)}
         max_ticket = max(r['amount_usd'] for r in seed_rounds) / 1e6
         report += f"""Ticket médio: ${avg_ticket:.2f}M
 Range: ${min_ticket:.2f}M - ${max_ticket:.2f}M
+
+💡 Nota: Filtro ajustado automaticamente para capturar dados disponíveis
 """
     else:
         report += """
-⚠️  Nenhum round seed/angel (<$10M) encontrado no período.
-💡 Ajuste o filtro de amount_usd ou período para encontrar deals menores.
+⚠️  Nenhum funding encontrado nos últimos 12 meses.
+💡 Possíveis razões:
+   • Dados ainda não coletados
+   • Período sem atividade
+   • Problema de conexão com fontes
+
+Recomendações:
+   • Execute os collectors: bash collect-limited-apis.sh
+   • Verifique funding_rounds: SELECT COUNT(*) FROM sofia.funding_rounds
 """
 
     report += f"""
