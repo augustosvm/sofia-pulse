@@ -137,17 +137,36 @@ AI-Powered:
 
 📁 ANEXOS:
 
-📄 Relatórios Completos (TXT):
-  • mega-analysis.txt (NEW!) - Análise cross-database
+📄 Relatórios Completos (17 TXT):
+
+  🌍 MEGA Analysis:
+  • mega-analysis.txt - Análise cross-database completa
+
+  📊 Core Analytics (5):
   • sofia-complete-report.txt
   • top10-tech-trends.txt
   • correlations-papers-funding.txt
   • dark-horses-report.txt
   • entity-resolution.txt
-  • special-sectors-analysis.txt
+
+  🎯 Advanced Analytics (3):
+  • special-sectors-analysis.txt (20 setores!)
   • early-stage-deep-dive.txt
   • energy-global-map.txt
-  • nlg-playbooks-gemini.txt
+
+  🤖 ML Analytics (1):
+  • causal-insights-ml.txt
+
+  🔮 AI-Powered (1):
+  • nlg-playbooks-gemini.txt (se Gemini configurado)
+
+  🧠 Intelligence Analytics (6) - PREDICTIVE:
+  • career-trends-predictor.txt (prediz skills antes das empresas)
+  • capital-flow-predictor.txt (prediz setores antes dos VCs)
+  • expansion-locations-analyzer.txt (melhores cidades para abrir filiais)
+  • weekly-insights-generator.txt (top 3 topics para colunistas TI)
+  • dying-sectors-detector.txt (tecnologias em declínio terminal)
+  • dark-horses-intelligence.txt (oportunidades em stealth mode)
 
 📊 Dados RAW (CSVs):
   Tech:
@@ -204,18 +223,36 @@ Sofia Pulse Intelligence System
 
 msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
-# Attach reports
+# Attach reports (17 total: 11 core + 6 intelligence)
 reports = [
+    # MEGA Analysis
     ('analytics/mega-analysis-latest.txt', 'MEGA-ANALYSIS.txt'),
+
+    # Core Analytics (5)
     ('analytics/sofia-report.txt', 'sofia-complete-report.txt'),
     ('analytics/top10-latest.txt', 'top10-tech-trends.txt'),
     ('analytics/correlation-latest.txt', 'correlations-papers-funding.txt'),
     ('analytics/dark-horses-latest.txt', 'dark-horses-report.txt'),
     ('analytics/entity-resolution-latest.txt', 'entity-resolution.txt'),
+
+    # Advanced Analytics (3)
     ('analytics/special-sectors-latest.txt', 'special-sectors-analysis.txt'),
     ('analytics/early-stage-latest.txt', 'early-stage-deep-dive.txt'),
     ('analytics/energy-global-latest.txt', 'energy-global-map.txt'),
+
+    # ML Analytics (1)
+    ('analytics/causal-insights-latest.txt', 'causal-insights-ml.txt'),
+
+    # AI-Powered (1)
     ('analytics/playbook-latest.txt', 'nlg-playbooks-gemini.txt'),
+
+    # Intelligence Analytics (6) - PREDICTIVE
+    ('analytics/career-trends-latest.txt', 'career-trends-predictor.txt'),
+    ('analytics/capital-flow-latest.txt', 'capital-flow-predictor.txt'),
+    ('analytics/expansion-locations-latest.txt', 'expansion-locations-analyzer.txt'),
+    ('analytics/weekly-insights-latest.txt', 'weekly-insights-generator.txt'),
+    ('analytics/dying-sectors-latest.txt', 'dying-sectors-detector.txt'),
+    ('analytics/dark-horses-intelligence-latest.txt', 'dark-horses-intelligence.txt'),
 ]
 
 attached_reports = 0
