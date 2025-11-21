@@ -190,6 +190,92 @@ SPECIAL_SECTORS = {
         ],
         'priority': 'medium',
         'description': 'Databases, data warehouses, data infrastructure'
+    },
+
+    # NOVOS SETORES 2025-11-21 (para chegar a 20+)
+
+    'Fintech & Payments': {
+        'keywords': [
+            'fintech', 'payment', 'stripe', 'paypal', 'square', 'adyen',
+            'digital wallet', 'mobile payment', 'neobank', 'challenger bank',
+            'open banking', 'pix', 'venmo', 'zelle', 'cashapp',
+            'buy now pay later', 'bnpl', 'lending', 'credit',
+            'remittance', 'cross-border payment', 'cryptocurrency exchange',
+            'defi', 'stablecoin', 'cbdc', 'digital currency',
+            'banking-as-a-service', 'baas', 'embedded finance'
+        ],
+        'priority': 'high',
+        'description': 'Digital payments, neobanks, embedded finance, BNPL'
+    },
+
+    'Biotech & Genomics': {
+        'keywords': [
+            'biotech', 'biotechnology', 'genomics', 'crispr', 'gene therapy',
+            'mrna', 'monoclonal antibody', 'car-t', 'cell therapy',
+            'precision medicine', 'personalized medicine', 'sequencing',
+            'dna', 'rna', 'proteomics', 'bioinformatics',
+            'synthetic biology', 'protein engineering', 'antibody',
+            'immunotherapy', 'oncology', 'rare disease',
+            'regenerative medicine', 'stem cell', 'organoid'
+        ],
+        'priority': 'high',
+        'description': 'Gene editing, CRISPR, mRNA, precision medicine'
+    },
+
+    'Climate Tech & Carbon Capture': {
+        'keywords': [
+            'climate tech', 'carbon capture', 'ccs', 'dac', 'direct air capture',
+            'carbon removal', 'carbon credit', 'carbon offset',
+            'climeworks', 'carbon engineering', 'decarbonization',
+            'ghg', 'greenhouse gas', 'methane', 'co2',
+            'carbon neutral', 'net zero', 'climate change',
+            'carbon sequestration', 'afforestation', 'reforestation',
+            'biochar', 'enhanced weathering', 'ocean alkalinity'
+        ],
+        'priority': 'critical',
+        'description': 'Carbon capture, climate solutions, decarbonization'
+    },
+
+    'Cloud & DevOps': {
+        'keywords': [
+            'cloud', 'aws', 'azure', 'gcp', 'google cloud', 'kubernetes',
+            'docker', 'container', 'serverless', 'lambda', 'fargate',
+            'devops', 'ci/cd', 'jenkins', 'gitlab', 'github actions',
+            'terraform', 'infrastructure as code', 'iac', 'ansible',
+            'microservices', 'service mesh', 'istio', 'envoy',
+            'observability', 'monitoring', 'prometheus', 'grafana',
+            'datadog', 'newrelic', 'cloudflare', 'cdn'
+        ],
+        'priority': 'medium',
+        'description': 'Cloud platforms, containers, Kubernetes, DevOps tools'
+    },
+
+    'Semiconductors & Chips': {
+        'keywords': [
+            'semiconductor', 'chip', 'tsmc', 'samsung foundry', 'intel foundry',
+            'asml', 'euv', 'lithography', 'fab', 'foundry',
+            'chip manufacturing', '3nm', '2nm', '1nm', 'gaafet',
+            'chiplet', 'packaging', '3d ic', 'chiplet',
+            'nvidia', 'amd', 'intel', 'qualcomm', 'mediatek',
+            'gpu', 'ai chip', 'tpu', 'npu', 'accelerator',
+            'risc-v', 'arm', 'x86', 'instruction set'
+        ],
+        'priority': 'critical',
+        'description': 'Chip manufacturing, fabs, AI accelerators, process nodes'
+    },
+
+    'AR/VR & Spatial Computing': {
+        'keywords': [
+            'ar', 'vr', 'xr', 'augmented reality', 'virtual reality',
+            'mixed reality', 'spatial computing', 'meta quest',
+            'apple vision pro', 'hololens', 'magic leap', 'snap spectacles',
+            'passthrough', 'hand tracking', 'eye tracking', 'haptic',
+            'metaverse', 'virtual world', 'avatar', 'digital twin',
+            '3d modeling', 'photogrammetry', 'gaussian splatting', 'nerf',
+            'webxr', 'openxr', 'unity', 'unreal engine'
+        ],
+        'priority': 'medium',
+        'description': 'AR/VR headsets, spatial computing, metaverse platforms'
     }
 }
 
