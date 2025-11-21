@@ -50,7 +50,7 @@ def generate_weekly_insights(conn):
             url
         FROM sofia.hackernews_stories
         WHERE collected_at >= CURRENT_DATE - INTERVAL '7 days'
-        AND score >= 100
+        AND points >= 100
         ORDER BY points DESC
         LIMIT 15
     """)
@@ -59,13 +59,13 @@ def generate_weekly_insights(conn):
     # 3. Recent funding
     cur.execute("""
         SELECT
-            company,
+            company_name,
             sector,
             stage,
-            amount_millions
+            amount_usd
         FROM sofia.funding_rounds
-        WHERE deal_date >= CURRENT_DATE - INTERVAL '7 days'
-        ORDER BY CAST(amount_millions AS NUMERIC) DESC
+        WHERE announced_date >= CURRENT_DATE - INTERVAL '7 days'
+        ORDER BY CAST(amount_usd AS NUMERIC) DESC
         LIMIT 10
     """)
     recent_funding = cur.fetchall()
@@ -100,13 +100,14 @@ def generate_weekly_insights(conn):
 
     if recent_funding:
         top_deal = recent_funding[0]
+        amount_m = float(top_deal['amount_usd']) / 1000000.0 if top_deal['amount_usd'] else 0
         insights.append({
-            'title': f"{top_deal['company']} levantou ${top_deal['amount_millions']}M",
+            'title': f"{top_deal['company_name']} levantou ${amount_m:.1f}M",
             'angle': f"Por que VCs estão apostando pesado em {top_deal['sector']}?",
             'evidence': [
-                f"Funding: ${top_deal['amount_millions']}M ({top_deal['stage']} round)",
+                f"Funding: ${amount_m:.1f}M ({top_deal['stage']} round)",
                 f"Setor: {top_deal['sector']}",
-                f"Empresa: {top_deal['company']}"
+                f"Empresa: {top_deal['company_name']}"
             ],
             'seo': f"{top_deal['sector'].lower()} funding trends",
             'urgency': 'MÉDIA - escreva esta semana'

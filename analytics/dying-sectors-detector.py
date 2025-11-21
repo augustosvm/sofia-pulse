@@ -67,7 +67,7 @@ def detect_dying_sectors(conn):
             SELECT COUNT(*) as deals
             FROM sofia.funding_rounds
             WHERE announced_date >= CURRENT_DATE - INTERVAL '365 days'
-            AND (LOWER(company) LIKE %s OR LOWER(sector) LIKE %s)
+            AND (LOWER(company_name) LIKE %s OR LOWER(sector) LIKE %s)
         """, (f'%{tech.lower()}%', f'%{tech.lower()}%'))
         funding_data = cur.fetchone()
 
@@ -79,7 +79,7 @@ def detect_dying_sectors(conn):
         cur.execute("""
             SELECT COUNT(*) as papers
             FROM sofia.arxiv_ai_papers
-            WHERE publication_date >= CURRENT_DATE - INTERVAL '180 days'
+            WHERE published_date >= CURRENT_DATE - INTERVAL '180 days'
             AND (LOWER(title) LIKE %s OR %s = ANY(keywords))
         """, (f'%{tech.lower()}%', tech.lower()))
         papers_data = cur.fetchone()

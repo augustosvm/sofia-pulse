@@ -55,7 +55,7 @@ def analyze_locations(conn):
         cur.execute("""
             SELECT COUNT(*) as papers
             FROM sofia.openalex_papers
-            WHERE publication_date >= CURRENT_DATE - INTERVAL '180 days'
+            WHERE published_date >= CURRENT_DATE - INTERVAL '180 days'
         """)
         papers_data = cur.fetchone()
         if papers_data['papers'] > 50:
@@ -66,7 +66,7 @@ def analyze_locations(conn):
         cur.execute("""
             SELECT COUNT(*) as deals
             FROM sofia.funding_rounds
-            WHERE deal_date >= CURRENT_DATE - INTERVAL '365 days'
+            WHERE announced_date >= CURRENT_DATE - INTERVAL '365 days'
         """)
         funding_data = cur.fetchone()
         if funding_data['deals'] > 10:

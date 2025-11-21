@@ -50,7 +50,7 @@ def detect_dark_horses(conn):
         cur.execute("""
             SELECT COUNT(*) as papers
             FROM sofia.arxiv_ai_papers
-            WHERE publication_date >= CURRENT_DATE - INTERVAL '180 days'
+            WHERE published_date >= CURRENT_DATE - INTERVAL '180 days'
             AND (LOWER(title) LIKE %s OR %s = ANY(keywords))
         """, (f'%{area.lower()}%', area.lower()))
         papers_count = cur.fetchone()['papers']
@@ -65,7 +65,7 @@ def detect_dark_horses(conn):
             SELECT COUNT(*) as deals, SUM(CAST(amount_usd / 1000000.0 AS NUMERIC)) as total
             FROM sofia.funding_rounds
             WHERE announced_date >= CURRENT_DATE - INTERVAL '365 days'
-            AND (LOWER(company) LIKE %s OR LOWER(sector) LIKE %s)
+            AND (LOWER(company_name) LIKE %s OR LOWER(sector) LIKE %s)
         """, (f'%{area.lower()}%', f'%{area.lower()}%'))
         funding_data = cur.fetchone()
 

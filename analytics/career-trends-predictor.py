@@ -80,7 +80,7 @@ def analyze_career_trends(conn):
             UNNEST(keywords) as keyword,
             COUNT(*) as paper_count
         FROM sofia.arxiv_ai_papers
-        WHERE published_at >= CURRENT_DATE - INTERVAL '90 days'
+        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
         GROUP BY keyword
         HAVING COUNT(*) >= 3
         ORDER BY paper_count DESC
