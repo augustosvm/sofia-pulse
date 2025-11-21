@@ -237,7 +237,7 @@ reports = [
     # Advanced Analytics (3)
     ('analytics/special-sectors-latest.txt', 'special-sectors-analysis.txt'),
     ('analytics/early-stage-latest.txt', 'early-stage-deep-dive.txt'),
-    ('analytics/energy-global-latest.txt', 'energy-global-map.txt'),
+    ('analytics/energy-global-map-latest.txt', 'energy-global-map.txt'),
 
     # ML Analytics (1)
     ('analytics/causal-insights-latest.txt', 'causal-insights-ml.txt'),
