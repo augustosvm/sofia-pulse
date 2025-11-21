@@ -55,7 +55,7 @@ def analyze_locations(conn):
         cur.execute("""
             SELECT COUNT(*) as papers
             FROM sofia.openalex_papers
-            WHERE published_date >= CURRENT_DATE - INTERVAL '180 days'
+            WHERE publication_date >= CURRENT_DATE - INTERVAL '180 days'
         """)
         papers_data = cur.fetchone()
         if papers_data['papers'] > 50:

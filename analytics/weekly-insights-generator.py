@@ -61,7 +61,7 @@ def generate_weekly_insights(conn):
         SELECT
             company_name,
             sector,
-            stage,
+            round_type,
             amount_usd
         FROM sofia.funding_rounds
         WHERE announced_date >= CURRENT_DATE - INTERVAL '7 days'
@@ -105,7 +105,7 @@ def generate_weekly_insights(conn):
             'title': f"{top_deal['company_name']} levantou ${amount_m:.1f}M",
             'angle': f"Por que VCs estão apostando pesado em {top_deal['sector']}?",
             'evidence': [
-                f"Funding: ${amount_m:.1f}M ({top_deal['stage']} round)",
+                f"Funding: ${amount_m:.1f}M ({top_deal['round_type']} round)",
                 f"Setor: {top_deal['sector']}",
                 f"Empresa: {top_deal['company_name']}"
             ],
