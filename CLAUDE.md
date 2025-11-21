@@ -1,9 +1,9 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2025-11-20 04:30 UTC
+**Data**: 2025-11-21 19:57 UTC
 **Branch**: `claude/fix-github-rate-limits-012Xm4nfg6i34xKQHSDbWfq3`
 **Email**: augustosvm@gmail.com
-**Status**: ✅ SISTEMA 100% FUNCIONAL - APIs REAIS + ML ANALYTICS + RATE LIMITING
+**Status**: ✅ SISTEMA 100% FUNCIONAL - DATABASE-DRIVEN INTELLIGENCE + ML ANALYTICS
 
 ---
 
@@ -29,9 +29,46 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 
 ---
 
-## 🚀 NOVIDADES (20 Nov 2025 - 04:30 UTC)
+## 🚀 NOVIDADES
 
-### ✅ **Rate Limiting Completo** (Fix GitHub 403 Errors)
+### ✅ **Database-Driven Expansion Analyzer** (21 Nov 2025 - 19:57 UTC)
+
+**MAJOR REWRITE**: Expansion Location Analyzer agora é 100% baseado em dados reais do banco!
+
+**Mudanças**:
+1. **Antes**: Lista hardcoded de 70 cidades
+   **Depois**: Extrai cidades dinamicamente de `sofia.funding_rounds` (até 200 cidades)
+
+2. **Research Intelligence** - NOVO! 🎯
+   - Analisa papers por país (OpenAlex + ArXiv keywords)
+   - Mapeia keywords → indústrias (10 categorias):
+     - AI/ML (neural, transformer, llm, deep learning)
+     - Energy/Battery (lithium, solar, ev, energy storage)
+     - Biotech (genome, drug, protein, medical)
+     - Robotics (autonomous, drone, manipulation)
+     - Quantum, Cybersecurity, Fintech, Space, Climate, Semiconductors
+   - Recomenda tipos de empresas baseado em research local
+
+3. **Score Inteligente** (0-100 pontos):
+   - Funding Activity: 0-30 pts (deal count real)
+   - Capital Volume: 0-25 pts (total funding real)
+   - Cost of Living: 0-20 pts (Low/Med/High)
+   - Tech Hub Status: 0-15 pts (recognized ecosystem)
+   - Research Match: 0-10 pts (paper specialization) ⭐ NOVO
+
+4. **Exemplos de Recomendações**:
+   - "Se tem muito paper sobre baterias de veículos elétricos → Energy/Battery Tech ideal"
+   - "Se tem muito paper sobre IA → AI/ML Companies recomendadas"
+   - "Se tem muito paper sobre genoma → Biotech/Healthcare ideal"
+
+**Arquivos**:
+- `analytics/expansion-location-analyzer.py` - Reescrito completamente
+
+**Commit**: `0de8f0e` - Database-driven Expansion Location Analyzer with Research Intelligence
+
+---
+
+### ✅ **Rate Limiting Completo** (20 Nov 2025 - 04:30 UTC)
 
 **Problema Resolvido**: Excesso de chamadas ao GitHub causando ~80% de erros 403
 
@@ -376,11 +413,14 @@ bash update-crontab-distributed.sh
 
 ---
 
-**Última Atualização**: 2025-11-20 04:30 UTC
-**Status**: ✅ Sistema 100% funcional - Rate Limiting + Qualidade de Dados
+**Última Atualização**: 2025-11-21 19:57 UTC
+**Status**: ✅ Sistema 100% funcional - Database-Driven Intelligence
 **Branch**: `claude/fix-github-rate-limits-012Xm4nfg6i34xKQHSDbWfq3`
 **Commits Recentes**:
+- `0de8f0e` - Database-driven Expansion Location Analyzer with Research Intelligence
+- `2e6c822` - Feat: Add 10 Brazilian cities to expansion location analyzer
+- `21445ef` - Fix: Dying Sectors + Expansion Locations intelligence quality
 - `c580856` - Fix qualidade de dados
 - `9f23bfc` - Rate limiter + schedule distribuído
-**Total Changes**: +1,400 lines (rate limiter + fixes)
-**Próximo**: Monitorar por 1 semana e ajustar se necessário
+**Total Changes**: +2,000 lines (database-driven intelligence + rate limiter + fixes)
+**Próximo**: Rodar no servidor e verificar relatórios gerados
