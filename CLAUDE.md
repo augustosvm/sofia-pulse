@@ -31,40 +31,63 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 
 ## 🚀 NOVIDADES
 
-### ✅ **Database-Driven Expansion Analyzer** (21 Nov 2025 - 19:57 UTC)
+### ✅ **Comprehensive Expansion Analyzer V2** (21 Nov 2025 - 20:30 UTC)
 
-**MAJOR REWRITE**: Expansion Location Analyzer agora é 100% baseado em dados reais do banco!
+**MAJOR UPGRADE**: Analyzer agora inclui **Quality of Life Metrics** + Dados Socioeconômicos!
 
-**Mudanças**:
-1. **Antes**: Lista hardcoded de 70 cidades
-   **Depois**: Extrai cidades dinamicamente de `sofia.funding_rounds` (até 200 cidades)
+**O Problema** (mencionado pelo usuário):
+> "Não é só o custo e o número de deals que vale. Se tem uma megamultinacional de produção de veículos elétricos, tudo o que faz parte de criação de insumos da cadeia produtiva é interessante. Aqui em Vitória tem a Arcelor e a Mittal. Elas requerem muitos engenheiros, desenvolvedores de software, profissionais de segurança da informação, suporte etc. Vamos cruzar essas informações."
 
-2. **Research Intelligence** - NOVO! 🎯
-   - Analisa papers por país (OpenAlex + ArXiv keywords)
-   - Mapeia keywords → indústrias (10 categorias):
-     - AI/ML (neural, transformer, llm, deep learning)
-     - Energy/Battery (lithium, solar, ev, energy storage)
-     - Biotech (genome, drug, protein, medical)
-     - Robotics (autonomous, drone, manipulation)
-     - Quantum, Cybersecurity, Fintech, Space, Climate, Semiconductors
-   - Recomenda tipos de empresas baseado em research local
+**A Solução**:
 
-3. **Score Inteligente** (0-100 pontos):
-   - Funding Activity: 0-30 pts (deal count real)
-   - Capital Volume: 0-25 pts (total funding real)
-   - Cost of Living: 0-20 pts (Low/Med/High)
-   - Tech Hub Status: 0-15 pts (recognized ecosystem)
-   - Research Match: 0-10 pts (paper specialization) ⭐ NOVO
+1. **Quality of Life Score** (0-35 pontos, 35% do total!) ⭐ NOVO:
+   - **Education & Talent**: Literacy, tertiary enrollment, education spending
+   - **Infrastructure**: Internet %, broadband, electricity access, paved roads
+   - **Healthcare**: Life expectancy, physicians per 1000, hospital beds
+   - **Safety**: Low crime proxies (suicide rate, injury deaths) 🔒
+   - **Environment**: Air quality (PM2.5), renewable energy, forest area
+   - **Innovation**: R&D expenditure as % of GDP 🧪
+   - **Economic**: GDP per capita, unemployment (inverted), FDI inflows
 
-4. **Exemplos de Recomendações**:
-   - "Se tem muito paper sobre baterias de veículos elétricos → Energy/Battery Tech ideal"
-   - "Se tem muito paper sobre IA → AI/ML Companies recomendadas"
-   - "Se tem muito paper sobre genoma → Biotech/Healthcare ideal"
+2. **Comprehensive Scoring** (0-100 total):
+   - Funding Activity: 0-25 pts (deals count)
+   - Capital Volume: 0-20 pts (total funding)
+   - **Quality of Life: 0-35 pts** (7 dimensions) ⭐ NOVO
+   - Cost of Living: 0-10 pts (GDP-based)
+   - Tech Hub Status: 0-10 pts
+   - Research Match: 0-10 pts (papers)
+
+3. **Baseado em Modelos Padrão**:
+   - Mercer Quality of Living Survey (10 categorias)
+   - Numbeo Quality of Life Index (8 categorias)
+   - EIU Global Liveability Index (5 categorias)
+   - World Bank Development Indicators (56 indicadores)
+
+4. **Fontes de Dados**:
+   - `sofia.socioeconomic_indicators` - 92k+ records, 56 indicadores World Bank
+   - `sofia.funding_rounds` - Deals reais por cidade
+   - `sofia.openalex_papers` + `arxiv_ai_papers` - Research topics
+
+5. **Exemplo Real** (Vitória, Brazil):
+   ```
+   • Has Arcelor Mittal (steel) → Needs: Engineers, Developers, InfoSec
+   • Good infrastructure BUT high violence (safety score low)
+   • Manufacturing/Industrial companies ideal for supply chain
+   ```
+
+6. **Recomendações Inteligentes**:
+   - "Strong education system (score: 85/100)" se Education >= 70
+   - "Excellent infrastructure (score: 92/100)" se Infrastructure >= 70
+   - "Safety concerns (score: 35/100)" se Safety < 50 ⚠️
+   - "Strong innovation ecosystem" se R&D >= 50
 
 **Arquivos**:
-- `analytics/expansion-location-analyzer.py` - Reescrito completamente
+- `analytics/expansion-location-analyzer.py` - V2 com QoL metrics
+- `analytics/expansion-location-analyzer-v1-old.py` - Backup V1
 
-**Commit**: `0de8f0e` - Database-driven Expansion Location Analyzer with Research Intelligence
+**Commits**:
+- `c1f9be0` - Comprehensive Expansion Analyzer with Quality of Life Metrics (V2)
+- `0de8f0e` - Database-driven Expansion Location Analyzer with Research Intelligence
 
 ---
 
@@ -413,14 +436,14 @@ bash update-crontab-distributed.sh
 
 ---
 
-**Última Atualização**: 2025-11-21 19:57 UTC
-**Status**: ✅ Sistema 100% funcional - Database-Driven Intelligence
+**Última Atualização**: 2025-11-21 20:30 UTC
+**Status**: ✅ Sistema 100% funcional - Comprehensive Intelligence with QoL Metrics
 **Branch**: `claude/fix-github-rate-limits-012Xm4nfg6i34xKQHSDbWfq3`
 **Commits Recentes**:
+- `c1f9be0` - Comprehensive Expansion Analyzer with Quality of Life Metrics (V2)
+- `27b9ee5` - Docs: Update CLAUDE.md with Database-Driven Expansion Analyzer
 - `0de8f0e` - Database-driven Expansion Location Analyzer with Research Intelligence
 - `2e6c822` - Feat: Add 10 Brazilian cities to expansion location analyzer
 - `21445ef` - Fix: Dying Sectors + Expansion Locations intelligence quality
-- `c580856` - Fix qualidade de dados
-- `9f23bfc` - Rate limiter + schedule distribuído
-**Total Changes**: +2,000 lines (database-driven intelligence + rate limiter + fixes)
-**Próximo**: Rodar no servidor e verificar relatórios gerados
+**Total Changes**: +2,800 lines (QoL metrics + database-driven intelligence + rate limiter + fixes)
+**Próximo**: Rodar no servidor e verificar Quality of Life scores reais
