@@ -124,6 +124,19 @@ bash run-intelligence-analytics.sh || echo "⚠️  Intelligence Analytics skipp
 echo ""
 
 # ============================================================================
+# SOCIOECONOMIC INTELLIGENCE (NEW!)
+# ============================================================================
+
+echo "════════════════════════════════════════════════════════════════════════════"
+echo "🌍 SOCIOECONOMIC INTELLIGENCE (GLOBAL RANKINGS)"
+echo "════════════════════════════════════════════════════════════════════════════"
+echo ""
+echo "Running socioeconomic intelligence reports (established methodologies)..."
+echo ""
+bash run-socioeconomic-reports.sh || echo "⚠️  Socioeconomic Reports skipped"
+echo ""
+
+# ============================================================================
 # SUMMARY
 # ============================================================================
 
@@ -160,7 +173,15 @@ echo "   • analytics/weekly-insights-latest.txt"
 echo "   • analytics/dying-sectors-latest.txt"
 echo "   • analytics/dark-horses-intelligence-latest.txt"
 echo ""
-echo "🎯 Total: 17 reports (11 core + 6 intelligence)"
+echo "   🌍 Socioeconomic Intelligence (GLOBAL RANKINGS):"
+echo "   • analytics/best-cities-tech-talent-latest.txt"
+echo "   • analytics/remote-work-quality-latest.txt"
+echo "   • analytics/innovation-hubs-latest.txt"
+echo "   • analytics/startup-founders-latest.txt"
+echo "   • analytics/digital-nomad-latest.txt"
+echo "   • analytics/stem-education-latest.txt"
+echo ""
+echo "🎯 Total: 23 reports (11 core + 6 predictive + 6 socioeconomic)"
 echo "🎯 Next Step: Send all reports by email with send-email-mega.sh"
 echo ""
 echo "════════════════════════════════════════════════════════════════════════════"

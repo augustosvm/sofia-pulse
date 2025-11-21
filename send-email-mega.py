@@ -99,7 +99,7 @@ Industry Specific:
 
 {'='*80}
 
-📈 ANÁLISES INCLUÍDAS (10+ Relatórios):
+📈 ANÁLISES INCLUÍDAS (23 Relatórios):
 
 🆕 MEGA Analysis:
 • Cross-database comprehensive analysis
@@ -137,7 +137,7 @@ AI-Powered:
 
 📁 ANEXOS:
 
-📄 Relatórios Completos (17 TXT):
+📄 Relatórios Completos (23 TXT):
 
   🌍 MEGA Analysis:
   • mega-analysis.txt - Análise cross-database completa
@@ -167,6 +167,14 @@ AI-Powered:
   • weekly-insights-generator.txt (top 3 topics para colunistas TI)
   • dying-sectors-detector.txt (tecnologias em declínio terminal)
   • dark-horses-intelligence.txt (oportunidades em stealth mode)
+
+  🌍 Socioeconomic Intelligence (6) - GLOBAL RANKINGS:
+  • best-cities-tech-talent.txt (INSEAD Global Talent Index)
+  • remote-work-quality-index.txt (Nomad List + Numbeo QoL)
+  • innovation-hubs-ranking.txt (WIPO Global Innovation Index)
+  • startup-founders-best-countries.txt (World Bank Ease of Doing Business)
+  • digital-nomad-index.txt (Nomad List methodology)
+  • stem-education-leaders.txt (OECD PISA inspired)
 
 📊 Dados RAW (CSVs):
   Tech:
@@ -252,6 +260,14 @@ reports = [
     ('analytics/weekly-insights-latest.txt', 'weekly-insights-generator.txt'),
     ('analytics/dying-sectors-latest.txt', 'dying-sectors-detector.txt'),
     ('analytics/dark-horses-intelligence-latest.txt', 'dark-horses-intelligence.txt'),
+
+    # Socioeconomic Intelligence (6) - GLOBAL RANKINGS
+    ('analytics/best-cities-tech-talent-latest.txt', 'best-cities-tech-talent.txt'),
+    ('analytics/remote-work-quality-latest.txt', 'remote-work-quality-index.txt'),
+    ('analytics/innovation-hubs-latest.txt', 'innovation-hubs-ranking.txt'),
+    ('analytics/startup-founders-latest.txt', 'startup-founders-best-countries.txt'),
+    ('analytics/digital-nomad-latest.txt', 'digital-nomad-index.txt'),
+    ('analytics/stem-education-latest.txt', 'stem-education-leaders.txt'),
 ]
 
 attached_reports = 0

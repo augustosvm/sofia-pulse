@@ -261,7 +261,7 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 
 ---
 
-## 🧠 ANÁLISES (17+ Relatórios)
+## 🧠 ANÁLISES (23 Relatórios)
 
 ### **Core Analytics** (5):
 1. **Top 10 Tech Trends** - Ranking ponderado
@@ -284,28 +284,36 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 ### **MEGA Analysis** (1):
 11. **MEGA Analysis** - Cross-database (30+ fontes, 90 dias)
 
-### **Intelligence Reports Suite** (6) ⭐ NOVO:
-12. **Best Cities for Tech Talent** - Onde procurar emprego tech
+### **Predictive Intelligence** (6):
+12. **Career Trends Predictor** - Prediz skills antes das empresas
+13. **Capital Flow Predictor** - Prediz setores antes dos VCs
+14. **Expansion Location Analyzer** - Melhores cidades para abrir filiais
+15. **Weekly Insights Generator** - Top 3 topics para colunistas TI
+16. **Dying Sectors Detector** - Tecnologias em declínio terminal
+17. **Dark Horses Intelligence** - Oportunidades em stealth mode
+
+### **Socioeconomic Intelligence** (6) ⭐ NOVO:
+18. **Best Cities for Tech Talent** - Onde procurar emprego tech
     - Metodologia: INSEAD Global Talent Competitiveness Index
     - Fatores: Job opportunities (30%), Education (25%), Infrastructure (20%), Safety (15%), Cost (10%)
 
-13. **Remote Work Quality Index** - Melhores países para trabalho remoto
+19. **Remote Work Quality Index** - Melhores países para trabalho remoto
     - Metodologia: Nomad List Index + Numbeo QoL
     - Fatores: Internet (30%), Cost (30%), Safety (20%), Healthcare (10%), Environment (10%)
 
-14. **Innovation Hubs Ranking** - Centros de inovação global
+20. **Innovation Hubs Ranking** - Centros de inovação global
     - Metodologia: WIPO Global Innovation Index (GII)
     - Fatores: R&D spending (40%), Research output (30%), Funding (20%), Education (10%)
 
-15. **Best Countries for Startup Founders** - Onde fundar startup
+21. **Best Countries for Startup Founders** - Onde fundar startup
     - Metodologia: World Bank Ease of Doing Business (adapted)
     - Fatores: Funding ecosystem (35%), Cost (25%), Talent (20%), Infrastructure (20%)
 
-16. **Digital Nomad Index** - Para nômades digitais
+22. **Digital Nomad Index** - Para nômades digitais
     - Metodologia: Nomad List scoring system
     - Fatores: Internet (30%), Cost (30%), Safety (20%), Healthcare (10%), Environment (10%)
 
-17. **STEM Education Leaders** - Melhores países para estudar tech
+23. **STEM Education Leaders** - Melhores países para estudar tech
     - Metodologia: OECD PISA inspired
     - Fatores: Enrollment (30%), R&D investment (30%), Research output (25%), Literacy (15%)
 
@@ -322,9 +330,11 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 
 ## 📧 EMAIL DIÁRIO (22:00 UTC / 19:00 BRT)
 
-**17+ Relatórios TXT**:
+**23 Relatórios TXT**:
+
+**Core & Advanced Analytics (11)**:
 1. MEGA Analysis (cross-database)
-2. Sofia Complete Report
+2. Sofia Complete Report (Tech Trend Scoring)
 3. Top 10 Tech Trends
 4. Correlações Papers ↔ Funding
 5. Dark Horses Report
@@ -334,12 +344,22 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 9. Global Energy Map
 10. Causal Insights ML
 11. NLG Playbooks (Gemini)
-12. Best Cities for Tech Talent ⭐ NOVO
-13. Remote Work Quality Index ⭐ NOVO
-14. Innovation Hubs Ranking ⭐ NOVO
-15. Best Countries for Startup Founders ⭐ NOVO
-16. Digital Nomad Index ⭐ NOVO
-17. STEM Education Leaders ⭐ NOVO
+
+**Predictive Intelligence (6)**:
+12. Career Trends Predictor (prediz skills antes das empresas)
+13. Capital Flow Predictor (prediz setores antes dos VCs)
+14. Expansion Location Analyzer (melhores cidades para abrir filiais)
+15. Weekly Insights Generator (top 3 topics para colunistas TI)
+16. Dying Sectors Detector (tecnologias em declínio terminal)
+17. Dark Horses Intelligence (oportunidades em stealth mode)
+
+**Socioeconomic Intelligence (6)** ⭐ NOVO:
+18. Best Cities for Tech Talent (INSEAD methodology)
+19. Remote Work Quality Index (Nomad List + Numbeo)
+20. Innovation Hubs Ranking (WIPO GII)
+21. Best Countries for Startup Founders (World Bank)
+22. Digital Nomad Index (Nomad List)
+23. STEM Education Leaders (OECD PISA)
 
 **CSVs** (15+):
 - github_trending, npm_stats, pypi_stats, hackernews_stories
