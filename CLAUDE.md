@@ -16,7 +16,16 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 **O que faz**:
 - 📡 Coleta automática (GitHub, Papers REAIS, Funding, CVEs, Space, AI Laws)
 - 🧠 Análises ML (Sklearn, Clustering, NLP, Time Series, Correlações)
+- 🔮 **NOVO**: Inteligência Aplicada (6 análises preditivas) - Ver INTELLIGENCE-ANALYTICS.md
 - 📧 Email diário (19h BRT) com 11 relatórios + CSVs
+
+**Análises de Inteligência:**
+1. 🎓 Prever tendências de carreira (antes das empresas)
+2. 💰 Prever setores onde capital vai entrar (antes dos VCs)
+3. 🌍 Prever onde abrir filiais (expansão estratégica)
+4. 📰 Insights semanais para colunistas TI Especialistas
+5. 💀 Prever setores que vão morrer (avoid waste)
+6. 🐴 Detectar 'dark horses' de tecnologia (oportunidades escondidas)
 
 ---
 
