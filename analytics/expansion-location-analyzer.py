@@ -27,6 +27,18 @@ def analyze_locations(conn):
 
     # Cidades estratégicas para monitorar
     cities = [
+        # BRASIL - Principais hubs tech
+        {'name': 'São Paulo, SP', 'country': 'Brazil', 'cost': 'High'},
+        {'name': 'Florianópolis, SC', 'country': 'Brazil', 'cost': 'Medium'},
+        {'name': 'Belo Horizonte, MG', 'country': 'Brazil', 'cost': 'Medium'},
+        {'name': 'Rio de Janeiro, RJ', 'country': 'Brazil', 'cost': 'High'},
+        {'name': 'Curitiba, PR', 'country': 'Brazil', 'cost': 'Medium'},
+        {'name': 'Porto Alegre, RS', 'country': 'Brazil', 'cost': 'Medium'},
+        {'name': 'Recife, PE', 'country': 'Brazil', 'cost': 'Low'},
+        {'name': 'Campinas, SP', 'country': 'Brazil', 'cost': 'Medium'},
+        {'name': 'Brasília, DF', 'country': 'Brazil', 'cost': 'High'},
+        {'name': 'Fortaleza, CE', 'country': 'Brazil', 'cost': 'Low'},
+
         # US
         {'name': 'Austin, TX', 'country': 'USA', 'cost': 'Medium'},
         {'name': 'Seattle, WA', 'country': 'USA', 'cost': 'High'},
@@ -98,7 +110,13 @@ def analyze_locations(conn):
             disadvantages.append(f"High cost of living (expensive salaries)")
 
         # Tech hub bonus
-        if city['name'] in ['Austin, TX', 'Montreal, QC', 'Singapore', 'Berlin']:
+        tech_hubs = [
+            # Brasil
+            'São Paulo, SP', 'Florianópolis, SC', 'Belo Horizonte, MG',
+            # Internacional
+            'Austin, TX', 'Montreal, QC', 'Singapore', 'Berlin'
+        ]
+        if city['name'] in tech_hubs:
             score += 15
             advantages.append(f"Recognized tech hub (established ecosystem)")
         else:
@@ -186,9 +204,15 @@ def generate_report(locations):
     report.append("  • Tech Hub Status: Recognized ecosystem (+15 bonus)")
     report.append("")
     report.append("Cost Levels:")
-    report.append("  • Low: $50-80k avg engineer salary")
-    report.append("  • Medium: $80-120k avg engineer salary")
-    report.append("  • High: $120k+ avg engineer salary")
+    report.append("  • Low: R$80-120k (Brazil) / $50-80k (International)")
+    report.append("  • Medium: R$120-180k (Brazil) / $80-120k (International)")
+    report.append("  • High: R$180k+ (Brazil) / $120k+ (International)")
+    report.append("")
+    report.append("Brazilian Tech Hubs:")
+    report.append("  • São Paulo: Largest ecosystem, highest costs, most deals")
+    report.append("  • Florianópolis: 'Silicon Island' - strong tech culture")
+    report.append("  • Belo Horizonte: Balanced cost/talent, growing ecosystem")
+    report.append("  • Recife: Porto Digital, low cost, government support")
     report.append("")
     report.append("=" * 80)
 
