@@ -163,31 +163,35 @@ def find_tech_stack(conn):
     return cursor.fetchall()
 
 def find_patents(conn, sector):
-    """Busca patentes relacionadas ao setor"""
+    """Busca patentes relacionadas ao setor (opcional - não quebra se tabela não existir)"""
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     keywords = sector.lower().split() if sector else []
     if not keywords:
         return []
 
-    # Buscar em patentes WIPO dos últimos 12 meses
-    cursor.execute("""
-        SELECT
-            title,
-            applicant,
-            filing_date,
-            ipc_class
-        FROM sofia.wipo_patents
-        WHERE filing_date >= CURRENT_DATE - INTERVAL '12 months'
-            AND (
-                title ILIKE %s
-                OR abstract ILIKE %s
-            )
-        ORDER BY filing_date DESC
-        LIMIT 5
-    """, (f'%{keywords[0]}%', f'%{keywords[0]}%'))
+    try:
+        # Buscar em patentes WIPO dos últimos 12 meses
+        cursor.execute("""
+            SELECT
+                title,
+                applicant,
+                filing_date,
+                ipc_class
+            FROM sofia.wipo_patents
+            WHERE filing_date >= CURRENT_DATE - INTERVAL '12 months'
+                AND (
+                    title ILIKE %s
+                    OR abstract ILIKE %s
+                )
+            ORDER BY filing_date DESC
+            LIMIT 5
+        """, (f'%{keywords[0]}%', f'%{keywords[0]}%'))
 
-    return cursor.fetchall()
+        return cursor.fetchall()
+    except Exception:
+        # Tabela não existe ou erro - retornar lista vazia
+        return []
 
 def generate_report(seed_rounds, tech_stack, conn):
     """Gera relatório completo"""
