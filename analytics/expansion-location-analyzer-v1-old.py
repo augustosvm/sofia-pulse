@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 """
-SOFIA PULSE - EXPANSION LOCATION ANALYZER V2 (COMPREHENSIVE)
-Recomenda melhores cidades baseado em DADOS REAIS + QUALITY OF LIFE METRICS
-
-Baseado em modelos padrão:
-- Mercer Quality of Living Survey
-- Numbeo Quality of Life Index
-- Economist Intelligence Unit Global Liveability Index
-- World Bank Socioeconomic Indicators
+SOFIA PULSE - EXPANSION LOCATION ANALYZER (DATABASE-DRIVEN)
+Recomenda melhores cidades para abrir filiais baseado em DADOS REAIS do banco
 """
 
 import os
@@ -27,48 +21,6 @@ DB_CONFIG = {
     'password': os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD') or '',
     'database': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME') or 'sofia_db',
 }
-
-def extract_socioeconomic_data(conn):
-    """Extrai indicadores socioeconômicos por país"""
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    # Get latest year data for key indicators
-    query = """
-    WITH latest_data AS (
-        SELECT
-            country_name,
-            country_code,
-            indicator_name,
-            value,
-            year,
-            ROW_NUMBER() OVER (PARTITION BY country_name, indicator_name ORDER BY year DESC) as rn
-        FROM sofia.socioeconomic_indicators
-        WHERE year >= 2018  -- Last 5 years
-    )
-    SELECT
-        country_name,
-        country_code,
-        indicator_name,
-        value,
-        year
-    FROM latest_data
-    WHERE rn = 1
-    ORDER BY country_name, indicator_name
-    """
-
-    cur.execute(query)
-    results = cur.fetchall()
-
-    # Group by country
-    country_data = defaultdict(dict)
-    for row in results:
-        country = row['country_name']
-        indicator = row['indicator_name']
-        value = float(row['value']) if row['value'] else None
-        country_data[country][indicator] = value
-
-    print(f"✅ Found socioeconomic data for {len(country_data)} countries")
-    return country_data
 
 def extract_cities_from_funding(conn):
     """Extrai cidades com funding rounds"""
@@ -101,6 +53,7 @@ def extract_papers_by_location(conn):
     """Extrai papers por localização (via instituições)"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
+    # OpenAlex papers têm institutions_display_name que pode conter cidades
     query = """
     SELECT
         title,
@@ -210,12 +163,6 @@ def map_keywords_to_industries(keywords):
     if any(kw in ' '.join(keywords_lower) for kw in chip_keywords):
         industries.append('Semiconductors/Hardware')
 
-    # Manufacturing/Industry
-    manufacturing_keywords = ['manufacturing', 'production', 'supply chain', 'logistics',
-                             'factory', 'industrial', 'automation', 'assembly']
-    if any(kw in ' '.join(keywords_lower) for kw in manufacturing_keywords):
-        industries.append('Manufacturing/Industrial')
-
     return list(set(industries))
 
 def analyze_papers_by_country(papers_openalex, papers_arxiv):
@@ -240,9 +187,11 @@ def analyze_papers_by_country(papers_openalex, papers_arxiv):
             if topic:
                 country_papers[country]['topics'].append(topic)
 
-    # ArXiv papers - distribuir globalmente
+    # ArXiv papers - distribuir globalmente (sem país específico)
+    # Mas podemos inferir alguns países por universidades conhecidas
     for paper in papers_arxiv:
         keywords = paper.get('keywords', []) or []
+        # Adicionar ao pool global
         country_papers['Global']['count'] += 1
         country_papers['Global']['keywords'].extend(keywords)
 
@@ -272,160 +221,30 @@ def get_recommended_industries(country, country_papers, top_n=3):
 
     return top_industries
 
-def calculate_quality_of_life_score(country, socio_data):
-    """
-    Calcula Quality of Life Score baseado em modelos padrão
+def estimate_cost_level(country, city):
+    """Estima custo de vida baseado em país/cidade"""
+    # High-cost countries
+    high_cost_countries = ['USA', 'Switzerland', 'Norway', 'Denmark', 'Sweden',
+                          'United Kingdom', 'Singapore', 'Hong Kong', 'Japan',
+                          'Australia', 'Canada', 'Germany', 'France', 'Netherlands',
+                          'Ireland', 'United Arab Emirates', 'Israel']
 
-    Baseado em:
-    - Mercer Quality of Living (10 categorias)
-    - Numbeo Quality of Life Index (8 categorias)
-    - EIU Global Liveability (5 categorias)
+    # High-cost cities in medium-cost countries
+    high_cost_cities = ['São Paulo', 'Rio de Janeiro', 'Brasília', 'Seoul',
+                       'Taipei', 'Dubai', 'Tel Aviv']
 
-    Returns: dict com scores por categoria (0-100 cada)
-    """
-    data = socio_data.get(country, {})
+    # Low-cost countries
+    low_cost_countries = ['India', 'Indonesia', 'Vietnam', 'Philippines', 'Thailand',
+                         'Pakistan', 'Bangladesh', 'Nigeria', 'Kenya', 'Egypt',
+                         'Poland', 'Czech Republic', 'Hungary', 'Romania', 'Bulgaria',
+                         'Colombia', 'Peru', 'Argentina', 'Ukraine', 'Malaysia']
 
-    scores = {}
-
-    # 1. EDUCATION & TALENT (0-100 points)
-    # Factors: Literacy, tertiary enrollment, education spending
-    education_score = 0
-    literacy = data.get('literacy_rate', 0) or 0
-    tertiary = data.get('school_enrollment_tertiary', 0) or 0
-    edu_expenditure = data.get('education_expenditure_gdp', 0) or 0
-
-    education_score += min(literacy, 100) * 0.4  # 40% weight
-    education_score += min(tertiary * 0.5, 50)    # 50% weight (normalize 0-200 to 0-100)
-    education_score += min(edu_expenditure * 2, 10)  # 10% weight (normalize ~5% to 10)
-
-    scores['education'] = round(education_score, 1)
-
-    # 2. INFRASTRUCTURE & CONNECTIVITY (0-100 points)
-    # Factors: Internet, broadband, electricity, roads
-    infrastructure_score = 0
-    internet = data.get('internet_users', 0) or 0
-    broadband = data.get('broadband_subscriptions', 0) or 0
-    electricity = data.get('electricity_access', 0) or 0
-    roads = data.get('paved_roads', 0) or 0
-
-    infrastructure_score += min(internet, 100) * 0.4  # 40%
-    infrastructure_score += min(broadband * 2.5, 25)   # 25% (normalize 0-40 to 0-100)
-    infrastructure_score += min(electricity, 100) * 0.25  # 25%
-    infrastructure_score += min(roads, 100) * 0.1  # 10%
-
-    scores['infrastructure'] = round(infrastructure_score, 1)
-
-    # 3. HEALTHCARE (0-100 points)
-    # Factors: Life expectancy, physicians, hospital beds
-    healthcare_score = 0
-    life_exp = data.get('life_expectancy', 0) or 0
-    physicians = data.get('physicians_per_1000', 0) or 0
-    hospital_beds = data.get('hospital_beds_per_1000', 0) or 0
-
-    # Normalize life expectancy: 50 years = 0, 85 years = 100
-    if life_exp > 0:
-        healthcare_score += min(max((life_exp - 50) / 35 * 100, 0), 100) * 0.5  # 50%
-    healthcare_score += min(physicians / 5 * 100, 100) * 0.3  # 30% (5 per 1000 = 100)
-    healthcare_score += min(hospital_beds / 10 * 100, 100) * 0.2  # 20% (10 per 1000 = 100)
-
-    scores['healthcare'] = round(healthcare_score, 1)
-
-    # 4. SAFETY & STABILITY (0-100 points)
-    # Factors: Low suicide rate, low injury deaths
-    # Note: Lower is better, so we invert
-    safety_score = 100  # Start at max
-    suicide = data.get('suicide_rate', 0) or 0
-    injuries = data.get('injuries_deaths', 0) or 0
-
-    # Suicide: 0 = 100, 30+ per 100k = 0
-    if suicide > 0:
-        safety_score -= min(suicide / 30 * 50, 50)  # Max 50 point deduction
-
-    # Injuries: 0% = no deduction, 15%+ = 50 point deduction
-    if injuries > 0:
-        safety_score -= min(injuries / 15 * 50, 50)  # Max 50 point deduction
-
-    scores['safety'] = round(max(safety_score, 0), 1)
-
-    # 5. ENVIRONMENT (0-100 points)
-    # Factors: Air quality, renewable energy, forest area
-    environment_score = 100  # Start at max
-    pm25 = data.get('air_pollution_pm25', 0) or 0
-    renewable = data.get('renewable_electricity', 0) or 0
-    forest = data.get('forest_area', 0) or 0
-
-    # PM2.5: 0 = no deduction, 50+ = 40 point deduction
-    if pm25 > 0:
-        environment_score -= min(pm25 / 50 * 40, 40)
-
-    # Renewable energy: bonus for high renewable
-    environment_score += min(renewable / 100 * 30, 30)  # Max 30 bonus
-
-    # Forest: bonus for high forest coverage
-    if forest > 0:
-        environment_score += min(forest / 100 * 30, 30)  # Max 30 bonus
-
-    scores['environment'] = round(min(environment_score, 100), 1)
-
-    # 6. INNOVATION (0-100 points)
-    # Factors: R&D spending
-    innovation_score = 0
-    rd_gdp = data.get('research_development_gdp', 0) or 0
-
-    # R&D: 0% = 0, 4%+ = 100
-    innovation_score = min(rd_gdp / 4 * 100, 100)
-
-    scores['innovation'] = round(innovation_score, 1)
-
-    # 7. ECONOMIC OPPORTUNITY (0-100 points)
-    # Factors: GDP per capita, unemployment (inverted), FDI inflows
-    economic_score = 0
-    gdp_per_capita = data.get('gdp_per_capita', 0) or 0
-    unemployment = data.get('unemployment_rate', 0) or 0
-    fdi = data.get('fdi_inflows', 0) or 0
-
-    # GDP per capita: 0 = 0, $80k+ = 50 points
-    economic_score += min(gdp_per_capita / 80000 * 50, 50)
-
-    # Unemployment: 0% = 25, 20%+ = 0
-    if unemployment >= 0:
-        economic_score += max(25 - (unemployment / 20 * 25), 0)
-
-    # FDI: $1B+ = 25 points
-    if fdi > 0:
-        economic_score += min((fdi / 1e9) * 5, 25)
-
-    scores['economic'] = round(economic_score, 1)
-
-    # Calculate overall quality of life score (weighted average)
-    weights = {
-        'education': 0.20,
-        'infrastructure': 0.20,
-        'healthcare': 0.15,
-        'safety': 0.15,
-        'environment': 0.10,
-        'innovation': 0.10,
-        'economic': 0.10,
-    }
-
-    overall = sum(scores.get(cat, 0) * weight for cat, weight in weights.items())
-    scores['overall'] = round(overall, 1)
-
-    return scores
-
-def estimate_cost_level(country, city, socio_data):
-    """Estima custo de vida baseado em país/cidade + GDP per capita"""
-    # Get GDP per capita data
-    data = socio_data.get(country, {})
-    gdp_per_capita = data.get('gdp_per_capita', 0) or 0
-
-    # High-cost countries (GDP per capita > $50k)
-    if gdp_per_capita > 50000:
+    if country in high_cost_countries or any(c in str(city) for c in high_cost_cities):
         return 'High'
-    elif gdp_per_capita > 20000:
-        return 'Medium'
-    else:
+    elif country in low_cost_countries:
         return 'Low'
+    else:
+        return 'Medium'
 
 def is_recognized_tech_hub(city, country):
     """Verifica se é um tech hub reconhecido"""
@@ -437,7 +256,7 @@ def is_recognized_tech_hub(city, country):
 
         # Brazil
         'São Paulo', 'Florianópolis', 'Belo Horizonte', 'Campinas', 'Rio de Janeiro',
-        'Curitiba', 'Porto Alegre', 'Recife', 'Vitória',
+        'Curitiba', 'Porto Alegre', 'Recife',
 
         # Europe
         'London', 'Berlin', 'Paris', 'Amsterdam', 'Dublin', 'Stockholm',
@@ -461,7 +280,7 @@ def is_recognized_tech_hub(city, country):
     city_str = str(city)
     return any(hub in city_str for hub in tech_hubs)
 
-def analyze_locations(conn, country_papers, socio_data):
+def analyze_locations(conn, country_papers):
     """Analisa cidades baseado em dados reais do banco"""
 
     # 1. Get cities from funding data
@@ -484,85 +303,58 @@ def analyze_locations(conn, country_papers, socio_data):
         advantages = []
         disadvantages = []
 
-        # 1. Funding activity (0-25 points)
+        # 1. Funding activity (0-30 points)
         if deals_count >= 20:
-            score += 25
+            score += 30
             advantages.append(f"Very strong startup ecosystem: {deals_count} funding deals")
         elif deals_count >= 10:
-            score += 20
+            score += 25
             advantages.append(f"Strong startup ecosystem: {deals_count} funding deals")
         elif deals_count >= 5:
-            score += 12
+            score += 15
             advantages.append(f"Moderate startup activity: {deals_count} deals")
         elif deals_count >= 2:
-            score += 6
+            score += 8
             disadvantages.append(f"Limited startup ecosystem: only {deals_count} deals")
         else:
-            score += 2
+            score += 3
             disadvantages.append(f"Very limited funding activity: {deals_count} deal(s)")
 
-        # 2. Total funding amount (0-20 points)
+        # 2. Total funding amount (0-25 points)
         funding_billions = total_funding / 1e9
         if funding_billions >= 1.0:
-            score += 20
+            score += 25
             advantages.append(f"Major capital hub: ${funding_billions:.1f}B total funding")
         elif funding_billions >= 0.1:
-            score += 15
+            score += 20
             advantages.append(f"Significant funding: ${funding_billions:.2f}B")
         elif funding_billions >= 0.01:
-            score += 8
+            score += 10
             advantages.append(f"Emerging funding: ${funding_billions:.2f}B")
         else:
-            score += 3
+            score += 5
             disadvantages.append(f"Limited capital: ${total_funding/1e6:.1f}M only")
 
-        # 3. Quality of Life Score (0-35 points) - NOVO!
-        qol_scores = calculate_quality_of_life_score(country, socio_data)
-        qol_overall = qol_scores.get('overall', 0)
-
-        # Add QoL subscore (0-35 points)
-        qol_points = min(qol_overall * 0.35, 35)
-        score += qol_points
-
-        # Add specific advantages/disadvantages based on QoL
-        if qol_scores.get('education', 0) >= 70:
-            advantages.append(f"Strong education system (score: {qol_scores['education']:.0f}/100)")
-        elif qol_scores.get('education', 0) < 40:
-            disadvantages.append(f"Weak education system (score: {qol_scores['education']:.0f}/100)")
-
-        if qol_scores.get('infrastructure', 0) >= 70:
-            advantages.append(f"Excellent infrastructure & connectivity (score: {qol_scores['infrastructure']:.0f}/100)")
-        elif qol_scores.get('infrastructure', 0) < 40:
-            disadvantages.append(f"Poor infrastructure (score: {qol_scores['infrastructure']:.0f}/100)")
-
-        if qol_scores.get('safety', 0) < 50:
-            disadvantages.append(f"Safety concerns (score: {qol_scores['safety']:.0f}/100)")
-        elif qol_scores.get('safety', 0) >= 75:
-            advantages.append(f"Very safe location (score: {qol_scores['safety']:.0f}/100)")
-
-        if qol_scores.get('innovation', 0) >= 50:
-            advantages.append(f"Strong innovation ecosystem (R&D score: {qol_scores['innovation']:.0f}/100)")
-
-        # 4. Cost of living (0-10 points)
-        cost_level = estimate_cost_level(country, city, socio_data)
+        # 3. Cost of living (0-20 points)
+        cost_level = estimate_cost_level(country, city)
         if cost_level == 'Low':
-            score += 10
+            score += 20
             advantages.append("Low cost of living (salary advantage)")
         elif cost_level == 'Medium':
-            score += 6
+            score += 12
             advantages.append("Medium cost of living (balanced)")
         else:
-            score += 2
+            score += 5
             disadvantages.append("High cost of living (expensive salaries)")
 
-        # 5. Tech hub status (0-10 points)
+        # 4. Tech hub status (0-15 points)
         if is_recognized_tech_hub(city, country):
-            score += 10
+            score += 15
             advantages.append("Recognized tech hub (established ecosystem)")
         else:
             disadvantages.append("Not a primary tech hub")
 
-        # 6. Research specialization (0-10 points)
+        # 5. Research specialization (0-10 points) - NOVO!
         recommended_industries = get_recommended_industries(country, country_papers, top_n=3)
         if recommended_industries:
             score += 10
@@ -584,8 +376,7 @@ def analyze_locations(conn, country_papers, socio_data):
             'deals_count': deals_count,
             'total_funding': total_funding,
             'sectors': sectors[:5],  # Top 5 sectors
-            'recommended_industries': recommended_industries or (global_industries if 'global_industries' in locals() else []),
-            'qol_scores': qol_scores,
+            'recommended_industries': recommended_industries or global_industries if 'global_industries' in locals() else [],
         })
 
     # Sort by score
@@ -593,7 +384,7 @@ def analyze_locations(conn, country_papers, socio_data):
 
     print(f"✅ Scored {len(city_scores)} cities")
 
-    # Ensure we have Brazilian cities
+    # Ensure we have Brazilian cities - add top Brazilian cities with less data if needed
     brazilian_cities = [c for c in city_scores if c['country'] == 'Brazil']
     print(f"✅ Found {len(brazilian_cities)} Brazilian cities")
 
@@ -603,27 +394,18 @@ def generate_report(locations, country_papers):
     """Gera relatório formatado agrupado por país"""
     report = []
     report.append("=" * 80)
-    report.append("🌍 EXPANSION LOCATION ANALYZER V2 - Sofia Pulse Intelligence")
+    report.append("🌍 EXPANSION LOCATION ANALYZER - Sofia Pulse Intelligence")
     report.append("=" * 80)
     report.append("")
     report.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     report.append("")
-    report.append("🎯 COMPREHENSIVE ANALYSIS WITH QUALITY OF LIFE METRICS")
-    report.append("Recommends best cities based on:")
-    report.append("  • Funding activity & capital volume (real data)")
-    report.append("  • Quality of Life Score (7 dimensions)")
+    report.append("🎯 DATABASE-DRIVEN ANALYSIS")
+    report.append("Recommends best cities based on REAL DATA:")
+    report.append("  • Funding activity (actual deals)")
     report.append("  • Research specialization (paper topics)")
-    report.append("  • Cost of living (GDP-based)")
+    report.append("  • Startup sectors (funding sectors)")
+    report.append("  • Cost of living estimates")
     report.append("  • Tech ecosystem strength")
-    report.append("")
-    report.append("Quality of Life Dimensions (based on Mercer/Numbeo/EIU):")
-    report.append("  1. Education & Talent - Universities, literacy, enrollment")
-    report.append("  2. Infrastructure & Connectivity - Internet, broadband, electricity")
-    report.append("  3. Healthcare - Life expectancy, physicians, hospital beds")
-    report.append("  4. Safety & Stability - Low crime proxies (suicide, injuries)")
-    report.append("  5. Environment - Air quality, renewable energy, forests")
-    report.append("  6. Innovation - R&D expenditure as % of GDP")
-    report.append("  7. Economic Opportunity - GDP per capita, employment, FDI")
     report.append("")
     report.append("=" * 80)
     report.append("")
@@ -664,28 +446,16 @@ def generate_report(locations, country_papers):
         report.append("")
         report.append("█" * 80)
         report.append(f"📍 {country.upper()} ({len(cities)} cities analyzed)")
-        report.append(f"   Best Score: {best_score:.1f}/100")
+        report.append(f"   Best Score: {best_score}/100")
         report.append(f"   Total Deals: {total_deals} | Total Funding: ${total_funding/1e9:.2f}B")
         report.append("█" * 80)
         report.append("")
 
         for loc in cities:
             report.append(f"#{global_rank} - {loc['city']}")
-            report.append(f"   Expansion Score: {loc['score']:.1f}/100")
+            report.append(f"   Expansion Score: {loc['score']}/100")
             report.append(f"   Cost Level: {loc['cost']}")
             report.append(f"   Funding: {loc['deals_count']} deals, ${loc['total_funding']/1e6:.1f}M total")
-
-            # Quality of Life breakdown
-            qol = loc.get('qol_scores', {})
-            if qol:
-                report.append(f"   Quality of Life: {qol.get('overall', 0):.0f}/100")
-                report.append(f"      Education: {qol.get('education', 0):.0f} | "
-                            f"Infrastructure: {qol.get('infrastructure', 0):.0f} | "
-                            f"Healthcare: {qol.get('healthcare', 0):.0f}")
-                report.append(f"      Safety: {qol.get('safety', 0):.0f} | "
-                            f"Environment: {qol.get('environment', 0):.0f} | "
-                            f"Innovation: {qol.get('innovation', 0):.0f} | "
-                            f"Economic: {qol.get('economic', 0):.0f}")
 
             # Active sectors
             if loc['sectors']:
@@ -714,10 +484,10 @@ def generate_report(locations, country_papers):
                 report.append("")
 
             # Recommendation
-            if loc['score'] >= 80:
-                recommendation = "🟢 EXCELLENT CHOICE - Top-tier ecosystem + quality of life"
-            elif loc['score'] >= 65:
-                recommendation = "🟡 GOOD OPTION - Strong fundamentals"
+            if loc['score'] >= 75:
+                recommendation = "🟢 EXCELLENT CHOICE - Strong ecosystem + Good cost"
+            elif loc['score'] >= 60:
+                recommendation = "🟡 GOOD OPTION - Solid fundamentals"
             elif loc['score'] >= 45:
                 recommendation = "🟠 CONSIDER CAREFULLY - Weigh tradeoffs"
             else:
@@ -734,42 +504,33 @@ def generate_report(locations, country_papers):
     report.append("📚 METHODOLOGY")
     report.append("=" * 80)
     report.append("")
-    report.append("🎯 COMPREHENSIVE SCORING SYSTEM (0-100 points):")
+    report.append("🎯 DATA-DRIVEN APPROACH:")
+    report.append("  1. Extract cities from sofia.funding_rounds (365 days)")
+    report.append("  2. Analyze paper topics by country (OpenAlex + ArXiv)")
+    report.append("  3. Match paper keywords to industries")
+    report.append("  4. Recommend company types based on local research strength")
     report.append("")
-    report.append("1. Funding Activity (0-25 pts) - Number of deals in last 12 months")
-    report.append("2. Capital Volume (0-20 pts) - Total funding raised")
-    report.append("3. Quality of Life (0-35 pts) - 7 dimensions:")
-    report.append("   • Education (20% weight) - Literacy, universities, spending")
-    report.append("   • Infrastructure (20%) - Internet, broadband, electricity, roads")
-    report.append("   • Healthcare (15%) - Life expectancy, physicians, hospitals")
-    report.append("   • Safety (15%) - Low crime proxies")
-    report.append("   • Environment (10%) - Air quality, renewables, forests")
-    report.append("   • Innovation (10%) - R&D spending")
-    report.append("   • Economic (10%) - GDP/capita, employment, FDI")
-    report.append("4. Cost of Living (0-10 pts) - Based on GDP per capita")
-    report.append("5. Tech Hub Status (0-10 pts) - Recognized ecosystem")
-    report.append("6. Research Match (0-10 pts) - Paper specialization")
+    report.append("Scoring Factors (0-100 points):")
+    report.append("  • Funding Activity: 0-30 points (deal count)")
+    report.append("  • Capital Volume: 0-25 points (total funding)")
+    report.append("  • Cost of Living: 0-20 points (Low/Med/High)")
+    report.append("  • Tech Hub Status: 0-15 points (recognized ecosystem)")
+    report.append("  • Research Match: 0-10 points (paper specialization)")
     report.append("")
-    report.append("Data Sources:")
-    report.append("  • sofia.funding_rounds - Real funding deals (365 days)")
-    report.append("  • sofia.socioeconomic_indicators - World Bank (56 indicators)")
-    report.append("  • sofia.openalex_papers + arxiv_ai_papers - Research topics")
-    report.append("")
-    report.append("Based on Standard Models:")
-    report.append("  • Mercer Quality of Living Survey (10 categories)")
-    report.append("  • Numbeo Quality of Life Index (8 categories)")
-    report.append("  • EIU Global Liveability Index (5 categories)")
-    report.append("  • World Bank Development Indicators")
+    report.append("Industry Recommendations:")
+    report.append("  • Based on local paper topics (keywords analysis)")
+    report.append("  • AI/ML: neural, transformer, llm, deep learning")
+    report.append("  • Energy/Battery: lithium, solar, ev, storage")
+    report.append("  • Biotech: genome, drug, protein, medical")
+    report.append("  • Robotics: autonomous, drone, manipulation")
+    report.append("  • Quantum: qubit, entanglement, quantum")
+    report.append("  • Cybersecurity: encryption, privacy, blockchain")
+    report.append("  • + Fintech, Space, Climate, Semiconductors")
     report.append("")
     report.append("Cost Levels:")
-    report.append("  • Low: GDP/capita < $20k")
-    report.append("  • Medium: GDP/capita $20-50k")
-    report.append("  • High: GDP/capita > $50k")
-    report.append("")
-    report.append("Example: Vitória, Brazil")
-    report.append("  • Has Arcelor Mittal (steel) → Needs: Engineers, Developers, InfoSec")
-    report.append("  • Good infrastructure BUT high violence (safety score low)")
-    report.append("  • Manufacturing/Industrial companies ideal for supply chain")
+    report.append("  • Low: R$80-120k (Brazil) / $50-80k (International)")
+    report.append("  • Medium: R$120-180k (Brazil) / $80-120k (International)")
+    report.append("  • High: R$180k+ (Brazil) / $120k+ (International)")
     report.append("")
     report.append("=" * 80)
 
@@ -780,28 +541,24 @@ def main():
         conn = psycopg2.connect(**DB_CONFIG)
 
         print("=" * 80)
-        print("🌍 EXPANSION LOCATION ANALYZER V2 - COMPREHENSIVE")
+        print("🌍 EXPANSION LOCATION ANALYZER - DATABASE-DRIVEN")
         print("=" * 80)
         print()
 
-        print("📊 Step 1: Extracting socioeconomic data...")
-        socio_data = extract_socioeconomic_data(conn)
-
-        print()
-        print("📊 Step 2: Extracting papers by location...")
+        print("📊 Step 1: Extracting papers by location...")
         papers_openalex = extract_papers_by_location(conn)
         papers_arxiv = extract_arxiv_papers(conn)
 
         print()
-        print("📊 Step 3: Analyzing paper topics by country...")
+        print("📊 Step 2: Analyzing paper topics by country...")
         country_papers = analyze_papers_by_country(papers_openalex, papers_arxiv)
 
         print()
-        print("📊 Step 4: Analyzing cities from funding data...")
-        locations = analyze_locations(conn, country_papers, socio_data)
+        print("📊 Step 3: Analyzing cities from funding data...")
+        locations = analyze_locations(conn, country_papers)
 
         print()
-        print("📊 Step 5: Generating report...")
+        print("📊 Step 4: Generating report...")
         report = generate_report(locations, country_papers)
 
         output_file = 'analytics/expansion-locations-latest.txt'
