@@ -190,7 +190,8 @@ def find_patents(conn, sector):
 
         return cursor.fetchall()
     except Exception:
-        # Tabela não existe ou erro - retornar lista vazia
+        # Tabela não existe ou erro - fazer rollback e retornar lista vazia
+        conn.rollback()
         return []
 
 def generate_report(seed_rounds, tech_stack, conn):
