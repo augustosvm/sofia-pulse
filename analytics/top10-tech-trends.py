@@ -178,7 +178,28 @@ def main():
         print(f"📊 {len(scores)} technologies analyzed")
         print()
 
+        # Capture report output
+        import io
+        import sys
+        old_stdout = sys.stdout
+        sys.stdout = buffer = io.StringIO()
+
         print_report(scores)
+
+        # Get report content
+        report_content = buffer.getvalue()
+        sys.stdout = old_stdout
+
+        # Print to console
+        print(report_content)
+
+        # Save to file
+        output_file = 'analytics/top10-latest.txt'
+        with open(output_file, 'w') as f:
+            f.write(report_content)
+
+        print(f"💾 Saved to: {output_file}")
+        print()
 
         conn.close()
 

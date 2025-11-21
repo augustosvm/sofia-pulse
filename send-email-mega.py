@@ -223,13 +223,12 @@ Sofia Pulse Intelligence System
 
 msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
-# Attach reports (17 total: 11 core + 6 intelligence)
+# Attach reports (16 total: 10 core/advanced/ML + 6 intelligence)
 reports = [
     # MEGA Analysis
     ('analytics/mega-analysis-latest.txt', 'MEGA-ANALYSIS.txt'),
 
-    # Core Analytics (5)
-    ('analytics/sofia-report.txt', 'sofia-complete-report.txt'),
+    # Core Analytics (4)
     ('analytics/top10-latest.txt', 'top10-tech-trends.txt'),
     ('analytics/correlation-latest.txt', 'correlations-papers-funding.txt'),
     ('analytics/dark-horses-latest.txt', 'dark-horses-report.txt'),
