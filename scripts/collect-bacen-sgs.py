@@ -37,19 +37,7 @@ BACEN_SERIES = {
         'category': 'inflation'
     },
     '1': {
-        'name': 'Dólar - Taxa de câmbio',
-        'unit': 'BRL/USD',
-        'frequency': 'daily',
-        'category': 'exchange_rate'
-    },
-    '10777': {
-        'name': 'Dólar - Taxa de câmbio (compra)',
-        'unit': 'BRL/USD',
-        'frequency': 'daily',
-        'category': 'exchange_rate'
-    },
-    '10778': {
-        'name': 'Dólar - Taxa de câmbio (venda)',
+        'name': 'Dólar - Taxa de câmbio (comercial)',
         'unit': 'BRL/USD',
         'frequency': 'daily',
         'category': 'exchange_rate'
@@ -224,7 +212,12 @@ def main():
     print("")
     print("Series collected:")
     for code, info in BACEN_SERIES.items():
-        print(f"  • {info['name']} ({info['frequency']})")
+        print(f"  • {code}: {info['name']} ({info['frequency']})")
+    print("")
+    print("💡 Use cases:")
+    print("  • Correlate Selic with startup funding")
+    print("  • Track Dollar exchange rate vs foreign tech investment")
+    print("  • Analyze inflation (IPCA) vs tech salary adjustments")
     print("")
 
 if __name__ == '__main__':

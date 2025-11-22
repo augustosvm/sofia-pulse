@@ -87,18 +87,18 @@ echo "════════════════════════�
 echo "📊 3. MDIC ComexStat API - Comércio Exterior"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
-echo "Data: Tech products import/export (chips, computers, smartphones)"
-echo "Frequency: Monthly"
-echo "URL: http://api.comexstat.mdic.gov.br/"
+echo "⚠️  TEMPORARILY DISABLED"
+echo "Reason: API endpoint changed or deprecated"
+echo "Old URL: http://api.comexstat.mdic.gov.br/"
+echo "Status: DNS resolution fails"
 echo ""
-echo "⚠️  WARNING: This API may be slow (60s timeout per NCM code)"
+echo "TODO: Find new ComexStat API endpoint"
 echo ""
 
-python3 scripts/collect-mdic-comexstat.py || echo "⚠️  MDIC collection failed"
+# python3 scripts/collect-mdic-comexstat.py || echo "⚠️  MDIC collection failed"
 
-echo ""
-echo "⏳ Waiting 10s before next API..."
-sleep 10
+echo "⏳ Skipping to next API..."
+sleep 2
 
 ################################################################################
 # 4. IPEA API
@@ -128,9 +128,9 @@ echo ""
 echo "⏱️  Completed: $(date '+%Y-%m-%d %H:%M:%S %Z')"
 echo ""
 echo "📊 APIs collected:"
-echo "  1. ✅ BACEN SGS - 9 series (Selic, Dólar, IPCA, etc)"
+echo "  1. ✅ BACEN SGS - 7 series (Selic, Dólar, IPCA, etc)"
 echo "  2. ✅ IBGE - 6 indicators (PIB, Desemprego, Produção)"
-echo "  3. ✅ MDIC ComexStat - 12 NCM codes (tech products)"
+echo "  3. ⚠️  MDIC ComexStat - DISABLED (API endpoint changed)"
 echo "  4. ✅ IPEA - 10 series (historical data)"
 echo ""
 echo "💡 NEW INSIGHTS POSSIBLE:"

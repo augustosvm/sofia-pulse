@@ -65,7 +65,8 @@ IBGE_INDICATORS = {
 def fetch_ibge_agregado(agregado_id: str) -> Dict[str, Any]:
     """Fetch data from IBGE Agregados API"""
 
-    url = f"https://servicodados.ibge.gov.br/api/v3/agregados/{agregado_id}/periodos/-12/variaveis/allxallxall"
+    # Simpler URL format without complicated variables specification
+    url = f"https://servicodados.ibge.gov.br/api/v3/agregados/{agregado_id}/periodos/-12"
 
     try:
         response = requests.get(url, timeout=30)
@@ -77,10 +78,10 @@ def fetch_ibge_agregado(agregado_id: str) -> Dict[str, Any]:
 
     except requests.HTTPError as e:
         print(f"   ❌ HTTP Error for agregado {agregado_id}: {e}")
-        return {}
+        return []
     except Exception as e:
         print(f"   ❌ Error fetching agregado {agregado_id}: {e}")
-        return {}
+        return []
 
 def parse_ibge_data(agregado_id: str, indicator_info: Dict, raw_data: List[Dict]) -> List[Dict]:
     """Parse IBGE API response into structured records"""
