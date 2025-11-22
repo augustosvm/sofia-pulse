@@ -14,38 +14,43 @@ except Exception as e:
     print(f"❌ Failed to load WhatsApp notifier: {e}")
     sys.exit(1)
 
-# Key reports to send via WhatsApp
+# ALL 23 reports to send via WhatsApp
 REPORTS = [
-    {
-        'path': 'analytics/mega-analysis-latest.txt',
-        'name': '🌍 MEGA ANALYSIS',
-        'max_chars': 4000
-    },
-    {
-        'path': 'analytics/top10-latest.txt',
-        'name': '🔥 TOP 10 TECH TRENDS',
-        'max_chars': 3000
-    },
-    {
-        'path': 'analytics/capital-flow-latest.txt',
-        'name': '💰 CAPITAL FLOW PREDICTOR',
-        'max_chars': 3000
-    },
-    {
-        'path': 'analytics/career-trends-latest.txt',
-        'name': '🎓 CAREER TRENDS',
-        'max_chars': 3000
-    },
-    {
-        'path': 'analytics/dying-sectors-latest.txt',
-        'name': '💀 DYING SECTORS',
-        'max_chars': 2500
-    },
-    {
-        'path': 'analytics/dark-horses-intelligence-latest.txt',
-        'name': '🐴 DARK HORSES',
-        'max_chars': 2500
-    },
+    # MEGA Analysis
+    {'path': 'analytics/mega-analysis-latest.txt', 'name': '🌍 MEGA ANALYSIS', 'max_chars': 4000},
+
+    # Core Analytics (5)
+    {'path': 'analytics/top10-latest.txt', 'name': '🔥 TOP 10 TECH TRENDS', 'max_chars': 3000},
+    {'path': 'analytics/correlation-latest.txt', 'name': '📊 CORRELATIONS PAPERS-FUNDING', 'max_chars': 3000},
+    {'path': 'analytics/dark-horses-latest.txt', 'name': '🐴 DARK HORSES', 'max_chars': 2500},
+    {'path': 'analytics/entity-resolution-latest.txt', 'name': '🔗 ENTITY RESOLUTION', 'max_chars': 3000},
+
+    # Advanced Analytics (3)
+    {'path': 'analytics/special-sectors-latest.txt', 'name': '🎯 SPECIAL SECTORS', 'max_chars': 4000},
+    {'path': 'analytics/early-stage-latest.txt', 'name': '💼 EARLY-STAGE DEEP DIVE', 'max_chars': 3500},
+    {'path': 'analytics/energy-global-map-latest.txt', 'name': '⚡ ENERGY GLOBAL MAP', 'max_chars': 3000},
+
+    # ML Analytics (1)
+    {'path': 'analytics/causal-insights-latest.txt', 'name': '🤖 CAUSAL INSIGHTS ML', 'max_chars': 4000},
+
+    # AI-Powered (1)
+    {'path': 'analytics/playbook-latest.txt', 'name': '🔮 NLG PLAYBOOKS', 'max_chars': 3500},
+
+    # Intelligence Analytics (6)
+    {'path': 'analytics/career-trends-latest.txt', 'name': '🎓 CAREER TRENDS', 'max_chars': 3000},
+    {'path': 'analytics/capital-flow-latest.txt', 'name': '💰 CAPITAL FLOW PREDICTOR', 'max_chars': 3000},
+    {'path': 'analytics/expansion-locations-latest.txt', 'name': '🌎 EXPANSION LOCATIONS', 'max_chars': 4000},
+    {'path': 'analytics/weekly-insights-latest.txt', 'name': '📰 WEEKLY INSIGHTS', 'max_chars': 3000},
+    {'path': 'analytics/dying-sectors-latest.txt', 'name': '💀 DYING SECTORS', 'max_chars': 2500},
+    {'path': 'analytics/dark-horses-intelligence-latest.txt', 'name': '🐴 DARK HORSES INTELLIGENCE', 'max_chars': 2500},
+
+    # Socioeconomic Intelligence (6)
+    {'path': 'analytics/best-cities-tech-talent-latest.txt', 'name': '🏙️ BEST CITIES TECH TALENT', 'max_chars': 3500},
+    {'path': 'analytics/remote-work-quality-latest.txt', 'name': '🌐 REMOTE WORK QUALITY', 'max_chars': 3000},
+    {'path': 'analytics/innovation-hubs-latest.txt', 'name': '🔬 INNOVATION HUBS', 'max_chars': 3000},
+    {'path': 'analytics/startup-founders-latest.txt', 'name': '🚀 STARTUP FOUNDERS', 'max_chars': 3000},
+    {'path': 'analytics/digital-nomad-latest.txt', 'name': '✈️ DIGITAL NOMAD', 'max_chars': 2500},
+    {'path': 'analytics/stem-education-latest.txt', 'name': '🎓 STEM EDUCATION', 'max_chars': 3000},
 ]
 
 print("════════════════════════════════════════════════════════════════")
@@ -110,20 +115,21 @@ print(f"❌ Failed: {failed_count}")
 print("")
 
 # Send summary
-summary = f"""✅ Sofia Pulse Reports Sent
+summary = f"""✅ Sofia Pulse - ALL Reports Sent
 
 📱 WhatsApp: {sent_count}/{len(REPORTS)} reports
-📧 Email: Full reports + CSVs
+📧 Email: {sent_count} reports + CSVs
 
-Key reports:
-• MEGA Analysis
-• Top 10 Tech Trends
-• Capital Flow Predictor
-• Career Trends
-• Dying Sectors
-• Dark Horses
+All 23 reports sent via WhatsApp:
+✅ MEGA Analysis
+✅ Core Analytics (5)
+✅ Advanced Analytics (3)
+✅ ML Analytics (1)
+✅ AI-Powered (1)
+✅ Intelligence Analytics (6)
+✅ Socioeconomic Intelligence (6)
 
-Check WhatsApp for details!"""
+Check WhatsApp & Email!"""
 
 whatsapp.send(summary)
 print("📱 Summary sent")
