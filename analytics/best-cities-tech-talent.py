@@ -66,7 +66,7 @@ def extract_cities_with_jobs(conn):
 
     query = """
     SELECT
-        COALESCE(city, 'Unknown') as city,
+        COALESCE(city, country, 'Unknown') as city,
         country,
         COUNT(*) as deals_count,
         SUM(amount_usd) as total_funding,

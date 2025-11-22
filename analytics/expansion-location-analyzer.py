@@ -76,7 +76,7 @@ def extract_cities_from_funding(conn):
 
     query = """
     SELECT
-        COALESCE(city, 'Unknown') as city,
+        COALESCE(city, country, 'Unknown') as city,
         country,
         COUNT(*) as deals_count,
         SUM(amount_usd) as total_funding,
@@ -224,21 +224,28 @@ def analyze_papers_by_country(papers_openalex, papers_arxiv):
 
     # OpenAlex papers
     for paper in papers_openalex:
-        if not paper.get('countries'):
-            continue
-
-        countries = paper['countries'] if isinstance(paper['countries'], list) else [paper['countries']]
+        countries = paper.get('countries')
         keywords = paper.get('keywords', []) or []
         topic = paper.get('primary_topic')
 
-        for country in countries:
-            if not country:
-                continue
-            country_papers[country]['count'] += 1
+        if countries:
+            # countries can be array or single value
+            countries_list = countries if isinstance(countries, list) else [countries]
+            for country in countries_list:
+                if not country:
+                    continue
+                country_papers[country]['count'] += 1
+                if keywords:
+                    country_papers[country]['keywords'].extend(keywords)
+                if topic:
+                    country_papers[country]['topics'].append(topic)
+        else:
+            # No country info, add to Global
+            country_papers['Global']['count'] += 1
             if keywords:
-                country_papers[country]['keywords'].extend(keywords)
+                country_papers['Global']['keywords'].extend(keywords)
             if topic:
-                country_papers[country]['topics'].append(topic)
+                country_papers['Global']['topics'].append(topic)
 
     # ArXiv papers - distribuir globalmente
     for paper in papers_arxiv:

@@ -64,7 +64,7 @@ def extract_research_activity(conn):
 
     query = """
     SELECT
-        unnest(countries) as country,
+        unnest(COALESCE(countries, ARRAY['Global']::TEXT[])) as country,
         COUNT(*) as paper_count,
         AVG(cited_by_count) as avg_citations
     FROM sofia.openalex_papers
@@ -78,10 +78,11 @@ def extract_research_activity(conn):
     research_data = {}
     for row in results:
         country = row['country']
-        research_data[country] = {
-            'papers': row['paper_count'] or 0,
-            'avg_citations': row['avg_citations'] or 0
-        }
+        if country:  # Skip empty countries
+            research_data[country] = {
+                'papers': row['paper_count'] or 0,
+                'avg_citations': row['avg_citations'] or 0
+            }
 
     return research_data
 
