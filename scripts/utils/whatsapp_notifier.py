@@ -69,3 +69,18 @@ Check logs!"""
 
 {failures}"""
         self.send(message)
+
+    def send_report(self, report_path: str, max_chars: int = 4000):
+        """Send analysis report via WhatsApp (truncated if needed)"""
+        try:
+            with open(report_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Truncate if too long
+            if len(content) > max_chars:
+                content = content[:max_chars] + "\n\n... (relatório completo no email)"
+
+            self.send(content)
+            return True
+        except:
+            return False
