@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-IBGE API Collector - Instituto Brasileiro de Geografia e Estatística
+IBGE SIDRA API Collector - Instituto Brasileiro de Geografia e Estatística
 Coleta dados oficiais: PIB, inflação, emprego, produção, demografia
-API: https://servicodados.ibge.gov.br/api/docs
+
+API SIDRA: https://apisidra.ibge.gov.br/
+Documentação: https://apisidra.ibge.gov.br/home/ajuda
 """
 
 import os
@@ -62,68 +64,125 @@ IBGE_INDICATORS = {
     },
 }
 
-def fetch_ibge_agregado(agregado_id: str) -> Dict[str, Any]:
-    """Fetch data from IBGE Agregados API"""
+def fetch_ibge_sidra(table_code: str, indicator_info: Dict) -> List[Dict]:
+    """Fetch data from IBGE SIDRA API
 
-    # Simpler URL format without complicated variables specification
-    url = f"https://servicodados.ibge.gov.br/api/v3/agregados/{agregado_id}/periodos/-12"
+    API SIDRA: https://apisidra.ibge.gov.br/
+    Format: /values/t/{tabela}/n{nivel}/{territorios}/p/{periodos}/v/{variaveis}
+    """
+
+    # SIDRA API base URL - for actual data extraction
+    base_url = "https://apisidra.ibge.gov.br/values"
+
+    # Build URL:
+    # t = table code
+    # n1 = Brazil level, all = all territories at that level
+    # p = periods: last 12 or "all" for all, or specific like "202301"
+    # v = variables: "all" or specific variable codes
+
+    # Use "last 12" format for periods (most recent 12 periods)
+    url = f"{base_url}/t/{table_code}/n1/all/p/last%2012/v/all"
 
     try:
-        response = requests.get(url, timeout=30)
+        headers = {
+            'Accept': 'application/json',
+            'User-Agent': 'Sofia-Pulse-Collector/1.0'
+        }
+        response = requests.get(url, headers=headers, timeout=60)
         response.raise_for_status()
         data = response.json()
 
-        print(f"   ✅ Agregado {agregado_id}: fetched")
-        return data
+        # SIDRA returns list with first row being headers
+        if data and len(data) > 1:
+            print(f"   ✅ Table {table_code}: {len(data)-1} records fetched")
+            return data
+        else:
+            print(f"   ⚠️  Table {table_code}: No data returned")
+            return []
 
     except requests.HTTPError as e:
-        print(f"   ❌ HTTP Error for agregado {agregado_id}: {e}")
-        return []
+        # Try with fewer periods
+        print(f"   ⚠️  HTTP Error {e.response.status_code}, trying with fewer periods...")
+        try:
+            alt_url = f"{base_url}/t/{table_code}/n1/all/p/last%206/v/all"
+            response = requests.get(alt_url, headers=headers, timeout=60)
+            response.raise_for_status()
+            data = response.json()
+            if data and len(data) > 1:
+                print(f"   ✅ Table {table_code}: {len(data)-1} records fetched (6 periods)")
+                return data
+            return []
+        except Exception as alt_e:
+            print(f"   ❌ HTTP Error for table {table_code}: {e}")
+            return []
     except Exception as e:
-        print(f"   ❌ Error fetching agregado {agregado_id}: {e}")
+        print(f"   ❌ Error fetching table {table_code}: {e}")
         return []
 
-def parse_ibge_data(agregado_id: str, indicator_info: Dict, raw_data: List[Dict]) -> List[Dict]:
-    """Parse IBGE API response into structured records"""
+def parse_ibge_sidra_data(table_code: str, indicator_info: Dict, raw_data: List[Dict]) -> List[Dict]:
+    """Parse IBGE SIDRA API response into structured records
+
+    SIDRA API returns data as a list where:
+    - First element (index 0) contains column headers
+    - Remaining elements contain data rows
+    """
 
     records = []
 
-    if not raw_data:
+    if not raw_data or len(raw_data) < 2:
         return records
 
     try:
-        for item in raw_data:
-            if 'resultados' not in item:
+        # First row is header
+        headers = raw_data[0]
+
+        # Find key columns
+        header_keys = list(headers.keys()) if isinstance(headers, dict) else []
+
+        # Data rows start from index 1
+        for row in raw_data[1:]:
+            if not isinstance(row, dict):
                 continue
 
-            for resultado in item['resultados']:
-                if 'series' not in resultado:
-                    continue
+            # Get value (usually in 'V' key)
+            value = row.get('V', '')
+            if not value or value in ['...', '-', 'X', '']:
+                continue
 
-                for serie in resultado['series']:
-                    localidade = serie.get('localidade', {})
-                    localidade_id = localidade.get('id', 'BR')
-                    localidade_nome = localidade.get('nome', 'Brasil')
+            try:
+                value_float = float(value.replace(',', '.'))
+            except ValueError:
+                continue
 
-                    # Get time series data
-                    series_data = serie.get('serie', {})
+            # Get period (usually in 'D2C' or similar key for trimestre/mes)
+            period = row.get('D2C', row.get('D3C', row.get('D4C', '')))
+            if not period:
+                # Try to find any key with period-like value
+                for key in row.keys():
+                    if key.startswith('D') and 'C' in key:
+                        period = row.get(key, '')
+                        if period:
+                            break
 
-                    for period, value in series_data.items():
-                        if value and value != '...':
-                            try:
-                                records.append({
-                                    'agregado_id': agregado_id,
-                                    'indicator_name': indicator_info['name'],
-                                    'category': indicator_info['category'],
-                                    'unit': indicator_info['unit'],
-                                    'frequency': indicator_info['frequency'],
-                                    'localidade_id': localidade_id,
-                                    'localidade_nome': localidade_nome,
-                                    'period': period,
-                                    'value': float(value)
-                                })
-                            except ValueError:
-                                continue
+            # Get territorial info
+            territorial_code = row.get('D1C', '1')  # 1 = Brasil
+            territorial_name = row.get('D1N', 'Brasil')
+
+            # Get variable name
+            variable_name = row.get('D3N', row.get('D2N', indicator_info['name']))
+
+            records.append({
+                'agregado_id': table_code,
+                'indicator_name': indicator_info['name'],
+                'category': indicator_info['category'],
+                'unit': indicator_info['unit'],
+                'frequency': indicator_info['frequency'],
+                'localidade_id': territorial_code,
+                'localidade_nome': territorial_name,
+                'period': period,
+                'value': value_float,
+                'variable_name': variable_name
+            })
 
     except Exception as e:
         print(f"   ⚠️  Error parsing data: {e}")
@@ -203,11 +262,11 @@ def save_to_database(conn, records: List[Dict]) -> int:
 
 def main():
     print("="*80)
-    print("📊 IBGE API - Instituto Brasileiro de Geografia e Estatística")
+    print("📊 IBGE SIDRA API - Instituto Brasileiro de Geografia e Estatística")
     print("="*80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"📡 Source: https://servicodados.ibge.gov.br/api/")
+    print(f"📡 Source: https://apisidra.ibge.gov.br/")
     print("")
 
     # Connect to database
@@ -224,15 +283,15 @@ def main():
     print("📊 Fetching IBGE indicators...")
     print("")
 
-    for agregado_id, indicator_info in IBGE_INDICATORS.items():
-        print(f"📈 {indicator_info['name']} (ID: {agregado_id})")
+    for table_code, indicator_info in IBGE_INDICATORS.items():
+        print(f"📈 {indicator_info['name']} (Table: {table_code})")
 
-        # Fetch data (last 12 periods)
-        raw_data = fetch_ibge_agregado(agregado_id)
+        # Fetch data from SIDRA API (last 12 periods)
+        raw_data = fetch_ibge_sidra(table_code, indicator_info)
 
         if raw_data:
-            # Parse data
-            records = parse_ibge_data(agregado_id, indicator_info, raw_data)
+            # Parse SIDRA format data
+            records = parse_ibge_sidra_data(table_code, indicator_info, raw_data)
             print(f"   📋 Parsed: {len(records)} records")
 
             if records:
