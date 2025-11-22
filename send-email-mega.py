@@ -13,6 +13,14 @@ from datetime import datetime
 import glob
 import sys
 
+# WhatsApp notifications
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts', 'utils'))
+try:
+    from whatsapp_notifier import WhatsAppNotifier
+    whatsapp = WhatsAppNotifier()
+except:
+    whatsapp = None
+
 # Load environment variables
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
@@ -318,8 +326,18 @@ try:
     print(f"📄 Relatórios: {attached_reports}")
     print(f"📊 CSVs: {attached_csvs}")
 
+    # Send WhatsApp notification
+    if whatsapp:
+        whatsapp.report_sent(attached_reports, attached_csvs, EMAIL_TO)
+        print("📱 WhatsApp notification sent")
+
 except Exception as e:
     print(f"❌ Erro ao enviar email: {e}")
+
+    # Send WhatsApp alert on failure
+    if whatsapp:
+        whatsapp.analytics_error("Email Sender", str(e))
+
     import traceback
     traceback.print_exc()
     sys.exit(1)
