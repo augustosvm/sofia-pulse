@@ -5,9 +5,24 @@ Sends technical alerts to WhatsApp with Sofia's AI analysis
 """
 
 import os
+import sys
 import requests
 from datetime import datetime
 from typing import Optional, Dict, Any
+from pathlib import Path
+
+# Load .env file
+try:
+    from dotenv import load_dotenv
+    # Find .env file (look in current dir and parent dirs)
+    env_path = Path(__file__).parent.parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+    else:
+        load_dotenv()  # Try current directory
+except ImportError:
+    print("⚠️  python-dotenv not installed. Install with: pip install python-dotenv")
+    print("   Falling back to environment variables only")
 
 # Configuration
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
