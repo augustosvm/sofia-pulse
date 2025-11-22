@@ -96,15 +96,15 @@ bash healthcheck-collectors.sh || echo "⚠️  Some collectors still unhealthy"
 echo ""
 
 # ============================================================================
-# STEP 7: SEND EMAIL REPORT
+# STEP 7: SEND ALL REPORTS (EMAIL + WHATSAPP)
 # ============================================================================
 
 echo "════════════════════════════════════════════════════════════════"
-echo "📧 STEP 7: SEND EMAIL REPORT"
+echo "📧📱 STEP 7: SEND ALL REPORTS (EMAIL + WHATSAPP)"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 
-bash send-email-mega.sh || echo "⚠️  Email sending failed"
+bash send-all-reports.sh || echo "⚠️  Report delivery failed"
 echo ""
 
 # ============================================================================
