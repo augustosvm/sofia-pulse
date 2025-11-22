@@ -59,17 +59,30 @@ class SofiaWhatsAppIntegration:
             if context:
                 payload['context'] = context
 
+            print(f"[DEBUG] Enviando para Sofia API: {self.api_url}")
+            print(f"[DEBUG] Payload: query={query[:100]}..., user_id=sistema-alertas")
+
             response = requests.post(
                 self.api_url,
                 json=payload,
                 timeout=30  # Allow time for AI processing
             )
 
+            print(f"[DEBUG] Sofia API status: {response.status_code}")
+
             if response.status_code == 200:
                 data = response.json()
-                return data.get('response', None)
+                sofia_response = data.get('response', None)
+
+                print(f"[DEBUG] Sofia retornou resposta: {sofia_response is not None}")
+                if sofia_response:
+                    print(f"[DEBUG] Tamanho da resposta: {len(sofia_response)} caracteres")
+                    print(f"[DEBUG] Primeiros 100 chars: {sofia_response[:100]}")
+
+                return sofia_response
             else:
                 print(f"⚠️  Sofia API returned HTTP {response.status_code}")
+                print(f"[DEBUG] Response body: {response.text[:200]}")
                 return None
 
         except requests.exceptions.ConnectionError:
@@ -81,6 +94,8 @@ class SofiaWhatsAppIntegration:
             return None
         except Exception as e:
             print(f"❌ Error querying Sofia: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def send_whatsapp(self, message: str) -> bool:
@@ -97,6 +112,10 @@ class SofiaWhatsAppIntegration:
             print("⚠️  WhatsApp disabled (set WHATSAPP_ENABLED=true)")
             return False
 
+        print("\n" + "="*60)
+        print("[WHATSAPP DEBUG] Iniciando envio de mensagem")
+        print("="*60)
+
         try:
             payload = {
                 'query': message,
@@ -105,21 +124,52 @@ class SofiaWhatsAppIntegration:
                 'phone': self.whatsapp_number
             }
 
+            print(f"[WHATSAPP DEBUG] Configuração:")
+            print(f"  • API URL: {self.api_url}")
+            print(f"  • Número destino: {self.whatsapp_number}")
+            print(f"  • WhatsApp enabled: {self.enabled}")
+            print(f"  • Tamanho mensagem: {len(message)} caracteres")
+            print(f"  • Primeiros 100 chars: {message[:100]}")
+            print(f"\n[WHATSAPP DEBUG] Payload enviado:")
+            print(f"  • user_id: {payload['user_id']}")
+            print(f"  • channel: {payload['channel']}")
+            print(f"  • phone: {payload['phone']}")
+
+            print(f"\n[WHATSAPP DEBUG] Enviando POST para {self.api_url}...")
+
             response = requests.post(
                 self.api_url,
                 json=payload,
                 timeout=10
             )
 
+            print(f"[WHATSAPP DEBUG] Resposta recebida:")
+            print(f"  • Status code: {response.status_code}")
+            print(f"  • Headers: {dict(response.headers)}")
+
             if response.status_code == 200:
-                print(f"✅ WhatsApp sent to {self.whatsapp_number}")
+                try:
+                    data = response.json()
+                    print(f"[WHATSAPP DEBUG] Response JSON:")
+                    print(f"  • Keys: {list(data.keys())}")
+                    print(f"  • Response field: {data.get('response', 'N/A')[:100] if data.get('response') else 'VAZIO'}")
+                except:
+                    print(f"[WHATSAPP DEBUG] Response body (não é JSON): {response.text[:200]}")
+
+                print(f"\n✅ WhatsApp sent to {self.whatsapp_number}")
+                print("="*60 + "\n")
                 return True
             else:
-                print(f"❌ WhatsApp failed: HTTP {response.status_code}")
+                print(f"\n❌ WhatsApp failed: HTTP {response.status_code}")
+                print(f"[WHATSAPP DEBUG] Error body: {response.text[:500]}")
+                print("="*60 + "\n")
                 return False
 
         except Exception as e:
-            print(f"❌ WhatsApp send error: {e}")
+            print(f"\n❌ WhatsApp send error: {e}")
+            import traceback
+            traceback.print_exc()
+            print("="*60 + "\n")
             return False
 
     def alert_with_analysis(
