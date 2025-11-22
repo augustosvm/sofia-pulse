@@ -1,6 +1,6 @@
 # 📱 Sofia Pulse - WhatsApp Alerts Setup
 
-**Número configurado**: +55 27 98802-4062 (Augusto)
+**Número configurado**: +55 XX XXXXX-XXXX (Augusto)
 
 ---
 
@@ -62,7 +62,7 @@ POST http://localhost:8001/api/v2/chat
      ↓
 sofia-mastra-rag processa
      ↓
-Mensagem WhatsApp enviada para +55 27 98802-4062
+Mensagem WhatsApp enviada para +55 XX XXXXX-XXXX
 ```
 
 ---
@@ -92,7 +92,7 @@ Você deve receber:
 
 ```bash
 # WhatsApp Configuration (via sofia-mastra-rag)
-WHATSAPP_NUMBER=5527988024062
+WHATSAPP_NUMBER=YOUR_WHATSAPP_NUMBER
 SOFIA_API_ENDPOINT=http://localhost:8001/api/v2/chat
 ALERT_WHATSAPP_ENABLED=true
 ```
@@ -204,5 +204,5 @@ pm2 logs sofia-mastra-api
 
 ---
 
-**Contato**: +55 27 98802-4062 (Augusto)
+**Contato**: +55 XX XXXXX-XXXX (Augusto)
 **Email**: augustosvm@gmail.com

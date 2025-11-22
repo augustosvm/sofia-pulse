@@ -89,7 +89,7 @@ fi
 echo ""
 
 if [ $WHATSAPP_STATUS -eq 0 ]; then
-    echo "✅ WhatsApp: Sent to +55 27 98802-4062"
+    echo "✅ WhatsApp: Sent to +55 XX XXXXX-XXXX"
     echo "   Contains: ~8-10 messages with key summaries"
 else
     echo "⚠️  WhatsApp: Failed (sofia-mastra-rag running?)"
@@ -102,7 +102,7 @@ echo "════════════════════════�
 echo ""
 echo "Check your:"
 echo "  📧 Email: augustosvm@gmail.com"
-echo "  📱 WhatsApp: +55 27 98802-4062"
+echo "  📱 WhatsApp: +55 XX XXXXX-XXXX"
 echo ""
 
 if [ $EMAIL_STATUS -ne 0 ] || [ $WHATSAPP_STATUS -ne 0 ]; then

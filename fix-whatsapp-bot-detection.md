@@ -64,8 +64,8 @@ Você disse: "Coloca esse numero. O outro ta bloqueado: 11 5199-0773"
 **MAS**: 11 5199-0773 é o número que **ENVIA** (Business API), não pode **RECEBER**!
 
 ```
-SENDER (envia):     +55 11 5199-0773 (WhatsApp Business)
-RECIPIENT (recebe): +55 27 98802-4062 (seu celular) - BLOQUEADO
+SENDER (envia):     +55 XX XXXXX-XXXX (Business) (WhatsApp Business)
+RECIPIENT (recebe): +55 XX XXXXX-XXXX (seu celular) - BLOQUEADO
 ```
 
 Você precisa de um **número pessoal diferente** para receber as mensagens.

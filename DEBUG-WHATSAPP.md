@@ -17,12 +17,12 @@
      "query": "mensagem",
      "user_id": "sofia-pulse",
      "channel": "whatsapp",
-     "phone": "5527988024062"
+     "phone": "YOUR_WHATSAPP_NUMBER"
    }
    ```
 
 ### ❌ O que NÃO está funcionando:
-- Mensagem não chega no WhatsApp do usuário (+55 27 98802-4062)
+- Mensagem não chega no WhatsApp do usuário (+55 XX XXXXX-XXXX)
 
 ---
 
@@ -30,10 +30,10 @@
 
 ### 1. Número não autorizado no WhatsApp Business API ⚠️ **MAIS PROVÁVEL**
 
-**Problema**: O número +55 27 98802-4062 não está na lista de números autorizados.
+**Problema**: O número +55 XX XXXXX-XXXX não está na lista de números autorizados.
 
 **Como funciona WhatsApp Business API:**
-- Você cria uma conta Business com +55 11 5199-0773
+- Você cria uma conta Business com +55 XX XXXXX-XXXX (Business)
 - Você REGISTRA quais números podem RECEBER mensagens
 - Só números registrados recebem mensagens
 - API aceita request (200) mas descarta silenciosamente
@@ -41,7 +41,7 @@
 **Solução**:
 1. Acessar painel do WhatsApp Business API
 2. Ir em "Phone Numbers" ou "Números Autorizados"
-3. Adicionar +55 27 98802-4062 à lista
+3. Adicionar +55 XX XXXXX-XXXX à lista
 4. Aguardar aprovação (pode levar minutos)
 
 **Como verificar**:
@@ -94,11 +94,11 @@ META_ACCESS_TOKEN=...
 
 ### 4. Número bloqueou o Business
 
-**Problema**: Usuário bloqueou +55 11 5199-0773 no WhatsApp
+**Problema**: Usuário bloqueou +55 XX XXXXX-XXXX (Business) no WhatsApp
 
 **Solução**:
 1. Abrir WhatsApp
-2. Procurar conversas com +55 11 5199-0773
+2. Procurar conversas com +55 XX XXXXX-XXXX (Business)
 3. Se estiver bloqueado, desbloquear
 
 ---
@@ -143,7 +143,7 @@ pm2 logs sofia-mastra-api --lines 100 | grep -i whatsapp
 **O que fazer**:
 1. Login no painel
 2. Ir em "Phone Numbers" ou "Recipient Numbers"
-3. Verificar se +55 27 98802-4062 está na lista
+3. Verificar se +55 XX XXXXX-XXXX está na lista
 4. Se não estiver, adicionar e aguardar aprovação
 
 ---
@@ -166,17 +166,17 @@ Se funcionar = confirma que problema é autorização do número original
 
 ## 📞 Informações de Contato
 
-**Recipient (você)**: +55 27 98802-4062 (precisa estar autorizado)
-**Sender (Business)**: +55 11 5199-0773 (envia as mensagens)
+**Recipient (você)**: +55 XX XXXXX-XXXX (precisa estar autorizado)
+**Sender (Business)**: +55 XX XXXXX-XXXX (Business) (envia as mensagens)
 
 ---
 
 ## ✅ Checklist de Debug
 
 - [ ] Logs do sofia-mastra-rag verificados
-- [ ] Número +55 27 98802-4062 está autorizado no painel
+- [ ] Número +55 XX XXXXX-XXXX está autorizado no painel
 - [ ] WhatsApp Business tem créditos
-- [ ] Número +55 11 5199-0773 não está bloqueado
+- [ ] Número +55 XX XXXXX-XXXX (Business) não está bloqueado
 - [ ] Verificar pasta de spam no WhatsApp
 - [ ] Testar com número alternativo (se tiver)
 

@@ -9,7 +9,7 @@ import requests
 from datetime import datetime
 
 # Configuration
-WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '5527988024062')
+WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
 SOFIA_API_ENDPOINT = os.getenv('SOFIA_API_ENDPOINT', 'http://localhost:8001/api/v2/chat')
 ALERT_ENABLED = os.getenv('ALERT_WHATSAPP_ENABLED', 'true').lower() == 'true'
 

@@ -16,9 +16,11 @@ echo "📧 SOFIA PULSE - SEND MEGA EMAIL"
 echo "============================================================================"
 echo ""
 
-# Carregar .env
+# Carregar .env de forma segura
 if [ -f ".env" ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 EMAIL_TO="${EMAIL_TO:-augustosvm@gmail.com}"

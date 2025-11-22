@@ -12,7 +12,7 @@ echo "════════════════════════�
 echo ""
 
 # WhatsApp number
-WHATSAPP_NUMBER="5527988024062"  # +55 27 98802-4062
+WHATSAPP_NUMBER="YOUR_WHATSAPP_NUMBER"  # +55 27 98802-4062
 
 # Sofia API endpoint (local)
 SOFIA_API_ENDPOINT="http://localhost:8001/api/v2/chat"

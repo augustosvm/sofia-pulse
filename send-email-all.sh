@@ -10,7 +10,9 @@ echo ""
 
 # Carregar .env
 if [ -f ".env" ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 EMAIL_TO="${EMAIL_TO:-augustosvm@gmail.com}"

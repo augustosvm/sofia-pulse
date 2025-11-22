@@ -9,7 +9,7 @@ import json
 import os
 
 # Configuration
-WHATSAPP_RECIPIENT = os.getenv('WHATSAPP_NUMBER', '5527988024062')  # Seu número pessoal
+WHATSAPP_RECIPIENT = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')  # Seu número pessoal
 SOFIA_API_ENDPOINT = os.getenv('SOFIA_API_ENDPOINT', 'http://localhost:8001/api/v2/chat')
 
 print("════════════════════════════════════════════════════════════════")

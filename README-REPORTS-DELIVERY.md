@@ -11,7 +11,7 @@
 - ✅ **15+ CSVs** com dados brutos
 - ✅ **Playbook Gemini** (narrativas AI-powered)
 
-### 📱 **WhatsApp** (+55 27 98802-4062)
+### 📱 **WhatsApp** (+55 XX XXXXX-XXXX)
 - ✅ **Resumo de conclusão** (overview completo)
 - ✅ **MEGA Analysis** (primeiras 50 linhas)
 - ✅ **Top 10 Tech Trends**
@@ -265,7 +265,7 @@ send-all-reports.sh              # Master script (email + whatsapp)
 - [ ] WhatsApp número configurado (27 988024062)
 - [ ] Rodar: `bash run-all-with-monitoring.sh`
 - [ ] Verificar email (augustosvm@gmail.com)
-- [ ] Verificar WhatsApp (+55 27 98802-4062)
+- [ ] Verificar WhatsApp (+55 XX XXXXX-XXXX)
 
 ---
 

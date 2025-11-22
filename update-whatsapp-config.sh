@@ -12,8 +12,8 @@ echo "════════════════════════�
 echo ""
 
 # Numbers
-WHATSAPP_RECIPIENT="5527988024062"    # Seu número pessoal (RECEBE mensagens)
-WHATSAPP_SENDER="551151990773"        # Número Business (ENVIA mensagens)
+WHATSAPP_RECIPIENT="YOUR_WHATSAPP_NUMBER"    # Seu número pessoal (RECEBE mensagens)
+WHATSAPP_SENDER="YOUR_BUSINESS_NUMBER"        # Número Business (ENVIA mensagens)
 SOFIA_API_ENDPOINT="http://localhost:8001/api/v2/chat"
 
 echo "📝 Configurando WhatsApp..."
