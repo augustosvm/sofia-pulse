@@ -104,14 +104,14 @@ def extract_papers_by_location(conn):
     query = """
     SELECT
         title,
-        primary_topic,
-        keywords,
-        institutions_display_name,
-        countries,
+        primary_concept as primary_topic,
+        concepts as keywords,
+        author_institutions as institutions_display_name,
+        author_countries as countries,
         publication_date
     FROM sofia.openalex_papers
     WHERE publication_date >= CURRENT_DATE - INTERVAL '365 days'
-        AND (institutions_display_name IS NOT NULL OR countries IS NOT NULL)
+        AND (author_institutions IS NOT NULL OR author_countries IS NOT NULL)
     ORDER BY cited_by_count DESC NULLS LAST
     LIMIT 500
     """
