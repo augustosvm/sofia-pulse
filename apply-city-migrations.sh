@@ -10,9 +10,11 @@ echo "📊 APPLYING CITY MIGRATIONS"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 
-# Load env
+# Load env (properly handle inline comments)
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source <(grep -v '^#' .env | grep -v '^$' | sed 's/#.*$//' | sed 's/[[:space:]]*$//')
+    set +a
 fi
 
 DB_HOST="${POSTGRES_HOST:-localhost}"
