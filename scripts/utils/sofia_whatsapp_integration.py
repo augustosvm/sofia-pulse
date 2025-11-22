@@ -27,15 +27,20 @@ except ImportError:
 # Configuration
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
 SOFIA_API_URL = os.getenv('SOFIA_API_URL', 'http://localhost:8001/api/v2/chat')
+WHATSAPP_API_URL = os.getenv('WHATSAPP_API_URL', 'http://91.98.158.19:3001/send')
 WHATSAPP_ENABLED = os.getenv('WHATSAPP_ENABLED', 'true').lower() == 'true'
 
 class SofiaWhatsAppIntegration:
     """Integrates Sofia API intelligence with WhatsApp alerts"""
 
     def __init__(self):
-        self.api_url = SOFIA_API_URL
+        self.sofia_api_url = SOFIA_API_URL
+        self.whatsapp_api_url = WHATSAPP_API_URL
         self.whatsapp_number = WHATSAPP_NUMBER
         self.enabled = WHATSAPP_ENABLED
+
+        # Backward compatibility
+        self.api_url = SOFIA_API_URL
 
     def ask_sofia(self, query: str, context: Optional[Dict[str, Any]] = None) -> Optional[str]:
         """
@@ -172,6 +177,66 @@ class SofiaWhatsAppIntegration:
             print("="*60 + "\n")
             return False
 
+    def send_whatsapp_direct(self, message: str) -> bool:
+        """
+        Send message directly to WhatsApp API (Baileys)
+
+        This method sends directly to the WhatsApp Baileys API
+        instead of going through Sofia API first.
+
+        Args:
+            message: Message to send
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.enabled:
+            print("⚠️  WhatsApp disabled (set WHATSAPP_ENABLED=true)")
+            return False
+
+        print("\n" + "="*60)
+        print("[WHATSAPP DIRECT] Sending via Baileys API")
+        print("="*60)
+
+        try:
+            payload = {
+                'to': self.whatsapp_number,
+                'message': message
+            }
+
+            print(f"[WHATSAPP DIRECT] Configuration:")
+            print(f"  • API URL: {self.whatsapp_api_url}")
+            print(f"  • Número destino: {self.whatsapp_number}")
+            print(f"  • Tamanho mensagem: {len(message)} caracteres")
+
+            print(f"\n[WHATSAPP DIRECT] Enviando POST...")
+
+            response = requests.post(
+                self.whatsapp_api_url,
+                json=payload,
+                timeout=10
+            )
+
+            print(f"[WHATSAPP DIRECT] Resposta:")
+            print(f"  • Status code: {response.status_code}")
+
+            if response.status_code == 200:
+                print(f"\n✅ WhatsApp sent directly to {self.whatsapp_number}")
+                print("="*60 + "\n")
+                return True
+            else:
+                print(f"\n❌ WhatsApp direct send failed: HTTP {response.status_code}")
+                print(f"[WHATSAPP DIRECT] Error: {response.text[:500]}")
+                print("="*60 + "\n")
+                return False
+
+        except Exception as e:
+            print(f"\n❌ WhatsApp direct send error: {e}")
+            import traceback
+            traceback.print_exc()
+            print("="*60 + "\n")
+            return False
+
     def alert_with_analysis(
         self,
         title: str,
@@ -251,8 +316,8 @@ Por favor, forneça:
 
         final_message = "\n".join(message_parts)
 
-        # Send to WhatsApp
-        return self.send_whatsapp(final_message)
+        # Send to WhatsApp (using direct Baileys API)
+        return self.send_whatsapp_direct(final_message)
 
     def alert_api_error(
         self,
