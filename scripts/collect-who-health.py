@@ -66,8 +66,9 @@ def fetch_who_data(indicator_code: str) -> List[Dict]:
     base_url = "https://ghoapi.azureedge.net/api"
 
     url = f"{base_url}/{indicator_code}"
+    country_filter = "','".join(COUNTRIES)
     params = {
-        '$filter': f"SpatialDim in ('{\"','\".join(COUNTRIES)}')"
+        '$filter': f"SpatialDim in ('{country_filter}')"
     }
 
     try:
