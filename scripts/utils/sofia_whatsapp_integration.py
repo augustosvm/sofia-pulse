@@ -1,0 +1,355 @@
+#!/usr/bin/env python3
+"""
+Sofia Pulse - WhatsApp Integration with Sofia API Intelligence
+Sends technical alerts to WhatsApp with Sofia's AI analysis
+"""
+
+import os
+import requests
+from datetime import datetime
+from typing import Optional, Dict, Any
+
+# Configuration
+WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
+SOFIA_API_URL = os.getenv('SOFIA_API_URL', 'http://localhost:8001/api/v2/chat')
+WHATSAPP_ENABLED = os.getenv('WHATSAPP_ENABLED', 'true').lower() == 'true'
+
+class SofiaWhatsAppIntegration:
+    """Integrates Sofia API intelligence with WhatsApp alerts"""
+
+    def __init__(self):
+        self.api_url = SOFIA_API_URL
+        self.whatsapp_number = WHATSAPP_NUMBER
+        self.enabled = WHATSAPP_ENABLED
+
+    def ask_sofia(self, query: str, context: Optional[Dict[str, Any]] = None) -> Optional[str]:
+        """
+        Ask Sofia API for technical analysis
+
+        Args:
+            query: Question or error description
+            context: Additional context (optional)
+
+        Returns:
+            Sofia's response text or None if failed
+        """
+        try:
+            payload = {
+                'query': query,
+                'user_id': 'sistema-alertas',
+                'channel': 'whatsapp'
+            }
+
+            # Add context if provided
+            if context:
+                payload['context'] = context
+
+            response = requests.post(
+                self.api_url,
+                json=payload,
+                timeout=30  # Allow time for AI processing
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                return data.get('response', None)
+            else:
+                print(f"⚠️  Sofia API returned HTTP {response.status_code}")
+                return None
+
+        except requests.exceptions.ConnectionError:
+            print(f"❌ Cannot connect to Sofia API at {self.api_url}")
+            print("   Is sofia-mastra-api running? Check: docker ps | grep sofia")
+            return None
+        except requests.exceptions.Timeout:
+            print("⏱️  Sofia API timeout (may be processing)")
+            return None
+        except Exception as e:
+            print(f"❌ Error querying Sofia: {e}")
+            return None
+
+    def send_whatsapp(self, message: str) -> bool:
+        """
+        Send message to WhatsApp via Sofia API
+
+        Args:
+            message: Formatted message to send
+
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.enabled:
+            print("⚠️  WhatsApp disabled (set WHATSAPP_ENABLED=true)")
+            return False
+
+        try:
+            payload = {
+                'query': message,
+                'user_id': 'sofia-pulse',
+                'channel': 'whatsapp',
+                'phone': self.whatsapp_number
+            }
+
+            response = requests.post(
+                self.api_url,
+                json=payload,
+                timeout=10
+            )
+
+            if response.status_code == 200:
+                print(f"✅ WhatsApp sent to {self.whatsapp_number}")
+                return True
+            else:
+                print(f"❌ WhatsApp failed: HTTP {response.status_code}")
+                return False
+
+        except Exception as e:
+            print(f"❌ WhatsApp send error: {e}")
+            return False
+
+    def alert_with_analysis(
+        self,
+        title: str,
+        error_details: Dict[str, Any],
+        ask_sofia: bool = True
+    ) -> bool:
+        """
+        Send alert with Sofia's technical analysis
+
+        Args:
+            title: Alert title (e.g., "API Error")
+            error_details: Error information dict
+            ask_sofia: Whether to ask Sofia for analysis (default: True)
+
+        Returns:
+            True if alert sent successfully
+
+        Example:
+            integration.alert_with_analysis(
+                title="Bressan API Error",
+                error_details={
+                    'api': 'Bressan API',
+                    'status': 500,
+                    'error': 'Internal Server Error',
+                    'timestamp': '2025-11-22 10:30:00'
+                }
+            )
+        """
+        # Build context for Sofia
+        context_text = "\n".join([
+            f"- {key}: {value}"
+            for key, value in error_details.items()
+        ])
+
+        # Ask Sofia for analysis if enabled
+        sofia_analysis = None
+        if ask_sofia:
+            query = f"""
+Alerta de erro detectado:
+
+{title}
+
+Detalhes:
+{context_text}
+
+Por favor, forneça:
+1. Possível causa do erro
+2. Como resolver
+3. Impacto no sistema
+4. Ações imediatas recomendadas
+""".strip()
+
+            print(f"🤖 Consultando Sofia para análise...")
+            sofia_analysis = self.ask_sofia(query, context=error_details)
+
+        # Build final WhatsApp message
+        message_parts = [
+            f"🚨 *{title}*",
+            "",
+            "*Detalhes:*",
+            context_text,
+            ""
+        ]
+
+        if sofia_analysis:
+            message_parts.extend([
+                "---",
+                "*Análise da Sofia:*",
+                sofia_analysis,
+                ""
+            ])
+
+        message_parts.extend([
+            "---",
+            f"_Sofia Pulse - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_"
+        ])
+
+        final_message = "\n".join(message_parts)
+
+        # Send to WhatsApp
+        return self.send_whatsapp(final_message)
+
+    def alert_api_error(
+        self,
+        api_name: str,
+        status_code: int,
+        error_message: str,
+        endpoint: Optional[str] = None
+    ) -> bool:
+        """
+        Quick helper: Send API error alert with Sofia analysis
+
+        Example:
+            integration.alert_api_error(
+                api_name="Bressan API",
+                status_code=500,
+                error_message="Internal Server Error",
+                endpoint="/api/v1/data"
+            )
+        """
+        details = {
+            'API': api_name,
+            'Status': status_code,
+            'Erro': error_message,
+            'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        if endpoint:
+            details['Endpoint'] = endpoint
+
+        return self.alert_with_analysis(
+            title=f"Erro na {api_name}",
+            error_details=details,
+            ask_sofia=True
+        )
+
+    def alert_collector_failed(
+        self,
+        collector_name: str,
+        error: str,
+        suggestions: bool = True
+    ) -> bool:
+        """
+        Quick helper: Send collector failure alert
+
+        Example:
+            integration.alert_collector_failed(
+                collector_name="collect-github-trending",
+                error="HTTP 403 - Rate limit exceeded"
+            )
+        """
+        details = {
+            'Collector': collector_name,
+            'Erro': error,
+            'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        return self.alert_with_analysis(
+            title="Collector Falhou",
+            error_details=details,
+            ask_sofia=suggestions
+        )
+
+    def alert_data_anomaly(
+        self,
+        table_name: str,
+        anomaly_type: str,
+        details: str
+    ) -> bool:
+        """
+        Quick helper: Send data anomaly alert
+
+        Example:
+            integration.alert_data_anomaly(
+                table_name="funding_rounds",
+                anomaly_type="Missing records",
+                details="Expected 50 records, got 3"
+            )
+        """
+        error_details = {
+            'Tabela': table_name,
+            'Tipo': anomaly_type,
+            'Detalhes': details,
+            'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        return self.alert_with_analysis(
+            title="Anomalia nos Dados",
+            error_details=error_details,
+            ask_sofia=True
+        )
+
+    def test_integration(self) -> bool:
+        """Test the full integration"""
+        print("=" * 60)
+        print("🧪 TESTING SOFIA WHATSAPP INTEGRATION")
+        print("=" * 60)
+        print()
+
+        # Test 1: Sofia API connection
+        print("1️⃣  Testing Sofia API connection...")
+        test_query = "Sistema de testes ativo. Responda com 'OK' se receber esta mensagem."
+        sofia_response = self.ask_sofia(test_query)
+
+        if sofia_response:
+            print(f"   ✅ Sofia API working")
+            print(f"   Response: {sofia_response[:100]}...")
+        else:
+            print("   ❌ Sofia API not responding")
+            return False
+
+        print()
+
+        # Test 2: Send test alert with analysis
+        print("2️⃣  Sending test alert with Sofia analysis...")
+        success = self.alert_api_error(
+            api_name="Test API",
+            status_code=200,
+            error_message="Test integration successful",
+            endpoint="/test"
+        )
+
+        if success:
+            print("   ✅ Alert sent with Sofia analysis")
+        else:
+            print("   ❌ Alert failed")
+            return False
+
+        print()
+        print("=" * 60)
+        print("✅ ALL TESTS PASSED")
+        print("=" * 60)
+        print()
+        print("Configuration:")
+        print(f"  • Sofia API: {self.api_url}")
+        print(f"  • WhatsApp: {self.whatsapp_number}")
+        print(f"  • Enabled: {self.enabled}")
+        print()
+
+        return True
+
+
+# Convenience functions for direct use
+_integration = SofiaWhatsAppIntegration()
+
+def alert_api_error(api_name: str, status_code: int, error_message: str, endpoint: str = None):
+    """Quick function: Alert API error with Sofia analysis"""
+    return _integration.alert_api_error(api_name, status_code, error_message, endpoint)
+
+def alert_collector_failed(collector_name: str, error: str):
+    """Quick function: Alert collector failure with Sofia suggestions"""
+    return _integration.alert_collector_failed(collector_name, error)
+
+def alert_data_anomaly(table_name: str, anomaly_type: str, details: str):
+    """Quick function: Alert data anomaly with Sofia analysis"""
+    return _integration.alert_data_anomaly(table_name, anomaly_type, details)
+
+def ask_sofia(query: str, context: Dict[str, Any] = None) -> Optional[str]:
+    """Quick function: Ask Sofia a question"""
+    return _integration.ask_sofia(query, context)
+
+
+if __name__ == '__main__':
+    # Run integration test
+    integration = SofiaWhatsAppIntegration()
+    integration.test_integration()
