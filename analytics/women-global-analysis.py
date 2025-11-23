@@ -69,13 +69,19 @@ def main():
         report_lines.append("")
 
         if count > 0:
-            # Top countries by female labor force participation
+            # Top countries by female labor force participation (latest year only)
             cur.execute("""
-                SELECT country_name, indicator_name, value, year
-                FROM sofia.women_world_bank_data
-                WHERE indicator_code = 'SL.TLF.CACT.FE.ZS'
-                  AND value IS NOT NULL
-                ORDER BY value DESC
+                SELECT w.country_name, w.indicator_name, w.value, w.year
+                FROM sofia.women_world_bank_data w
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.women_world_bank_data
+                    WHERE indicator_code = 'SL.TLF.CACT.FE.ZS' AND value IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
+                WHERE w.indicator_code = 'SL.TLF.CACT.FE.ZS'
+                  AND w.value IS NOT NULL
+                ORDER BY w.value DESC
                 LIMIT 15
             """)
             rows = cur.fetchall()
@@ -149,20 +155,20 @@ def main():
         report_lines.append("")
 
         if count > 0:
-            # By state
+            # By region
             cur.execute("""
-                SELECT state, indicator_name, value, year
+                SELECT region, indicator_name, value, period
                 FROM sofia.women_brazil_data
                 WHERE value IS NOT NULL
-                ORDER BY year DESC, value DESC
+                ORDER BY period DESC, value DESC
                 LIMIT 20
             """)
             rows = cur.fetchall()
             if rows:
-                report_lines.append("📊 BRAZIL - Latest Gender Indicators by State:")
+                report_lines.append("📊 BRAZIL - Latest Gender Indicators by Region:")
                 report_lines.append("-" * 60)
-                for state, indicator, value, year in rows:
-                    report_lines.append(f"  • {state or 'Brazil'}: {indicator[:35]} = {value:.2f} ({year})")
+                for region, indicator, value, period in rows:
+                    report_lines.append(f"  • {region or 'Brazil'}: {indicator[:35]} = {value:.2f} ({period})")
                 report_lines.append("")
 
     except Exception as e:

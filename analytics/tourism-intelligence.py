@@ -40,9 +40,9 @@ def main():
         if count > 0:
             # Top tourist destinations
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_name, indicator_name, value, year
                 FROM sofia.world_tourism_data
-                WHERE LOWER(indicator) LIKE '%arrival%' OR LOWER(indicator) LIKE '%tourist%'
+                WHERE LOWER(indicator_name) LIKE '%arrival%' OR LOWER(indicator_name) LIKE '%tourist%'
                 ORDER BY value DESC
                 LIMIT 20
             """)
@@ -57,9 +57,9 @@ def main():
 
             # Tourism revenue
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_name, indicator_name, value, year
                 FROM sofia.world_tourism_data
-                WHERE LOWER(indicator) LIKE '%receipt%' OR LOWER(indicator) LIKE '%revenue%' OR LOWER(indicator) LIKE '%expenditure%'
+                WHERE LOWER(indicator_name) LIKE '%receipt%' OR LOWER(indicator_name) LIKE '%revenue%' OR LOWER(indicator_name) LIKE '%expenditure%'
                 ORDER BY value DESC
                 LIMIT 15
             """)
@@ -74,9 +74,9 @@ def main():
 
             # All indicators
             cur.execute("""
-                SELECT DISTINCT indicator, COUNT(*) as countries
+                SELECT DISTINCT indicator_name, COUNT(*) as countries
                 FROM sofia.world_tourism_data
-                GROUP BY indicator
+                GROUP BY indicator_name
                 ORDER BY countries DESC
             """)
             rows = cur.fetchall()
