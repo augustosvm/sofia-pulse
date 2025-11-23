@@ -40,9 +40,10 @@ def main():
         count = cur.fetchone()[0]
         report_lines.append(f"Records: {count:,}")
         if count > 0:
-            cur.execute("SELECT country, indicator, value, year FROM sofia.wto_trade_data ORDER BY value DESC LIMIT 20")
+            cur.execute("SELECT reporter_name, indicator_name, value, year FROM sofia.wto_trade_data WHERE value IS NOT NULL ORDER BY value DESC LIMIT 20")
             for country, ind, val, year in cur.fetchall():
-                report_lines.append(f"  • {country}: {ind[:30]} = {val:,.2f} ({year})")
+                ind_str = ind[:30] if ind else "N/A"
+                report_lines.append(f"  • {country}: {ind_str} = {float(val):,.2f} ({year})")
     except Exception as e:
         conn.rollback()
         report_lines.append(f"⚠️ WTO error: {e}")
@@ -57,9 +58,10 @@ def main():
         count = cur.fetchone()[0]
         report_lines.append(f"Records: {count:,}")
         if count > 0:
-            cur.execute("SELECT country, indicator, value, year FROM sofia.fao_agriculture_data ORDER BY value DESC LIMIT 20")
+            cur.execute("SELECT country_name, indicator_name, value, year FROM sofia.fao_agriculture_data WHERE value IS NOT NULL ORDER BY value DESC LIMIT 20")
             for country, ind, val, year in cur.fetchall():
-                report_lines.append(f"  • {country}: {ind[:30]} = {val:,.2f} ({year})")
+                ind_str = ind[:30] if ind else "N/A"
+                report_lines.append(f"  • {country}: {ind_str} = {float(val):,.2f} ({year})")
     except Exception as e:
         conn.rollback()
         report_lines.append(f"⚠️ FAO error: {e}")
@@ -74,9 +76,10 @@ def main():
         count = cur.fetchone()[0]
         report_lines.append(f"Records: {count:,}")
         if count > 0:
-            cur.execute("SELECT country, goal, indicator, value, year FROM sofia.sdg_indicators ORDER BY year DESC LIMIT 20")
+            cur.execute("SELECT geo_area_name, goal, indicator_name, value, time_period FROM sofia.sdg_indicators WHERE value IS NOT NULL ORDER BY time_period DESC LIMIT 20")
             for country, goal, ind, val, year in cur.fetchall():
-                report_lines.append(f"  • {country} (SDG {goal}): {ind[:25]} = {val:.2f} ({year})")
+                ind_str = ind[:25] if ind else "N/A"
+                report_lines.append(f"  • {country} (SDG {goal}): {ind_str} = {float(val):.2f} ({year})")
     except Exception as e:
         conn.rollback()
         report_lines.append(f"⚠️ SDG error: {e}")

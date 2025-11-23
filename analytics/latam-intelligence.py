@@ -41,13 +41,15 @@ def main():
         report_lines.append(f"Records: {count:,}")
         if count > 0:
             cur.execute("""
-                SELECT country, indicator, value, year 
-                FROM sofia.cepal_latam_data 
-                ORDER BY year DESC, value DESC 
+                SELECT country_name, indicator_name, value, year
+                FROM sofia.cepal_latam_data
+                WHERE value IS NOT NULL
+                ORDER BY year DESC, value DESC
                 LIMIT 25
             """)
             for country, ind, val, year in cur.fetchall():
-                report_lines.append(f"  • {country}: {ind[:30]} = {val:,.2f} ({year})")
+                ind_str = ind[:30] if ind else "N/A"
+                report_lines.append(f"  • {country}: {ind_str} = {float(val):,.2f} ({year})")
     except Exception as e:
         conn.rollback()
         report_lines.append(f"⚠️ CEPAL error: {e}")
@@ -63,13 +65,14 @@ def main():
         report_lines.append(f"Records: {count:,}")
         if count > 0:
             cur.execute("""
-                SELECT country, indicator, value, year 
-                FROM sofia.cepal_femicide 
-                ORDER BY value DESC 
+                SELECT country_code, femicide_count, rate_per_100k, year
+                FROM sofia.cepal_femicide
+                WHERE femicide_count IS NOT NULL
+                ORDER BY rate_per_100k DESC
                 LIMIT 15
             """)
-            for country, ind, val, year in cur.fetchall():
-                report_lines.append(f"  • {country}: {ind[:30]} = {val:.2f} ({year})")
+            for country, count_f, rate, year in cur.fetchall():
+                report_lines.append(f"  • {country}: {count_f} femicides ({float(rate):.2f}/100k) ({year})")
     except Exception as e:
         conn.rollback()
         report_lines.append(f"⚠️ Femicide error: {e}")
