@@ -229,7 +229,7 @@ def main():
 
         if count > 0:
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_code, dataset_name, value, year
                 FROM sofia.women_eurostat_data
                 WHERE value IS NOT NULL
                 ORDER BY year DESC, value DESC
@@ -239,8 +239,8 @@ def main():
             if rows:
                 report_lines.append("📊 EU GENDER INDICATORS:")
                 report_lines.append("-" * 60)
-                for country, indicator, value, year in rows:
-                    report_lines.append(f"  • {country}: {indicator[:35]} = {value:.2f} ({year})")
+                for country_code, dataset_name, value, year in rows:
+                    report_lines.append(f"  • {country_code}: {dataset_name[:35] if dataset_name else 'N/A'} = {value:.2f} ({year})")
                 report_lines.append("")
 
     except Exception as e:

@@ -187,30 +187,41 @@ def main():
         report_lines.append("")
 
         if count > 0:
-            # By region - safest
+            # By region - safest (only latest year per country)
             for region in ['Americas', 'Europe', 'Asia']:
                 cur.execute("""
-                    SELECT country_name, region, indicator_name, value, year
-                    FROM sofia.world_security_data
-                    WHERE LOWER(region) LIKE %s
-                      AND value IS NOT NULL
-                    ORDER BY value ASC
+                    SELECT w.country_name, w.region, w.indicator_name, w.value, w.year
+                    FROM sofia.world_security_data w
+                    INNER JOIN (
+                        SELECT country_name, MAX(year) as max_year
+                        FROM sofia.world_security_data
+                        WHERE LOWER(region) LIKE %s AND value IS NOT NULL
+                        GROUP BY country_name
+                    ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
+                    WHERE LOWER(w.region) LIKE %s AND w.value IS NOT NULL
+                    ORDER BY w.value ASC
                     LIMIT 10
-                """, (f'%{region.lower()}%',))
+                """, (f'%{region.lower()}%', f'%{region.lower()}%'))
                 rows = cur.fetchall()
                 if rows:
                     report_lines.append(f"🏆 SAFEST IN {region.upper()}:")
                     report_lines.append("-" * 60)
                     for i, (country_name, reg, indicator_name, value, year) in enumerate(rows, 1):
-                        report_lines.append(f"  {i:2}. {country_name:<25} {value:>8.2f} ({year})")
+                        report_lines.append(f"  {i:2}. {country_name:<25} {float(value):>8.2f} ({year})")
                     report_lines.append("")
 
-            # Global ranking - safest
+            # Global ranking - safest (only latest year per country)
             cur.execute("""
-                SELECT country_name, region, indicator_name, value, year
-                FROM sofia.world_security_data
-                WHERE value IS NOT NULL
-                ORDER BY value ASC
+                SELECT w.country_name, w.region, w.indicator_name, w.value, w.year
+                FROM sofia.world_security_data w
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.world_security_data
+                    WHERE value IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
+                WHERE w.value IS NOT NULL
+                ORDER BY w.value ASC
                 LIMIT 20
             """)
             rows = cur.fetchall()
@@ -218,7 +229,7 @@ def main():
                 report_lines.append("🌍 GLOBAL RANKING - SAFEST COUNTRIES:")
                 report_lines.append("-" * 60)
                 for i, (country_name, region, indicator_name, value, year) in enumerate(rows, 1):
-                    report_lines.append(f"  {i:2}. {country_name:<25} ({region:<10}) {value:>8.2f}")
+                    report_lines.append(f"  {i:2}. {country_name:<25} ({region:<10}) {float(value):>8.2f}")
                 report_lines.append("")
 
     except Exception as e:

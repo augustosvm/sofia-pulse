@@ -51,7 +51,8 @@ def main():
                 report_lines.append("🏆 TOP TOURIST DESTINATIONS:")
                 report_lines.append("-" * 60)
                 for country, ind, val, year in rows:
-                    val_str = f"{val/1e6:.1f}M" if val >= 1e6 else f"{val:,.0f}"
+                    val_f = float(val) if val else 0
+                    val_str = f"{val_f/1e6:.1f}M" if val_f >= 1e6 else f"{val_f:,.0f}"
                     report_lines.append(f"  • {country:<25} {val_str} arrivals ({year})")
                 report_lines.append("")
 
@@ -68,7 +69,8 @@ def main():
                 report_lines.append("💰 TOURISM REVENUE:")
                 report_lines.append("-" * 60)
                 for country, ind, val, year in rows:
-                    val_str = f"${val/1e9:.1f}B" if val >= 1e9 else f"${val/1e6:.0f}M"
+                    val_f = float(val) if val else 0
+                    val_str = f"${val_f/1e9:.1f}B" if val_f >= 1e9 else f"${val_f/1e6:.0f}M"
                     report_lines.append(f"  • {country:<25} {val_str} ({year})")
                 report_lines.append("")
 
@@ -88,6 +90,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Tourism error: {e}")
     
     report_lines.append("")

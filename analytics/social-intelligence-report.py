@@ -65,7 +65,7 @@ def main():
         if count > 0:
             # Top Christian countries
             cur.execute("""
-                SELECT country_name, religion, percentage, population, year
+                SELECT country_name, religion, percentage, year
                 FROM sofia.world_religion_data
                 WHERE LOWER(religion) LIKE '%christian%'
                   AND percentage IS NOT NULL
@@ -76,14 +76,13 @@ def main():
             if rows:
                 report_lines.append("✝️ TOP CHRISTIAN COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country_name, religion, pct, pop, year in rows:
-                    pop_str = f"{pop/1e6:.1f}M" if pop else "N/A"
-                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({pop_str})")
+                for country_name, religion, pct, year in rows:
+                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({year})")
                 report_lines.append("")
 
             # Top Muslim countries
             cur.execute("""
-                SELECT country_name, religion, percentage, population, year
+                SELECT country_name, religion, percentage, year
                 FROM sofia.world_religion_data
                 WHERE LOWER(religion) LIKE '%muslim%' OR LOWER(religion) LIKE '%islam%'
                   AND percentage IS NOT NULL
@@ -94,14 +93,13 @@ def main():
             if rows:
                 report_lines.append("☪️ TOP MUSLIM COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country_name, religion, pct, pop, year in rows:
-                    pop_str = f"{pop/1e6:.1f}M" if pop else "N/A"
-                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({pop_str})")
+                for country_name, religion, pct, year in rows:
+                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({year})")
                 report_lines.append("")
 
             # Top secular/non-religious countries
             cur.execute("""
-                SELECT country_name, religion, percentage, population, year
+                SELECT country_name, religion, percentage, year
                 FROM sofia.world_religion_data
                 WHERE LOWER(religion) LIKE '%non%relig%'
                    OR LOWER(religion) LIKE '%atheist%'
@@ -115,9 +113,8 @@ def main():
             if rows:
                 report_lines.append("🔬 TOP SECULAR/NON-RELIGIOUS COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country_name, religion, pct, pop, year in rows:
-                    pop_str = f"{pop/1e6:.1f}M" if pop else "N/A"
-                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({pop_str})")
+                for country_name, religion, pct, year in rows:
+                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({year})")
                 report_lines.append("")
 
             # Religious diversity (multiple religions in country)
@@ -172,43 +169,41 @@ def main():
                     report_lines.append(f"  • {sector:<30} {count:>5} organizations")
                 report_lines.append("")
 
-            # Top NGOs by budget/revenue
+            # Top NGOs by revenue
             cur.execute("""
-                SELECT name, sector, headquarters, budget_usd, employees, year_founded
+                SELECT name, sector, headquarters_country, revenue_usd_millions, employees, founded_year
                 FROM sofia.world_ngos
-                WHERE budget_usd IS NOT NULL
-                ORDER BY budget_usd DESC
+                WHERE revenue_usd_millions IS NOT NULL
+                ORDER BY revenue_usd_millions DESC
                 LIMIT 15
             """)
             rows = cur.fetchall()
             if rows:
-                report_lines.append("💰 LARGEST NGOs BY BUDGET:")
+                report_lines.append("💰 LARGEST NGOs BY REVENUE:")
                 report_lines.append("-" * 60)
-                for name, sector, hq, budget, emp, founded in rows:
-                    budget_str = f"${budget/1e9:.1f}B" if budget >= 1e9 else f"${budget/1e6:.0f}M"
+                for name, sector, hq, revenue, emp, founded in rows:
+                    revenue_str = f"${float(revenue)/1000:.1f}B" if revenue and float(revenue) >= 1000 else f"${float(revenue):.0f}M" if revenue else "N/A"
                     emp_str = f"{emp:,}" if emp else "N/A"
                     report_lines.append(f"  • {name[:35]:<35}")
-                    report_lines.append(f"    Sector: {sector} | HQ: {hq} | Budget: {budget_str} | Staff: {emp_str}")
+                    report_lines.append(f"    Sector: {sector} | HQ: {hq} | Revenue: {revenue_str} | Staff: {emp_str}")
                 report_lines.append("")
 
-            # Tech-related NGOs
+            # Tech-related NGOs (by sector only - no focus_areas column)
             cur.execute("""
-                SELECT name, sector, headquarters, focus_areas
+                SELECT name, sector, headquarters_country
                 FROM sofia.world_ngos
-                WHERE LOWER(sector) LIKE '%tech%' 
-                   OR LOWER(focus_areas) LIKE '%tech%'
-                   OR LOWER(focus_areas) LIKE '%digital%'
-                   OR LOWER(focus_areas) LIKE '%innovat%'
+                WHERE LOWER(sector) LIKE '%tech%'
+                   OR LOWER(sector) LIKE '%digital%'
+                   OR LOWER(sector) LIKE '%innovat%'
+                   OR LOWER(sector) LIKE '%education%'
                 LIMIT 10
             """)
             rows = cur.fetchall()
             if rows:
-                report_lines.append("🖥️ TECH-FOCUSED NGOs (CSR Partnership Opportunities):")
+                report_lines.append("🖥️ TECH/EDUCATION NGOs (CSR Partnership Opportunities):")
                 report_lines.append("-" * 60)
-                for name, sector, hq, focus in rows:
-                    report_lines.append(f"  • {name} ({hq})")
-                    if focus:
-                        report_lines.append(f"    Focus: {focus[:60]}")
+                for name, sector, hq in rows:
+                    report_lines.append(f"  • {name} ({hq}) - {sector}")
                 report_lines.append("")
 
     except Exception as e:
@@ -233,9 +228,9 @@ def main():
         if count > 0:
             # By drug type
             cur.execute("""
-                SELECT drug_type, COUNT(DISTINCT country) as countries, AVG(prevalence) as avg_prevalence
+                SELECT drug_type, COUNT(DISTINCT country_name) as countries, AVG(prevalence_percent) as avg_prevalence
                 FROM sofia.world_drugs_data
-                WHERE prevalence IS NOT NULL
+                WHERE prevalence_percent IS NOT NULL
                 GROUP BY drug_type
                 ORDER BY avg_prevalence DESC
             """)
@@ -244,40 +239,40 @@ def main():
                 report_lines.append("📊 DRUG CONSUMPTION BY TYPE:")
                 report_lines.append("-" * 60)
                 for drug, countries, prevalence in rows:
-                    report_lines.append(f"  • {drug:<25} {countries:>3} countries | Avg: {prevalence:>5.2f}%")
+                    report_lines.append(f"  • {drug:<25} {countries:>3} countries | Avg: {float(prevalence):>5.2f}%")
                 report_lines.append("")
 
             # Top cannabis countries
             cur.execute("""
-                SELECT country, drug_type, prevalence, year
+                SELECT country_name, drug_type, prevalence_percent, year
                 FROM sofia.world_drugs_data
                 WHERE LOWER(drug_type) LIKE '%cannabis%'
-                  AND prevalence IS NOT NULL
-                ORDER BY prevalence DESC
+                  AND prevalence_percent IS NOT NULL
+                ORDER BY prevalence_percent DESC
                 LIMIT 10
             """)
             rows = cur.fetchall()
             if rows:
                 report_lines.append("🌿 TOP CANNABIS CONSUMPTION COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country, drug, prevalence, year in rows:
-                    report_lines.append(f"  • {country:<25} {prevalence:>5.2f}% ({year})")
+                for country_name, drug, prevalence, year in rows:
+                    report_lines.append(f"  • {country_name:<25} {float(prevalence):>5.2f}% ({year})")
                 report_lines.append("")
 
             # Brazil/USA state-level if available
             cur.execute("""
-                SELECT country, state, drug_type, prevalence, year
+                SELECT country_name, state_name, drug_type, prevalence_percent, year
                 FROM sofia.world_drugs_data
-                WHERE state IS NOT NULL AND state != ''
-                ORDER BY prevalence DESC
+                WHERE state_name IS NOT NULL AND state_name != ''
+                ORDER BY prevalence_percent DESC
                 LIMIT 15
             """)
             rows = cur.fetchall()
             if rows:
                 report_lines.append("🏛️ STATE-LEVEL DATA (USA/Brazil):")
                 report_lines.append("-" * 60)
-                for country, state, drug, prevalence, year in rows:
-                    report_lines.append(f"  • {state} ({country}): {drug} - {prevalence:.2f}%")
+                for country_name, state_name, drug, prevalence, year in rows:
+                    report_lines.append(f"  • {state_name} ({country_name}): {drug} - {float(prevalence):.2f}%")
                 report_lines.append("")
 
     except Exception as e:

@@ -157,7 +157,7 @@ def main():
 
         if count > 0:
             cur.execute("""
-                SELECT series_name, value, date, theme
+                SELECT series_name, value, date, category
                 FROM sofia.ipea_series
                 ORDER BY date DESC
                 LIMIT 20
@@ -166,9 +166,9 @@ def main():
             if rows:
                 report_lines.append("📊 LATEST IPEA SERIES:")
                 report_lines.append("-" * 60)
-                for name, value, date, theme in rows:
-                    theme_str = theme[:15] if theme else "General"
-                    report_lines.append(f"  • {name[:35]}: {value:,.2f} ({theme_str}, {date})")
+                for name, value, date, category in rows:
+                    cat_str = category[:15] if category else "General"
+                    report_lines.append(f"  • {name[:35]}: {value:,.2f} ({cat_str}, {date})")
                 report_lines.append("")
 
     except Exception as e:
@@ -246,17 +246,17 @@ def main():
 
         if count > 0:
             cur.execute("""
-                SELECT ministry, indicator, value, year
+                SELECT ministry, indicator, value, period
                 FROM sofia.brazil_ministries_data
-                ORDER BY year DESC, value DESC
+                ORDER BY period DESC, value DESC
                 LIMIT 20
             """)
             rows = cur.fetchall()
             if rows:
                 report_lines.append("📊 MINISTRY INDICATORS:")
                 report_lines.append("-" * 60)
-                for ministry, indicator, value, year in rows:
-                    report_lines.append(f"  • {ministry[:20]}: {indicator[:25]} = {value:,.2f} ({year})")
+                for ministry, indicator, value, period in rows:
+                    report_lines.append(f"  • {ministry[:20]}: {indicator[:25]} = {value:,.2f} ({period})")
                 report_lines.append("")
 
     except Exception as e:
