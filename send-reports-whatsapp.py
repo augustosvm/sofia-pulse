@@ -56,6 +56,15 @@ REPORTS = [
     {'path': 'analytics/women-global-analysis.txt', 'name': '🚺 WOMEN GLOBAL ANALYSIS', 'max_chars': 4000},
     {'path': 'analytics/security-intelligence-report.txt', 'name': '🔒 SECURITY INTELLIGENCE', 'max_chars': 4000},
     {'path': 'analytics/social-intelligence-report.txt', 'name': '🌐 SOCIAL INTELLIGENCE', 'max_chars': 4000},
+
+    # Brazil & Specialized Intelligence (7)
+    {'path': 'analytics/brazil-economy-intelligence.txt', 'name': '🇧🇷 BRAZIL ECONOMY', 'max_chars': 4000},
+    {'path': 'analytics/global-health-humanitarian.txt', 'name': '🏥 GLOBAL HEALTH', 'max_chars': 4000},
+    {'path': 'analytics/trade-agriculture-intelligence.txt', 'name': '🌾 TRADE & AGRICULTURE', 'max_chars': 3500},
+    {'path': 'analytics/tourism-intelligence.txt', 'name': '✈️ TOURISM INTELLIGENCE', 'max_chars': 3500},
+    {'path': 'analytics/latam-intelligence.txt', 'name': '🌎 LATAM INTELLIGENCE', 'max_chars': 3500},
+    {'path': 'analytics/olympics-sports-intelligence.txt', 'name': '🏅 OLYMPICS & SPORTS', 'max_chars': 3500},
+    {'path': 'analytics/cross-data-correlations.txt', 'name': '🔗 CROSS-DATA CORRELATIONS', 'max_chars': 4000},
 ]
 
 print("════════════════════════════════════════════════════════════════")

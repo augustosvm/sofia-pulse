@@ -153,6 +153,44 @@ echo "════════════════════════�
 run_analytics "Social Intelligence" "python3 analytics/social-intelligence-report.py"
 
 ################################################################################
+# BRAZIL SPECIFIC INTELLIGENCE
+################################################################################
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "🇧🇷 BRAZIL INTELLIGENCE"
+echo "════════════════════════════════════════════════════════════════"
+
+run_analytics "Brazil Economy" "python3 analytics/brazil-economy-intelligence.py"
+
+################################################################################
+# GLOBAL SPECIALIZED ANALYTICS
+################################################################################
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "🌍 GLOBAL SPECIALIZED ANALYTICS"
+echo "════════════════════════════════════════════════════════════════"
+
+run_analytics "Global Health" "python3 analytics/global-health-humanitarian.py"
+run_analytics "Trade & Agriculture" "python3 analytics/trade-agriculture-intelligence.py"
+run_analytics "Tourism" "python3 analytics/tourism-intelligence.py"
+run_analytics "LATAM" "python3 analytics/latam-intelligence.py"
+run_analytics "Olympics & Sports" "python3 analytics/olympics-sports-intelligence.py"
+run_analytics "Base dos Dados" "python3 analytics/basedosdados-intelligence.py"
+
+################################################################################
+# CROSS-DATA CORRELATIONS
+################################################################################
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "🔗 CROSS-DATA CORRELATIONS"
+echo "════════════════════════════════════════════════════════════════"
+
+run_analytics "Cross-Data Correlations" "python3 analytics/cross-data-correlations.py"
+
+################################################################################
 # MEGA ANALYSIS (LAST - combines all)
 ################################################################################
 

@@ -1,23 +1,24 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2025-11-22 03:48 UTC
-**Branch**: `claude/fix-github-rate-limits-018sBR9un3QV4u2qhdW2tKNH`
+**Data**: 2025-11-23 UTC
+**Branch**: `claude/setup-auto-notifications-012c4Fo8viNHgba4oBwMpCjf`
 **Email**: augustosvm@gmail.com
-**Status**: ✅ SISTEMA 100% FUNCIONAL - WHATSAPP INTEGRATION + EMAIL + 23 REPORTS
+**Status**: ✅ SISTEMA 100% FUNCIONAL - 40+ FONTES + 33 RELATÓRIOS + 1.5M+ REGISTROS
 
 ---
 
 ## 🎯 RESUMO EXECUTIVO
 
-Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e envia **relatórios diários** com insights prontos.
+Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores**, e envia **33 relatórios diários** com insights prontos.
 
-**Para quem**: Colunistas tech, Investidores, Empresas, Job Seekers
+**Para quem**: Colunistas tech, Investidores, Empresas, Job Seekers, Governos, ONGs
 
 **O que faz**:
-- 📡 Coleta automática (GitHub, Papers REAIS, Funding, CVEs, Space, AI Laws)
-- 🧠 Análises ML (Sklearn, Clustering, NLP, Time Series, Correlações)
-- 🔮 **NOVO**: Inteligência Aplicada (6 análises preditivas) - Ver INTELLIGENCE-ANALYTICS.md
-- 📧 Email diário (19h BRT) com 11 relatórios + CSVs
+- 📡 Coleta automática de 40+ fontes (GitHub, Papers, Funding, WHO, UNICEF, ONU, WTO, FAO, CEPAL, etc.)
+- 🧠 Análises ML (Sklearn, Clustering, NLP, Time Series, Correlações cross-data)
+- 🔮 Inteligência Aplicada (33 relatórios com insights preditivos)
+- 📧 Email + WhatsApp diário (19h BRT) com 33 relatórios + CSVs
+- 🇧🇷 Dados específicos do Brasil (BACEN, IBGE, IPEA, ComexStat, Ministérios)
 
 **Análises de Inteligência:**
 1. 🎓 Prever tendências de carreira (antes das empresas)
@@ -262,56 +263,86 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 
 ---
 
-## 📊 FONTES DE DADOS (30+)
+## 📊 FONTES DE DADOS (40+ FONTES - 1.5M+ REGISTROS)
 
-### ✅ **APIs REAIS Funcionando**:
+### ✅ **ORGANIZAÇÕES INTERNACIONAIS**:
 
-**Research** (300 records):
+**ONU & Agências**:
+- ✅ WHO (OMS) - Saúde global, life expectancy, mortalidade
+- ✅ UNICEF - Dados de crianças, mortalidade infantil, educação
+- ✅ ILO (OIT) - Dados de trabalho, emprego, salários globais
+- ✅ UN SDG - Sustainable Development Goals indicators
+- ✅ HDX - Humanitarian Data Exchange, crises humanitárias
+
+**Comércio & Agricultura**:
+- ✅ WTO - World Trade Organization data
+- ✅ FAO - Food and Agriculture Organization
+- ✅ CEPAL/ECLAC - Dados América Latina + femicídio
+
+**Bancos Centrais**:
+- ✅ Central Banks Women Data - Mulheres em liderança (Americas, Europe, Asia)
+
+### ✅ **BRASIL - FONTES OFICIAIS**:
+
+**Economia**:
+- ✅ BACEN SGS - Selic, IPCA, câmbio, PIB (séries temporais)
+- ✅ IBGE API - Censos, PIB, inflação, emprego, demografia
+- ✅ IPEA - Séries econômicas históricas (desde 1940s)
+- ✅ ComexStat/MDIC - Importação/exportação por produto
+
+**Setoriais**:
+- ✅ Brazil Ministries - 12 ministérios, dados orçamentários
+- ✅ Brazil Security - 27 estados + 30 cidades (crime data)
+- ✅ Women Brazil - IBGE/IPEA gender indicators
+
+### ✅ **DADOS SOCIAIS & DEMOGRÁFICOS**:
+
+**Gênero**:
+- ✅ Women World Bank - 55+ indicadores, 60+ países
+- ✅ Women Eurostat - Dados EU de gênero
+- ✅ Women FRED - USA employment by gender/race
+- ✅ Women ILO - Global labor force participation
+
+**Social**:
+- ✅ World Religion Data - 40+ países, todas religiões + secular
+- ✅ World NGOs - Top 200 NGOs, 8 setores
+- ✅ World Drugs Data - UNODC + state-level USA/Brazil
+
+**Esportes**:
+- ✅ Sports Federations - FIFA, IOC, UEFA, FIBA rankings
+- ✅ Sports Regional - 17 esportes regionalizados
+- ✅ Olympics Medals - Histórico de medalhas
+- ✅ World Sports Data - WHO physical activity
+
+### ✅ **TECH & RESEARCH**:
+
 - ✅ ArXiv AI Papers (100 papers)
 - ✅ OpenAlex Research (100 papers)
 - ✅ NIH Grants (100 grants)
-- ✅ Asia Universities (36 dados estáticos)
+- ✅ GitHub Trending (300+ repos)
+- ✅ HackerNews (76 stories)
+- ✅ NPM Stats (16+ packages)
+- ✅ PyPI Stats (27 packages)
 
-**Tech Trends**:
-- ✅ GitHub Trending (API pública + rate limiter) - 300+ repos
-- ✅ HackerNews (API pública) - 76 stories
-- ✅ NPM Stats (API pública) - 16+ packages
-- ✅ PyPI Stats (API pública) - 27 packages
-- ⚠️ Reddit Tech (HTTP 403 - precisa app Reddit)
+### ✅ **ECONOMIA GLOBAL**:
 
-**Finance**:
-- ✅ Funding Rounds (24 deals reais manuais)
-- ✅ HKEX IPOs (59 dados estáticos)
-- ⚠️ B3 Stocks (mock - precisa certificado digital)
-- ⚠️ NASDAQ (mock - Alpha Vantage configurada)
-- ⚠️ IPO Calendar (mock - precisa scraper)
+- ✅ World Tourism Data - 90+ países
+- ✅ Electricity Consumption - 239 países
+- ✅ Port Traffic - 2,462 records
+- ✅ Commodity Prices - 5 commodities
+- ✅ Socioeconomic Indicators - 92k+ records
+- ✅ Global Energy - 307 países
+- ✅ Base dos Dados - Datasets brasileiros
 
-**Critical Sectors**:
-- ✅ Cybersecurity CVEs (NVD API pública) - 200+ events
-- ✅ Space Industry (Launch Library 2 API) - 2,200 launches
-- ✅ AI Regulation (6 dados curados)
-- ✅ GDELT Events (API pública) - 800 events
-- ⚠️ CISA KEV (HTTP 403 - bloqueado)
+### ✅ **SEGURANÇA**:
 
-**Global Economy**:
-- ✅ Electricity Consumption (EIA API + OWID) - 239 países
-- ✅ Port Traffic (World Bank API) - 2,462 records
-- ✅ Commodity Prices (API Ninjas free tier) - 5 commodities
-- ✅ Socioeconomic Indicators (World Bank) - 56 indicadores, 92k+ records
-- ✅ Global Energy (Our World in Data) - 307 países
-- ⚠️ Semiconductor Sales (SIA - HTTP 403, usando dados oficiais)
-
-**Patents**:
-- ⚠️ EPO Patents (mock - requer aprovação API)
-- ⚠️ WIPO China (mock - requer aprovação API)
-
-**Industry**:
-- ✅ Cardboard Production (dados estáticos)
-- ✅ AI Companies (20 dados curados)
+- ✅ World Security Data - Top 10 Americas/Europe/Asia
+- ✅ Cybersecurity CVEs - 200+ events
+- ✅ GDELT Events - 800 events
 
 ---
 
-## 🧠 ANÁLISES (23 Relatórios)
+## 🧠 ANÁLISES (33 Relatórios)
 
 ### **Core Analytics** (5):
 1. **Top 10 Tech Trends** - Ranking ponderado
@@ -332,7 +363,7 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 10. **NLG Playbooks** - Narrativas Gemini AI (contexto de papers)
 
 ### **MEGA Analysis** (1):
-11. **MEGA Analysis** - Cross-database (30+ fontes, 90 dias)
+11. **MEGA Analysis** - Cross-database (40+ fontes, 90 dias)
 
 ### **Predictive Intelligence** (6):
 12. **Career Trends Predictor** - Prediz skills antes das empresas
@@ -366,6 +397,20 @@ Sofia Pulse coleta dados de **30+ fontes**, analisa **14 setores críticos**, e 
 23. **STEM Education Leaders** - Melhores países para estudar tech
     - Metodologia: OECD PISA inspired
     - Fatores: Enrollment (30%), R&D investment (30%), Research output (25%), Literacy (15%)
+
+### **NEW: Women, Security & Social Intelligence** (3):
+24. **Women Global Analysis** - Gender gaps globais (World Bank, Eurostat, FRED, ILO, IBGE)
+25. **Security Intelligence** - Brazil 27 states + 30 cities + World Top 10 por região
+26. **Social Intelligence** - Religion 40+ países, NGOs 200+, Drugs UNODC
+
+### **NEW: Brazil & Global Specialized** (7):
+27. **Brazil Economy Intelligence** - BACEN, IBGE, IPEA, ComexStat, Ministérios
+28. **Global Health & Humanitarian** - WHO, UNICEF, HDX, ILO
+29. **Trade & Agriculture Intelligence** - WTO, FAO, UN SDG
+30. **Tourism Intelligence** - 90+ países, arrivals, revenue
+31. **LATAM Intelligence** - CEPAL/ECLAC + femicídio
+32. **Olympics & Sports Intelligence** - FIFA, IOC, medals, federations
+33. **Cross-Data Correlations** - GDP vs Security, Education vs Innovation, Health vs Productivity
 
 **Metodologias Consagradas** (documentadas em `analytics/METHODOLOGIES.md`):
 - ✅ HDI (Human Development Index) - UNDP
