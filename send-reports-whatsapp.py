@@ -51,6 +51,11 @@ REPORTS = [
     {'path': 'analytics/startup-founders-latest.txt', 'name': '🚀 STARTUP FOUNDERS', 'max_chars': 3000},
     {'path': 'analytics/digital-nomad-latest.txt', 'name': '✈️ DIGITAL NOMAD', 'max_chars': 2500},
     {'path': 'analytics/stem-education-latest.txt', 'name': '🎓 STEM EDUCATION', 'max_chars': 3000},
+
+    # NEW: Women, Security & Social Intelligence (3)
+    {'path': 'analytics/women-global-analysis.txt', 'name': '🚺 WOMEN GLOBAL ANALYSIS', 'max_chars': 4000},
+    {'path': 'analytics/security-intelligence-report.txt', 'name': '🔒 SECURITY INTELLIGENCE', 'max_chars': 4000},
+    {'path': 'analytics/social-intelligence-report.txt', 'name': '🌐 SOCIAL INTELLIGENCE', 'max_chars': 4000},
 ]
 
 print("════════════════════════════════════════════════════════════════")
