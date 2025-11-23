@@ -107,6 +107,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ WHO data error: {e}")
         report_lines.append("")
 
@@ -158,6 +159,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ UNICEF data error: {e}")
         report_lines.append("")
 
@@ -193,6 +195,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ HDX data error: {e}")
         report_lines.append("")
 
@@ -226,6 +229,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ ILO data error: {e}")
         report_lines.append("")
 

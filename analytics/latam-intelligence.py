@@ -49,6 +49,7 @@ def main():
             for country, ind, val, year in cur.fetchall():
                 report_lines.append(f"  • {country}: {ind[:30]} = {val:,.2f} ({year})")
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ CEPAL error: {e}")
     report_lines.append("")
 
@@ -70,6 +71,7 @@ def main():
             for country, ind, val, year in cur.fetchall():
                 report_lines.append(f"  • {country}: {ind[:30]} = {val:.2f} ({year})")
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Femicide error: {e}")
     report_lines.append("")
 

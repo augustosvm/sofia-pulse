@@ -20,7 +20,9 @@ def main():
         cur.execute("SELECT country, sport, gold, silver, bronze, year FROM sofia.olympics_medals ORDER BY gold DESC LIMIT 20")
         for c,s,g,si,b,y in cur.fetchall():
             r.append(f"  • {c}: {s} - 🥇{g} 🥈{si} 🥉{b} ({y})")
-    except Exception as e: r.append(f"⚠️ {e}")
+    except Exception as e:
+        conn.rollback()
+        r.append(f"⚠️ {e}")
 
     # Sports Rankings
     r.extend(["", "="*80, "🏆 SPORTS RANKINGS (FIFA, IOC, etc.)", "="*80])
@@ -30,7 +32,9 @@ def main():
         cur.execute("SELECT sport, federation, country, rank, points FROM sofia.sports_rankings ORDER BY rank LIMIT 20")
         for sp,fed,c,rk,pts in cur.fetchall():
             r.append(f"  • {sp} ({fed}): #{rk} {c} ({pts:.0f} pts)")
-    except Exception as e: r.append(f"⚠️ {e}")
+    except Exception as e:
+        conn.rollback()
+        r.append(f"⚠️ {e}")
 
     # World Sports
     r.extend(["", "="*80, "🏃 WORLD SPORTS DATA", "="*80])
@@ -40,7 +44,9 @@ def main():
         cur.execute("SELECT country, indicator, value, year FROM sofia.world_sports_data ORDER BY value DESC LIMIT 20")
         for c,ind,v,y in cur.fetchall():
             r.append(f"  • {c}: {ind[:30]} = {v:.2f} ({y})")
-    except Exception as e: r.append(f"⚠️ {e}")
+    except Exception as e:
+        conn.rollback()
+        r.append(f"⚠️ {e}")
 
     cur.close()
     conn.close()
