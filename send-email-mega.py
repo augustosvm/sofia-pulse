@@ -276,6 +276,20 @@ reports = [
     ('analytics/startup-founders-latest.txt', 'startup-founders-best-countries.txt'),
     ('analytics/digital-nomad-latest.txt', 'digital-nomad-index.txt'),
     ('analytics/stem-education-latest.txt', 'stem-education-leaders.txt'),
+
+    # NEW: Women, Security & Social Intelligence (3)
+    ('analytics/women-global-analysis.txt', 'women-global-analysis.txt'),
+    ('analytics/security-intelligence-report.txt', 'security-intelligence-report.txt'),
+    ('analytics/social-intelligence-report.txt', 'social-intelligence-report.txt'),
+
+    # NEW: Brazil & Global Specialized (7)
+    ('analytics/brazil-economy-intelligence.txt', 'brazil-economy-intelligence.txt'),
+    ('analytics/global-health-humanitarian.txt', 'global-health-humanitarian.txt'),
+    ('analytics/trade-agriculture-intelligence.txt', 'trade-agriculture-intelligence.txt'),
+    ('analytics/tourism-intelligence.txt', 'tourism-intelligence.txt'),
+    ('analytics/latam-intelligence.txt', 'latam-intelligence.txt'),
+    ('analytics/olympics-sports-intelligence.txt', 'olympics-sports-intelligence.txt'),
+    ('analytics/cross-data-correlations.txt', 'cross-data-correlations.txt'),
 ]
 
 attached_reports = 0
