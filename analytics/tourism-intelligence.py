@@ -38,12 +38,21 @@ def main():
         report_lines.append("")
 
         if count > 0:
-            # Top tourist destinations
+            # Top tourist destinations (exclude World aggregate, latest per country)
             cur.execute("""
-                SELECT country_name, indicator_name, value, year
-                FROM sofia.world_tourism_data
-                WHERE LOWER(indicator_name) LIKE '%arrival%' OR LOWER(indicator_name) LIKE '%tourist%'
-                ORDER BY value DESC
+                SELECT t.country_name, t.indicator_name, t.value, t.year
+                FROM sofia.world_tourism_data t
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.world_tourism_data
+                    WHERE (LOWER(indicator_name) LIKE '%arrival%' OR LOWER(indicator_name) LIKE '%tourist%')
+                      AND LOWER(country_name) NOT LIKE '%world%'
+                      AND value IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON t.country_name = latest.country_name AND t.year = latest.max_year
+                WHERE (LOWER(t.indicator_name) LIKE '%arrival%' OR LOWER(t.indicator_name) LIKE '%tourist%')
+                  AND LOWER(t.country_name) NOT LIKE '%world%'
+                ORDER BY t.value DESC
                 LIMIT 20
             """)
             rows = cur.fetchall()
@@ -56,12 +65,21 @@ def main():
                     report_lines.append(f"  • {country:<25} {val_str} arrivals ({year})")
                 report_lines.append("")
 
-            # Tourism revenue
+            # Tourism revenue (exclude World aggregate, latest per country)
             cur.execute("""
-                SELECT country_name, indicator_name, value, year
-                FROM sofia.world_tourism_data
-                WHERE LOWER(indicator_name) LIKE '%receipt%' OR LOWER(indicator_name) LIKE '%revenue%' OR LOWER(indicator_name) LIKE '%expenditure%'
-                ORDER BY value DESC
+                SELECT t.country_name, t.indicator_name, t.value, t.year
+                FROM sofia.world_tourism_data t
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.world_tourism_data
+                    WHERE (LOWER(indicator_name) LIKE '%receipt%' OR LOWER(indicator_name) LIKE '%revenue%' OR LOWER(indicator_name) LIKE '%expenditure%')
+                      AND LOWER(country_name) NOT LIKE '%world%'
+                      AND value IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON t.country_name = latest.country_name AND t.year = latest.max_year
+                WHERE (LOWER(t.indicator_name) LIKE '%receipt%' OR LOWER(t.indicator_name) LIKE '%revenue%' OR LOWER(t.indicator_name) LIKE '%expenditure%')
+                  AND LOWER(t.country_name) NOT LIKE '%world%'
+                ORDER BY t.value DESC
                 LIMIT 15
             """)
             rows = cur.fetchall()

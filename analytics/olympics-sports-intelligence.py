@@ -41,9 +41,10 @@ def main():
     try:
         cur.execute("SELECT COUNT(*) FROM sofia.world_sports_data")
         r.append(f"Records: {cur.fetchone()[0]:,}")
-        cur.execute("SELECT country, indicator, value, year FROM sofia.world_sports_data ORDER BY value DESC LIMIT 20")
+        cur.execute("SELECT country_code, indicator_name, value, year FROM sofia.world_sports_data WHERE value IS NOT NULL ORDER BY value DESC LIMIT 20")
         for c,ind,v,y in cur.fetchall():
-            r.append(f"  • {c}: {ind[:30]} = {v:.2f} ({y})")
+            ind_name = ind[:30] if ind else "N/A"
+            r.append(f"  • {c}: {ind_name} = {float(v):.2f} ({y})")
     except Exception as e:
         conn.rollback()
         r.append(f"⚠️ {e}")

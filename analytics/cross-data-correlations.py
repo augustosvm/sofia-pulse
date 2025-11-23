@@ -23,13 +23,23 @@ def main():
     cur = conn.cursor()
     r = ["="*80, "🔗 CROSS-DATA CORRELATIONS ANALYSIS", "="*80, f"Generated: {datetime.now()}", ""]
 
-    # 1. Security vs Economic indicators
+    # 1. Security vs Economic indicators (latest year per country)
     r.extend(["="*80, "🔒💰 SECURITY vs ECONOMY CORRELATION", "="*80, ""])
     try:
         cur.execute("""
             SELECT s.country_name, s.value as security_score, e.value as gdp
             FROM sofia.world_security_data s
+            INNER JOIN (
+                SELECT country_name, MAX(year) as max_year
+                FROM sofia.world_security_data WHERE value IS NOT NULL
+                GROUP BY country_name
+            ) sec_latest ON s.country_name = sec_latest.country_name AND s.year = sec_latest.max_year
             JOIN sofia.socioeconomic_indicators e ON LOWER(s.country_name) = LOWER(e.country_name)
+            INNER JOIN (
+                SELECT country_name, MAX(year) as max_year
+                FROM sofia.socioeconomic_indicators WHERE indicator_code = 'NY.GDP.PCAP.CD' AND value IS NOT NULL
+                GROUP BY country_name
+            ) gdp_latest ON e.country_name = gdp_latest.country_name AND e.year = gdp_latest.max_year
             WHERE s.value IS NOT NULL AND e.value IS NOT NULL
             AND e.indicator_code = 'NY.GDP.PCAP.CD'
             ORDER BY e.value DESC
@@ -103,14 +113,26 @@ def main():
         r.append(f"⚠️ {e}")
     r.append("")
 
-    # 4. Religion vs Innovation
+    # 4. Religion vs Innovation (latest year per country)
     r.extend(["="*80, "🙏🔬 RELIGION vs INNOVATION CORRELATION", "="*80, ""])
     try:
         cur.execute("""
             SELECT rel.country_name, rel.religion, rel.percentage,
                    soc.value as rd_spend
             FROM sofia.world_religion_data rel
+            INNER JOIN (
+                SELECT country_name, religion, MAX(year) as max_year
+                FROM sofia.world_religion_data WHERE percentage > 50
+                GROUP BY country_name, religion
+            ) rel_latest ON rel.country_name = rel_latest.country_name
+                         AND rel.religion = rel_latest.religion
+                         AND rel.year = rel_latest.max_year
             JOIN sofia.socioeconomic_indicators soc ON LOWER(rel.country_name) = LOWER(soc.country_name)
+            INNER JOIN (
+                SELECT country_name, MAX(year) as max_year
+                FROM sofia.socioeconomic_indicators WHERE indicator_code = 'GB.XPD.RSDV.GD.ZS' AND value IS NOT NULL
+                GROUP BY country_name
+            ) soc_latest ON soc.country_name = soc_latest.country_name AND soc.year = soc_latest.max_year
             WHERE rel.percentage > 50
             AND soc.indicator_code = 'GB.XPD.RSDV.GD.ZS'
             AND soc.value IS NOT NULL

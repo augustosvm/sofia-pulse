@@ -242,13 +242,19 @@ def main():
                     report_lines.append(f"  • {drug:<25} {countries:>3} countries | Avg: {float(prevalence):>5.2f}%")
                 report_lines.append("")
 
-            # Top cannabis countries
+            # Top cannabis countries (latest per country)
             cur.execute("""
-                SELECT country_name, drug_type, prevalence_percent, year
-                FROM sofia.world_drugs_data
-                WHERE LOWER(drug_type) LIKE '%cannabis%'
-                  AND prevalence_percent IS NOT NULL
-                ORDER BY prevalence_percent DESC
+                SELECT d.country_name, d.drug_type, d.prevalence_percent, d.year
+                FROM sofia.world_drugs_data d
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.world_drugs_data
+                    WHERE LOWER(drug_type) LIKE '%cannabis%' AND prevalence_percent IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON d.country_name = latest.country_name AND d.year = latest.max_year
+                WHERE LOWER(d.drug_type) LIKE '%cannabis%'
+                  AND d.prevalence_percent IS NOT NULL
+                ORDER BY d.prevalence_percent DESC
                 LIMIT 10
             """)
             rows = cur.fetchall()
