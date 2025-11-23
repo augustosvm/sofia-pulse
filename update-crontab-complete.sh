@@ -28,7 +28,8 @@ cat > /tmp/sofia_crontab.txt << EOF
 0 10 * * 1-5 cd $SOFIA_DIR && set -a && source .env && set +a && bash collect-fast-apis.sh >> logs/cron-fast.log 2>&1
 0 16 * * 1-5 cd $SOFIA_DIR && set -a && source .env && set +a && bash collect-limited-apis-with-alerts.sh >> logs/cron-limited.log 2>&1
 0 22 * * 1-5 cd $SOFIA_DIR && set -a && source .env && set +a && bash run-mega-analytics-with-alerts.sh >> logs/cron-analytics.log 2>&1
-5 22 * * 1-5 cd $SOFIA_DIR && set -a && source .env && set +a && python3 send-reports-whatsapp.py >> logs/cron-whatsapp.log 2>&1
+5 22 * * 1-5 cd $SOFIA_DIR && set -a && source .env && set +a && bash send-email-mega.sh >> logs/cron-email.log 2>&1
+10 22 * * 1-5 cd $SOFIA_DIR && set -a && source .env && set +a && python3 send-reports-whatsapp.py >> logs/cron-whatsapp.log 2>&1
 
 # SEMANAL - Domingos
 0 8 * * 0 cd $SOFIA_DIR && set -a && source .env && set +a && bash collect-women-data.sh >> logs/cron-women.log 2>&1
