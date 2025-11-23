@@ -137,6 +137,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ World Bank data error: {e}")
         report_lines.append("")
 
@@ -172,6 +173,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Brazil data error: {e}")
         report_lines.append("")
 
@@ -192,7 +194,7 @@ def main():
         if count > 0:
             # Women in leadership
             cur.execute("""
-                SELECT country, bank_name, indicator, value, year
+                SELECT country_code, central_bank_name, indicator_name, value, year
                 FROM sofia.central_banks_women_data
                 WHERE value IS NOT NULL
                 ORDER BY value DESC
@@ -202,11 +204,12 @@ def main():
             if rows:
                 report_lines.append("👩‍💼 WOMEN IN CENTRAL BANK LEADERSHIP:")
                 report_lines.append("-" * 60)
-                for country, bank, indicator, value, year in rows:
-                    report_lines.append(f"  • {country} ({bank[:20]}): {indicator[:25]} = {value:.1f}% ({year})")
+                for country_code, bank, indicator_name, value, year in rows:
+                    report_lines.append(f"  • {country_code} ({bank[:20]}): {indicator_name[:25]} = {value:.1f}% ({year})")
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Central banks data error: {e}")
         report_lines.append("")
 
@@ -241,6 +244,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Eurostat data error: {e}")
         report_lines.append("")
 
@@ -275,6 +279,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ FRED data error: {e}")
         report_lines.append("")
 

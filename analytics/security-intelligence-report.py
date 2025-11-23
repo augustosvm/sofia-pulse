@@ -68,7 +68,7 @@ def main():
         if count > 0:
             # Safest states (lowest homicide rate)
             cur.execute("""
-                SELECT state_name, state_code, indicator, value, year
+                SELECT region_name, region_code, indicator, value, year
                 FROM sofia.brazil_security_data
                 WHERE LOWER(indicator) LIKE '%homic%' OR LOWER(indicator) LIKE '%murder%'
                   AND value IS NOT NULL
@@ -79,13 +79,13 @@ def main():
             if rows:
                 report_lines.append("🏆 SAFEST BRAZILIAN STATES (Lowest Homicide Rate):")
                 report_lines.append("-" * 60)
-                for i, (state, code, indicator, value, year) in enumerate(rows, 1):
-                    report_lines.append(f"  {i:2}. {state:<25} ({code}) {value:>8.2f} ({year})")
+                for i, (region, code, indicator, value, year) in enumerate(rows, 1):
+                    report_lines.append(f"  {i:2}. {region:<25} ({code}) {value:>8.2f} ({year})")
                 report_lines.append("")
 
             # Most dangerous states
             cur.execute("""
-                SELECT state_name, state_code, indicator, value, year
+                SELECT region_name, region_code, indicator, value, year
                 FROM sofia.brazil_security_data
                 WHERE (LOWER(indicator) LIKE '%homic%' OR LOWER(indicator) LIKE '%murder%')
                   AND value IS NOT NULL
@@ -96,8 +96,8 @@ def main():
             if rows:
                 report_lines.append("⚠️ HIGHEST CRIME BRAZILIAN STATES:")
                 report_lines.append("-" * 60)
-                for i, (state, code, indicator, value, year) in enumerate(rows, 1):
-                    report_lines.append(f"  {i:2}. {state:<25} ({code}) {value:>8.2f} ({year})")
+                for i, (region, code, indicator, value, year) in enumerate(rows, 1):
+                    report_lines.append(f"  {i:2}. {region:<25} ({code}) {value:>8.2f} ({year})")
                 report_lines.append("")
 
             # All indicators available
@@ -116,6 +116,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Brazil state data error: {e}")
         report_lines.append("")
 
@@ -136,37 +137,38 @@ def main():
         if count > 0:
             # Safest cities
             cur.execute("""
-                SELECT city_name, state_code, indicator, value, year
+                SELECT city, state, homicide_rate, year
                 FROM sofia.brazil_security_cities
-                WHERE value IS NOT NULL
-                ORDER BY value ASC
+                WHERE homicide_rate IS NOT NULL
+                ORDER BY homicide_rate ASC
                 LIMIT 15
             """)
             rows = cur.fetchall()
             if rows:
                 report_lines.append("🏆 SAFEST BRAZILIAN CITIES:")
                 report_lines.append("-" * 60)
-                for i, (city, state, indicator, value, year) in enumerate(rows, 1):
-                    report_lines.append(f"  {i:2}. {city:<20} ({state}) {indicator[:20]}: {value:>8.2f} ({year})")
+                for i, (city, state, homicide_rate, year) in enumerate(rows, 1):
+                    report_lines.append(f"  {i:2}. {city:<20} ({state}) Homicide rate: {homicide_rate:>8.2f} ({year})")
                 report_lines.append("")
 
             # Most dangerous cities
             cur.execute("""
-                SELECT city_name, state_code, indicator, value, year
+                SELECT city, state, homicide_rate, year
                 FROM sofia.brazil_security_cities
-                WHERE value IS NOT NULL
-                ORDER BY value DESC
+                WHERE homicide_rate IS NOT NULL
+                ORDER BY homicide_rate DESC
                 LIMIT 15
             """)
             rows = cur.fetchall()
             if rows:
                 report_lines.append("⚠️ HIGHEST CRIME BRAZILIAN CITIES:")
                 report_lines.append("-" * 60)
-                for i, (city, state, indicator, value, year) in enumerate(rows, 1):
-                    report_lines.append(f"  {i:2}. {city:<20} ({state}) {indicator[:20]}: {value:>8.2f} ({year})")
+                for i, (city, state, homicide_rate, year) in enumerate(rows, 1):
+                    report_lines.append(f"  {i:2}. {city:<20} ({state}) Homicide rate: {homicide_rate:>8.2f} ({year})")
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Brazil cities data error: {e}")
         report_lines.append("")
 
@@ -188,7 +190,7 @@ def main():
             # By region - safest
             for region in ['Americas', 'Europe', 'Asia']:
                 cur.execute("""
-                    SELECT country, region, indicator, value, year
+                    SELECT country_name, region, indicator_name, value, year
                     FROM sofia.world_security_data
                     WHERE LOWER(region) LIKE %s
                       AND value IS NOT NULL
@@ -199,13 +201,13 @@ def main():
                 if rows:
                     report_lines.append(f"🏆 SAFEST IN {region.upper()}:")
                     report_lines.append("-" * 60)
-                    for i, (country, reg, indicator, value, year) in enumerate(rows, 1):
-                        report_lines.append(f"  {i:2}. {country:<25} {value:>8.2f} ({year})")
+                    for i, (country_name, reg, indicator_name, value, year) in enumerate(rows, 1):
+                        report_lines.append(f"  {i:2}. {country_name:<25} {value:>8.2f} ({year})")
                     report_lines.append("")
 
             # Global ranking - safest
             cur.execute("""
-                SELECT country, region, indicator, value, year
+                SELECT country_name, region, indicator_name, value, year
                 FROM sofia.world_security_data
                 WHERE value IS NOT NULL
                 ORDER BY value ASC
@@ -215,11 +217,12 @@ def main():
             if rows:
                 report_lines.append("🌍 GLOBAL RANKING - SAFEST COUNTRIES:")
                 report_lines.append("-" * 60)
-                for i, (country, region, indicator, value, year) in enumerate(rows, 1):
-                    report_lines.append(f"  {i:2}. {country:<25} ({region:<10}) {value:>8.2f}")
+                for i, (country_name, region, indicator_name, value, year) in enumerate(rows, 1):
+                    report_lines.append(f"  {i:2}. {country_name:<25} ({region:<10}) {value:>8.2f}")
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ World security data error: {e}")
         report_lines.append("")
 

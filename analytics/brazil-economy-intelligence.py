@@ -102,6 +102,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ BACEN data error: {e}")
         report_lines.append("")
 
@@ -121,7 +122,7 @@ def main():
 
         if count > 0:
             cur.execute("""
-                SELECT indicator_name, value, location, period
+                SELECT indicator_name, value, localidade_nome, period
                 FROM sofia.ibge_indicators
                 ORDER BY period DESC
                 LIMIT 20
@@ -130,12 +131,13 @@ def main():
             if rows:
                 report_lines.append("📊 LATEST IBGE INDICATORS:")
                 report_lines.append("-" * 60)
-                for name, value, location, period in rows:
-                    loc = location[:15] if location else "Brazil"
+                for name, value, localidade, period in rows:
+                    loc = localidade[:15] if localidade else "Brazil"
                     report_lines.append(f"  • {name[:35]}: {value:,.2f} ({loc}, {period})")
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ IBGE data error: {e}")
         report_lines.append("")
 
@@ -170,6 +172,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ IPEA data error: {e}")
         report_lines.append("")
 
@@ -223,6 +226,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ ComexStat data error: {e}")
         report_lines.append("")
 
@@ -256,6 +260,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Ministries data error: {e}")
         report_lines.append("")
 

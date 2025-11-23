@@ -65,7 +65,7 @@ def main():
         if count > 0:
             # Top Christian countries
             cur.execute("""
-                SELECT country, religion, percentage, population, year
+                SELECT country_name, religion, percentage, population, year
                 FROM sofia.world_religion_data
                 WHERE LOWER(religion) LIKE '%christian%'
                   AND percentage IS NOT NULL
@@ -76,14 +76,14 @@ def main():
             if rows:
                 report_lines.append("✝️ TOP CHRISTIAN COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country, religion, pct, pop, year in rows:
+                for country_name, religion, pct, pop, year in rows:
                     pop_str = f"{pop/1e6:.1f}M" if pop else "N/A"
-                    report_lines.append(f"  • {country:<25} {pct:>5.1f}% ({pop_str})")
+                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({pop_str})")
                 report_lines.append("")
 
             # Top Muslim countries
             cur.execute("""
-                SELECT country, religion, percentage, population, year
+                SELECT country_name, religion, percentage, population, year
                 FROM sofia.world_religion_data
                 WHERE LOWER(religion) LIKE '%muslim%' OR LOWER(religion) LIKE '%islam%'
                   AND percentage IS NOT NULL
@@ -94,16 +94,16 @@ def main():
             if rows:
                 report_lines.append("☪️ TOP MUSLIM COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country, religion, pct, pop, year in rows:
+                for country_name, religion, pct, pop, year in rows:
                     pop_str = f"{pop/1e6:.1f}M" if pop else "N/A"
-                    report_lines.append(f"  • {country:<25} {pct:>5.1f}% ({pop_str})")
+                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({pop_str})")
                 report_lines.append("")
 
             # Top secular/non-religious countries
             cur.execute("""
-                SELECT country, religion, percentage, population, year
+                SELECT country_name, religion, percentage, population, year
                 FROM sofia.world_religion_data
-                WHERE LOWER(religion) LIKE '%non%relig%' 
+                WHERE LOWER(religion) LIKE '%non%relig%'
                    OR LOWER(religion) LIKE '%atheist%'
                    OR LOWER(religion) LIKE '%secular%'
                    OR LOWER(religion) LIKE '%unaffiliat%'
@@ -115,17 +115,17 @@ def main():
             if rows:
                 report_lines.append("🔬 TOP SECULAR/NON-RELIGIOUS COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country, religion, pct, pop, year in rows:
+                for country_name, religion, pct, pop, year in rows:
                     pop_str = f"{pop/1e6:.1f}M" if pop else "N/A"
-                    report_lines.append(f"  • {country:<25} {pct:>5.1f}% ({pop_str})")
+                    report_lines.append(f"  • {country_name:<25} {pct:>5.1f}% ({pop_str})")
                 report_lines.append("")
 
             # Religious diversity (multiple religions in country)
             cur.execute("""
-                SELECT country, COUNT(DISTINCT religion) as religions
+                SELECT country_name, COUNT(DISTINCT religion) as religions
                 FROM sofia.world_religion_data
                 WHERE percentage > 5
-                GROUP BY country
+                GROUP BY country_name
                 ORDER BY religions DESC
                 LIMIT 10
             """)
@@ -133,11 +133,12 @@ def main():
             if rows:
                 report_lines.append("🌈 MOST RELIGIOUSLY DIVERSE COUNTRIES:")
                 report_lines.append("-" * 60)
-                for country, religions in rows:
-                    report_lines.append(f"  • {country:<30} {religions} major religions")
+                for country_name, religions in rows:
+                    report_lines.append(f"  • {country_name:<30} {religions} major religions")
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Religion data error: {e}")
         report_lines.append("")
 
@@ -211,6 +212,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ NGO data error: {e}")
         report_lines.append("")
 
@@ -279,6 +281,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Drugs data error: {e}")
         report_lines.append("")
 
@@ -337,6 +340,7 @@ def main():
                 report_lines.append("")
 
     except Exception as e:
+        conn.rollback()
         report_lines.append(f"⚠️ Sports data error: {e}")
         report_lines.append("")
 
