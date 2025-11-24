@@ -1,0 +1,561 @@
+════════════════════════════════════════════════════════════════════════════════
+SOFIA PULSE - DATABASE INVENTORY REPORT
+════════════════════════════════════════════════════════════════════════════════
+Generated: 2025-11-23 21:41:11
+
+📊 INVENTORY SUMMARY
+────────────────────────────────────────────────────────────────────────────────
+Total Tables:    65
+Total Views:     5
+Total Functions: 4
+Total Indexes:   310
+Total Rows:      1,017,965
+Total Storage:   1130.96 MB
+
+📦 TOP 10 LARGEST TABLES
+────────────────────────────────────────────────────────────────────────────────
+ 1. sofia.women_eurostat_data                           805,563 rows     1006 MB  (88.9%)
+ 2. sofia.socioeconomic_indicators                       92,993 rows       43 MB  (3.8%)
+ 3. sofia.world_sports_data                               5,535 rows       30 MB  (2.6%)
+ 4. sofia.women_world_bank_data                          62,700 rows       23 MB  (2.0%)
+ 5. sofia.world_drugs_data                                9,462 rows     6864 kB  (0.6%)
+ 6. sofia.world_tourism_data                             18,580 rows     5080 kB  (0.4%)
+ 7. sofia.women_ilo_data                                  3,825 rows     1896 kB  (0.2%)
+ 8. sofia.space_industry                                  2,900 rows     1720 kB  (0.1%)
+ 9. sofia.world_security_data                             3,386 rows     1424 kB  (0.1%)
+10. sofia.publications                                      200 rows     1008 kB  (0.1%)
+
+📋 DETAILED TABLE INVENTORY
+════════════════════════════════════════════════════════════════════════════════
+
+Schema: public
+────────────────────────────────────────────────────────────────────────────────
+
+Schema: sofia
+────────────────────────────────────────────────────────────────────────────────
+
+Table: women_eurostat_data
+  Records:      805,563
+  Columns:      14
+  Storage:      1006 MB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      women_eurostat_data_pkey, women_eurostat_data_dataset_code_country_code_year_sex_age__key, idx_eurostat_dataset, idx_eurostat_country_year
+
+Table: socioeconomic_indicators
+  Records:      92,993
+  Columns:      11
+  Storage:      43 MB
+  Last update:  2025-11-22T00:47:14.681456+00:00
+  Primary key:  id
+  Indexes:      socioeconomic_indicators_pkey, socioeconomic_indicators_country_code_year_indicator_code_key, idx_socio_country, idx_socio_year, idx_socio_indicator, idx_socio_country_year
+
+Table: women_world_bank_data
+  Records:      62,700
+  Columns:      12
+  Storage:      23 MB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      women_world_bank_data_pkey, women_world_bank_data_indicator_code_country_code_year_key, idx_women_wb_indicator_year, idx_women_wb_country, idx_women_wb_category
+
+Table: world_tourism_data
+  Records:      18,580
+  Columns:      13
+  Storage:      5080 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      world_tourism_data_pkey, world_tourism_data_indicator_code_country_code_year_key, idx_tourism_indicator_year, idx_tourism_country, idx_tourism_category
+
+Table: world_drugs_data
+  Records:      9,462
+  Columns:      14
+  Storage:      6864 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      world_drugs_data_pkey, world_drugs_data_country_code_state_code_drug_type_year_key, idx_drugs_country, idx_drugs_type, idx_drugs_region
+
+Table: world_sports_data
+  Records:      5,535
+  Columns:      12
+  Storage:      30 MB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      world_sports_data_pkey, world_sports_data_source_indicator_code_country_code_sex_ye_key, idx_sports_source_country, idx_sports_category
+
+Table: women_ilo_data
+  Records:      3,825
+  Columns:      14
+  Storage:      1896 kB
+  Last update:  2025-11-23T21:30:52.283101
+  Primary key:  id
+  Indexes:      women_ilo_data_pkey, women_ilo_data_indicator_id_country_code_sex_age_group_year_key, idx_ilo_indicator_year, idx_ilo_country
+
+Table: world_security_data
+  Records:      3,386
+  Columns:      13
+  Storage:      1424 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      world_security_data_pkey, world_security_data_indicator_code_country_code_year_key, idx_world_security_region, idx_world_security_indicator, idx_world_security_category
+
+Table: space_industry
+  Records:      2,900
+  Columns:      18
+  Storage:      1720 kB
+  Last update:  2025-11-22T00:49:39.394634+00:00
+  Primary key:  id
+  Indexes:      space_industry_pkey, idx_space_type, idx_space_company, idx_space_date, idx_space_status
+
+Table: port_traffic
+  Records:      2,462
+  Columns:      7
+  Storage:      1000 kB
+  Last update:  2025-11-22T00:46:16.355038+00:00
+  Primary key:  id
+  Indexes:      port_traffic_pkey, port_traffic_country_year_key, idx_port_country, idx_port_year, idx_port_teu
+
+Table: central_banks_women_data
+  Records:      2,225
+  Columns:      13
+  Storage:      696 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      central_banks_women_data_pkey, central_banks_women_data_central_bank_code_indicator_code_y_key, idx_cb_women_country, idx_cb_women_region
+
+Table: gdelt_events
+  Records:      1,120
+  Columns:      26
+  Storage:      608 kB
+  Primary key:  id
+  Indexes:      gdelt_events_pkey, gdelt_events_event_id_key, idx_gdelt_date, idx_gdelt_countries, idx_gdelt_goldstein, idx_gdelt_tone, idx_gdelt_categories, idx_gdelt_tech
+
+Table: bacen_sgs_series
+  Records:      921
+  Columns:      9
+  Storage:      416 kB
+  Last update:  2025-11-23
+  Primary key:  id
+  Indexes:      bacen_sgs_series_pkey, bacen_sgs_series_series_code_date_key, idx_bacen_series_code_date
+
+Table: ipea_series
+  Records:      876
+  Columns:      8
+  Storage:      536 kB
+  Last update:  2025-10-01
+  Primary key:  id
+  Indexes:      ipea_series_pkey, ipea_series_series_code_date_key, idx_ipea_series_code_date, idx_ipea_category
+
+Table: github_niches
+  Records:      752
+  Columns:      19
+  Storage:      992 kB
+  Last update:  2025-11-22T00:53:16+00:00
+  Primary key:  id
+  Indexes:      github_niches_pkey, github_niches_full_name_key, idx_github_niches_niche, idx_github_niches_stars, idx_github_niches_topics
+
+Table: stackoverflow_trends
+  Records:      387
+  Columns:      11
+  Storage:      272 kB
+  Primary key:  id
+  Indexes:      stackoverflow_trends_pkey, stackoverflow_trends_question_id_key, idx_stackoverflow_tags, idx_stackoverflow_creation
+
+Table: cardboard_production
+  Records:      380
+  Columns:      9
+  Storage:      176 kB
+  Primary key:  id
+  Indexes:      cardboard_production_pkey, cardboard_production_country_region_period_source_key, idx_cardboard_country_period, idx_cardboard_source, idx_cardboard_collected_at
+
+Table: github_trending
+  Records:      333
+  Columns:      23
+  Storage:      664 kB
+  Last update:  2025-11-22T00:49:19
+  Primary key:  id
+  Indexes:      github_trending_pkey, github_trending_repo_id_key, idx_github_trending_language, idx_github_trending_stars, idx_github_trending_stars_week, idx_github_trending_collected, idx_github_trending_topics
+
+Table: market_data_brazil
+  Records:      328
+  Columns:      9
+  Storage:      120 kB
+  Primary key:  id
+  Indexes:      market_data_brazil_pkey, market_data_brazil_ticker_collected_at_key, idx_brazil_ticker
+
+Table: sports_regional
+  Records:      308
+  Columns:      13
+  Storage:      168 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      sports_regional_pkey, sports_regional_sport_region_country_code_key, idx_sports_regional_sport, idx_sports_regional_region, idx_sports_regional_country
+
+Table: energy_global
+  Records:      307
+  Columns:      24
+  Storage:      304 kB
+  Last update:  2025-11-22T00:47:30.828596+00:00
+  Primary key:  id
+  Indexes:      energy_global_pkey, energy_global_country_year_key, idx_energy_country, idx_energy_year, idx_energy_renewables
+
+Table: world_religion_data
+  Records:      297
+  Columns:      10
+  Storage:      144 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      world_religion_data_pkey, world_religion_data_country_code_religion_year_key, idx_religion_country, idx_religion_type
+
+Table: electricity_consumption
+  Records:      239
+  Columns:      11
+  Storage:      264 kB
+  Last update:  2025-11-22T00:46:15.198946+00:00
+  Primary key:  id
+  Indexes:      electricity_consumption_pkey, electricity_consumption_country_year_key, idx_elec_country, idx_elec_year, idx_elec_consumption
+
+Table: cybersecurity_events
+  Records:      227
+  Columns:      15
+  Storage:      632 kB
+  Last update:  2025-11-22T00:49:41.912357+00:00
+  Primary key:  id
+  Indexes:      cybersecurity_events_pkey, cybersecurity_events_event_id_key, idx_cyber_type, idx_cyber_severity, idx_cyber_date, idx_cyber_cvss
+
+Table: arxiv_ai_papers
+  Records:      202
+  Columns:      13
+  Storage:      768 kB
+  Primary key:  id
+  Indexes:      arxiv_ai_papers_pkey, arxiv_ai_papers_arxiv_id_key, idx_arxiv_ai_published, idx_arxiv_ai_category, idx_arxiv_ai_keywords, idx_arxiv_ai_breakthrough
+
+Table: publications
+  Records:      200
+  Columns:      17
+  Storage:      1008 kB
+  Last update:  2025-11-17T07:07:37.634373+00:00
+  Primary key:  id
+  Indexes:      publications_pkey, publications_paper_id_key, idx_pub_paper_id, idx_pub_categories, idx_pub_date, idx_pub_source, idx_publications_date, idx_publications_categories, idx_publications_source, idx_publications_language
+
+Table: world_ngos
+  Records:      200
+  Columns:      12
+  Storage:      128 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      world_ngos_pkey, world_ngos_name_key, idx_ngos_sector, idx_ngos_country, idx_ngos_revenue
+
+Table: brazil_security_data
+  Records:      180
+  Columns:      13
+  Storage:      184 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      brazil_security_data_pkey, brazil_security_data_data_type_indicator_region_code_year_key, idx_security_region, idx_security_type
+
+Table: brazil_ministries_data
+  Records:      113
+  Columns:      14
+  Storage:      136 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      brazil_ministries_data_pkey, brazil_ministries_data_ministry_dataset_id_period_region_in_key, idx_ministry_dataset, idx_ministry_period
+
+Table: pypi_stats
+  Records:      108
+  Columns:      7
+  Storage:      136 kB
+  Primary key:  id
+  Indexes:      pypi_stats_pkey, idx_pypi_package_date, idx_pypi_package, idx_pypi_downloads, idx_pypi_date
+
+Table: hackernews_stories
+  Records:      102
+  Columns:      16
+  Storage:      320 kB
+  Last update:  2025-11-21T22:54:29
+  Primary key:  id
+  Indexes:      hackernews_stories_pkey, hackernews_stories_story_id_key, idx_hn_points, idx_hn_comments, idx_hn_created, idx_hn_author, idx_hn_keywords, idx_hn_companies, idx_hn_technologies
+
+Table: openalex_papers
+  Records:      83
+  Columns:      19
+  Storage:      336 kB
+  Primary key:  id
+  Indexes:      idx_openalex_papers_countries, openalex_papers_pkey, openalex_papers_openalex_id_key, idx_openalex_pub_year, idx_openalex_cited_by, idx_openalex_concepts, idx_openalex_countries, idx_openalex_primary_concept
+
+Table: startups
+  Records:      80
+  Columns:      19
+  Storage:      264 kB
+  Last update:  2025-11-15T14:50:25.878605+00:00
+  Primary key:  id
+  Indexes:      startups_pkey, startups_startup_id_key, idx_startups_country, idx_startups_status, idx_startups_source, idx_startups_technologies, idx_startups_industry, idx_startups_batch
+
+Table: market_data_nasdaq
+  Records:      76
+  Columns:      9
+  Storage:      56 kB
+  Primary key:  id
+  Indexes:      market_data_nasdaq_pkey, market_data_nasdaq_ticker_collected_at_key, idx_nasdaq_ticker
+
+Table: npm_stats
+  Records:      64
+  Columns:      9
+  Storage:      144 kB
+  Primary key:  id
+  Indexes:      npm_stats_pkey, idx_npm_package_date, idx_npm_package, idx_npm_downloads, idx_npm_date
+
+Table: hkex_ipos
+  Records:      63
+  Columns:      13
+  Storage:      136 kB
+  Primary key:  id
+  Indexes:      hkex_ipos_pkey, hkex_ipos_ticker_ipo_date_key, idx_hkex_ipo_date, idx_hkex_sector, idx_hkex_market_cap
+
+Table: ibge_indicators
+  Records:      60
+  Columns:      11
+  Storage:      136 kB
+  Primary key:  id
+  Indexes:      ibge_indicators_pkey, ibge_indicators_agregado_id_localidade_id_period_key, idx_ibge_agregado_period, idx_ibge_category
+
+Table: asia_universities
+  Records:      36
+  Columns:      19
+  Storage:      176 kB
+  Primary key:  id
+  Indexes:      asia_universities_pkey, asia_universities_name_country_key, idx_asia_uni_country, idx_asia_uni_qs_rank, idx_asia_uni_research_output, idx_asia_uni_strong_fields
+
+Table: central_banks
+  Records:      32
+  Columns:      8
+  Storage:      48 kB
+  Primary key:  id
+  Indexes:      central_banks_pkey, central_banks_bank_code_key
+
+Table: github_metrics
+  Records:      30
+  Columns:      13
+  Storage:      208 kB
+  Last update:  2023-03-16T09:21:07+00:00
+  Primary key:  id
+  Indexes:      github_metrics_pkey, github_metrics_repo_name_key, idx_github_growth, idx_github_language, idx_github_topics, idx_github_collected
+
+Table: brazil_security_cities
+  Records:      30
+  Columns:      9
+  Storage:      40 kB
+  Primary key:  id
+  Indexes:      brazil_security_cities_pkey, brazil_security_cities_city_state_year_key
+
+Table: women_brazil_data
+  Records:      24
+  Columns:      13
+  Storage:      112 kB
+  Last update:  2025-11-23T20:51:39.586045
+  Primary key:  id
+  Indexes:      women_brazil_data_pkey, women_brazil_data_source_indicator_code_region_period_sex_key, idx_brazil_women_indicator, idx_brazil_women_period
+
+Table: funding_rounds
+  Records:      24
+  Columns:      11
+  Storage:      96 kB
+  Primary key:  id
+  Indexes:      funding_rounds_pkey, funding_rounds_company_name_round_type_announced_date_key, idx_funding_company, idx_funding_date, idx_funding_rounds_city
+
+Table: commodity_prices
+  Records:      21
+  Columns:      8
+  Storage:      104 kB
+  Last update:  2025-11-22T00:46:17.914562+00:00
+  Primary key:  id
+  Indexes:      commodity_prices_pkey, commodity_prices_commodity_price_date_key, idx_commodity_name, idx_commodity_date
+
+Table: ai_companies
+  Records:      20
+  Columns:      18
+  Storage:      112 kB
+  Primary key:  id
+  Indexes:      ai_companies_pkey, ai_companies_name_key, idx_ai_companies_country, idx_ai_companies_category, idx_ai_companies_valuation, idx_ai_companies_status
+
+Table: epo_patents
+  Records:      11
+  Columns:      14
+  Storage:      160 kB
+  Primary key:  id
+  Indexes:      epo_patents_pkey, epo_patents_application_number_key, idx_epo_applicant, idx_epo_country, idx_epo_filing_date, idx_epo_tech_field, idx_epo_ipc
+
+Table: nih_grants
+  Records:      10
+  Columns:      18
+  Storage:      176 kB
+  Primary key:  id
+  Indexes:      nih_grants_pkey, nih_grants_project_number_key, idx_nih_organization, idx_nih_institute, idx_nih_fiscal_year, idx_nih_award_amount, idx_nih_research_area, idx_nih_keywords
+
+Table: wipo_china_patents
+  Records:      10
+  Columns:      14
+  Storage:      144 kB
+  Primary key:  id
+  Indexes:      wipo_china_patents_pkey, wipo_china_patents_application_number_key, idx_wipo_applicant, idx_wipo_filing_date, idx_wipo_tech_field, idx_wipo_ipc
+
+Table: bdtd_theses
+  Records:      10
+  Columns:      14
+  Storage:      96 kB
+  Primary key:  id
+  Indexes:      bdtd_theses_pkey, bdtd_theses_thesis_id_key, idx_bdtd_university, idx_bdtd_year, idx_bdtd_collected
+
+Table: ai_regulation
+  Records:      6
+  Columns:      17
+  Storage:      112 kB
+  Last update:  2025-11-19T12:14:34.405544+00:00
+  Primary key:  id
+  Indexes:      ai_regulation_pkey, ai_regulation_title_jurisdiction_key, idx_reg_type, idx_reg_jurisdiction, idx_reg_status, idx_reg_date
+
+Table: semiconductor_sales
+  Records:      4
+  Columns:      12
+  Storage:      128 kB
+  Last update:  2025-11-22T00:46:18.777853+00:00
+  Primary key:  id
+  Indexes:      semiconductor_sales_pkey, semiconductor_sales_region_year_quarter_month_key, idx_semi_region, idx_semi_year, idx_semi_sales
+
+Table: collector_runs
+  Records:      4
+  Columns:      10
+  Storage:      48 kB
+  Primary key:  id
+  Indexes:      collector_runs_pkey, idx_collector_runs_name_status
+
+Table: exits
+  Records:      1
+  Columns:      12
+  Storage:      96 kB
+  Last update:  2025-11-15T14:50:24.403468+00:00
+  Primary key:  id
+  Indexes:      exits_pkey, exits_exit_id_key, idx_exits_startup, idx_exits_type, idx_exits_date
+
+Table: reddit_tech
+  Records:      0
+  Columns:      12
+  Storage:      64 kB
+  Primary key:  id
+  Indexes:      reddit_tech_pkey, reddit_tech_post_id_key, idx_reddit_subreddit, idx_reddit_score, idx_reddit_created, idx_reddit_tech
+
+Table: clinical_trials
+  Records:      0
+  Columns:      11
+  Storage:      64 kB
+  Primary key:  id
+  Indexes:      clinical_trials_pkey, clinical_trials_nct_id_key, idx_trials_status, idx_trials_phase, idx_trials_conditions, idx_trials_start_date
+
+Table: patents
+  Records:      0
+  Columns:      12
+  Storage:      56 kB
+  Primary key:  id
+  Indexes:      patents_pkey, patents_patent_id_key, idx_patents_publication_date, idx_patents_assignee, idx_patents_codes
+
+Table: investors
+  Records:      0
+  Columns:      12
+  Storage:      56 kB
+  Primary key:  id
+  Indexes:      investors_pkey, investors_investor_id_key, idx_investors_type, idx_investors_country, idx_investors_focus
+
+Table: fda_approvals
+  Records:      0
+  Columns:      10
+  Storage:      40 kB
+  Primary key:  id
+  Indexes:      fda_approvals_pkey, fda_approvals_application_number_key, idx_fda_approval_date, idx_fda_company
+
+Table: trends
+  Records:      0
+  Columns:      12
+  Storage:      40 kB
+  Primary key:  id
+  Indexes:      trends_pkey, idx_trends_category, idx_trends_status, idx_trends_confidence
+
+Table: tech_funding_correlation
+  Records:      0
+  Columns:      9
+  Storage:      32 kB
+  Primary key:  id
+  Indexes:      tech_funding_correlation_pkey, idx_correlation_tech, idx_correlation_quarter
+
+Table: alerts
+  Records:      0
+  Columns:      10
+  Storage:      32 kB
+  Primary key:  id
+  Indexes:      alerts_pkey, idx_alerts_user, idx_alerts_created
+
+Table: insights
+  Records:      0
+  Columns:      9
+  Storage:      32 kB
+  Primary key:  id
+  Indexes:      insights_pkey, idx_insights_type, idx_insights_generated
+
+Schema: sofia_sofia
+────────────────────────────────────────────────────────────────────────────────
+
+Table: tech_investment_trends
+  Records:      37
+  Columns:      10
+  Storage:      16 kB
+
+Table: yc_batch_performance
+  Records:      18
+  Columns:      10
+  Storage:      16 kB
+
+Table: funding_momentum
+  Records:      0
+  Columns:      11
+  Storage:      8192 bytes
+
+⚠️  DATA QUALITY ISSUES
+════════════════════════════════════════════════════════════════════════════════
+
+🔴 HIGH PRIORITY: 3 tables without primary keys:
+   - sofia_sofia.tech_investment_trends
+   - sofia_sofia.yc_batch_performance
+   - sofia_sofia.funding_momentum
+
+🟡 MEDIUM PRIORITY: 3 tables without indexes:
+   - sofia_sofia.tech_investment_trends
+   - sofia_sofia.yc_batch_performance
+   - sofia_sofia.funding_momentum
+
+🔵 INFO: 10 empty tables:
+   - sofia.reddit_tech
+   - sofia.clinical_trials
+   - sofia.patents
+   - sofia.investors
+   - sofia.fda_approvals
+   - sofia.trends
+   - sofia.tech_funding_correlation
+   - sofia.alerts
+   - sofia.insights
+   - sofia_sofia.funding_momentum
+
+🟠 LOW PRIORITY: 32 tables without timestamp columns:
+   - sofia.arxiv_ai_papers
+   - sofia.gdelt_events
+   - sofia.ipea_series
+   - sofia.bacen_sgs_series
+   - sofia.openalex_papers
+   - sofia.stackoverflow_trends
+   - sofia.nih_grants
+   - sofia.asia_universities
+   - sofia.cardboard_production
+   - sofia.epo_patents
+   ... and 22 more
+
+════════════════════════════════════════════════════════════════════════════════
+END OF REPORT
+════════════════════════════════════════════════════════════════════════════════
