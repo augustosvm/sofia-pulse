@@ -1,0 +1,34 @@
+# ============================================================================
+# SOFIA PULSE - Distributed Schedule WITH WHATSAPP ALERTS
+# ============================================================================
+#
+# Schedule:
+# - 10:00 UTC (07:00 BRT) - Fast APIs
+# - 16:00 UTC (13:00 BRT) - Limited APIs + WhatsApp summary
+# - 22:00 UTC (19:00 BRT) - Analytics + Email + WhatsApp (ALL 23 REPORTS!)
+#
+# WhatsApp notifications:
+# - After limited APIs collection (success/failure summary)
+# - After analytics (23 reports status)
+# - After email sent (confirmation + report count)
+# - 23 individual reports sent via WhatsApp
+# - On any failure (instant alert)
+# ============================================================================
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Morning: Fast APIs (Monday-Friday at 10:00 UTC / 07:00 BRT)
+0 10 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash collect-fast-apis.sh >> /var/log/sofia-fast-apis.log 2>&1
+
+# Afternoon: Limited APIs WITH ALERTS (Monday-Friday at 16:00 UTC / 13:00 BRT)
+0 16 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash collect-limited-apis-with-alerts.sh >> /var/log/sofia-limited-apis.log 2>&1
+
+# Evening: Analytics + Email WITH ALERTS (Monday-Friday at 22:00 UTC / 19:00 BRT)
+0 22 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash run-mega-analytics-with-alerts.sh >> /var/log/sofia-analytics.log 2>&1
+
+# Evening: Send Email + WhatsApp Reports (Monday-Friday at 22:05 UTC / 19:05 BRT)
+5 22 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash send-email-mega.sh >> /var/log/sofia-email.log 2>&1
+
+# Weekly cleanup (Sunday at 02:00 UTC)
+0 2 * * 0 ubuntu find /home/ubuntu/sofia-pulse/analytics -name "*.txt" -mtime +30 -delete

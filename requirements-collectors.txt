@@ -1,0 +1,19 @@
+# Sofia Pulse - Python Collectors Dependencies
+#
+# Install: pip3 install -r requirements-collectors.txt
+
+# Database
+psycopg2-binary>=2.9.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Data processing
+pandas>=2.0.0
+
+# Optional (for specific collectors)
+numpy>=1.24.0
+openpyxl>=3.1.0  # Excel files
+
+# Base dos Dados (requires Google Cloud setup)
+# basedosdados>=2.0.0  # Uncomment if using collect-basedosdados.py
