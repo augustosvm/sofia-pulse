@@ -1,34 +1,79 @@
 # ============================================================================
-# SOFIA PULSE - Distributed Schedule WITH WHATSAPP ALERTS
-# ============================================================================
-#
-# Schedule:
-# - 10:00 UTC (07:00 BRT) - Fast APIs
-# - 16:00 UTC (13:00 BRT) - Limited APIs + WhatsApp summary
-# - 22:00 UTC (19:00 BRT) - Analytics + Email + WhatsApp (ALL 23 REPORTS!)
-#
-# WhatsApp notifications:
-# - After limited APIs collection (success/failure summary)
-# - After analytics (23 reports status)
-# - After email sent (confirmation + report count)
-# - 23 individual reports sent via WhatsApp
-# - On any failure (instant alert)
+# SOFIA PULSE - DATA COLLECTION SCHEDULE
+# Updated: 2025-11-25
 # ============================================================================
 
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# Morning: Fast APIs (Monday-Friday at 10:00 UTC / 07:00 BRT)
-0 10 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash collect-fast-apis.sh >> /var/log/sofia-fast-apis.log 2>&1
+# ============================================================================
+# DIÁRIO - Segunda a Sexta
+# ============================================================================
 
-# Afternoon: Limited APIs WITH ALERTS (Monday-Friday at 16:00 UTC / 13:00 BRT)
-0 16 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash collect-limited-apis-with-alerts.sh >> /var/log/sofia-limited-apis.log 2>&1
+# 10:00 UTC (07:00 BRT) - Fast APIs
+0 10 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && bash collect-fast-apis.sh >> logs/cron-fast.log 2>&1
 
-# Evening: Analytics + Email WITH ALERTS (Monday-Friday at 22:00 UTC / 19:00 BRT)
-0 22 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash run-mega-analytics-with-alerts.sh >> /var/log/sofia-analytics.log 2>&1
+# 16:00 UTC (13:00 BRT) - Limited APIs + WhatsApp summary
+0 16 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && bash collect-limited-apis-with-alerts.sh >> logs/cron-limited.log 2>&1
 
-# Evening: Send Email + WhatsApp Reports (Monday-Friday at 22:05 UTC / 19:05 BRT)
-5 22 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && bash send-email-mega.sh >> /var/log/sofia-email.log 2>&1
+# 22:00 UTC (19:00 BRT) - Analytics + WhatsApp
+0 22 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && bash run-mega-analytics-with-alerts.sh >> logs/cron-analytics.log 2>&1
 
-# Weekly cleanup (Sunday at 02:00 UTC)
-0 2 * * 0 ubuntu find /home/ubuntu/sofia-pulse/analytics -name "*.txt" -mtime +30 -delete
+# 22:05 UTC (19:05 BRT) - Email
+5 22 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && bash send-email-mega.sh >> logs/cron-email.log 2>&1
+
+# 22:10 UTC (19:10 BRT) - WhatsApp reports (ALL 23 reports!)
+10 22 * * 1-5 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 send-reports-whatsapp.py >> logs/cron-whatsapp.log 2>&1
+
+# 06:00 UTC (03:00 BRT) - Refresh insights
+0 6 * * * ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && bash scripts/refresh-insights.sh >> logs/cron-refresh.log 2>&1
+
+# ============================================================================
+# SEMANAL - Domingos
+# ============================================================================
+
+# 08:00 UTC - Women data (5 collectors)
+0 8 * * 0 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && bash collect-women-data.sh >> logs/cron-women.log 2>&1
+
+# 10:00 UTC - World security
+0 10 * * 0 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-world-security.py >> logs/cron-security.log 2>&1
+
+# 11:00 UTC - Brazil security
+0 11 * * 0 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-brazil-security.py >> logs/cron-brazil-security.log 2>&1
+
+# 12:00 UTC - World tourism
+0 12 * * 0 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-world-tourism.py >> logs/cron-tourism.log 2>&1
+
+# 13:00 UTC - Sports regional
+0 13 * * 0 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-sports-regional.py >> logs/cron-sports.log 2>&1
+
+# 14:00 UTC - Drugs data
+0 14 * * 0 ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-drugs-data.py >> logs/cron-drugs.log 2>&1
+
+# ============================================================================
+# MENSAL - Dia 1 de cada mês
+# ============================================================================
+
+# 06:00 UTC - NGOs
+0 6 1 * * ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-world-ngos.py >> logs/cron-ngos.log 2>&1
+
+# 07:00 UTC - Religion data
+0 7 1 * * ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-religion-data.py >> logs/cron-religion.log 2>&1
+
+# 08:00 UTC - Sports federations
+0 8 1 * * ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-sports-federations.py >> logs/cron-federations.log 2>&1
+
+# 09:00 UTC - Central banks women
+0 9 1 * * ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-central-banks-women.py >> logs/cron-central-banks.log 2>&1
+
+# 10:00 UTC - Brazil ministries
+0 10 1 * * ubuntu cd /home/ubuntu/sofia-pulse && set -a && source .env && set +a && python3 scripts/collect-brazil-ministries.py >> logs/cron-ministries.log 2>&1
+
+# ============================================================================
+# RESUMO
+# ============================================================================
+# DIÁRIO (Seg-Sex): 6 jobs (Fast APIs, Limited APIs, Analytics, Email, WhatsApp, Refresh)
+# SEMANAL (Dom): 6 jobs (Women, Security, Tourism, Sports, Drugs)
+# MENSAL (Dia 1): 5 jobs (NGOs, Religion, Federations, Central Banks, Ministries)
+# TOTAL: 17 jobs
+# ============================================================================
