@@ -394,7 +394,35 @@ def generate_digital_nomad_report(socio_data):
 
 # ==================== REPORT 4: STEM EDUCATION ====================
 
-def generate_stem_education_report(socio_data, research_data):
+def extract_universities_data(conn):
+    """Extract top universities with cities"""
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT name, city, country, qs_rank, research_output_papers_year,
+                   student_count, strong_fields
+            FROM asia_universities
+            WHERE qs_rank IS NOT NULL
+            ORDER BY qs_rank ASC
+            LIMIT 50
+        """)
+        universities = []
+        for row in cur.fetchall():
+            universities.append({
+                'name': row[0],
+                'city': row[1] or 'N/A',
+                'country': row[2],
+                'qs_rank': row[3],
+                'papers': row[4] or 0,
+                'students': row[5] or 0,
+                'fields': row[6] or []
+            })
+        return universities
+    except Exception as e:
+        print(f"⚠️  Universities data not available: {e}")
+        return []
+
+def generate_stem_education_report(socio_data, research_data, universities_data):
     """Generate STEM Education Leaders Report"""
 
     country_scores = []
@@ -421,13 +449,18 @@ def generate_stem_education_report(socio_data, research_data):
         literacy = data.get('literacy_rate', 0) or 0
         score += min(literacy / 100 * 15, 15)
 
+        # Find top universities in this country
+        country_unis = [u for u in universities_data if u['country'] == country]
+        top_uni = country_unis[0] if country_unis else None
+
         if score >= 15:
             country_scores.append({
                 'country': country,
                 'score': round(score, 1),
                 'tertiary': round(tertiary, 1),
                 'rd_gdp': round(rd_gdp, 2),
-                'papers': papers
+                'papers': papers,
+                'top_university': top_uni
             })
 
     country_scores.sort(key=lambda x: x['score'], reverse=True)
@@ -450,6 +483,13 @@ def generate_stem_education_report(socio_data, research_data):
 
     for i, loc in enumerate(country_scores[:30], 1):
         report.append(f"#{i} - {loc['country']}")
+
+        # Show top university if available
+        if loc['top_university']:
+            uni = loc['top_university']
+            report.append(f"   🏛️  Top University: {uni['name']} ({uni['city']})")
+            report.append(f"   📊 QS Rank: #{uni['qs_rank']} | Papers/year: {uni['papers']:,}")
+
         report.append(f"   STEM Education Score: {loc['score']:.1f}/100")
         report.append(f"   University Enrollment: {loc['tertiary']:.0f}%")
         report.append(f"   R&D Spending: {loc['rd_gdp']}% of GDP")
@@ -462,7 +502,7 @@ def generate_stem_education_report(socio_data, research_data):
         else:
             rating = "🟠 GOOD - Solid STEM education"
 
-        report.append(f"   📊 RATING: {rating}")
+        report.append(f"   ⭐ RATING: {rating}")
         report.append("")
 
     report.append("=" * 80)
@@ -492,6 +532,9 @@ def main():
         funding_data = extract_funding_activity(conn)
         print(f"   ✅ Funding data for {len(funding_data)} countries")
 
+        universities_data = extract_universities_data(conn)
+        print(f"   ✅ Universities data: {len(universities_data)} top universities")
+
         print()
 
         # Generate Report 1: Innovation Hubs
@@ -517,7 +560,7 @@ def main():
 
         # Generate Report 4: STEM Education
         print("📊 Generating STEM Education Report...")
-        report4 = generate_stem_education_report(socio_data, research_data)
+        report4 = generate_stem_education_report(socio_data, research_data, universities_data)
         with open('analytics/stem-education-latest.txt', 'w', encoding='utf-8') as f:
             f.write(report4)
         print("   ✅ Saved: analytics/stem-education-latest.txt")
