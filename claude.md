@@ -617,6 +617,34 @@ bash update-crontab-distributed.sh
 | Reddit HTTP 403 | API bloqueada | Criar app Reddit + PRAW |
 | CISA HTTP 403 | API bloqueada | Usar apenas NVD CVEs |
 | SIA HTTP 403 | Site bloqueado | Usar dados oficiais |
+| **World Bank API 401** | **Subscription key required (mudança 2025)** | **Usar dados estáticos históricos** |
+| **NIH Grants VARCHAR overflow** | **project_number > 50 chars** | **Migration 002 (VARCHAR limits fix)** |
+
+### ⚙️ **Fixes Recentes** (03 Dec 2025):
+
+1. **World Bank API 401 - "Access Denied"**
+   - **Problema**: World Bank mudou API para exigir subscription key (antes era 100% free)
+   - **URL**: `https://api.worldbank.org/v2/country/all/indicator/...` retorna 401
+   - **Documentação**: Diz que não precisa de key, mas API gateway bloqueia
+   - **Impacto**: `collect-port-traffic.py` e `collect-socioeconomic.py` falham
+   - **Solução**: Usar dados históricos estáticos (já coletados) ou buscar API key
+   - **Status**: ⏳ Investigando alternativa (possível API key gratuita)
+   - **Fontes**:
+     - [World Bank API Docs](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392)
+     - [Public APIs Directory](https://publicapis.io/world-bank-api)
+
+2. **NIH Grants VARCHAR(50) Overflow**
+   - **Problema**: `project_number` recebe valores de 98+ chars, mas schema permite apenas 50
+   - **Erro**: `value too long for type character varying(50)`
+   - **Fix**: Migration `002-fix-nih-grants-varchar-limits.sql`
+   - **Executar**: `bash run-migration-nih-fix.sh`
+   - **Mudanças**:
+     - `project_number`: 50 → 150
+     - `principal_investigator`: 255 → 500 (múltiplos PIs)
+     - `organization`: 255 → 500
+     - `nih_institute`: 50 → 150
+     - Outros campos aumentados conforme necessário
+   - **Status**: ✅ Resolvido (rodar migration e re-executar collector)
 
 ---
 

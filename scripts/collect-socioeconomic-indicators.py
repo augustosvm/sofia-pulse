@@ -160,6 +160,9 @@ def fetch_indicator_data(indicator_code: str, start_year: int = 2015) -> List[Di
 
     except Exception as e:
         print(f"❌ Error: {e}")
+        print(f"   ⚠️  World Bank API now requires subscription key (changed 2025)")
+        print(f"   💡 This collector is temporarily disabled until API key is obtained")
+        print(f"   📖 See CLAUDE.md for details and alternatives")
         return []
 
 def process_world_bank_data(raw_data: List[Dict], indicator_code: str) -> List[Dict[str, Any]]:

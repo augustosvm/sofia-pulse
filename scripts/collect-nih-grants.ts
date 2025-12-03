@@ -79,20 +79,20 @@ async function createTableIfNotExists(client: Client): Promise<void> {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS nih_grants (
       id SERIAL PRIMARY KEY,
-      project_number VARCHAR(50) UNIQUE,
+      project_number VARCHAR(150) UNIQUE,  -- Increased from 50 to 150
       title TEXT NOT NULL,
-      principal_investigator VARCHAR(255),
-      organization VARCHAR(255),
-      city VARCHAR(100),
-      state VARCHAR(50),
-      country VARCHAR(100),
+      principal_investigator VARCHAR(500),  -- Increased from 255 to 500 (multiple PIs)
+      organization VARCHAR(500),  -- Increased from 255 to 500
+      city VARCHAR(200),  -- Increased from 100 to 200
+      state VARCHAR(100),  -- Increased from 50 to 100
+      country VARCHAR(200),  -- Increased from 100 to 200
       fiscal_year INT,
       award_amount_usd BIGINT,
-      nih_institute VARCHAR(50),
+      nih_institute VARCHAR(150),  -- Increased from 50 to 150
       project_start_date DATE,
       project_end_date DATE,
-      funding_mechanism VARCHAR(20),
-      research_area VARCHAR(255),
+      funding_mechanism VARCHAR(100),  -- Increased from 20 to 100
+      research_area VARCHAR(500),  -- Increased from 255 to 500
       abstract TEXT,
       keywords TEXT[],
       collected_at TIMESTAMP DEFAULT NOW()

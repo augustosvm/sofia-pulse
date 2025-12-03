@@ -52,3 +52,4 @@ docker-compose.override.yml
 FETCH_HEAD
 1000:
 *.bkp
+node_modules/
