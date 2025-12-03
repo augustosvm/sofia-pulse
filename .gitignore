@@ -1,47 +1,54 @@
-# Environment variables (contains secrets!)
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+venv-analytics/
+finance/venv/
+*.egg-info/
+dist/
+build/
+
+# Environment
 .env
 .env.local
-.env.*.local
-
-# Dependencies
-node_modules/
-package-lock.json
-
-# Logs
-logs
+.env.bkp
 *.log
-npm-debug.log*
+
+# Database
+*.db
+*.sqlite
+database-inventory.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Analytics outputs (too large)
+analytics/premium-insights/*.txt
+analytics/premium-insights/*.md
+analytics/*.txt
+analytics/insights/*.txt
+analytics/insights/*.md
+analytics/tech-trends/*.txt
 
-# Build outputs
-dist/
-build/
-*.js.map
-
-# Data outputs
-output/
-*.csv
-data/*.json
-*.data.json
-
-# Backups
-backups/
-*.backup
-*.sql
-*.sql.gz
-
-# Python virtual environments
-venv-analytics/
-*.pyc
-__pycache__/
+# Notebooks checkpoints
 .ipynb_checkpoints/
-.env.backup*
+*.ipynb
+
+# Docker
+docker-compose.override.yml
+
+# Temp files
+FETCH_HEAD
+1000:
+*.bkp

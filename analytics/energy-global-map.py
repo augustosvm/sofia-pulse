@@ -49,8 +49,8 @@ def fetch_energy_data(conn):
             energy_per_capita,
             co2_mt,
             co2_per_capita,
-            solar_capacity_gw,
-            wind_capacity_gw
+            solar_generation_twh,
+            wind_generation_twh
         FROM sofia.energy_global
         ORDER BY renewables_share_pct DESC
     """)
@@ -85,31 +85,31 @@ Countries: {len(data)}
     for idx, country_data in enumerate(renewable_leaders, 1):
         country = country_data['country']
         renewable_pct = country_data['renewables_share_pct'] or 0
-        solar_gw = country_data['solar_capacity_gw'] or 0
-        wind_gw = country_data['wind_capacity_gw'] or 0
+        solar_twh = country_data['solar_generation_twh'] or 0
+        wind_twh = country_data['wind_generation_twh'] or 0
 
         report += f"{idx:2d}. {country:25s} | {renewable_pct:5.1f}% renewable | "
-        report += f"Solar: {solar_gw:6.1f}GW | Wind: {wind_gw:6.1f}GW\n"
+        report += f"Solar: {solar_twh:6.1f}TWh | Wind: {wind_twh:6.1f}TWh\n"
 
     report += f"\n{'='*80}\n\n"
 
-    # Top 20 by absolute capacity
-    report += f"⚡ TOP 20 RENEWABLE CAPACITY (Solar + Wind GW)\n{'-'*80}\n\n"
+    # Top 20 by absolute generation
+    report += f"⚡ TOP 20 RENEWABLE GENERATION (Solar + Wind TWh/year)\n{'-'*80}\n\n"
 
-    capacity_leaders = sorted(
-        [d for d in data if d['solar_capacity_gw'] or d['wind_capacity_gw']],
-        key=lambda x: (x['solar_capacity_gw'] or 0) + (x['wind_capacity_gw'] or 0),
+    generation_leaders = sorted(
+        [d for d in data if d['solar_generation_twh'] or d['wind_generation_twh']],
+        key=lambda x: (x['solar_generation_twh'] or 0) + (x['wind_generation_twh'] or 0),
         reverse=True
     )[:20]
 
-    for idx, country_data in enumerate(capacity_leaders, 1):
+    for idx, country_data in enumerate(generation_leaders, 1):
         country = country_data['country']
-        solar_gw = country_data['solar_capacity_gw'] or 0
-        wind_gw = country_data['wind_capacity_gw'] or 0
-        total_gw = solar_gw + wind_gw
+        solar_twh = country_data['solar_generation_twh'] or 0
+        wind_twh = country_data['wind_generation_twh'] or 0
+        total_twh = solar_twh + wind_twh
 
-        report += f"{idx:2d}. {country:25s} | {total_gw:7.1f}GW total | "
-        report += f"Solar: {solar_gw:6.1f}GW | Wind: {wind_gw:6.1f}GW\n"
+        report += f"{idx:2d}. {country:25s} | {total_twh:7.1f}TWh total | "
+        report += f"Solar: {solar_twh:6.1f}TWh | Wind: {wind_twh:6.1f}TWh\n"
 
     report += f"\n{'='*80}\n\n"
 

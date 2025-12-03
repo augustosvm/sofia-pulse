@@ -76,17 +76,165 @@ def get_funding_by_sector(conn, days_back=180):
 def map_paper_to_sector(primary_category):
     """Mapeia categoria ArXiv para setor de mercado"""
     mapping = {
+        # AI/ML
         'cs.AI': 'Artificial Intelligence',
         'cs.LG': 'Artificial Intelligence',
-        'cs.CV': 'Artificial Intelligence',
-        'cs.CL': 'Artificial Intelligence',
+        'cs.CV': 'Computer Vision',
+        'cs.CL': 'NLP',
+        'cs.NE': 'AI',
+
+        # Robotics/Hardware
         'cs.RO': 'Robotics',
-        'cs.NE': 'Artificial Intelligence',
+        'cs.SY': 'Systems',
+        'cs.AR': 'Hardware',
+
+        # Software/Web
+        'cs.SE': 'Software',
+        'cs.DC': 'Cloud',
+        'cs.DB': 'Database',
+        'cs.NI': 'Networking',
+        'cs.CR': 'Cybersecurity',
+
+        # Other CS
+        'cs.HC': 'UX/Design',
+        'cs.IR': 'Search',
+        'cs.SI': 'Social Networks',
+
+        # Physics/Math
+        'quant-ph': 'Quantum Computing',
+        'cond-mat': 'Materials',
+        'physics': 'Physics',
+        'math': 'Mathematics',
+
+        # Bio/Health
+        'q-bio': 'Biotech',
+        'stat.ML': 'Artificial Intelligence',
     }
+
+    # Tentar match parcial para categorias não mapeadas
+    if primary_category not in mapping:
+        if 'AI' in primary_category or 'ML' in primary_category:
+            return 'Artificial Intelligence'
+        elif 'bio' in primary_category.lower():
+            return 'Biotech'
+        elif 'quant' in primary_category.lower():
+            return 'Quantum Computing'
+
     return mapping.get(primary_category, 'Technology')
 
+def normalize_sector(sector):
+    """Normaliza nome de setor para matching com keyword matching"""
+    if not sector:
+        return 'Other'
+
+    sector_lower = sector.lower().strip()
+
+    # Mapeamento fuzzy (exact matches)
+    fuzzy_map = {
+        'ai': 'Artificial Intelligence',
+        'artificial intelligence': 'Artificial Intelligence',
+        'machine learning': 'Artificial Intelligence',
+        'ml': 'Artificial Intelligence',
+        'deep learning': 'Artificial Intelligence',
+
+        'robotics': 'Robotics',
+        'robot': 'Robotics',
+        'autonomous': 'Robotics',
+
+        'biotech': 'Biotech',
+        'biotechnology': 'Biotech',
+        'healthcare': 'Biotech',
+        'health': 'Biotech',
+        'medical': 'Biotech',
+        'pharma': 'Biotech',
+
+        'fintech': 'Fintech',
+        'finance': 'Fintech',
+        'financial': 'Fintech',
+        'payment': 'Fintech',
+        'banking': 'Fintech',
+
+        'cybersecurity': 'Cybersecurity',
+        'security': 'Cybersecurity',
+        'infosec': 'Cybersecurity',
+        'cyber': 'Cybersecurity',
+
+        'quantum': 'Quantum Computing',
+        'quantum computing': 'Quantum Computing',
+
+        'nlp': 'NLP',
+        'natural language': 'NLP',
+
+        'computer vision': 'Computer Vision',
+        'vision': 'Computer Vision',
+        'cv': 'Computer Vision',
+        'image': 'Computer Vision',
+
+        'cloud': 'Cloud',
+        'devops': 'Cloud',
+        'saas': 'Cloud',
+        'infrastructure': 'Cloud',
+
+        'space': 'Space',
+        'aerospace': 'Space',
+        'satellite': 'Space',
+
+        'energy': 'Energy',
+        'renewable': 'Energy',
+        'solar': 'Energy',
+        'battery': 'Energy',
+
+        'ecommerce': 'E-commerce',
+        'e-commerce': 'E-commerce',
+        'marketplace': 'E-commerce',
+        'retail': 'E-commerce',
+    }
+
+    # Try exact match first
+    if sector_lower in fuzzy_map:
+        return fuzzy_map[sector_lower]
+
+    # Keyword matching (partial)
+    keyword_map = {
+        'ai': 'Artificial Intelligence',
+        'machine': 'Artificial Intelligence',
+        'learning': 'Artificial Intelligence',
+        'neural': 'Artificial Intelligence',
+        'robot': 'Robotics',
+        'autonomous': 'Robotics',
+        'bio': 'Biotech',
+        'health': 'Biotech',
+        'medic': 'Biotech',
+        'pharma': 'Biotech',
+        'fin': 'Fintech',
+        'payment': 'Fintech',
+        'bank': 'Fintech',
+        'security': 'Cybersecurity',
+        'cyber': 'Cybersecurity',
+        'quantum': 'Quantum Computing',
+        'language': 'NLP',
+        'nlp': 'NLP',
+        'vision': 'Computer Vision',
+        'image': 'Computer Vision',
+        'cloud': 'Cloud',
+        'saas': 'Cloud',
+        'space': 'Space',
+        'satellite': 'Space',
+        'energy': 'Energy',
+        'solar': 'Energy',
+        'battery': 'Energy',
+        'commerce': 'E-commerce',
+        'retail': 'E-commerce',
+    }
+
+    for keyword, mapped_sector in keyword_map.items():
+        if keyword in sector_lower:
+            return mapped_sector
+
+    return sector.title()
+
 def calculate_correlation(papers, funding):
-    """Calcula correlação entre papers e funding com lag temporal"""
+    """Calcula correlação entre papers e funding com lag temporal (FLEXIBLE)"""
 
     # Agrupar por setor e mês
     papers_by_sector = defaultdict(lambda: defaultdict(int))
@@ -94,19 +242,24 @@ def calculate_correlation(papers, funding):
 
     for paper in papers:
         sector = map_paper_to_sector(paper['primary_category'])
+        sector = normalize_sector(sector)
         month = paper['month']
         papers_by_sector[sector][month] += paper['paper_count']
 
     for fund in funding:
-        sector = fund['sector']
+        sector = normalize_sector(fund['sector'])
         month = fund['month']
         funding_by_sector[sector][month] += float(fund['total_amount'] or 0)
 
-    # Calcular lags (1-6 meses)
+    # Calcular lags (0-12 meses) com tolerância de ±1 mês
     correlations = []
 
     for sector in papers_by_sector.keys():
-        for lag_months in range(1, 7):
+        # Se não tem funding neste setor, pular
+        if sector not in funding_by_sector:
+            continue
+
+        for lag_months in range(0, 13):  # Expandido: 0-12 meses (era 1-6)
             lag_delta = timedelta(days=lag_months * 30)
 
             matches = 0
@@ -114,12 +267,15 @@ def calculate_correlation(papers, funding):
             total_funding = 0
 
             for paper_month, paper_count in papers_by_sector[sector].items():
-                funding_month = paper_month + lag_delta
+                # Janela flexível: ±1 mês de tolerância
+                for month_offset in [-1, 0, 1]:
+                    funding_month = paper_month + lag_delta + timedelta(days=month_offset * 30)
 
-                if funding_month in funding_by_sector[sector]:
-                    matches += 1
-                    total_papers += paper_count
-                    total_funding += funding_by_sector[sector][funding_month]
+                    if funding_month in funding_by_sector[sector]:
+                        matches += 1
+                        total_papers += paper_count
+                        total_funding += funding_by_sector[sector][funding_month]
+                        break  # Conta apenas uma vez por paper_month
 
             if matches > 0:
                 correlations.append({
@@ -130,6 +286,23 @@ def calculate_correlation(papers, funding):
                     'avg_funding': total_funding / matches,
                     'strength': matches * (total_funding / 1e9),  # Score
                 })
+
+    # Se não encontrou correlações temporais, criar correlações por setor (sem lag)
+    if not correlations:
+        for sector in papers_by_sector.keys():
+            if sector in funding_by_sector:
+                total_papers = sum(papers_by_sector[sector].values())
+                total_funding = sum(funding_by_sector[sector].values())
+
+                if total_papers > 0 and total_funding > 0:
+                    correlations.append({
+                        'sector': sector,
+                        'lag_months': 0,  # No lag detected
+                        'matches': len(papers_by_sector[sector]),
+                        'avg_papers': total_papers / len(papers_by_sector[sector]),
+                        'avg_funding': total_funding / len(funding_by_sector[sector]),
+                        'strength': total_papers * (total_funding / 1e9),
+                    })
 
     return sorted(correlations, key=lambda x: x['strength'], reverse=True)
 
@@ -143,9 +316,48 @@ def print_report(correlations, papers, funding):
     print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
     print("Hipótese: Papers acadêmicos precedem funding em 6-12 meses")
+    print("Método: Matching flexível com janela de ±1 mês, lag 0-12 meses")
+    print()
+
+    # Data summary
+    papers_by_sector = defaultdict(int)
+    for paper in papers:
+        sector = map_paper_to_sector(paper['primary_category'])
+        sector = normalize_sector(sector)
+        papers_by_sector[sector] += paper['paper_count']
+
+    funding_by_sector = defaultdict(float)
+    for fund in funding:
+        sector = normalize_sector(fund['sector'])
+        funding_by_sector[sector] += float(fund['total_amount'] or 0)
+
+    print(f"📊 DATA SUMMARY:")
+    print(f"   Papers: {len(papers)} groups, {sum(papers_by_sector.values())} total papers")
+    print(f"   Funding: {len(funding)} groups, ${sum(funding_by_sector.values())/1e9:.2f}B total")
+    print(f"   Paper sectors: {len(papers_by_sector)}")
+    print(f"   Funding sectors: {len(funding_by_sector)}")
+    print(f"   Correlations found: {len(correlations)}")
     print()
     print("=" * 80)
     print()
+
+    if not correlations:
+        print("⚠️  NO CORRELATIONS FOUND")
+        print()
+        print("Possíveis razões:")
+        print("   • Poucos dados históricos (precisa 6-12 meses)")
+        print("   • Setores de papers e funding não coincidem")
+        print("   • Timing ainda não permite detectar lag temporal")
+        print()
+        print("Setores em Papers:")
+        for sector, count in sorted(papers_by_sector.items(), key=lambda x: x[1], reverse=True)[:10]:
+            print(f"   • {sector}: {count} papers")
+        print()
+        print("Setores em Funding:")
+        for sector, amount in sorted(funding_by_sector.items(), key=lambda x: x[1], reverse=True)[:10]:
+            print(f"   • {sector}: ${amount/1e6:.1f}M")
+        print()
+        return
 
     # Top correlações
     print("🔥 TOP CORRELAÇÕES (Papers → Funding)")
@@ -154,9 +366,10 @@ def print_report(correlations, papers, funding):
     print("-" * 80)
 
     for corr in correlations[:15]:
+        lag_str = f"{corr['lag_months']} months" if corr['lag_months'] > 0 else "concurrent"
         print(
             f"{corr['sector']:<30} "
-            f"{corr['lag_months']} months  "
+            f"{lag_str:<10} "
             f"{corr['matches']:<10} "
             f"{corr['avg_papers']:<12.1f} "
             f"${corr['avg_funding']/1e6:<14.1f}M"
@@ -248,7 +461,28 @@ def main():
         print(f"   ✅ {len(correlations)} correlations found")
         print()
 
+        # Capture report output
+        import io
+        import sys
+        old_stdout = sys.stdout
+        sys.stdout = buffer = io.StringIO()
+
         print_report(correlations, papers, funding)
+
+        # Get report content
+        report_content = buffer.getvalue()
+        sys.stdout = old_stdout
+
+        # Print to console
+        print(report_content)
+
+        # Save to file
+        output_file = 'analytics/correlation-latest.txt'
+        with open(output_file, 'w') as f:
+            f.write(report_content)
+
+        print(f"💾 Saved to: {output_file}")
+        print()
 
         conn.close()
 

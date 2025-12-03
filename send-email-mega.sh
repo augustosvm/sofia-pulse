@@ -16,9 +16,11 @@ echo "📧 SOFIA PULSE - SEND MEGA EMAIL"
 echo "============================================================================"
 echo ""
 
-# Carregar .env
+# Carregar .env de forma segura
 if [ -f ".env" ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 EMAIL_TO="${EMAIL_TO:-augustosvm@gmail.com}"
@@ -142,5 +144,14 @@ echo "      • socioeconomic_top_gdp.csv"
 echo "      • electricity_consumption.csv"
 echo "      • commodity_prices.csv"
 echo "      • + outros..."
+echo ""
+
+# ============================================================================
+# SEND REPORTS VIA WHATSAPP
+# ============================================================================
+
+echo "📱 Enviando relatórios via WhatsApp..."
+python3 send-reports-whatsapp.py
+
 echo ""
 echo "════════════════════════════════════════════════════════════════════════════"

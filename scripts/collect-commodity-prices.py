@@ -193,8 +193,23 @@ def main():
     # Always add fallback data for premium commodities
     fallback_records = fetch_fallback_prices()
 
-    # Combine both sources
-    all_records = api_records + fallback_records
+    # Deduplicate: prioritize API real over fallback
+    seen_commodities = set()
+    all_records = []
+
+    # Add API records first (priority)
+    for record in api_records:
+        commodity = record['commodity']
+        if commodity not in seen_commodities:
+            all_records.append(record)
+            seen_commodities.add(commodity)
+
+    # Add fallback only for missing commodities
+    for record in fallback_records:
+        commodity = record['commodity']
+        if commodity not in seen_commodities:
+            all_records.append(record)
+            seen_commodities.add(commodity)
 
     if not all_records:
         print("❌ No data fetched")

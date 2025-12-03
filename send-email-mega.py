@@ -13,6 +13,14 @@ from datetime import datetime
 import glob
 import sys
 
+# WhatsApp notifications
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts', 'utils'))
+try:
+    from whatsapp_notifier import WhatsAppNotifier
+    whatsapp = WhatsAppNotifier()
+except:
+    whatsapp = None
+
 # Load environment variables
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
@@ -99,7 +107,7 @@ Industry Specific:
 
 {'='*80}
 
-📈 ANÁLISES INCLUÍDAS (10+ Relatórios):
+📈 ANÁLISES INCLUÍDAS (23 Relatórios):
 
 🆕 MEGA Analysis:
 • Cross-database comprehensive analysis
@@ -137,17 +145,44 @@ AI-Powered:
 
 📁 ANEXOS:
 
-📄 Relatórios Completos (TXT):
-  • mega-analysis.txt (NEW!) - Análise cross-database
+📄 Relatórios Completos (23 TXT):
+
+  🌍 MEGA Analysis:
+  • mega-analysis.txt - Análise cross-database completa
+
+  📊 Core Analytics (5):
   • sofia-complete-report.txt
   • top10-tech-trends.txt
   • correlations-papers-funding.txt
   • dark-horses-report.txt
   • entity-resolution.txt
-  • special-sectors-analysis.txt
+
+  🎯 Advanced Analytics (3):
+  • special-sectors-analysis.txt (20 setores!)
   • early-stage-deep-dive.txt
   • energy-global-map.txt
-  • nlg-playbooks-gemini.txt
+
+  🤖 ML Analytics (1):
+  • causal-insights-ml.txt
+
+  🔮 AI-Powered (1):
+  • nlg-playbooks-gemini.txt (se Gemini configurado)
+
+  🧠 Intelligence Analytics (6) - PREDICTIVE:
+  • career-trends-predictor.txt (prediz skills antes das empresas)
+  • capital-flow-predictor.txt (prediz setores antes dos VCs)
+  • expansion-locations-analyzer.txt (melhores cidades para abrir filiais)
+  • weekly-insights-generator.txt (top 3 topics para colunistas TI)
+  • dying-sectors-detector.txt (tecnologias em declínio terminal)
+  • dark-horses-intelligence.txt (oportunidades em stealth mode)
+
+  🌍 Socioeconomic Intelligence (6) - GLOBAL RANKINGS:
+  • best-cities-tech-talent.txt (INSEAD Global Talent Index)
+  • remote-work-quality-index.txt (Nomad List + Numbeo QoL)
+  • innovation-hubs-ranking.txt (WIPO Global Innovation Index)
+  • startup-founders-best-countries.txt (World Bank Ease of Doing Business)
+  • digital-nomad-index.txt (Nomad List methodology)
+  • stem-education-leaders.txt (OECD PISA inspired)
 
 📊 Dados RAW (CSVs):
   Tech:
@@ -204,18 +239,57 @@ Sofia Pulse Intelligence System
 
 msg.attach(MIMEText(body, 'plain', 'utf-8'))
 
-# Attach reports
+# Attach reports (16 total: 10 core/advanced/ML + 6 intelligence)
 reports = [
+    # MEGA Analysis
     ('analytics/mega-analysis-latest.txt', 'MEGA-ANALYSIS.txt'),
-    ('analytics/sofia-report.txt', 'sofia-complete-report.txt'),
+
+    # Core Analytics (4)
     ('analytics/top10-latest.txt', 'top10-tech-trends.txt'),
     ('analytics/correlation-latest.txt', 'correlations-papers-funding.txt'),
     ('analytics/dark-horses-latest.txt', 'dark-horses-report.txt'),
     ('analytics/entity-resolution-latest.txt', 'entity-resolution.txt'),
+
+    # Advanced Analytics (3)
     ('analytics/special-sectors-latest.txt', 'special-sectors-analysis.txt'),
     ('analytics/early-stage-latest.txt', 'early-stage-deep-dive.txt'),
-    ('analytics/energy-global-latest.txt', 'energy-global-map.txt'),
+    ('analytics/energy-global-map-latest.txt', 'energy-global-map.txt'),
+
+    # ML Analytics (1)
+    ('analytics/causal-insights-latest.txt', 'causal-insights-ml.txt'),
+
+    # AI-Powered (1)
     ('analytics/playbook-latest.txt', 'nlg-playbooks-gemini.txt'),
+
+    # Intelligence Analytics (6) - PREDICTIVE
+    ('analytics/career-trends-latest.txt', 'career-trends-predictor.txt'),
+    ('analytics/capital-flow-latest.txt', 'capital-flow-predictor.txt'),
+    ('analytics/expansion-locations-latest.txt', 'expansion-locations-analyzer.txt'),
+    ('analytics/weekly-insights-latest.txt', 'weekly-insights-generator.txt'),
+    ('analytics/dying-sectors-latest.txt', 'dying-sectors-detector.txt'),
+    ('analytics/dark-horses-intelligence-latest.txt', 'dark-horses-intelligence.txt'),
+
+    # Socioeconomic Intelligence (6) - GLOBAL RANKINGS
+    ('analytics/best-cities-tech-talent-latest.txt', 'best-cities-tech-talent.txt'),
+    ('analytics/remote-work-quality-latest.txt', 'remote-work-quality-index.txt'),
+    ('analytics/innovation-hubs-latest.txt', 'innovation-hubs-ranking.txt'),
+    ('analytics/startup-founders-latest.txt', 'startup-founders-best-countries.txt'),
+    ('analytics/digital-nomad-latest.txt', 'digital-nomad-index.txt'),
+    ('analytics/stem-education-latest.txt', 'stem-education-leaders.txt'),
+
+    # NEW: Women, Security & Social Intelligence (3)
+    ('analytics/women-global-analysis.txt', 'women-global-analysis.txt'),
+    ('analytics/security-intelligence-report.txt', 'security-intelligence-report.txt'),
+    ('analytics/social-intelligence-report.txt', 'social-intelligence-report.txt'),
+
+    # NEW: Brazil & Global Specialized (7)
+    ('analytics/brazil-economy-intelligence.txt', 'brazil-economy-intelligence.txt'),
+    ('analytics/global-health-humanitarian.txt', 'global-health-humanitarian.txt'),
+    ('analytics/trade-agriculture-intelligence.txt', 'trade-agriculture-intelligence.txt'),
+    ('analytics/tourism-intelligence.txt', 'tourism-intelligence.txt'),
+    ('analytics/latam-intelligence.txt', 'latam-intelligence.txt'),
+    ('analytics/olympics-sports-intelligence.txt', 'olympics-sports-intelligence.txt'),
+    ('analytics/cross-data-correlations.txt', 'cross-data-correlations.txt'),
 ]
 
 attached_reports = 0
@@ -266,8 +340,18 @@ try:
     print(f"📄 Relatórios: {attached_reports}")
     print(f"📊 CSVs: {attached_csvs}")
 
+    # Send WhatsApp notification
+    if whatsapp:
+        whatsapp.report_sent(attached_reports, attached_csvs, EMAIL_TO)
+        print("📱 WhatsApp notification sent")
+
 except Exception as e:
     print(f"❌ Erro ao enviar email: {e}")
+
+    # Send WhatsApp alert on failure
+    if whatsapp:
+        whatsapp.analytics_error("Email Sender", str(e))
+
     import traceback
     traceback.print_exc()
     sys.exit(1)

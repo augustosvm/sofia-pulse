@@ -92,12 +92,36 @@ def get_github_technologies(conn) -> Dict[str, Dict[str, float]]:
         }
 
     # Também extrair frameworks específicos de topics (não linguagens)
-    # Lista de frameworks populares que devem ser rastreados
+    # Lista EXPANDIDA de frameworks populares que devem ser rastreados
     known_frameworks = [
-        'react', 'vue', 'angular', 'svelte', 'nextjs', 'nuxt',
-        'astro', 'solid', 'qwik', 'remix', 'vite', 'tailwind',
-        'fastapi', 'django', 'flask', 'laravel', 'spring-boot',
-        'express', 'nestjs', 'rails', 'blazor', 'flutter'
+        # Frontend JS
+        'react', 'vue', 'angular', 'svelte', 'next.js', 'nextjs', 'nuxt',
+        'astro', 'solid', 'qwik', 'remix', 'vite', 'ember', 'preact',
+        # CSS/UI
+        'tailwind', 'tailwindcss', 'bootstrap', 'material-ui', 'antd',
+        'chakra-ui', 'styled-components', 'emotion', 'sass', 'less',
+        # Backend Python
+        'fastapi', 'django', 'flask', 'pyramid', 'tornado', 'sanic',
+        # Backend JS/TS
+        'express', 'nestjs', 'fastify', 'koa', 'hapi', 'adonis',
+        # Backend Java/JVM
+        'spring-boot', 'spring', 'quarkus', 'micronaut', 'vert.x',
+        # Backend PHP
+        'laravel', 'symfony', 'codeigniter', 'slim', 'lumen',
+        # Backend Ruby
+        'rails', 'ruby-on-rails', 'sinatra', 'hanami',
+        # Backend Go
+        'gin', 'echo', 'fiber', 'beego',
+        # Backend C#
+        'asp.net', 'blazor', 'nancy',
+        # Mobile
+        'flutter', 'react-native', 'ionic', 'xamarin', 'swiftui',
+        # Testing
+        'jest', 'mocha', 'pytest', 'junit', 'testng', 'cypress', 'selenium',
+        # Build Tools
+        'webpack', 'rollup', 'parcel', 'esbuild', 'turbopack',
+        # Database
+        'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch'
     ]
 
     # Use CTE to avoid "set-returning functions not allowed in WHERE" error

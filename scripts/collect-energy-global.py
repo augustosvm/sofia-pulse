@@ -138,9 +138,9 @@ def save_to_database(df, conn):
             safe_float(row.get('co2'), max_value=9999999999.99),
             safe_float(row.get('co2_per_capita'), max_value=99999999.99),
 
-            # Capacity (GW) - DECIMAL(10,2)
-            safe_float(row.get('solar_capacity'), max_value=99999999.99),
-            safe_float(row.get('wind_capacity'), max_value=99999999.99),
+            # Capacity (GW) - DECIMAL(10,2) - NOT AVAILABLE in OWID dataset
+            None,  # solar_capacity_gw - not in dataset
+            None,  # wind_capacity_gw - not in dataset
         ))
 
     # Insert
@@ -215,6 +215,19 @@ def main():
 
     # Print preview if columns exist
     try:
+        # First, list all capacity-related columns
+        print("📊 Available capacity columns in OWID dataset:")
+        capacity_cols = [col for col in latest_df.columns if 'capacity' in col.lower()]
+        if capacity_cols:
+            print(f"   {', '.join(capacity_cols)}")
+        else:
+            print("   ⚠️  No capacity columns found!")
+
+        print()
+        print("📊 Available columns (first 20):")
+        print(f"   {', '.join(latest_df.columns[:20])}")
+        print()
+
         if 'solar_capacity' in latest_df.columns and 'wind_capacity' in latest_df.columns:
             print("📊 Top 10 renewable capacity (solar + wind GW):")
             latest_df['renewable_capacity'] = (
@@ -224,10 +237,19 @@ def main():
             top10 = latest_df.nlargest(10, 'renewable_capacity')[['country', 'solar_capacity', 'wind_capacity', 'renewable_capacity']]
             print(top10.to_string(index=False))
         else:
-            print("📊 Preview: Data columns available:")
-            print(f"   Countries: {len(latest_df)}")
-            if 'country' in latest_df.columns:
-                print(f"   Sample countries: {', '.join(latest_df['country'].head(5).tolist())}")
+            print("⚠️  solar_capacity and wind_capacity columns not found in dataset")
+            print("   Using generation data as fallback (TWh instead of GW)")
+
+            # Show solar/wind generation instead
+            if 'solar_electricity' in latest_df.columns and 'wind_electricity' in latest_df.columns:
+                print()
+                print("📊 Top 10 renewable generation (solar + wind TWh):")
+                latest_df['renewable_gen'] = (
+                    latest_df['solar_electricity'].fillna(0) +
+                    latest_df['wind_electricity'].fillna(0)
+                )
+                top10 = latest_df.nlargest(10, 'renewable_gen')[['country', 'solar_electricity', 'wind_electricity', 'renewable_gen']]
+                print(top10.to_string(index=False))
     except Exception as e:
         print(f"⚠️  Preview skipped: {e}")
 

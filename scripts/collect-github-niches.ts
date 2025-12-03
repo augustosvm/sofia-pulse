@@ -15,7 +15,7 @@
 
 import { Client } from 'pg';
 import * as dotenv from 'dotenv';
-import axios from 'axios';
+import { rateLimiters } from './utils/rate-limiter.js';
 
 dotenv.config();
 
@@ -115,7 +115,8 @@ async function searchGitHub(niche: string, topic: string): Promise<any[]> {
       headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
     }
 
-    const response = await axios.get(url, { headers });
+    // Use rate limiter with automatic retry and backoff
+    const response = await rateLimiters.github.get(url, { headers });
 
     const repos = response.data.items || [];
     console.log(`   ✅ ${repos.length} repos for ${niche} (${topic})`);
@@ -211,8 +212,7 @@ async function main() {
 
         totalRepos += repos.length;
 
-        // Rate limit: 1 request per second (GitHub allows 60/hour unauthenticated)
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Rate limiting is now handled automatically by rateLimiters.github
       }
     }
 
