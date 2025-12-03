@@ -115,6 +115,9 @@ Os analytics vão continuar funcionando e mostrar insights baseados nas tabelas 
 
 ### Correções de Código
 1. ✅ `analytics/cross-data-correlations.py` - Deduplicação corrigida
+2. ✅ `analytics/security-intelligence-report.py` - Deduplicação corrigida
+3. ✅ `analytics/social-intelligence-report.py` - Deduplicação corrigida
+4. ✅ `analytics/women-global-analysis.py` - Deduplicação corrigida
 
 ### Documentação Criada
 1. ✅ `FIXES-APPLIED.md` - Guia de correções e próximos passos
@@ -122,6 +125,7 @@ Os analytics vão continuar funcionando e mostrar insights baseados nas tabelas 
 3. ✅ `MERGE-SUMMARY.md` - Resumo do merge anterior (92 commits)
 4. ✅ `MERGE-ROLLBACK-PLAN.md` - Plano de rollback detalhado
 5. ✅ `FINAL-SUMMARY.md` - Este arquivo (resumo geral)
+6. ✅ `START-HERE.md` - Guia rápido de início
 
 ### Scripts Criados
 1. ✅ `test-quick-setup.sh` - Validação de ambiente
@@ -131,6 +135,8 @@ Os analytics vão continuar funcionando e mostrar insights baseados nas tabelas 
 2. `1c79244` - Fix: Deduplication in cross-data correlations analytics
 3. `eca7ef4` - Add: Environment validation script
 4. `5c1bdf2` - Docs: Comprehensive guide on 'missing tables' warnings
+5. `6d3cae0` - Docs: Complete summary of all fixes and explanations
+6. `d8c20fb` - Fix: Deduplication in multiple analytics reports
 
 ---
 
