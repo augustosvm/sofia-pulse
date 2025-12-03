@@ -27,29 +27,40 @@ def main():
     r.extend(["="*80, "🔒💰 SECURITY vs ECONOMY CORRELATION", "="*80, ""])
     try:
         cur.execute("""
-            SELECT s.country_name, s.value as security_score, e.value as gdp
-            FROM sofia.world_security_data s
-            INNER JOIN (
-                SELECT country_name, MAX(year) as max_year
-                FROM sofia.world_security_data WHERE value IS NOT NULL
-                GROUP BY country_name
-            ) sec_latest ON s.country_name = sec_latest.country_name AND s.year = sec_latest.max_year
-            JOIN sofia.socioeconomic_indicators e ON LOWER(s.country_name) = LOWER(e.country_name)
-            INNER JOIN (
-                SELECT country_name, MAX(year) as max_year
-                FROM sofia.socioeconomic_indicators WHERE indicator_code = 'NY.GDP.PCAP.CD' AND value IS NOT NULL
-                GROUP BY country_name
-            ) gdp_latest ON e.country_name = gdp_latest.country_name AND e.year = gdp_latest.max_year
-            WHERE s.value IS NOT NULL AND e.value IS NOT NULL
-            AND e.indicator_code = 'NY.GDP.PCAP.CD'
-            ORDER BY e.value DESC
+            WITH sec_latest AS (
+                SELECT s.country_name, AVG(s.value) as security_score
+                FROM sofia.world_security_data s
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.world_security_data WHERE value IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON s.country_name = latest.country_name AND s.year = latest.max_year
+                WHERE s.value IS NOT NULL
+                GROUP BY s.country_name
+            ),
+            gdp_latest AS (
+                SELECT e.country_name, e.value as gdp
+                FROM sofia.socioeconomic_indicators e
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.socioeconomic_indicators
+                    WHERE indicator_code = 'NY.GDP.PCAP.CD' AND value IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON e.country_name = latest.country_name AND e.year = latest.max_year
+                WHERE e.indicator_code = 'NY.GDP.PCAP.CD' AND e.value IS NOT NULL
+            )
+            SELECT g.country_name, s.security_score, g.gdp
+            FROM gdp_latest g
+            LEFT JOIN sec_latest s ON LOWER(g.country_name) = LOWER(s.country_name)
+            ORDER BY g.gdp DESC
             LIMIT 15
         """)
         rows = cur.fetchall()
         if rows:
             r.append("Countries by GDP per capita vs Security:")
             for c, sec, gdp in rows:
-                r.append(f"  • {c:<25} GDP: ${gdp:>10,.0f} | Security: {sec:.1f}")
+                sec_str = f"{sec:.1f}" if sec is not None else "N/A"
+                r.append(f"  • {c:<25} GDP: ${gdp:>10,.0f} | Security: {sec_str}")
             r.append("")
             r.append("💡 INSIGHT: Higher GDP generally correlates with better security")
     except Exception as e:
