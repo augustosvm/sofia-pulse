@@ -63,13 +63,19 @@ def main():
         report_lines.append("")
 
         if count > 0:
-            # Top Christian countries
+            # Top Christian countries (latest year only)
             cur.execute("""
-                SELECT country_name, religion, percentage, year
-                FROM sofia.world_religion_data
-                WHERE LOWER(religion) LIKE '%christian%'
-                  AND percentage IS NOT NULL
-                ORDER BY percentage DESC
+                SELECT DISTINCT ON (w.country_name)
+                    w.country_name, w.religion, w.percentage, w.year
+                FROM sofia.world_religion_data w
+                INNER JOIN (
+                    SELECT country_name, MAX(year) as max_year
+                    FROM sofia.world_religion_data
+                    WHERE LOWER(religion) LIKE '%christian%' AND percentage IS NOT NULL
+                    GROUP BY country_name
+                ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
+                WHERE LOWER(w.religion) LIKE '%christian%' AND w.percentage IS NOT NULL
+                ORDER BY w.country_name, w.percentage DESC
                 LIMIT 10
             """)
             rows = cur.fetchall()

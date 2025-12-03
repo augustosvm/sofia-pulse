@@ -229,10 +229,11 @@ def main():
 
         if count > 0:
             cur.execute("""
-                SELECT country_code, dataset_name, value, year
+                SELECT DISTINCT ON (country_code, dataset_name)
+                    country_code, dataset_name, value, year
                 FROM sofia.women_eurostat_data
                 WHERE value IS NOT NULL
-                ORDER BY year DESC, value DESC
+                ORDER BY country_code, dataset_name, year DESC, value DESC
                 LIMIT 15
             """)
             rows = cur.fetchall()

@@ -187,10 +187,10 @@ def main():
         report_lines.append("")
 
         if count > 0:
-            # By region - safest (only latest year per country)
+            # By region - safest (only latest year per country, avg indicators)
             for region in ['Americas', 'Europe', 'Asia']:
                 cur.execute("""
-                    SELECT w.country_name, w.region, w.indicator_name, w.value, w.year
+                    SELECT w.country_name, w.region, AVG(w.value) as avg_value, w.year
                     FROM sofia.world_security_data w
                     INNER JOIN (
                         SELECT country_name, MAX(year) as max_year
@@ -199,20 +199,21 @@ def main():
                         GROUP BY country_name
                     ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
                     WHERE LOWER(w.region) LIKE %s AND w.value IS NOT NULL
-                    ORDER BY w.value ASC
+                    GROUP BY w.country_name, w.region, w.year
+                    ORDER BY avg_value ASC
                     LIMIT 10
                 """, (f'%{region.lower()}%', f'%{region.lower()}%'))
                 rows = cur.fetchall()
                 if rows:
                     report_lines.append(f"🏆 SAFEST IN {region.upper()}:")
                     report_lines.append("-" * 60)
-                    for i, (country_name, reg, indicator_name, value, year) in enumerate(rows, 1):
+                    for i, (country_name, reg, value, year) in enumerate(rows, 1):
                         report_lines.append(f"  {i:2}. {country_name:<25} {float(value):>8.2f} ({year})")
                     report_lines.append("")
 
-            # Global ranking - safest (only latest year per country)
+            # Global ranking - safest (only latest year per country, avg indicators)
             cur.execute("""
-                SELECT w.country_name, w.region, w.indicator_name, w.value, w.year
+                SELECT w.country_name, w.region, AVG(w.value) as avg_value
                 FROM sofia.world_security_data w
                 INNER JOIN (
                     SELECT country_name, MAX(year) as max_year
@@ -221,14 +222,15 @@ def main():
                     GROUP BY country_name
                 ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
                 WHERE w.value IS NOT NULL
-                ORDER BY w.value ASC
+                GROUP BY w.country_name, w.region
+                ORDER BY avg_value ASC
                 LIMIT 20
             """)
             rows = cur.fetchall()
             if rows:
                 report_lines.append("🌍 GLOBAL RANKING - SAFEST COUNTRIES:")
                 report_lines.append("-" * 60)
-                for i, (country_name, region, indicator_name, value, year) in enumerate(rows, 1):
+                for i, (country_name, region, value) in enumerate(rows, 1):
                     report_lines.append(f"  {i:2}. {country_name:<25} ({region:<10}) {float(value):>8.2f}")
                 report_lines.append("")
 
