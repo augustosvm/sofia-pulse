@@ -843,3 +843,140 @@ bash update-crontab-distributed.sh
 ✅ Automatic cron schedule with WhatsApp notifications
 
 **Próximo**: Investigar fontes brasileiras (IBGE, BACEN, IPEA, MDIC)
+
+---
+
+## 💼 JOBS DATA SOURCES - EXPANSÃO (08 Dez 2025)
+
+### ✅ **PROBLEMA RESOLVIDO**
+
+**Antes**: Apenas 24 vagas coletadas (muito pouco)
+**Depois**: **266 vagas** de 7 fontes diferentes (+1008% de aumento!)
+
+### 📊 **STATUS ATUAL**
+
+**Vagas Coletadas**:
+- **Total**: 266 vagas
+- **Empresas**: 124 únicas
+- **Com Salário**: 24 vagas (9%)
+- **Salário Médio**: $111k - $157k/ano
+
+**Fontes Funcionando** (7):
+1. ✅ **The Muse** - 112 vagas (20 com salário) - API pública
+2. ✅ **Arbeitnow** - 100 vagas (Europa) - API pública
+3. ✅ **LandingJobs** - 26 vagas
+4. ✅ **RemoteOK** - 12 vagas (4 com salário)
+5. ✅ **Remotive** - 8 vagas
+6. ✅ **LinkedIn** - 7 vagas
+7. ✅ **WorkingNomads** - 1 vaga
+
+**Coletores Implementados**:
+- ✅ `collect-jobs-arbeitnow.ts` - Europa (DE, NL, UK, FR)
+- ✅ `collect-jobs-themuse.ts` - Global com salary extraction
+- ✅ `collect-jobs-github.ts` - Tech jobs (API pública)
+- ✅ `collect-jobs-weworkremotely.ts` - Remote-first (falhou: 406)
+- ✅ `collect-jobs-himalayas.ts` - Remote jobs (falhou: schema)
+- ✅ `collect-jobs-no-api.sh` - Agregador de todos os coletores
+
+**Features**:
+- ✅ Extração de salário via regex (múltiplos padrões)
+- ✅ URLs das vagas salvas para acesso direto
+- ✅ Detecção de remote/onsite/hybrid
+- ✅ Skills extraction de tags
+- ✅ Constraint única (job_id, platform) para evitar duplicatas
+
+### ❌ **FONTES COM PROBLEMAS**
+
+1. **WeWorkRemotely** - API retorna 406 (precisa headers diferentes)
+2. **Himalayas** - Schema da API mudou (company.name undefined)
+
+### 🎯 **PRÓXIMOS PASSOS**
+
+#### **Fase 1: Corrigir Fontes Quebradas** (1-2 dias)
+- [ ] Fix WeWorkRemotely headers
+- [ ] Fix Himalayas schema parsing
+- **Meta**: +50-100 vagas
+
+#### **Fase 2: Adicionar Fontes com API Key** (3-5 dias)
+1. **Adzuna API** ⭐⭐⭐⭐⭐
+   - 50k vagas/dia, 20+ países
+   - API gratuita (5000 calls/mês)
+   - Dados de salário incluídos
+   
+2. **USAJOBS API** ⭐⭐⭐
+   - 5k vagas tech (governo USA)
+   - API gratuita, requer registro
+   - Salários públicos
+
+**Meta**: 500+ vagas/dia
+
+#### **Fase 3: Web Scraping** (1-2 semanas)
+1. **LinkedIn Jobs** - 100k+ vagas (script já existe)
+2. **Indeed** - 200k+ vagas (requer parceria)
+3. **AngelList/Wellfound** - 20k startups
+
+**Meta**: 1000+ vagas/dia
+
+#### **Fase 4: Agregadores Regionais** (futuro)
+- Catho (Brasil) - 10k+ vagas
+- InfoJobs (LATAM/Europa) - 15k+ vagas
+- Seek (AU/NZ) - 8k+ vagas
+
+**Meta Final**: 2000+ vagas/dia
+
+### 📝 **DOCUMENTAÇÃO**
+
+- `.claude/JOBS-EXPANSION-PLAN.md` - Plano completo de expansão
+- 14 fontes documentadas (APIs + scraping)
+- Código exemplo para Adzuna API
+- Métricas de sucesso definidas
+
+### 🔧 **CONFIGURAÇÃO ATUAL**
+
+**Cron Job**:
+```cron
+0 6 * * * /home/ubuntu/sofia-pulse/scripts/cron-collect-jobs.sh
+```
+
+**Executar Manualmente**:
+```bash
+# Rodar todos os coletores sem API key
+bash scripts/collect-jobs-no-api.sh
+
+# Rodar coletor específico
+npx tsx scripts/collect-jobs-arbeitnow.ts
+npx tsx scripts/collect-jobs-themuse.ts
+```
+
+**Estatísticas**:
+```sql
+SELECT 
+    platform,
+    COUNT(*) as vagas,
+    COUNT(DISTINCT company) as empresas,
+    COUNT(CASE WHEN salary_min IS NOT NULL THEN 1 END) as com_salario
+FROM sofia.tech_jobs
+GROUP BY platform
+ORDER BY vagas DESC;
+```
+
+### 💡 **INSIGHTS**
+
+**Salários**:
+- Média: $111k - $157k/ano
+- Apenas 9% das vagas têm salário (precisa melhorar)
+- The Muse tem melhor taxa (17.9% com salário)
+
+**Distribuição**:
+- 42% The Muse (global)
+- 38% Arbeitnow (Europa)
+- 20% outras fontes
+
+**Próxima Ação Recomendada**:
+1. Implementar Adzuna (50k vagas, dados de salário)
+2. Corrigir WeWorkRemotely e Himalayas
+3. Configurar cron para rodar 2x/dia
+
+---
+
+**Última Atualização**: 2025-12-08 17:00 BRT
