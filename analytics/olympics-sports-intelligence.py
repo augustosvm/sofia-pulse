@@ -17,7 +17,7 @@ def main():
     try:
         cur.execute("SELECT COUNT(*) FROM sofia.olympics_medals")
         r.append(f"Records: {cur.fetchone()[0]:,}")
-        cur.execute("SELECT country, sport, gold, silver, bronze, year FROM sofia.olympics_medals ORDER BY gold DESC LIMIT 20")
+        cur.execute("SELECT country_name, olympics_name, gold, silver, bronze, olympics_year FROM sofia.olympics_medals ORDER BY gold DESC LIMIT 20")
         for c,s,g,si,b,y in cur.fetchall():
             r.append(f"  • {c}: {s} - 🥇{g} 🥈{si} 🥉{b} ({y})")
     except Exception as e:
@@ -29,9 +29,9 @@ def main():
     try:
         cur.execute("SELECT COUNT(*) FROM sofia.sports_rankings")
         r.append(f"Records: {cur.fetchone()[0]:,}")
-        cur.execute("SELECT sport, federation, country, rank, points FROM sofia.sports_rankings ORDER BY rank LIMIT 20")
-        for sp,fed,c,rk,pts in cur.fetchall():
-            r.append(f"  • {sp} ({fed}): #{rk} {c} ({pts:.0f} pts)")
+        cur.execute("SELECT federation, ranking_type, country_name, rank, entity_name FROM sofia.sports_rankings ORDER BY rank LIMIT 20")
+        for fed,rtype,c,rk,entity in cur.fetchall():
+            r.append(f"  • {rtype} ({fed}): #{rk} {c} - {entity}")
     except Exception as e:
         conn.rollback()
         r.append(f"⚠️ {e}")
