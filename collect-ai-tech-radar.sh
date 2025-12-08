@@ -23,6 +23,18 @@ echo "==========================================================================
 echo "Started: $(date '+%Y-%m-%d %H:%M:%S UTC')"
 echo "================================================================================"
 
+# Load .env
+set -a
+source .env 2>/dev/null || true
+set +a
+
+# Also try to load from parent directory if running from scripts/
+if [ -f "../.env" ]; then
+    set -a
+    source ../.env 2>/dev/null || true
+    set +a
+fi
+
 # Create output directory
 mkdir -p output
 mkdir -p logs
