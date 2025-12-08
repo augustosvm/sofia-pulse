@@ -234,9 +234,8 @@ def main():
                 FROM sofia.women_eurostat_data
                 WHERE value IS NOT NULL
                 ORDER BY country_code, dataset_name, year DESC, value DESC
-                LIMIT 15
             """)
-            rows = cur.fetchall()
+            rows = cur.fetchall()[:15]
             if rows:
                 report_lines.append("📊 EU GENDER INDICATORS:")
                 report_lines.append("-" * 60)

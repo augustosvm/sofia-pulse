@@ -49,7 +49,7 @@ def main():
                 ) latest ON e.country_name = latest.country_name AND e.year = latest.max_year
                 WHERE e.indicator_code = 'NY.GDP.PCAP.CD' AND e.value IS NOT NULL
             )
-            SELECT g.country_name, s.security_score, g.gdp
+            SELECT DISTINCT g.country_name, s.security_score, g.gdp
             FROM gdp_latest g
             LEFT JOIN sec_latest s ON LOWER(g.country_name) = LOWER(s.country_name)
             ORDER BY g.gdp DESC

@@ -76,9 +76,10 @@ def main():
                 ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
                 WHERE LOWER(w.religion) LIKE '%christian%' AND w.percentage IS NOT NULL
                 ORDER BY w.country_name, w.percentage DESC
-                LIMIT 10
             """)
             rows = cur.fetchall()
+            # Sort by percentage and limit to top 10
+            rows = sorted(rows, key=lambda x: x[2], reverse=True)[:10]
             if rows:
                 report_lines.append("✝️ TOP CHRISTIAN COUNTRIES:")
                 report_lines.append("-" * 60)
