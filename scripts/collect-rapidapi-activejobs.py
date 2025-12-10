@@ -15,13 +15,13 @@ load_dotenv()
 RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY', '880a9ad324msh90b6bf8ee717866p1855dfjsn6377aaee1939')
 API_URL = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
 
-# Keywords focadas em Brasil
+# Keywords focadas em Brasil (reduzido para evitar rate limit)
 KEYWORDS = [
-    "Engenheiro de Software", "Desenvolvedor", "Data Scientist", "DevOps",
-    "Analista de Dados", "Cientista de Dados", "Arquiteto de Software",
-    "Tech Lead", "Engineering Manager", "Product Manager",
-    "QA Engineer", "Analista de Testes", "DBA", "Administrador de Banco",
-    "Frontend", "Backend", "Full Stack", "Mobile", "React", "Python"
+    "Software Engineer Brazil", 
+    "Data Scientist Brazil",
+    "DevOps Brazil",
+    "Full Stack Brazil",
+    "Backend Developer Brazil"
 ]
 
 def collect_active_jobs_db():
@@ -47,25 +47,35 @@ def collect_active_jobs_db():
             
             if response.status_code == 200:
                 data = response.json()
-                job_list = data.get('jobs', data.get('data', []))
+                # Fix: resposta pode ser lista ou dict
+                if isinstance(data, list):
+                    job_list = data
+                else:
+                    job_list = data.get('jobs', data.get('data', data.get('results', [])))
                 
                 for job in job_list:
-                    jobs.append({
-                        'job_id': f"activejobs-{job.get('id', hash(job.get('url')))}",
-                        'title': job.get('title'),
-                        'company': job.get('company'),
-                        'location': job.get('location', 'Brazil'),
-                        'description': job.get('description', '')[:1000],
-                        'url': job.get('url', job.get('apply_url')),
-                        'platform': 'activejobs',
-                        'posted_date': job.get('posted_date'),
-                        'salary_min': job.get('salary_min'),
-                        'salary_max': job.get('salary_max'),
-                        'remote_type': 'remote' if 'remote' in str(job.get('location', '')).lower() else None,
-                        'search_keyword': keyword
-                    })
+                    # Fix: job pode ser dict ou ter estrutura diferente
+                    if isinstance(job, dict):
+                        jobs.append({
+                            'job_id': f"activejobs-{job.get('id', hash(str(job.get('url', keyword))))}",
+                            'title': job.get('title', job.get('job_title')),
+                            'company': job.get('company', job.get('company_name')),
+                            'location': job.get('location', 'Brazil'),
+                            'description': str(job.get('description', ''))[:1000],
+                            'url': job.get('url', job.get('apply_url', job.get('link'))),
+                            'platform': 'activejobs',
+                            'posted_date': job.get('posted_date', job.get('date_posted')),
+                            'salary_min': job.get('salary_min'),
+                            'salary_max': job.get('salary_max'),
+                            'remote_type': 'remote' if 'remote' in str(job.get('location', '')).lower() else None,
+                            'search_keyword': keyword
+                        })
                 
                 print(f"✅ Active Jobs DB: {len(job_list)} vagas para '{keyword}'")
+            elif response.status_code == 429:
+                print(f"⚠️  Rate limit! Aguardando 60s...")
+                import time
+                time.sleep(60)
             else:
                 print(f"⚠️  Active Jobs DB: {response.status_code} para '{keyword}'")
                 
