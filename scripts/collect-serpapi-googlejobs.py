@@ -46,6 +46,11 @@ def collect_google_jobs_serpapi():
                 job_list = data.get('jobs_results', [])
                 
                 for job in job_list:
+                    # Converter data relativa para None
+                    posted_date = job.get('detected_extensions', {}).get('posted_at')
+                    if posted_date and ('há' in str(posted_date) or 'ago' in str(posted_date)):
+                        posted_date = None  # Ignorar datas relativas
+                    
                     jobs.append({
                         'job_id': f"googlejobs-{hash(job.get('job_id', job.get('link')))}",
                         'title': job.get('title'),
@@ -54,7 +59,7 @@ def collect_google_jobs_serpapi():
                         'description': job.get('description', '')[:1000],
                         'url': job.get('share_url', job.get('link')),
                         'platform': 'googlejobs',
-                        'posted_date': job.get('detected_extensions', {}).get('posted_at'),
+                        'posted_date': posted_date,
                         'employment_type': job.get('detected_extensions', {}).get('schedule_type'),
                         'search_keyword': keyword
                     })
