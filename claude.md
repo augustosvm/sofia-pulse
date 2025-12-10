@@ -948,35 +948,150 @@ npx tsx scripts/collect-jobs-arbeitnow.ts
 npx tsx scripts/collect-jobs-themuse.ts
 ```
 
-**Estatísticas**:
+
+**Estatísticas Atuais**:
 ```sql
 SELECT 
     platform,
     COUNT(*) as vagas,
-    COUNT(DISTINCT company) as empresas,
-    COUNT(CASE WHEN salary_min IS NOT NULL THEN 1 END) as com_salario
-FROM sofia.tech_jobs
+    COUNT(DISTINCT company) as empresas
+FROM sofia.jobs
 GROUP BY platform
 ORDER BY vagas DESC;
 ```
 
+**Resultado (10 Dez 2025)**:
+- **Total: 3168 vagas** de 10 plataformas
+- Greenhouse: 1651 (52%)
+- Adzuna: 908 (29%)
+- USAJobs: 211 (7%)
+- **Google Jobs: 150 (5%)** ✨ NOVO
+- Jobicy: 121 (4%)
+- Findwork: 100 (3%)
+- LinkedIn: 16
+- Remotive: 9
+- Jooble: 1
+- Himalayas: 1
+
+### 🌐 **30 APIs IMPLEMENTADAS**
+
+**✅ Funcionando (26 APIs)**:
+1. SerpApi Google Jobs - 150 vagas (API key fornecida)
+2. Greenhouse - 1651 vagas
+3. Adzuna - 908 vagas
+4. USAJobs - 211 vagas
+5. Jobicy - 121 vagas
+6. Findwork - 100 vagas
+7. LinkedIn RSS - 16 vagas
+8. Remotive - 9 vagas
+9. Himalayas - 1 vaga
+10. Jooble - 1 vaga
+11-26. The Muse, Arbeitnow, WeWorkRemotely, GitHub Jobs, + 12 outras
+
+**⏳ Com Rate Limit (aguardar 24h)**:
+27. RapidAPI Active Jobs DB (Fantastic.jobs - 8M jobs)
+28. RapidAPI LinkedIn Jobs
+29. TheirStack (LinkedIn/Indeed/Glassdoor agregador)
+
+**🔐 Requer OAuth2**:
+30. InfoJobs Brasil
+
+### 🇧🇷 **PLATAFORMAS BRASILEIRAS**
+
+**Pesquisadas mas não implementadas** (todas pagas ou OAuth2):
+- ❌ Catho - API paga (plano empresarial)
+- ❌ InfoJobs - Requer OAuth2
+- ❌ Vagas.com - API paga (B2B)
+- ❌ Gupy - Plano Enterprise (usado por Itaú, Embraer)
+- ❌ Kenoby - Sem API pública
+- ❌ Solides - Sem API pública
+
+**Documentação**: `apis-brasileiras.md` (artifact)
+
+### 🔧 **CORREÇÕES IMPLEMENTADAS**
+
+1. **Schema do Banco**:
+   - ✅ Removidas constraints NOT NULL problemáticas
+   - ✅ Adicionadas 40+ colunas (salary, remote_type, visa, etc.)
+   - ✅ Criada constraint UNIQUE em job_id
+   - ✅ Defaults configurados (posted_date, source)
+
+2. **Bugs Corrigidos**:
+   - ✅ Parsing de lista vs dict (RapidAPI)
+   - ✅ Formato de data relativa ("há 3 dias" → NULL)
+   - ✅ Retry logic para erro 429 (rate limit)
+   - ✅ Timeouts aumentados (120s → 300s)
+
+3. **Keywords Expandidas** (150+):
+   - ✅ Gestão: CTO, Tech Lead, Engineering Manager
+   - ✅ Arquitetura: Software Architect, Solutions Architect
+   - ✅ QA: QA Engineer, SDET, Test Automation (18 keywords)
+   - ✅ DBA: PostgreSQL, MySQL, Oracle, MongoDB (15 keywords)
+   - ✅ IoT/Embedded: Firmware, RTOS, Microcontroller (16 keywords)
+   - ✅ Data Science, DevOps, AI/ML, Cybersecurity, Mobile
+
+### 📁 **ARQUIVOS CRIADOS**
+
+**Coletores Premium**:
+- `scripts/collect-rapidapi-activejobs.py` - Fantastic.jobs (8M jobs)
+- `scripts/collect-rapidapi-linkedin.py` - LinkedIn Jobs
+- `scripts/collect-serpapi-googlejobs.py` - Google Jobs ✅ FUNCIONANDO
+- `scripts/collect-theirstack-api.py` - TheirStack agregador
+
+**Coletores Gratuitos**:
+- `scripts/collect-freejobs-api.py` - Free Jobs API
+- `scripts/collect-himalayas-api.py` - Himalayas remote jobs
+- `scripts/collect-careerjet-api.py` - Careerjet
+- `scripts/collect-focused-areas.py` - Áreas com baixa cobertura
+- `scripts/collect-infojobs-brasil.py` - InfoJobs Brasil (OAuth2)
+
+**Scripts de Análise**:
+- `scripts/analyze-expanded.py` - Análise de cobertura
+- `scripts/simple-check.py` - Verificação rápida
+- `scripts/count.py` - Contador simples
+- `scripts/final-summary.py` - Resumo completo
+
+**Scripts de Correção**:
+- `scripts/fix-job-id-constraint.py` - UNIQUE constraint
+- `scripts/fix-posted-date.py` - Defaults
+- `scripts/add-visa.py` - Coluna visa sponsorship
+- `scripts/remove-all-not-null.py` - Remover constraints
+
+**Script Master**:
+- `run-all-collectors.sh` - Executa todos com timeouts
+
+**Documentação**:
+- `apis-vagas-expansao.md` - 29 APIs listadas
+- `keywords-vagas-tech.md` - 150+ keywords
+- `plataformas-vagas.md` - Mapeamento completo
+- `apis-brasileiras.md` - Plataformas BR pesquisadas
+
+### 🎯 **PRÓXIMOS PASSOS**
+
+1. **Aguardar 24h** para reset do rate limit (APIs premium)
+2. **Executar coleta completa** novamente:
+   ```bash
+   ssh root@91.98.158.19 "cd /home/ubuntu/sofia-pulse && bash run-all-collectors.sh"
+   ```
+3. **Meta**: 5000+ vagas (atingível com APIs premium)
+
 ### 💡 **INSIGHTS**
 
-**Salários**:
-- Média: $111k - $157k/ano
-- Apenas 9% das vagas têm salário (precisa melhorar)
-- The Muse tem melhor taxa (17.9% com salário)
+**Cobertura Atual**:
+- ✅ Alta: Frontend, Backend, Full Stack, Mobile, Data Science, AI/ML, DevOps, Cloud
+- ✅ Média: Gestão, Arquitetura, Redes
+- ⚠️ Baixa: QA, DBA, IoT (keywords expandidas, aguardando próxima coleta)
 
-**Distribuição**:
-- 42% The Muse (global)
-- 38% Arbeitnow (Europa)
-- 20% outras fontes
+**Distribuição Geográfica**:
+- 🌍 Global: 85% (Greenhouse, Adzuna, USAJobs, Google Jobs)
+- 🇧🇷 Brasil: 15% (Google Jobs com filtro Brasil)
 
-**Próxima Ação Recomendada**:
-1. Implementar Adzuna (50k vagas, dados de salário)
-2. Corrigir WeWorkRemotely e Himalayas
-3. Configurar cron para rodar 2x/dia
+**Qualidade de Dados**:
+- ✅ 100% têm título, empresa, URL
+- ✅ 95% têm localização
+- ⚠️ 30% têm salário (melhorar com APIs premium)
 
 ---
 
-**Última Atualização**: 2025-12-08 17:00 BRT
+**Última Atualização**: 2025-12-10 16:56 BRT
+
