@@ -79,7 +79,7 @@ async function collectArbeitnowJobs() {
                         'contract';
 
                 await client.query(`
-          INSERT INTO sofia.tech_jobs (
+          INSERT INTO sofia.jobs (
             job_id, platform, title, company,
             location, city, country, remote_type,
             description, posted_date, url,
@@ -126,7 +126,7 @@ async function collectArbeitnowJobs() {
       COUNT(DISTINCT company) as companies,
       COUNT(CASE WHEN remote_type = 'remote' THEN 1 END) as remote_jobs,
       COUNT(CASE WHEN posted_date >= CURRENT_DATE - INTERVAL '7 days' THEN 1 END) as last_week
-    FROM sofia.tech_jobs
+    FROM sofia.jobs
     WHERE platform = 'arbeitnow'
   `);
 

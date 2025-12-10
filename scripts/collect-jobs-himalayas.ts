@@ -75,7 +75,7 @@ async function collectHimalayasJobs() {
                 const skills = job.tags?.filter(tag => tag.length > 0) || [];
 
                 await client.query(`
-          INSERT INTO sofia.tech_jobs (
+          INSERT INTO sofia.jobs (
             job_id, platform, title, company,
             location, city, country, remote_type,
             description, posted_date, url,
@@ -85,8 +85,8 @@ async function collectHimalayasJobs() {
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
             description = EXCLUDED.description,
-            salary_min = COALESCE(EXCLUDED.salary_min, sofia.tech_jobs.salary_min),
-            salary_max = COALESCE(EXCLUDED.salary_max, sofia.tech_jobs.salary_max)
+            salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
+            salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
         `, [
                     job.id,
                     'himalayas',
@@ -130,7 +130,7 @@ async function collectHimalayasJobs() {
       COUNT(CASE WHEN salary_min IS NOT NULL THEN 1 END) as with_salary,
       ROUND(AVG(salary_min)) as avg_min,
       ROUND(AVG(salary_max)) as avg_max
-    FROM sofia.tech_jobs
+    FROM sofia.jobs
     WHERE platform = 'himalayas'
   `);
 

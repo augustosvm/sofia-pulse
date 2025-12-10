@@ -84,7 +84,7 @@ async function collectGitHubJobs() {
                     const remoteType = isRemote ? 'remote' : 'onsite';
 
                     await client.query(`
-            INSERT INTO sofia.tech_jobs (
+            INSERT INTO sofia.jobs (
               job_id, platform, title, company, company_url,
               location, city, country, remote_type,
               description, posted_date, url, search_keyword,
