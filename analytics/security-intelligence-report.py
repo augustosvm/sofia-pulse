@@ -190,7 +190,7 @@ def main():
             # By region - safest (only latest year per country, avg indicators)
             for region in ['Americas', 'Europe', 'Asia']:
                 cur.execute("""
-                    SELECT w.country_name, w.region, AVG(w.value) as avg_value, w.year
+                    SELECT DISTINCT ON (w.country_name) w.country_name, w.region, AVG(w.value) as avg_value, w.year
                     FROM sofia.world_security_data w
                     INNER JOIN (
                         SELECT country_name, MAX(year) as max_year
@@ -200,7 +200,7 @@ def main():
                     ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
                     WHERE LOWER(w.region) LIKE %s AND w.value IS NOT NULL
                     GROUP BY w.country_name, w.region, w.year
-                    ORDER BY avg_value ASC
+                    ORDER BY w.country_name, avg_value ASC
                     LIMIT 10
                 """, (f'%{region.lower()}%', f'%{region.lower()}%'))
                 rows = cur.fetchall()
@@ -213,7 +213,7 @@ def main():
 
             # Global ranking - safest (only latest year per country, avg indicators)
             cur.execute("""
-                SELECT w.country_name, w.region, AVG(w.value) as avg_value
+                SELECT DISTINCT ON (w.country_name) w.country_name, w.region, AVG(w.value) as avg_value
                 FROM sofia.world_security_data w
                 INNER JOIN (
                     SELECT country_name, MAX(year) as max_year
@@ -223,7 +223,7 @@ def main():
                 ) latest ON w.country_name = latest.country_name AND w.year = latest.max_year
                 WHERE w.value IS NOT NULL
                 GROUP BY w.country_name, w.region
-                ORDER BY avg_value ASC
+                ORDER BY w.country_name, avg_value ASC
                 LIMIT 20
             """)
             rows = cur.fetchall()
