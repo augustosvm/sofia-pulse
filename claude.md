@@ -86,6 +86,37 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ---
 
+### ✅ **PRODUCT HUNT API - Startups Tech** (11 Dez 2025)
+
+**NOVA FONTE**: Coleta de produtos tech lançados no Product Hunt!
+
+**Dados Coletados**:
+- 20+ produtos tech diariamente
+- Topics: Developer Tools, AI, SaaS, Productivity, API
+- Votes, comments, taglines
+- Filtro automático para tech/startup topics
+
+**Produtos Exemplo** (11 Dez 2025):
+1. Google Antigravity (585 votos) - Developer Tools, AI
+2. SnapTodo (576 votos) - Productivity, Task Management, SaaS
+3. Documentation.AI (566 votos) - Developer Tools, AI
+4. Logo.dev (557 votos) - API, Developer Tools
+5. Ripplica (547 votos) - Productivity, SaaS, AI
+
+**Configuração**:
+- API Key configurada no .env
+- Token: Developer Token (nunca expira)
+- GraphQL API v2
+- Cron: Diariamente às 21:15 UTC (18:15 BRT)
+
+**Uso**:
+- Detectar startups emergentes
+- Identificar tendências tech
+- Correlacionar com funding rounds
+- Insights para colunistas (pautas sobre novos produtos)
+
+---
+
 ### ✅ **WhatsApp Integration - ALL 23 Reports** (22 Nov 2025 - 03:48 UTC)
 
 **MAJOR FEATURE**: Sistema completo de distribuição via WhatsApp + Email!

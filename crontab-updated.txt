@@ -31,6 +31,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # Funding - Diariamente às 21:10 UTC (18:10 BRT)
 10 21 * * * cd /home/ubuntu/sofia-pulse && npm run collect:funding >> /var/log/sofia-finance-funding.log 2>&1 || true
 
+# Product Hunt - Diariamente às 21:15 UTC (18:15 BRT)
+15 21 * * * cd /home/ubuntu/sofia-pulse && python3 scripts/collect-producthunt-api.py >> /var/log/sofia-producthunt.log 2>&1 || true
+
 # GDELT - 2x ao dia (manhã e noite)
 0 9,21 * * * cd /home/ubuntu/sofia-pulse && npm run collect:gdelt >> /var/log/sofia-gdelt.log 2>&1 || true
 
