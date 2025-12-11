@@ -3,47 +3,45 @@
 Add UNIQUE constraint to sofia.jobs table for (job_id, platform)
 """
 
-import psycopg2
-import os
-from dotenv import load_dotenv
+import subprocess
+import sys
 
-load_dotenv()
+def run_sql(sql):
+    """Execute SQL command using psql"""
+    cmd = [
+        'sudo', '-u', 'postgres', 'psql',
+        '-d', 'sofia_db',
+        '-c', sql
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return result.returncode == 0, result.stdout, result.stderr
 
-conn = psycopg2.connect(
-    host=os.getenv('POSTGRES_HOST', 'localhost'),
-    port=int(os.getenv('POSTGRES_PORT', 5432)),
-    user=os.getenv('POSTGRES_USER', 'sofia'),
-    password=os.getenv('POSTGRES_PASSWORD'),
-    database=os.getenv('POSTGRES_DB', 'sofia_db')
-)
+# Check if constraint exists
+success, stdout, stderr = run_sql("""
+    SELECT constraint_name 
+    FROM information_schema.table_constraints 
+    WHERE table_schema = 'sofia' 
+    AND table_name = 'jobs' 
+    AND constraint_name = 'jobs_unique_job_platform';
+""")
 
-cur = conn.cursor()
+if not success:
+    print(f"❌ Error checking constraint: {stderr}")
+    sys.exit(1)
 
-try:
-    # Check if constraint already exists
-    cur.execute("""
-        SELECT constraint_name 
-        FROM information_schema.table_constraints 
-        WHERE table_schema = 'sofia' 
-        AND table_name = 'jobs' 
-        AND constraint_name = 'jobs_unique_job_platform'
+if 'jobs_unique_job_platform' in stdout:
+    print("✅ Constraint 'jobs_unique_job_platform' already exists")
+else:
+    print("Adding UNIQUE constraint on (job_id, platform)...")
+    success, stdout, stderr = run_sql("""
+        ALTER TABLE sofia.jobs 
+        ADD CONSTRAINT jobs_unique_job_platform 
+        UNIQUE (job_id, platform);
     """)
     
-    if cur.fetchone():
-        print("✅ Constraint 'jobs_unique_job_platform' already exists")
-    else:
-        print("Adding UNIQUE constraint on (job_id, platform)...")
-        cur.execute("""
-            ALTER TABLE sofia.jobs 
-            ADD CONSTRAINT jobs_unique_job_platform 
-            UNIQUE (job_id, platform)
-        """)
-        conn.commit()
+    if success:
         print("✅ Constraint added successfully!")
-        
-except Exception as e:
-    print(f"❌ Error: {e}")
-    conn.rollback()
-finally:
-    cur.close()
-    conn.close()
+    else:
+        print(f"❌ Error adding constraint: {stderr}")
+        sys.exit(1)
+
