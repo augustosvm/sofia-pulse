@@ -19,15 +19,32 @@ import psycopg2
 import requests
 from datetime import datetime
 from typing import List, Dict, Any
+from dotenv import load_dotenv
+from urllib.parse import urlparse
 
-# Database connection
-DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
-}
+# Load environment variables from .env file
+load_dotenv()
+
+# Parse DATABASE_URL if available
+database_url = os.getenv('DATABASE_URL')
+if database_url:
+    parsed = urlparse(database_url)
+    DB_CONFIG = {
+        'host': parsed.hostname or 'localhost',
+        'port': parsed.port or 5432,
+        'user': parsed.username or 'sofia',
+        'password': parsed.password or '',
+        'database': parsed.path.lstrip('/') if parsed.path else 'sofia_db'
+    }
+else:
+    # Fallback to individual environment variables
+    DB_CONFIG = {
+        'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
+        'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
+        'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
+        'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
+        'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    }
 
 # Brazilian States (UF codes)
 BRAZILIAN_STATES = {
