@@ -25,23 +25,20 @@ def collect_yc_companies():
         if response.status_code == 200:
             data = response.json()
             
-            # Filtrar apenas empresas ativas e com batch recente
+            # Filtrar apenas empresas ativas
             for company in data:
                 # Verificar se tem informações básicas
                 if company.get('name') and company.get('batch'):
-                    # Filtrar batches recentes (últimos 3 anos: W22, S22, W23, S23, W24, S24, W25)
-                    recent_batches = ['W22', 'S22', 'W23', 'S23', 'W24', 'S24', 'W25', 'S25']
-                    
-                    if company.get('batch') in recent_batches:
-                        companies.append({
-                            'company_name': company.get('name'),
-                            'batch': company.get('batch'),
-                            'status': company.get('status', 'Active'),
-                            'location': company.get('location', 'USA'),
-                            'description': company.get('description', '')[:500],
-                            'website': company.get('website'),
-                            'tags': ', '.join(company.get('tags', [])[:5])
-                        })
+                    # Aceitar todas as empresas (remover filtro de batch)
+                    companies.append({
+                        'company_name': company.get('name'),
+                        'batch': company.get('batch'),
+                        'status': company.get('status', 'Active'),
+                        'location': company.get('location', 'USA'),
+                        'description': company.get('description', '')[:500],
+                        'website': company.get('website'),
+                        'tags': ', '.join(company.get('tags', [])[:5])
+                    })
             
             print(f"✅ Y Combinator: {len(companies)} startups recentes coletadas")
         else:
