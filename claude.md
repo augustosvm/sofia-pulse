@@ -673,18 +673,14 @@ bash update-crontab-distributed.sh
    - **Formato**: PDFs + possíveis APIs internas
    - **Status**: ⏳ A investigar
 
-3. **IBGE API** ✅ **OFICIAL**
+3. **IBGE API** ✅ **IMPLEMENTADO**
    - **O que é**: API oficial do Instituto Brasileiro de Geografia e Estatística
    - **Dados**: Censos, PIB, inflação, emprego, demografia, produção agrícola/industrial
    - **Qualidade**: ⭐⭐⭐⭐⭐ (fonte oficial do governo federal)
    - **Frequência**: Variável (mensal, trimestral, anual)
    - **URL Base**: https://servicodados.ibge.gov.br/api/docs
-   - **Endpoints**:
-     - `/api/v3/agregados` - Agregados estatísticos
-     - `/api/v1/localidades` - Dados geográficos
-     - `/api/v3/noticias` - Releases de indicadores
-   - **Formato**: JSON (API RESTful documentada)
-   - **Status**: ⏳ Prioridade #1 para implementar
+   - **Script**: `scripts/collect-ibge-api.py`
+   - **Status**: ✅ **IMPLEMENTADO E FUNCIONANDO**
 
 4. **MDIC / ComexStat API**
    - **O que é**: Ministério do Desenvolvimento, Indústria e Comércio Exterior
@@ -693,45 +689,32 @@ bash update-crontab-distributed.sh
    - **Frequência**: Mensal
    - **URL Base**: http://comexstat.mdic.gov.br/pt/home
    - **API**: http://api.comexstat.mdic.gov.br/docs/
-   - **Formato**: JSON/CSV
-   - **Casos de Uso**:
-     - Correlacionar exportações tech com funding
-     - Detectar crescimento de setores por exportações
-     - Prever demanda por skills (ex: importação de chips = demanda engenheiros)
-   - **Status**: ⏳ Prioridade #2
+   - **Status**: ⏳ **ÚNICO NÃO IMPLEMENTADO**
 
-5. **BACEN SGS API** ✅ **OFICIAL**
+5. **BACEN SGS API** ✅ **IMPLEMENTADO**
    - **O que é**: Banco Central do Brasil - Sistema Gerenciador de Séries Temporais
    - **Dados**: Juros (Selic), câmbio, inflação (IPCA), reservas internacionais, M1/M2
    - **Qualidade**: ⭐⭐⭐⭐⭐ (fonte oficial macro do Brasil)
    - **Frequência**: Diária para alguns indicadores
    - **URL Base**: https://www3.bcb.gov.br/sgspub/
-   - **API**: https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json
-   - **Séries Importantes**:
-     - `432` - Taxa Selic (diária)
-     - `433` - IPCA (mensal)
-     - `1` - Dólar (diária)
-     - `4189` - PIB mensal
-   - **Formato**: JSON
-   - **Casos de Uso**:
-     - Correlacionar Selic com funding de startups
-     - Câmbio vs investimento estrangeiro em tech
-     - Inflação vs salários tech
-   - **Status**: ⏳ Prioridade #3
+   - **Script**: `scripts/collect-bacen-sgs.py`
+   - **Séries Importantes**: Selic (432), IPCA (433), Dólar (1), PIB (4189)
+   - **Status**: ✅ **IMPLEMENTADO E FUNCIONANDO**
 
-6. **IPEA API** ✅ **OFICIAL**
+6. **IPEA API** ✅ **IMPLEMENTADO**
    - **O que é**: Instituto de Pesquisa Econômica Aplicada
    - **Dados**: Séries históricas completas (economia, social, infraestrutura)
    - **Qualidade**: ⭐⭐⭐⭐⭐ (dados históricos de alta qualidade, desde 1940s)
    - **Frequência**: Variável
    - **URL Base**: http://www.ipeadata.gov.br/
-   - **API**: http://ipeadata.gov.br/api/
-   - **Formato**: JSON/XML
-   - **Casos de Uso**:
-     - Séries históricas para ML (prever tendências)
-     - Correlações de longo prazo
-     - Comparações Brasil vs mundo
-   - **Status**: ⏳ Prioridade #4
+   - **Script**: `scripts/collect-ipea-api.py`
+   - **Status**: ✅ **IMPLEMENTADO E FUNCIONANDO**
+
+### **Outras Fontes Brasileiras Implementadas**:
+- ✅ `collect-brazil-ministries.py` - 12 ministérios, dados orçamentários
+- ✅ `collect-brazil-security.py` - 27 estados + 30 cidades (crime data)
+- ✅ `collect-women-brazil.py` - IBGE/IPEA gender indicators
+- ✅ `collect-basedosdados.py` - Datasets brasileiros
 
 ---
 
