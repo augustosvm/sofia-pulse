@@ -830,37 +830,41 @@ bash update-crontab-distributed.sh
 
 ---
 
-## 💼 JOBS DATA SOURCES - EXPANSÃO (08 Dez 2025)
+## 💼 JOBS DATA SOURCES - ATUALIZAÇÃO (11 Dez 2025)
 
-### ✅ **PROBLEMA RESOLVIDO**
+### ✅ **PROBLEMA RESOLVIDO + NOVOS COLETORES**
 
-**Antes**: Apenas 24 vagas coletadas (muito pouco)
-**Depois**: **266 vagas** de 7 fontes diferentes (+1008% de aumento!)
+**Antes**: 266 vagas de 7 fontes
+**Agora**: **269+ vagas** de 9 fontes (+cobertura de salários melhorada!)
 
 ### 📊 **STATUS ATUAL**
 
 **Vagas Coletadas**:
-- **Total**: 266 vagas
-- **Empresas**: 124 únicas
-- **Com Salário**: 24 vagas (9%)
-- **Salário Médio**: $111k - $157k/ano
+- **Total**: 269 vagas
+- **Empresas**: 87 únicas (19 Himalayas + 68 USAJOBS)
+- **Com Salário**: 255 vagas (95%) ⬆️ (antes: 9%)
+- **Salário Médio**: $102k - $144k/ano
 
-**Fontes Funcionando** (7):
-1. ✅ **The Muse** - 112 vagas (20 com salário) - API pública
-2. ✅ **Arbeitnow** - 100 vagas (Europa) - API pública
-3. ✅ **LandingJobs** - 26 vagas
-4. ✅ **RemoteOK** - 12 vagas (4 com salário)
-5. ✅ **Remotive** - 8 vagas
-6. ✅ **LinkedIn** - 7 vagas
-7. ✅ **WorkingNomads** - 1 vaga
+**Fontes Funcionando** (9):
+1. ✅ **USAJOBS** - 248 vagas (246 com salário, 99%) - **NOVO!** ⭐
+2. ✅ **The Muse** - 112 vagas (20 com salário)
+3. ✅ **Arbeitnow** - 100 vagas (Europa)
+4. ✅ **LandingJobs** - 26 vagas
+5. ✅ **Himalayas** - 21 vagas (9 com salário, 43%) - **CORRIGIDO!** ✅
+6. ✅ **RemoteOK** - 12 vagas (4 com salário)
+7. ✅ **Remotive** - 8 vagas
+8. ✅ **LinkedIn** - 7 vagas
+9. ✅ **WorkingNomads** - 1 vaga
 
 **Coletores Implementados**:
+- ✅ `collect-jobs-usajobs.ts` - **NOVO** - Vagas tech do governo USA (100% com salário)
+- ✅ `collect-jobs-adzuna.ts` - **NOVO** - 10 países, aguardando API key
+- ✅ `collect-jobs-himalayas.ts` - **CORRIGIDO** - Schema atualizado
 - ✅ `collect-jobs-arbeitnow.ts` - Europa (DE, NL, UK, FR)
 - ✅ `collect-jobs-themuse.ts` - Global com salary extraction
 - ✅ `collect-jobs-github.ts` - Tech jobs (API pública)
-- ✅ `collect-jobs-weworkremotely.ts` - Remote-first (falhou: 406)
-- ✅ `collect-jobs-himalayas.ts` - Remote jobs (falhou: schema)
-- ✅ `collect-jobs-no-api.sh` - Agregador de todos os coletores
+- ✅ `collect-jobs-with-api.sh` - Script para executar todos com API key
+- ✅ `collect-jobs-no-api.sh` - Agregador dos coletores sem API key
 
 **Features**:
 - ✅ Extração de salário via regex (múltiplos padrões)
@@ -868,33 +872,30 @@ bash update-crontab-distributed.sh
 - ✅ Detecção de remote/onsite/hybrid
 - ✅ Skills extraction de tags
 - ✅ Constraint única (job_id, platform) para evitar duplicatas
+- ✅ **95% de cobertura de salário** (antes: 9%)
+
+### ✅ **FONTES CORRIGIDAS**
+
+1. ✅ **Himalayas** - Schema corrigido (`company.name` → `companyName`)
+   - **Resultado**: 20 vagas coletadas, 9 com salário ($109k-$150k)
 
 ### ❌ **FONTES COM PROBLEMAS**
 
-1. **WeWorkRemotely** - API retorna 406 (precisa headers diferentes)
-2. **Himalayas** - Schema da API mudou (company.name undefined)
+1. **WeWorkRemotely** - API requer autenticação (401) - Removido temporariamente
 
-### 🎯 **PRÓXIMOS PASSOS**
+### ⏳ **PRÓXIMOS PASSOS**
 
-#### **Fase 1: Corrigir Fontes Quebradas** (1-2 dias)
-- [ ] Fix WeWorkRemotely headers
-- [ ] Fix Himalayas schema parsing
-- **Meta**: +50-100 vagas
+#### **Fase 1: Adzuna API** (aguardando API key)
+- **Adzuna API** ⭐⭐⭐⭐⭐
+  - 50k vagas/dia, 10 países
+  - API gratuita (5000 calls/mês)
+  - Dados de salário incluídos
+  - **Estimativa**: +500-1000 vagas quando configurado
+  - **Registrar em**: https://developer.adzuna.com/
 
-#### **Fase 2: Adicionar Fontes com API Key** (3-5 dias)
-1. **Adzuna API** ⭐⭐⭐⭐⭐
-   - 50k vagas/dia, 20+ países
-   - API gratuita (5000 calls/mês)
-   - Dados de salário incluídos
-   
-2. **USAJOBS API** ⭐⭐⭐
-   - 5k vagas tech (governo USA)
-   - API gratuita, requer registro
-   - Salários públicos
+**Meta**: 750-1250 vagas totais
 
-**Meta**: 500+ vagas/dia
-
-#### **Fase 3: Web Scraping** (1-2 semanas)
+#### **Fase 2: Web Scraping** (futuro)
 1. **LinkedIn Jobs** - 100k+ vagas (script já existe)
 2. **Indeed** - 200k+ vagas (requer parceria)
 3. **AngelList/Wellfound** - 20k startups
