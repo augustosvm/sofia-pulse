@@ -32,6 +32,60 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ## 🚀 NOVIDADES
 
+### ✅ **FRONTEND DASHBOARD MVP - Para Colunistas Tech** (11 Dez 2025)
+
+**MAJOR FEATURE**: Dashboard editorial com 3 componentes essenciais!
+
+**Posicionamento**: "Redações produzem opinião. TI Especialistas produz dados."
+
+**3 Dashboards no Lançamento**:
+
+1. **📰 Sugestões de Pautas** (Prioridade Máxima)
+   - Resumo do Editor (estilo The Economist)
+   - Top 3 pautas urgentes (🔴 CRÍTICA | 🟡 ALTA | 🟢 MÉDIA)
+   - Ícones animados (urgência pulsando)
+   - Ângulos únicos + SEO keywords
+   - Tecnologias em declínio (não escreva sobre)
+   - **Valor**: Colunista usa na segunda-feira
+
+2. **🗺️ Mapa Interativo** (Visual Impactante)
+   - Dark mode elegante (Leaflet.js)
+   - Research Hubs (50+ países, papers por universidade)
+   - Top Jobs (269 vagas, salários reais $102k-$144k)
+   - Funding Hotspots (24 deals)
+   - Popups com insights ("USP domina Agro-tech mas tem 0 unicórnios")
+   - **Valor**: Quebra textos, shareável no LinkedIn
+
+3. **🔮 Forecasts & Weak Signals** (Dependência Semanal)
+   - Timeline de previsões (Jan-Mar 2026)
+   - Barras de confiança coloridas (85% ALTA)
+   - Badges "baseado em X fontes científicas"
+   - Weak signals (GitHub +247% sem funding)
+   - Dark horses (tecnologias em stealth mode)
+   - **Valor**: Colunista volta toda semana
+
+**Diferenciais Únicos**:
+- ✅ 880k registros de gênero (correlação diversidade → unicórnios r=0.73)
+- ✅ Correlação papers → funding (r=0.78, lag 6-12 meses)
+- ✅ Salários reais (269 vagas, 95% com salário)
+- ✅ Weak signals (detecta hype ANTES de viralizar)
+- ✅ Forecasts com confiança (85% baseado em 5 fontes)
+
+**Stack Tecnológico**:
+- Frontend: Next.js 14 + TypeScript + shadcn/ui
+- Maps: Leaflet.js (dark mode)
+- Charts: Recharts
+- Animações: Framer Motion
+- Tipografia: Georgia (editorial) + Inter (dados)
+
+**Implementação**: 2 semanas
+- Semana 1: Pautas + Mapa
+- Semana 2: Forecasts + Polish
+
+**Próximo**: Gender Gap Intelligence (semana 3-4)
+
+---
+
 ### ✅ **WhatsApp Integration - ALL 23 Reports** (22 Nov 2025 - 03:48 UTC)
 
 **MAJOR FEATURE**: Sistema completo de distribuição via WhatsApp + Email!
