@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Y Combinator Unofficial API
-YC_API_URL = "https://raw.githubusercontent.com/yc-oss/api/main/companies.json"
+# Y Combinator Unofficial API (URL correta)
+YC_API_URL = "https://yc-oss.github.io/api/companies/all.json"
 
 def collect_yc_companies():
     """Coleta empresas do Y Combinator"""
