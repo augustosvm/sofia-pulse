@@ -21,23 +21,19 @@ const dbConfig = {
 const HIMALAYAS_API = 'https://himalayas.app/jobs/api';
 
 interface HimalayasJob {
-    id: string;
+    guid: string;
     title: string;
-    company: {
-        name: string;
-        logo: string;
-    };
-    location: string;
-    remote: boolean;
-    salary: {
-        min: number;
-        max: number;
-        currency: string;
-    } | null;
+    companyName: string;
+    companyLogo: string;
+    locationRestrictions?: string[];
+    employmentType: string;
+    minSalary: number | null;
+    maxSalary: number | null;
+    currency: string;
     description: string;
-    url: string;
-    published_at: string;
-    tags: string[];
+    applicationLink: string;
+    pubDate: number;
+    categories?: string[];
 }
 
 async function collectHimalayasJobs() {
@@ -64,23 +60,31 @@ async function collectHimalayasJobs() {
 
         for (const job of jobs) {
             try {
+                // Validate required fields
+                if (!job.companyName || !job.title) {
+                    console.log(`   ⚠️ Skipping job with missing required fields`);
+                    continue;
+                }
+
                 // Extract location details
-                const locationParts = job.location?.split(',').map(s => s.trim()) || ['Remote'];
-                const city = locationParts[0] || null;
-                const country = locationParts[locationParts.length - 1] || 'REMOTE';
+                const locations = job.locationRestrictions || ['Remote'];
+                const location = locations.join(', ');
+                const country = locations[0] || 'REMOTE';
+                const isRemote = locations.some(loc => /anywhere|worldwide|remote/i.test(loc));
 
-                const remoteType = job.remote ? 'remote' : 'onsite';
+                // Extract skills from categories
+                const skills = job.categories?.filter(cat => cat.length > 0) || [];
 
-                // Extract skills from tags
-                const skills = job.tags?.filter(tag => tag.length > 0) || [];
+                // Convert Unix timestamp to Date
+                const postedDate = new Date(job.pubDate * 1000);
 
                 await client.query(`
           INSERT INTO sofia.jobs (
             job_id, platform, title, company,
-            location, city, country, remote_type,
+            location, country, remote_type,
             description, posted_date, url,
             salary_min, salary_max, salary_currency, salary_period,
-            skills_required, collected_at
+            employment_type, skills_required, collected_at
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
@@ -88,28 +92,28 @@ async function collectHimalayasJobs() {
             salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
             salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
         `, [
-                    job.id,
+                    job.guid,
                     'himalayas',
                     job.title,
-                    job.company.name,
-                    job.location || 'Remote',
-                    city,
+                    job.companyName,
+                    location,
                     country,
-                    remoteType,
+                    isRemote ? 'remote' : 'onsite',
                     job.description,
-                    new Date(job.published_at),
-                    job.url,
-                    job.salary?.min || null,
-                    job.salary?.max || null,
-                    job.salary?.currency || 'USD',
+                    postedDate,
+                    job.applicationLink,
+                    job.minSalary,
+                    job.maxSalary,
+                    job.currency || 'USD',
                     'yearly',
+                    job.employmentType?.toLowerCase() || 'full-time',
                     skills.length > 0 ? skills : null
                 ]);
 
                 totalCollected++;
 
             } catch (err: any) {
-                console.error(`   ❌ Error inserting job ${job.id}:`, err.message);
+                console.error(`   ❌ Error inserting job ${job.guid}:`, err.message);
             }
         }
 

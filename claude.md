@@ -771,9 +771,10 @@ bash update-crontab-distributed.sh
 2. ✅ Qualidade de dados melhorada
 3. ✅ Schedule distribuído
 4. ⏳ Aguardar 7-14 dias de coleta diária para séries temporais
-5. ⏳ Implementar Crunchbase Free API (500 req/mês)
-6. ⏳ Reddit API (criar app + PRAW)
-7. ⏳ Dashboard web (visualização)
+5. ✅ **ProductHunt API implementado** - Startups tech + funding (gratuito)
+6. ✅ **Reddit API implementado** - `collect-reddit-tech.ts`
+7. ❌ **Crunchbase Free API** - Não existe (API completa requer plano pago)
+8. ⏳ Dashboard web (visualização)
 
 ---
 
@@ -1076,5 +1077,258 @@ ORDER BY vagas DESC;
 
 ---
 
-**Última Atualização**: 2025-12-10 16:56 BRT
+## 🔌 ENGINE DE INTEGRAÇÃO SOFIA-MASTRA-RAG (11 Dez 2025)
+
+### 🎯 **VISÃO GERAL**
+
+Sofia Pulse possui uma **engine reutilizável** de conexão com banco de dados e extração de dados que pode ser facilmente importada no projeto `sofia-mastra-rag`.
+
+### 📦 **COMPONENTES DA ENGINE**
+
+#### 1. **Configuração de Banco de Dados** (DB_CONFIG)
+
+Padrão Python usando `psycopg2` presente em **todos os scripts** do sofia-pulse:
+
+```python
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DB_CONFIG = {
+    'host': os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST') or 'localhost',
+    'port': int(os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT') or '5432'),
+    'user': os.getenv('POSTGRES_USER') or os.getenv('DB_USER') or 'sofia',
+    'password': os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD') or '',
+    'database': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME') or 'sofia_db',
+}
+
+# Uso:
+conn = psycopg2.connect(**DB_CONFIG)
+cur = conn.cursor(cursor_factory=RealDictCursor)
+```
+
+#### 2. **Funções de Extração de Dados**
+
+Localizadas em `analytics/intelligence-reports-suite.py` e outros arquivos analytics:
+
+**Funções Principais**:
+- `extract_socioeconomic_data(conn)` - Indicadores socioeconômicos por país (92k+ records)
+- `extract_research_activity(conn)` - Papers acadêmicos (ArXiv, OpenAlex)
+- `extract_funding_activity(conn)` - Rodadas de investimento por país
+- `extract_universities_data(conn)` - Rankings de universidades
+
+**Exemplo de Uso**:
+```python
+conn = psycopg2.connect(**DB_CONFIG)
+
+# Extrair dados socioeconômicos
+socio_data = extract_socioeconomic_data(conn)
+# Retorna: dict[country_name] = {indicator_name: value}
+
+# Extrair atividade de pesquisa
+research_data = extract_research_activity(conn)
+# Retorna: dict[country] = {papers: int, avg_citations: float}
+
+# Extrair funding
+funding_data = extract_funding_activity(conn)
+# Retorna: dict[country] = {deals: int, total_funding: float}
+```
+
+#### 3. **Relatórios Disponíveis**
+
+A engine gera **33 tipos de relatórios** prontos para consumo:
+
+**Core Analytics (5)**:
+- Tech Trends, Correlações Papers ↔ Funding, Dark Horses, Entity Resolution
+
+**Predictive Intelligence (6)**:
+- Career Trends, Capital Flow, Expansion Location, Weekly Insights, Dying Sectors, Dark Horses Intelligence
+
+**Socioeconomic Intelligence (6)**:
+- Innovation Hubs, Startup Founders, Digital Nomad, STEM Education, Tech Talent Cities, Remote Work Quality
+
+**Specialized (16)**:
+- Women Global Analysis, Security Intelligence, Social Intelligence, Brazil Economy, Health & Humanitarian, Trade & Agriculture, Tourism, LATAM, Olympics & Sports, Cross-Data Correlations, e mais
+
+### 📊 **DADOS DISPONÍVEIS NO BANCO**
+
+Schema `sofia` contém **40+ tabelas** com **1.5M+ registros**:
+
+**Tech & Research**:
+- `arxiv_ai_papers` - Papers de IA
+- `openalex_papers` - Research acadêmico
+- `nih_grants` - Grants do NIH
+- `github_trending` - Repositórios trending
+- `hackernews_stories` - HackerNews
+- `npm_stats`, `pypi_stats` - Pacotes
+
+**Jobs & Funding**:
+- `jobs` - 3168 vagas de 10 plataformas
+- `funding_rounds` - Rodadas de investimento
+
+**Economia Global**:
+- `socioeconomic_indicators` - 92k+ indicadores (World Bank)
+- `electricity_consumption` - 239 países
+- `port_traffic` - 2462 records
+- `commodity_prices` - 5 commodities
+- `global_energy` - 307 países
+
+**Brasil**:
+- `bacen_sgs_data` - Selic, IPCA, câmbio
+- `ibge_data` - Censos, PIB, demografia
+- `ipea_data` - Séries históricas
+- `brazil_ministries_data` - 12 ministérios
+- `brazil_security_data` - 27 estados + 30 cidades
+
+**Social & Demographics**:
+- `women_world_bank_data` - 55+ indicadores de gênero
+- `world_religion_data` - 40+ países
+- `world_ngos_data` - 200+ NGOs
+- `world_security_data` - Top 10 por região
+- `sports_*` - FIFA, IOC, Olympics
+
+### 🔌 **COMO IMPORTAR NO SOFIA-MASTRA-RAG**
+
+#### Opção 1: Copiar DB_CONFIG e Funções
+
+```python
+# No sofia-mastra-rag, criar: lib/sofia-pulse-engine.py
+
+from analytics.intelligence_reports_suite import (
+    extract_socioeconomic_data,
+    extract_research_activity,
+    extract_funding_activity
+)
+from analytics.cross_data_correlations import get_connection
+
+# Usar diretamente
+conn = get_connection()
+data = extract_socioeconomic_data(conn)
+```
+
+#### Opção 2: Queries Diretas
+
+```python
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+# Conectar
+conn = psycopg2.connect(**DB_CONFIG)
+cur = conn.cursor(cursor_factory=RealDictCursor)
+
+# Query exemplo: Top países por inovação
+cur.execute("""
+    SELECT country_name, value as rd_gdp
+    FROM sofia.socioeconomic_indicators
+    WHERE indicator_code = 'GB.XPD.RSDV.GD.ZS'
+    AND value IS NOT NULL
+    ORDER BY value DESC
+    LIMIT 10
+""")
+results = cur.fetchall()
+```
+
+### 📁 **ARQUIVOS PRINCIPAIS PARA IMPORTAR**
+
+**Analytics Core**:
+- `analytics/intelligence-reports-suite.py` - 4 relatórios + funções de extração
+- `analytics/cross-data-correlations.py` - Correlações cross-database
+- `analytics/career-trends-predictor.py` - Predição de carreiras
+- `analytics/capital-flow-predictor.py` - Predição de capital
+
+**Todos usam o mesmo padrão DB_CONFIG** - fácil de importar!
+
+### 🌐 **VARIÁVEIS DE AMBIENTE NECESSÁRIAS**
+
+```env
+# Opção 1 (preferencial):
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=sofia
+POSTGRES_PASSWORD=sua_senha
+POSTGRES_DB=sofia_db
+
+# Opção 2 (alternativa):
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=sofia
+DB_PASSWORD=sua_senha
+DB_NAME=sofia_db
+```
+
+### ✅ **VANTAGENS DA ENGINE**
+
+- ✅ **Plug & Play**: Copiar DB_CONFIG e usar
+- ✅ **33 Relatórios Prontos**: Insights imediatos
+- ✅ **1.5M+ Registros**: Dados ricos e atualizados
+- ✅ **40+ Fontes**: Cobertura global
+- ✅ **Metodologias Consagradas**: HDI, GII, PISA, etc.
+- ✅ **Atualização Diária**: Cron automático
+
+### 📝 **EXEMPLO DE INTEGRAÇÃO**
+
+```python
+# sofia-mastra-rag/tools/sofia-pulse.py
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import os
+
+DB_CONFIG = {
+    'host': os.getenv('POSTGRES_HOST', 'localhost'),
+    'port': int(os.getenv('POSTGRES_PORT', '5432')),
+    'user': os.getenv('POSTGRES_USER', 'sofia'),
+    'password': os.getenv('POSTGRES_PASSWORD', ''),
+    'database': os.getenv('POSTGRES_DB', 'sofia_db'),
+}
+
+def get_career_trends():
+    """Retorna tendências de carreira do Sofia Pulse"""
+    conn = psycopg2.connect(**DB_CONFIG)
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    cur.execute("""
+        SELECT 
+            UNNEST(topics) as tech,
+            COUNT(*) as repos,
+            SUM(stars) as total_stars
+        FROM sofia.github_trending
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '90 days'
+        GROUP BY tech
+        ORDER BY total_stars DESC
+        LIMIT 10
+    """)
+    
+    return cur.fetchall()
+
+def get_innovation_hubs():
+    """Retorna centros de inovação global"""
+    conn = psycopg2.connect(**DB_CONFIG)
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    
+    cur.execute("""
+        SELECT country_name, value as rd_gdp
+        FROM sofia.socioeconomic_indicators
+        WHERE indicator_code = 'GB.XPD.RSDV.GD.ZS'
+        AND value IS NOT NULL
+        ORDER BY value DESC
+        LIMIT 20
+    """)
+    
+    return cur.fetchall()
+```
+
+### 🎯 **PRÓXIMOS PASSOS**
+
+1. ✅ Engine documentada e pronta para uso
+2. ⏳ Criar módulo Python compartilhado (opcional)
+3. ⏳ Integrar no sofia-mastra-rag
+4. ⏳ Testar queries e performance
+
+---
+
+**Última Atualização**: 2025-12-11 11:49 BRT
 
