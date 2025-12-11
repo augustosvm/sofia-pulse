@@ -9,7 +9,8 @@ import sys
 def run_sql(sql):
     """Execute SQL command using psql"""
     cmd = [
-        'sudo', '-u', 'postgres', 'psql',
+        'psql',
+        '-U', 'sofia',
         '-d', 'sofia_db',
         '-c', sql
     ]
