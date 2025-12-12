@@ -10,6 +10,12 @@ echo "SOFIA PULSE - Coleta de Vagas Tech"
 echo "Iniciado em: $(date)"
 echo "======================================================================"
 
+# Enviar notificação WhatsApp de início
+python3 -c "
+from scripts.utils.whatsapp_alerts import send_whatsapp_info
+send_whatsapp_info('🚀 Iniciando coleta de vagas - $(date +%H:%M)')
+" 2>/dev/null || echo "WhatsApp notification skipped"
+
 # Ativar venv se existir
 if [ -d "venv" ]; then
     source venv/bin/activate
@@ -44,7 +50,38 @@ for collector in "${COLLECTORS[@]}"; do
     fi
 done
 
+# Contar total de vagas
+TOTAL_JOBS=$(npx tsx -e "
+import { Client } from 'pg';
+import dotenv from 'dotenv';
+dotenv.config();
+const client = new Client({
+    host: process.env.POSTGRES_HOST,
+    port: parseInt(process.env.POSTGRES_PORT || '5432'),
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    database: process.env.POSTGRES_DB
+});
+client.connect().then(() => 
+    client.query('SELECT COUNT(*) as total FROM sofia.jobs')
+).then(r => {
+    console.log(r.rows[0].total);
+    client.end();
+}).catch(() => console.log('0'));
+" 2>/dev/null || echo "0")
+
 echo ""
 echo "======================================================================"
 echo "Coleta finalizada em: $(date)"
+echo "📊 Total de vagas no banco: $TOTAL_JOBS"
 echo "======================================================================"
+
+# Enviar notificação WhatsApp de conclusão
+python3 -c "
+from scripts.utils.whatsapp_alerts import send_whatsapp_info
+message = '''✅ Coleta de vagas concluída!
+
+📊 Total no banco: $TOTAL_JOBS vagas
+⏰ Finalizado: $(date +%H:%M)'''
+send_whatsapp_info(message)
+" 2>/dev/null || echo "WhatsApp notification skipped"
