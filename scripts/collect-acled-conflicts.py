@@ -10,19 +10,25 @@ Docs: https://acleddata.com/reactivation/api-authentication
 import os
 import sys
 import requests
+import psycopg2
 from datetime import datetime, timedelta
 from pathlib import Path
-
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent))
-
-from scripts.utils.db_utils import get_db_connection
 
 # Configuration
 ACLED_TOKEN_URL = "https://acleddata.com/oauth/token"
 ACLED_API_URL = "https://acleddata.com/api/acled/read"
 ACLED_EMAIL = os.getenv('ACLED_EMAIL')
 ACLED_PASSWORD = os.getenv('ACLED_PASSWORD')
+
+def get_db_connection():
+    """Get database connection"""
+    return psycopg2.connect(
+        host=os.getenv('POSTGRES_HOST', 'localhost'),
+        port=os.getenv('POSTGRES_PORT', '5432'),
+        user=os.getenv('POSTGRES_USER', 'sofia'),
+        password=os.getenv('POSTGRES_PASSWORD', ''),
+        database=os.getenv('POSTGRES_DB', 'sofia_db')
+    )
 
 def get_access_token():
     """Get OAuth2 access token from ACLED"""
