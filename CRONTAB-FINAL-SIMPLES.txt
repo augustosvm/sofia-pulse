@@ -59,6 +59,7 @@ SOFIA_DIR=/home/ubuntu/sofia-pulse
 0 11 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-arxiv-ai.ts >> /var/log/sofia/arxiv.log 2>&1
 15 11 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-openalex.ts >> /var/log/sofia/openalex.log 2>&1
 30 11 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-nih-grants.ts >> /var/log/sofia/nih.log 2>&1
+45 11 * * * cd $SOFIA_DIR && npx tsx scripts/collect-asia-universities.ts >> /var/log/sofia/asia-universities.log 2>&1
 
 # ============================================================================
 # ORGS INTERNACIONAIS - 12:00 UTC (09:00 BRT)
