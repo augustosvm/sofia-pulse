@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Configuration
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
-SOFIA_API_ENDPOINT = os.getenv('SOFIA_API_ENDPOINT', 'http://localhost:8001/api/v2/chat')
+SOFIA_WPP_ENDPOINT = os.getenv('SOFIA_WPP_ENDPOINT', 'http://localhost:3001/send')
 ALERT_ENABLED = os.getenv('ALERT_WHATSAPP_ENABLED', 'true').lower() == 'true'
 
 def send_whatsapp_alert(message, level='WARNING'):
@@ -47,16 +47,14 @@ _Sofia Pulse Intelligence System_
 """
 
     try:
-        # Call Sofia API
+        # Call sofia-wpp directly
         payload = {
-            'query': formatted_message,
-            'user_id': 'sofia-pulse',
-            'channel': 'whatsapp',
-            'phone': WHATSAPP_NUMBER
+            'to': WHATSAPP_NUMBER,
+            'message': formatted_message
         }
 
         response = requests.post(
-            SOFIA_API_ENDPOINT,
+            SOFIA_WPP_ENDPOINT,
             json=payload,
             timeout=10
         )
@@ -70,8 +68,8 @@ _Sofia Pulse Intelligence System_
             return False
 
     except requests.exceptions.ConnectionError:
-        print(f"❌ Could not connect to Sofia API at {SOFIA_API_ENDPOINT}")
-        print(f"   Is sofia-mastra-rag running?")
+        print(f"❌ Could not connect to sofia-wpp at {SOFIA_WPP_ENDPOINT}")
+        print(f"   Is sofia-wpp running?")
         return False
     except requests.exceptions.Timeout:
         print(f"❌ Sofia API timeout")
@@ -151,7 +149,7 @@ Sofia Pulse alert system is working!
 
 Configuration:
 • Phone: +{WHATSAPP_NUMBER}
-• Endpoint: {SOFIA_API_ENDPOINT}
+• Endpoint: {SOFIA_WPP_ENDPOINT}
 • Status: ✅ Active
 
 This is a test message.
@@ -168,5 +166,5 @@ if __name__ == '__main__':
     else:
         print("\n❌ WhatsApp alerts failed. Check configuration:")
         print(f"   WHATSAPP_NUMBER: {WHATSAPP_NUMBER}")
-        print(f"   SOFIA_API_ENDPOINT: {SOFIA_API_ENDPOINT}")
+        print(f"   SOFIA_WPP_ENDPOINT: {SOFIA_WPP_ENDPOINT}")
         print(f"   ALERT_WHATSAPP_ENABLED: {ALERT_ENABLED}")
