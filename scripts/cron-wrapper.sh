@@ -55,9 +55,18 @@ else
 fi
 
 # Enviar via WhatsApp
-python3 -c "
+echo "$MSG" > /tmp/whatsapp_msg.txt
+python3 << 'PYEOF'
 from scripts.utils.whatsapp_alerts import send_whatsapp_alert
-send_whatsapp_alert('$MSG')
-" 2>/dev/null || echo "WhatsApp notification skipped"
+with open('/tmp/whatsapp_msg.txt') as f:
+    msg = f.read()
+send_whatsapp_alert(msg, level='INFO')
+PYEOF
+
+if [ $? -eq 0 ]; then
+    echo "✅ WhatsApp sent"
+else
+    echo "⚠️  WhatsApp notification skipped"
+fi
 
 exit $EXIT_CODE
