@@ -1,9 +1,9 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2025-11-23 UTC
-**Branch**: `claude/setup-auto-notifications-012c4Fo8viNHgba4oBwMpCjf`
+**Data**: 2025-12-12 UTC
+**Branch**: `claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH`
 **Email**: augustosvm@gmail.com
-**Status**: ✅ SISTEMA 100% FUNCIONAL - 40+ FONTES + 33 RELATÓRIOS + 1.5M+ REGISTROS
+**Status**: ✅ SISTEMA 100% FUNCIONAL - 55+ COLETORES + 33 RELATÓRIOS + WHATSAPP
 
 ---
 
@@ -31,6 +31,86 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 ---
 
 ## 🚀 NOVIDADES
+
+### ✅ **CRONTAB COMPLETO COM WHATSAPP** (12 Dez 2025)
+
+**MAJOR FEATURE**: Sistema completo de automação com 63 jobs e notificações WhatsApp para cada coletor!
+
+**O que foi implementado**:
+
+1. **63 Jobs no Crontab** 📅
+   - 55 coletores de dados distribuídos ao longo do dia
+   - 3 execuções de coletores de vagas (10h, 15h, 18h BRT)
+   - 1 analytics (19h BRT) com 33 relatórios
+   - 1 email report (19:30 BRT)
+   - 3 execuções extras de HackerNews (alta frequência)
+
+2. **Notificações WhatsApp para CADA Coletor** 📱
+   - Wrapper `cron-wrapper.sh` executa coletor e envia WhatsApp
+   - Mensagem mostra: Nome, Registros coletados, Horário
+   - Integração direta com `sofia-wpp` (porta 3001)
+   - Sem dependência de `python-dotenv` (carrega `.env` manualmente)
+
+3. **Cronograma Distribuído** ⏰
+   - **06:00 UTC (03:00 BRT)**: Dados BR (BACEN, IBGE, IPEA, ComexStat)
+   - **07:00 UTC (04:00 BRT)**: Energia & Commodities
+   - **08:00 UTC (05:00 BRT)**: Tech News (HackerNews, NPM, PyPI)
+   - **10:00 UTC (07:00 BRT)**: GitHub (Trending, Niches)
+   - **11:00 UTC (08:00 BRT)**: Research (ArXiv, OpenAlex, NIH, Universidades)
+   - **12:00 UTC (09:00 BRT)**: Orgs Internacionais parte 1 (WHO, UNICEF, ILO, UN)
+   - **13:00 UTC (10:00 BRT)**: Orgs Internacionais parte 2 + **VAGAS (1ª execução)**
+   - **14:00 UTC (11:00 BRT)**: Women & Gender + HackerNews (2ª execução)
+   - **15:00 UTC (12:00 BRT)**: Social (Religião, ONGs, Drogas, Segurança)
+   - **16:00 UTC (13:00 BRT)**: Tourism & Trade
+   - **17:00 UTC (14:00 BRT)**: Sports (FIFA, IOC, Olympics)
+   - **18:00 UTC (15:00 BRT)**: Brazil + **VAGAS (2ª execução)** + HackerNews (3ª execução)
+   - **19:00 UTC (16:00 BRT)**: Patents & IP
+   - **20:00 UTC (17:00 BRT)**: Space, Cyber, GDELT
+   - **21:00 UTC (18:00 BRT)**: Specialized + **VAGAS (3ª execução - noite)**
+   - **22:00 UTC (19:00 BRT)**: **ANALYTICS** (33 relatórios) + WhatsApp summary
+   - **22:30 UTC (19:30 BRT)**: **EMAIL REPORT**
+
+4. **Coletores de Vagas** (3x por dia) 💼
+   - `run-jobs-collectors.sh` executa 11 coletores de vagas
+   - Fontes: Arbeitnow, The Muse, GitHub Jobs, Himalayas, WeWorkRemotely
+   - Total no banco: 3.457 vagas
+   - Horários: 10h, 15h, 18h BRT
+
+**Arquivos**:
+- `scripts/cron-wrapper.sh` - Wrapper que executa coletores e envia WhatsApp
+- `scripts/utils/whatsapp_alerts.py` - Integração com sofia-wpp (porta 3001)
+- `aplicar-cron-com-whatsapp.sh` - Script de instalação do crontab
+- `run-jobs-collectors.sh` - Executa todos os coletores de vagas
+
+**Formato das Notificações WhatsApp**:
+```
+✅ [Nome do Coletor]
+📊 Coletados: [N] registros
+⏰ [HH:MM]
+```
+
+**Correções Aplicadas**:
+- ✅ Removida dependência `python-dotenv` (carrega `.env` manualmente)
+- ✅ Corrigido endpoint WhatsApp (sofia-wpp porta 3001 em vez de Sofia API 8001)
+- ✅ Wrapper usa arquivo temporário para mensagens com quebras de linha
+- ✅ Permissões de execução configuradas no Git
+
+**Commits**:
+- `c833dd8` - fix: usar arquivo temporario para passar mensagem whatsapp
+- `ee9e013` - chore: adicionar permissao de execucao ao cron-wrapper.sh
+- `e84cfde` - fix: remover dependencia python-dotenv e carregar .env manualmente
+- `70cc878` - fix: usar sofia-wpp direto para enviar whatsapp
+- `c119cad` - fix: corrigir nome da funcao whatsapp
+- `d4843b6` - fix: carregar .env no cron-wrapper para conexao com banco
+
+**Resultado**:
+- ✅ 63 jobs rodando automaticamente
+- ✅ WhatsApp após cada coletor (55 notificações/dia)
+- ✅ 3 execuções de coletores de vagas
+- ✅ Analytics + Email diário
+- ✅ Sistema 100% funcional
+
+---
 
 ### ✅ **FRONTEND DASHBOARD MVP - Para Colunistas Tech** (11 Dez 2025)
 
