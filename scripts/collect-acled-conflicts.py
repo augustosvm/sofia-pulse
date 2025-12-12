@@ -90,11 +90,9 @@ def fetch_acled_events(token, days_back=30):
     print(f"\n🔍 Fetching ACLED events from {start_str} to {end_str}...")
     
     params = {
-        '_format': 'json',
-        'event_date': f'{start_str}|{end_str}',
-        'event_date_where': 'BETWEEN',
         'limit': 5000,  # Max per request
-        'fields': 'event_id_cnty|event_date|year|event_type|sub_event_type|actor1|actor2|country|region|location|latitude|longitude|source|notes|fatalities|timestamp'
+        'event_date': start_str,
+        'event_date_where': '>=',
     }
     
     try:
@@ -111,16 +109,16 @@ def fetch_acled_events(token, days_back=30):
         if response.status_code == 200:
             data = response.json()
             
-            if data.get('status') == 200:
+            if data.get('success'):
                 events = data.get('data', [])
                 print(f"✅ Fetched {len(events)} events")
                 return events
             else:
-                print(f"❌ API returned status: {data.get('status')}")
-                print(f"   Message: {data.get('message', 'No message')}")
+                print(f"❌ API returned error")
+                print(f"   Response: {data}")
                 return []
         else:
-            print(f"❌ HTTP {response.status_code}: {response.text[:200]}")
+            print(f"❌ HTTP {response.status_code}: {response.text[:500]}")
             return []
             
     except Exception as e:
