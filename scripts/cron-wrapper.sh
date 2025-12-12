@@ -56,8 +56,8 @@ fi
 
 # Enviar via WhatsApp
 python3 -c "
-from scripts.utils.whatsapp_alerts import send_whatsapp_info
-send_whatsapp_info('$MSG')
+from scripts.utils.whatsapp_alerts import send_whatsapp_alert
+send_whatsapp_alert('$MSG')
 " 2>/dev/null || echo "WhatsApp notification skipped"
 
 exit $EXIT_CODE
