@@ -7,6 +7,20 @@ Sends alerts to user's WhatsApp via Sofia API
 import os
 import requests
 from datetime import datetime
+from pathlib import Path
+
+# Load .env manually (no python-dotenv dependency)
+def load_env():
+    env_file = Path(__file__).parent.parent.parent / '.env'
+    if env_file.exists():
+        with open(env_file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key] = value.strip()
+
+load_env()
 
 # Configuration
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
