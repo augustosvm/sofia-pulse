@@ -10,6 +10,11 @@ SOFIA_DIR=/home/ubuntu/sofia-pulse
 
 cd $SOFIA_DIR
 
+# Carregar variáveis de ambiente
+set -a
+source .env 2>/dev/null || true
+set +a
+
 # Executar o script
 if [[ $SCRIPT == *.ts ]]; then
     OUTPUT=$(npx tsx scripts/$SCRIPT 2>&1)
