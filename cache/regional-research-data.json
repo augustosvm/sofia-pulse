@@ -1,0 +1,404 @@
+{
+  "brazil": {
+    "total_papers": 347,
+    "percentage_of_world": 4.24412915851272,
+    "top_tags": [
+      {
+        "tag": "Intensive care medicine",
+        "count": 25,
+        "percentage": 1.7361111111111112
+      },
+      {
+        "tag": "Business",
+        "count": 16,
+        "percentage": 1.1111111111111112
+      },
+      {
+        "tag": "Amazon rainforest",
+        "count": 13,
+        "percentage": 0.9027777777777777
+      },
+      {
+        "tag": "Disease",
+        "count": 12,
+        "percentage": 0.8333333333333334
+      },
+      {
+        "tag": "Nanotechnology",
+        "count": 12,
+        "percentage": 0.8333333333333334
+      },
+      {
+        "tag": "Internal medicine",
+        "count": 11,
+        "percentage": 0.7638888888888888
+      },
+      {
+        "tag": "Public health",
+        "count": 10,
+        "percentage": 0.6944444444444444
+      },
+      {
+        "tag": "Biodiversity",
+        "count": 10,
+        "percentage": 0.6944444444444444
+      },
+      {
+        "tag": "Deforestation (computer science)",
+        "count": 9,
+        "percentage": 0.625
+      },
+      {
+        "tag": "Biomarker",
+        "count": 9,
+        "percentage": 0.625
+      }
+    ]
+  },
+  "north_america": {
+    "total_papers": 635,
+    "percentage_of_world": 7.766634050880626,
+    "top_tags": [
+      {
+        "tag": "Internal medicine",
+        "count": 37,
+        "percentage": 1.436335403726708
+      },
+      {
+        "tag": "Computational biology",
+        "count": 36,
+        "percentage": 1.3975155279503106
+      },
+      {
+        "tag": "Dark matter",
+        "count": 25,
+        "percentage": 0.9704968944099378
+      },
+      {
+        "tag": "Political science",
+        "count": 22,
+        "percentage": 0.8540372670807453
+      },
+      {
+        "tag": "Particle physics",
+        "count": 22,
+        "percentage": 0.8540372670807453
+      },
+      {
+        "tag": "Higgs boson",
+        "count": 22,
+        "percentage": 0.8540372670807453
+      },
+      {
+        "tag": "Supersymmetry",
+        "count": 22,
+        "percentage": 0.8540372670807453
+      },
+      {
+        "tag": "Intensive care medicine",
+        "count": 21,
+        "percentage": 0.8152173913043478
+      },
+      {
+        "tag": "Disease",
+        "count": 20,
+        "percentage": 0.7763975155279503
+      },
+      {
+        "tag": "Data set",
+        "count": 20,
+        "percentage": 0.7763975155279503
+      }
+    ]
+  },
+  "europe": {
+    "total_papers": 1620,
+    "percentage_of_world": 19.814090019569473,
+    "top_tags": [
+      {
+        "tag": "Internal medicine",
+        "count": 103,
+        "percentage": 1.4905933429811866
+      },
+      {
+        "tag": "Intensive care medicine",
+        "count": 77,
+        "percentage": 1.1143270622286543
+      },
+      {
+        "tag": "Political science",
+        "count": 73,
+        "percentage": 1.0564399421128798
+      },
+      {
+        "tag": "Computational biology",
+        "count": 54,
+        "percentage": 0.7814761215629523
+      },
+      {
+        "tag": "Disease",
+        "count": 48,
+        "percentage": 0.6946454413892909
+      },
+      {
+        "tag": "Business",
+        "count": 46,
+        "percentage": 0.6657018813314037
+      },
+      {
+        "tag": "Nanotechnology",
+        "count": 46,
+        "percentage": 0.6657018813314037
+      },
+      {
+        "tag": "Guideline",
+        "count": 42,
+        "percentage": 0.6078147612156295
+      },
+      {
+        "tag": "Population",
+        "count": 38,
+        "percentage": 0.5499276410998553
+      },
+      {
+        "tag": "Astronomy",
+        "count": 38,
+        "percentage": 0.5499276410998553
+      }
+    ]
+  },
+  "asia": {
+    "total_papers": 891,
+    "percentage_of_world": 10.897749510763209,
+    "top_tags": [
+      {
+        "tag": "Nanotechnology",
+        "count": 77,
+        "percentage": 1.9192422731804586
+      },
+      {
+        "tag": "Internal medicine",
+        "count": 45,
+        "percentage": 1.1216350947158524
+      },
+      {
+        "tag": "Cancer",
+        "count": 41,
+        "percentage": 1.0219341974077767
+      },
+      {
+        "tag": "Business",
+        "count": 41,
+        "percentage": 1.0219341974077767
+      },
+      {
+        "tag": "Computer security",
+        "count": 38,
+        "percentage": 0.9471585244267198
+      },
+      {
+        "tag": "Blockchain",
+        "count": 38,
+        "percentage": 0.9471585244267198
+      },
+      {
+        "tag": "Catalysis",
+        "count": 31,
+        "percentage": 0.7726819541375872
+      },
+      {
+        "tag": "Perovskite (structure)",
+        "count": 26,
+        "percentage": 0.6480558325024925
+      },
+      {
+        "tag": "Renewable energy",
+        "count": 24,
+        "percentage": 0.5982053838484547
+      },
+      {
+        "tag": "Disease",
+        "count": 20,
+        "percentage": 0.4985044865403789
+      }
+    ]
+  },
+  "oceania": {
+    "total_papers": 165,
+    "percentage_of_world": 2.018101761252446,
+    "top_tags": [
+      {
+        "tag": "Adsorption",
+        "count": 10,
+        "percentage": 1.4792899408284024
+      },
+      {
+        "tag": "Astronomy",
+        "count": 9,
+        "percentage": 1.3313609467455623
+      },
+      {
+        "tag": "Gravitational wave",
+        "count": 9,
+        "percentage": 1.3313609467455623
+      },
+      {
+        "tag": "Business",
+        "count": 7,
+        "percentage": 1.0355029585798818
+      },
+      {
+        "tag": "Disease",
+        "count": 6,
+        "percentage": 0.8875739644970414
+      },
+      {
+        "tag": "Health care",
+        "count": 6,
+        "percentage": 0.8875739644970414
+      },
+      {
+        "tag": "Environmental health",
+        "count": 5,
+        "percentage": 0.7396449704142012
+      },
+      {
+        "tag": "Psychology",
+        "count": 5,
+        "percentage": 0.7396449704142012
+      },
+      {
+        "tag": "MEDLINE",
+        "count": 5,
+        "percentage": 0.7396449704142012
+      },
+      {
+        "tag": "Internal medicine",
+        "count": 5,
+        "percentage": 0.7396449704142012
+      }
+    ]
+  },
+  "africa": {
+    "total_papers": 32,
+    "percentage_of_world": 0.3913894324853229,
+    "top_tags": [
+      {
+        "tag": "Business",
+        "count": 5,
+        "percentage": 2.3041474654377883
+      },
+      {
+        "tag": "Mechanics",
+        "count": 5,
+        "percentage": 2.3041474654377883
+      },
+      {
+        "tag": "Eye tracking",
+        "count": 4,
+        "percentage": 1.8433179723502304
+      },
+      {
+        "tag": "Eye movement",
+        "count": 4,
+        "percentage": 1.8433179723502304
+      },
+      {
+        "tag": "Risk management",
+        "count": 4,
+        "percentage": 1.8433179723502304
+      },
+      {
+        "tag": "Renewable energy",
+        "count": 4,
+        "percentage": 1.8433179723502304
+      },
+      {
+        "tag": "Logistic regression",
+        "count": 3,
+        "percentage": 1.3824884792626728
+      },
+      {
+        "tag": "Human–computer interaction",
+        "count": 2,
+        "percentage": 0.9216589861751152
+      },
+      {
+        "tag": "Skin conductance",
+        "count": 2,
+        "percentage": 0.9216589861751152
+      },
+      {
+        "tag": "Computer vision",
+        "count": 2,
+        "percentage": 0.9216589861751152
+      }
+    ]
+  },
+  "world": {
+    "total_papers": 8176,
+    "percentage_of_world": 100,
+    "top_tags": [
+      {
+        "tag": "cs.AI",
+        "count": 918,
+        "percentage": 2.859723996137192
+      },
+      {
+        "tag": "cs.LG",
+        "count": 838,
+        "percentage": 2.610510575994517
+      },
+      {
+        "tag": "cs.CV",
+        "count": 816,
+        "percentage": 2.5419768854552816
+      },
+      {
+        "tag": "LLM",
+        "count": 633,
+        "percentage": 1.9719011868789136
+      },
+      {
+        "tag": "cs.CL",
+        "count": 538,
+        "percentage": 1.675960250459487
+      },
+      {
+        "tag": "cs.RO",
+        "count": 478,
+        "percentage": 1.4890501853524811
+      },
+      {
+        "tag": "quant-ph",
+        "count": 354,
+        "percentage": 1.1027693841313353
+      },
+      {
+        "tag": "Robotics",
+        "count": 315,
+        "percentage": 0.9812778418117816
+      },
+      {
+        "tag": "Multimodal",
+        "count": 302,
+        "percentage": 0.9407806610385969
+      },
+      {
+        "tag": "Business",
+        "count": 288,
+        "percentage": 0.8971683125136288
+      }
+    ]
+  },
+  "period": "2025-09-17 to 2025-12-17",
+  "generated_at": "2025-12-17T19:23:06.453Z",
+  "last_3_months_filter": "2025-09-17",
+  "data_sources": {
+    "arxiv_total": 3151,
+    "arxiv_with_country": 0,
+    "openalex_total": 1730,
+    "openalex_with_country": 595,
+    "universities_total": 3359
+  }
+}

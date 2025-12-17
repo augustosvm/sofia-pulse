@@ -32,6 +32,91 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ## 🚀 NOVIDADES
 
+### ✅ **CACHE REGIONAL DE RESEARCH DATA** (17 Dez 2025)
+
+**MAJOR FEATURE**: Sistema de cache JSON com análise regional de papers científicos!
+
+**O que foi implementado**:
+
+1. **Cache Regional Automatizado** 📊
+   - Atualização 3x/dia (08:30, 12:30, 19:30 BRT)
+   - Análise de 8,176+ papers dos últimos 3 meses
+   - 7 regiões: Brasil, América do Norte, Europa, Ásia, Oceania, África, Mundo
+   - Top 10 tags específicas por região (filtra 70+ tags genéricas)
+
+2. **Dados Gerados** 📈
+   - Total de papers por região
+   - Porcentagem em relação ao mundo
+   - Tags mais citadas com contagem
+   - Período: 3 meses rolling
+   - Fontes: ArXiv (3151), OpenAlex (1730), Universities (3359)
+
+3. **Filtro Inteligente de Tags** 🎯
+   - Remove tags genéricas: "Machine Learning", "AI", "Computer Science"
+   - Mantém tags específicas: "Intensive care medicine", "Amazon rainforest", "Dark matter"
+   - Lista de 70+ termos genéricos filtrados
+
+**Exemplo de Dados**:
+```json
+{
+  "brazil": {
+    "total_papers": 347,
+    "percentage_of_world": 4.24,
+    "top_tags": [
+      { "tag": "Intensive care medicine", "count": 25 },
+      { "tag": "Business", "count": 16 },
+      { "tag": "Amazon rainforest", "count": 13 }
+    ]
+  }
+}
+```
+
+**Como Usar**:
+
+1. **Gerar cache manualmente**:
+   ```bash
+   npx tsx scripts/generate-regional-cache-v5-final.ts
+   ```
+
+2. **Cache é atualizado automaticamente** via cron (3x/dia)
+
+3. **Acessar dados**:
+   - Arquivo: `cache/regional-research-data.json`
+   - Consumir no dashboard/API
+
+**Arquivos**:
+- `scripts/generate-regional-cache-v5-final.ts` - Script de geração
+- `cache/regional-research-data.json` - Cache JSON
+- `add-regional-cache-cron.sh` - Instalador do cron
+
+**Cron Schedule**:
+```cron
+30 11 * * * npx tsx scripts/generate-regional-cache-v5-final.ts
+30 15 * * * npx tsx scripts/generate-regional-cache-v5-final.ts
+30 22 * * * npx tsx scripts/generate-regional-cache-v5-final.ts
+```
+
+**Top Tags por Região** (Últimos 3 meses):
+- 🇧🇷 **Brasil** (347 papers): Intensive care medicine (25), Business (16), Amazon rainforest (13)
+- 🇺🇸 **América do Norte** (635): Internal medicine (37), Computational biology (36), Dark matter (25)
+- 🇪🇺 **Europa** (1,620): Internal medicine (103), Intensive care medicine (77), Political science (73)
+- 🇨🇳 **Ásia** (891): Nanotechnology (77), Internal medicine (45), Cancer (41)
+- 🇦🇺 **Oceania** (165): Adsorption (10), Astronomy (9), Gravitational wave (9)
+- 🌍 **África** (32): Business (5), Mechanics (5), Eye tracking (4)
+- 🌎 **Mundo** (8,176): cs.AI (918), cs.LG (838), cs.CV (816)
+
+**Commits**:
+- `[pending]` - feat: cache regional de research data com atualização automática
+
+**Resultado**:
+- ✅ Cache JSON gerado 3x/dia
+- ✅ 8,176 papers analisados
+- ✅ 7 regiões cobertas
+- ✅ Filtro de 70+ tags genéricas
+- ✅ Pronto para consumo no dashboard
+
+---
+
 ### ✅ **CRONTAB COMPLETO COM WHATSAPP** (12 Dez 2025)
 
 **MAJOR FEATURE**: Sistema completo de automação com 63 jobs e notificações WhatsApp para cada coletor!
