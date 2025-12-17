@@ -1,0 +1,248 @@
+{
+  "github": [
+    {
+      "name": "freeCodeCamp",
+      "stars": 434881,
+      "description": "freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming, and computer science for free.",
+      "url": "https://github.com/freeCodeCamp/freeCodeCamp"
+    },
+    {
+      "name": "awesome",
+      "stars": 418572,
+      "description": "😎 Awesome lists about all kinds of interesting topics",
+      "url": "https://github.com/sindresorhus/awesome"
+    },
+    {
+      "name": "free-programming-books",
+      "stars": 378942,
+      "description": ":books: Freely available programming books",
+      "url": "https://github.com/EbookFoundation/free-programming-books"
+    },
+    {
+      "name": "developer-roadmap",
+      "stars": 345550,
+      "description": "Interactive roadmaps, guides and other educational content to help developers grow in their careers.",
+      "url": "https://github.com/kamranahmedse/developer-roadmap"
+    },
+    {
+      "name": "awesome-python",
+      "stars": 271175,
+      "description": "An opinionated list of awesome Python frameworks, libraries, software and resources.",
+      "url": "https://github.com/vinta/awesome-python"
+    },
+    {
+      "name": "awesome-selfhosted",
+      "stars": 263366,
+      "description": "A list of Free Software network services and web applications which can be hosted on your own servers",
+      "url": "https://github.com/awesome-selfhosted/awesome-selfhosted"
+    },
+    {
+      "name": "react",
+      "stars": 241669,
+      "description": "The library for web and native user interfaces.",
+      "url": "https://github.com/facebook/react"
+    },
+    {
+      "name": "Python",
+      "stars": 214863,
+      "description": "All Algorithms implemented in Python",
+      "url": "https://github.com/TheAlgorithms/Python"
+    },
+    {
+      "name": "linux",
+      "stars": 210968,
+      "description": "Linux kernel source tree",
+      "url": "https://github.com/torvalds/linux"
+    },
+    {
+      "name": "vue",
+      "stars": 209756,
+      "description": "This is the repo for Vue 2. For Vue 3, go to https://github.com/vuejs/core",
+      "url": "https://github.com/vuejs/vue"
+    }
+  ],
+  "npm": [
+    {
+      "name": "typescript",
+      "downloads": 113291132,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 113079540,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 112915611,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 112819046,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 112350438,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 112296586,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 111191412,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 111135888,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 111129786,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    },
+    {
+      "name": "typescript",
+      "downloads": 111084089,
+      "description": "TypeScript is a language for application scale JavaScript development",
+      "url": "https://www.npmjs.com/package/typescript"
+    }
+  ],
+  "pypi": [
+    {
+      "name": "requests",
+      "downloads": 1047692037,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 1047692037,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 1046905347,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 1039904147,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 961684272,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 959697039,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 959247768,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 959086162,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 957809512,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    },
+    {
+      "name": "requests",
+      "downloads": 957116979,
+      "description": "Python HTTP for Humans.",
+      "url": "https://pypi.org/project/requests"
+    }
+  ],
+  "hackernews": [
+    {
+      "name": "Ask HN: Should \"I asked $AI, and it said\" replies be forbidden in HN guidelines?",
+      "points": 884,
+      "url": null
+    },
+    {
+      "name": "Cloudflare outage on November 18, 2025 post mortem",
+      "points": 434,
+      "url": "https://blog.cloudflare.com/18-november-2025-outage/"
+    },
+    {
+      "name": "Show HN: Wealthfolio 2.0- Open source investment tracker. Now Mobile and Docker",
+      "points": 418,
+      "url": "https://wealthfolio.app/?v=2.0"
+    },
+    {
+      "name": "Ask HN: How can I get better at using AI for programming?",
+      "points": 379,
+      "url": null
+    },
+    {
+      "name": "Ask HN: What Are You Working On? (December 2025)",
+      "points": 334,
+      "url": null
+    },
+    {
+      "name": "Apple has locked my Apple ID, and I have no recourse. A plea for help",
+      "points": 314,
+      "url": "https://hey.paris/posts/appleid/"
+    },
+    {
+      "name": "Is Mozilla trying hard to kill itself?",
+      "points": 312,
+      "url": "https://infosec.press/brunomiguel/is-mozilla-trying-hard-to-kill-itself"
+    },
+    {
+      "name": "Cloudflare Down Again – and DownDetector Is Also Down",
+      "points": 306,
+      "url": null
+    },
+    {
+      "name": "Regarding Thien-Thi Nguyen",
+      "points": 300,
+      "url": null
+    },
+    {
+      "name": "Ask HN: Who is hiring? (December 2025)",
+      "points": 274,
+      "url": null
+    }
+  ],
+  "period": "2025-11-17 to 2025-12-17",
+  "generated_at": "2025-12-17T19:38:20.960Z",
+  "data_sources": {
+    "github_total": 10,
+    "npm_total": 10,
+    "pypi_total": 10,
+    "hackernews_total": 10
+  }
+}

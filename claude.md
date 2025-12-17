@@ -32,9 +32,11 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ## 🚀 NOVIDADES
 
-### ✅ **CACHE REGIONAL DE RESEARCH DATA** (17 Dez 2025)
+### ✅ **3 CACHES JSON AUTOMATIZADOS** (17 Dez 2025)
 
-**MAJOR FEATURE**: Sistema de cache JSON com análise regional de papers científicos!
+**MAJOR FEATURE**: Sistema completo de caches JSON com 3 análises automatizadas!
+
+#### **1️⃣ Cache Regional de Research Data**
 
 **O que foi implementado**:
 
@@ -105,15 +107,108 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 - 🌍 **África** (32): Business (5), Mechanics (5), Eye tracking (4)
 - 🌎 **Mundo** (8,176): cs.AI (918), cs.LG (838), cs.CV (816)
 
+---
+
+#### **2️⃣ Cache de Trending Tech**
+
+**Repos & Packages em Alta**: GitHub, npm, PyPI, HackerNews
+
+**Dados Gerados** 📦:
+- Top 10 GitHub repos (por stars)
+- Top 10 npm packages (por downloads/semana)
+- Top 10 PyPI packages (por downloads/mês)
+- Top 10 HackerNews stories (por points)
+- Período: 30 dias rolling
+
+**Script**: `scripts/generate-trending-cache.ts`
+**Cache**: `cache/trending-tech.json`
+**Cron**: 11:35, 15:35, 22:35 UTC (3x/dia)
+
+**Exemplo de Dados**:
+```json
+{
+  "github": [
+    { "name": "freeCodeCamp", "stars": 434881, "url": "..." }
+  ],
+  "npm": [
+    { "name": "typescript", "downloads": 113291132, "url": "..." }
+  ],
+  "pypi": [
+    { "name": "requests", "downloads": 1047692037, "url": "..." }
+  ],
+  "hackernews": [
+    { "name": "Ask HN: Should I asked $AI...", "points": 884, "url": "..." }
+  ]
+}
+```
+
+---
+
+#### **3️⃣ Cache de AI Mentions**
+
+**IAs Mais Citadas em Papers** por região
+
+**Dados Gerados** 🤖:
+- Top 10 modelos de IA citados por região
+- Rastreamento de 20+ modelos: GPT, Claude, Gemini, LLaMA, BERT, etc.
+- 8 regiões: Brasil, LATAM, América do Norte, Europa, Ásia, Oceania, África, Mundo
+- Período: 3 meses rolling
+
+**Script**: `scripts/generate-ai-mentions-cache.ts`
+**Cache**: `cache/ai-mentions.json`
+**Cron**: 11:40, 15:40, 22:40 UTC (3x/dia)
+
+**Top Modelos Globais**:
+- 🥇 Transformer (230 mentions, 32.7%)
+- 🥈 GPT (118 mentions, 16.8%)
+- 🥉 BERT (68 mentions, 9.7%)
+- LLaMA/Llama (57 mentions cada, 8.1%)
+- Claude, Gemini, Mistral, etc.
+
+**Exemplo de Dados**:
+```json
+{
+  "world": {
+    "total_papers": 4876,
+    "percentage_of_world": 100,
+    "top_models": [
+      { "name": "Transformer", "count": 230, "percentage": 32.7 },
+      { "name": "GPT", "count": 118, "percentage": 16.8 }
+    ]
+  }
+}
+```
+
+---
+
+**Como Usar os 3 Caches**:
+
+1. **Gerar manualmente**:
+   ```bash
+   npx tsx scripts/generate-regional-cache-v5-final.ts
+   npx tsx scripts/generate-trending-cache.ts
+   npx tsx scripts/generate-ai-mentions-cache.ts
+   ```
+
+2. **Aplicar cron (automático)**:
+   ```bash
+   bash add-regional-cache-cron.sh
+   bash add-trending-cron.sh
+   ```
+
+3. **Acessar dados**:
+   - `cache/regional-research-data.json`
+   - `cache/trending-tech.json`
+   - `cache/ai-mentions.json`
+
 **Commits**:
-- `[pending]` - feat: cache regional de research data com atualização automática
+- `[pending]` - feat: 3 caches JSON automatizados (regional, trending, AI mentions)
 
 **Resultado**:
-- ✅ Cache JSON gerado 3x/dia
-- ✅ 8,176 papers analisados
-- ✅ 7 regiões cobertas
-- ✅ Filtro de 70+ tags genéricas
+- ✅ 3 caches JSON gerados 3x/dia
+- ✅ 8,176 papers + trending tech + AI mentions
 - ✅ Pronto para consumo no dashboard
+- ✅ APIs REST podem servir esses JSONs diretamente
 
 ---
 
