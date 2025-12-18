@@ -123,9 +123,52 @@ async function main() {
   `);
 
   const keywords = [
-    'desenvolvedor', 'developer', 'devops', 'engenheiro-de-software',
-    'analista-de-sistemas', 'programador', 'tech-lead', 'scrum-master',
-    'dba', 'database-administrator', 'arquiteto-de-dados'
+    // Desenvolvimento geral
+    'desenvolvedor', 'developer', 'programador', 'software-engineer',
+    'engenheiro-de-software', 'analista-de-sistemas',
+
+    // Frontend
+    'frontend', 'front-end', 'react', 'nextjs', 'vue', 'angular',
+
+    // Backend
+    'backend', 'back-end', 'nodejs', 'java', 'python', 'dotnet',
+
+    // Full Stack
+    'full-stack', 'fullstack',
+
+    // IA e ML
+    'inteligencia-artificial', 'machine-learning', 'data-scientist',
+    'cientista-de-dados', 'ai-engineer', 'ml-engineer', 'llm',
+    'deep-learning', 'nlp',
+
+    // DevOps e Cloud
+    'devops', 'sre', 'cloud-engineer', 'aws', 'azure', 'gcp',
+    'kubernetes', 'docker',
+
+    // Dados
+    'data-engineer', 'engenheiro-de-dados', 'dba', 'database-administrator',
+    'arquiteto-de-dados', 'big-data', 'analytics',
+
+    // QA e Testes
+    'qa', 'quality-assurance', 'tester', 'test-automation',
+    'analista-de-testes',
+
+    // Segurança
+    'seguranca-da-informacao', 'cybersecurity', 'security-engineer',
+    'infosec', 'pentest',
+
+    // Redes
+    'network-engineer', 'engenheiro-de-redes', 'infraestrutura',
+
+    // Gestão e Liderança
+    'tech-lead', 'engineering-manager', 'scrum-master', 'product-owner',
+    'agile-coach', 'cto',
+
+    // Tecnologias/Plataformas específicas
+    'salesforce', 'sap', 'oracle', 'ibm', 'totvs',
+
+    // Mobile
+    'mobile', 'android', 'ios', 'react-native', 'flutter'
   ];
 
   const jobs = await scrapeCatho(keywords);
