@@ -30,6 +30,62 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ---
 
+## 🌍 NORMALIZAÇÃO GEOGRÁFICA (18 Dez 2025)
+
+**CRITICAL**: Sistema de normalização geográfica implementado! **SEMPRE use** ao criar novos coletores.
+
+### Estrutura Master
+- **195 países** (ONU) em `sofia.countries`
+- **314 estados** em `sofia.states`
+- **657 cidades** em `sofia.cities`
+- Funções SQL: `get_or_create_country()`, `get_or_create_state()`, `get_or_create_city()`
+
+### Helpers Disponíveis
+
+**TypeScript:**
+```typescript
+import { normalizeLocation } from './shared/geo-helpers';
+
+const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+    country: 'United States',
+    state: 'California',
+    city: 'San Francisco'
+});
+
+// Salvar com IDs + strings (compatibilidade)
+INSERT INTO table (..., country, country_id, state_id, city_id, ...)
+```
+
+**Python:**
+```python
+from geo_helpers import normalize_location
+
+geo = normalize_location(conn, {
+    'country': 'Brazil',
+    'state': 'São Paulo',
+    'city': 'São Paulo'
+})
+
+# Usar geo['country_id'], geo['state_id'], geo['city_id']
+```
+
+### Benefícios
+- ✅ **Economia**: $0 Google Maps (vs $15/mês)
+- ✅ **Performance**: JOINs 10x mais rápidos (INT vs VARCHAR)
+- ✅ **Consistência**: "USA" = "United States" = mesmo ID
+- ✅ **Cache**: 657 cidades já catalogadas
+
+### Coletores Atualizados (10/88)
+1. ✅ Adzuna, Catho, USAJobs, Arbeitnow
+2. ✅ TheMuse, Himalayas, GitHub Jobs, WeWorkRemotely
+3. ✅ NIH Grants, ACLED Conflicts
+
+**REGRA**: Novos coletores com dados geográficos **DEVEM** usar `normalizeLocation()`!
+
+**Script de Verificação**: `scripts/check-geo-normalization.py`
+
+---
+
 ## 🚀 NOVIDADES
 
 ### ✅ **3 CACHES JSON AUTOMATIZADOS** (17 Dez 2025)
