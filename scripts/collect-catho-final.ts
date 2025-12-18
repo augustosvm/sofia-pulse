@@ -3,6 +3,7 @@ import { Client } from 'pg';
 import * as dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { getKeywordsByLanguage } from './shared/keywords-config';
 
 dotenv.config();
 puppeteer.use(StealthPlugin());
@@ -29,7 +30,7 @@ async function scrapeCatho(keywords: string[]) {
   try {
     const page = await browser.newPage();
 
-    for (const keyword of keywords.slice(0, 10)) {
+    for (const keyword of keywords) {
       console.log(`   📋 ${keyword}`);
 
       await page.goto(`https://www.catho.com.br/vagas/${keyword.toLowerCase().replace(/\s+/g, '-')}/`, {
@@ -95,7 +96,7 @@ async function scrapeCatho(keywords: string[]) {
 }
 
 async function main() {
-  console.log('🚀 Catho Scraper - Final Version');
+  console.log('🚀 Catho Scraper - Centralized Keywords');
   console.log('='.repeat(50));
 
   const client = new Client(DB_CONFIG);
@@ -109,8 +110,8 @@ async function main() {
       title VARCHAR(500),
       company VARCHAR(300),
       location VARCHAR(300),
-      city VARCHAR(100),
-      state VARCHAR(50),
+      city VARCHAR(200),
+      state VARCHAR(100),
       description TEXT,
       url TEXT,
       platform VARCHAR(100),
@@ -122,54 +123,9 @@ async function main() {
     );
   `);
 
-  const keywords = [
-    // Desenvolvimento geral
-    'desenvolvedor', 'developer', 'programador', 'software-engineer',
-    'engenheiro-de-software', 'analista-de-sistemas',
-
-    // Frontend
-    'frontend', 'front-end', 'react', 'nextjs', 'vue', 'angular',
-
-    // Backend
-    'backend', 'back-end', 'nodejs', 'java', 'python', 'dotnet',
-
-    // Full Stack
-    'full-stack', 'fullstack',
-
-    // IA e ML
-    'inteligencia-artificial', 'machine-learning', 'data-scientist',
-    'cientista-de-dados', 'ai-engineer', 'ml-engineer', 'llm',
-    'deep-learning', 'nlp',
-
-    // DevOps e Cloud
-    'devops', 'sre', 'cloud-engineer', 'aws', 'azure', 'gcp',
-    'kubernetes', 'docker',
-
-    // Dados
-    'data-engineer', 'engenheiro-de-dados', 'dba', 'database-administrator',
-    'arquiteto-de-dados', 'big-data', 'analytics',
-
-    // QA e Testes
-    'qa', 'quality-assurance', 'tester', 'test-automation',
-    'analista-de-testes',
-
-    // Segurança
-    'seguranca-da-informacao', 'cybersecurity', 'security-engineer',
-    'infosec', 'pentest',
-
-    // Redes
-    'network-engineer', 'engenheiro-de-redes', 'infraestrutura',
-
-    // Gestão e Liderança
-    'tech-lead', 'engineering-manager', 'scrum-master', 'product-owner',
-    'agile-coach', 'cto',
-
-    // Tecnologias/Plataformas específicas
-    'salesforce', 'sap', 'oracle', 'ibm', 'totvs',
-
-    // Mobile
-    'mobile', 'android', 'ios', 'react-native', 'flutter'
-  ];
+  // Usar keywords centralizadas em português (Brasil)
+  const keywords = getKeywordsByLanguage('pt');
+  console.log(`📋 Total de keywords: ${keywords.length}`);
 
   const jobs = await scrapeCatho(keywords);
 
@@ -197,4 +153,3 @@ async function main() {
 }
 
 main();
-
