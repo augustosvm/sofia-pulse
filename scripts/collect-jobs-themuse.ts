@@ -5,8 +5,9 @@
  */
 
 import axios from 'axios';
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 
@@ -88,8 +89,7 @@ async function collectTheMuseJobs() {
     console.log('🎨 The Muse Jobs Collector');
     console.log('='.repeat(60));
 
-    const client = new Client(dbConfig);
-    await client.connect();
+    const pool = new Pool(dbConfig);
 
     let totalCollected = 0;
     const categories = [
@@ -150,15 +150,21 @@ async function collectTheMuseJobs() {
                         // Extract salary from description
                         const salary = extractSalaryFromDescription(job.contents);
 
-                        await client.query(`
+                        // Normalize geographic data
+                        const { countryId, cityId } = await normalizeLocation(pool, {
+                            country: country,
+                            city: city
+                        });
+
+                        await pool.query(`
               INSERT INTO sofia.jobs (
                 job_id, platform, title, company,
-                location, city, country, remote_type,
+                location, city, country, country_id, city_id, remote_type,
                 description, posted_date, url,
                 salary_min, salary_max, salary_currency, salary_period,
                 seniority_level, skills_required, search_keyword,
                 collected_at
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
               ON CONFLICT (job_id, platform) DO UPDATE SET
                 collected_at = NOW(),
                 description = EXCLUDED.description,
@@ -172,6 +178,8 @@ async function collectTheMuseJobs() {
                             location,
                             city,
                             country,
+                            countryId,
+                            cityId,
                             remoteType,
                             job.contents,
                             new Date(job.publication_date),
@@ -206,7 +214,7 @@ async function collectTheMuseJobs() {
     }
 
     // Statistics
-    const stats = await client.query(`
+    const stats = await pool.query(`
     SELECT 
       COUNT(*) as total,
       COUNT(DISTINCT company) as companies,
@@ -217,7 +225,7 @@ async function collectTheMuseJobs() {
     WHERE platform = 'themuse'
   `);
 
-    await client.end();
+    await pool.end();
 
     console.log('\n' + '='.repeat(60));
     console.log(`✅ Collected: ${totalCollected} jobs from The Muse`);
