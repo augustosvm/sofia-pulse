@@ -8,6 +8,7 @@
 import axios from 'axios';
 import { Client } from 'pg';
 import dotenv from 'dotenv';
+import { getKeywordsByLanguage } from './shared/keywords-config';
 
 dotenv.config();
 
@@ -36,13 +37,8 @@ const COUNTRIES = [
     { code: 'sg', name: 'Singapore' },
 ];
 
-// Keywords tech para filtrar
-const TECH_KEYWORDS = [
-    'software developer', 'software engineer', 'backend developer',
-    'frontend developer', 'full stack', 'devops engineer',
-    'data scientist', 'data engineer', 'machine learning',
-    'cloud engineer', 'mobile developer', 'qa engineer'
-];
+// Usar keywords centralizadas em inglês
+const TECH_KEYWORDS = getKeywordsByLanguage('en');
 
 interface AdzunaJob {
     id: string;

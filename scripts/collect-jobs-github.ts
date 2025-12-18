@@ -7,6 +7,7 @@
 import axios from 'axios';
 import { Client } from 'pg';
 import dotenv from 'dotenv';
+import { getKeywordsByLanguage } from './shared/keywords-config';
 
 dotenv.config();
 
@@ -42,20 +43,7 @@ async function collectGitHubJobs() {
     await client.connect();
 
     let totalCollected = 0;
-    const keywords = [
-        'software engineer',
-        'frontend',
-        'backend',
-        'full stack',
-        'devops',
-        'data engineer',
-        'machine learning',
-        'ai engineer',
-        'mobile developer',
-        'react',
-        'python',
-        'node.js'
-    ];
+    const keywords = getKeywordsByLanguage('en');
 
     for (const keyword of keywords) {
         try {
