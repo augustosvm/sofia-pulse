@@ -6,8 +6,9 @@
  */
 
 import axios from 'axios';
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 
@@ -95,8 +96,7 @@ async function collectUSAJobs() {
         process.exit(1);
     }
 
-    const client = new Client(dbConfig);
-    await client.connect();
+    const pool = new Pool(dbConfig);
 
     let totalCollected = 0;
 
@@ -146,14 +146,20 @@ async function collectUSAJobs() {
                         const schedules = job.PositionSchedule?.map(s => s.Name) || [];
                         const employmentType = schedules.some(s => /full.time/i.test(s)) ? 'full-time' : 'part-time';
 
-                        await client.query(`
+                        // Normalize geographic data
+                        const { countryId, cityId } = await normalizeLocation(pool, {
+                            country: 'United States',
+                            city: city
+                        });
+
+                        await pool.query(`
               INSERT INTO sofia.jobs (
                 job_id, platform, title, company,
-                location, city, country, remote_type,
+                location, city, country, country_id, city_id, remote_type,
                 description, posted_date, url,
                 salary_min, salary_max, salary_currency, salary_period,
                 employment_type, search_keyword, collected_at
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
               ON CONFLICT (job_id, platform) DO UPDATE SET
                 collected_at = NOW(),
                 description = EXCLUDED.description,
@@ -167,6 +173,8 @@ async function collectUSAJobs() {
                             locationDisplay,
                             city,
                             'United States',
+                            countryId,
+                            cityId,
                             remoteType,
                             job.UserArea?.Details?.JobSummary || '',
                             new Date(job.PublicationStartDate),
@@ -203,7 +211,7 @@ async function collectUSAJobs() {
     }
 
     // Statistics
-    const stats = await client.query(`
+    const stats = await pool.query(`
     SELECT 
       COUNT(*) as total,
       COUNT(DISTINCT company) as agencies,
@@ -215,7 +223,7 @@ async function collectUSAJobs() {
     WHERE platform = 'usajobs'
   `);
 
-    await client.end();
+    await pool.end();
 
     console.log('\n' + '='.repeat(60));
     console.log(`✅ Collected: ${totalCollected} government tech jobs from USAJOBS`);
