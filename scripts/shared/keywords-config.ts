@@ -106,6 +106,13 @@ export const JOB_KEYWORDS: KeywordConfig[] = [
         }
     },
     {
+        category: 'certificacoes',
+        keywords: {
+            pt: ['mcp', 'pmp', 'itil', 'cobit', 'cissp', 'ceh', 'aws-certified', 'azure-certified', 'scrum-master-certified', 'safe', 'prince2', 'togaf', 'comptia', 'ccna', 'ccnp'],
+            en: ['mcp', 'pmp', 'itil', 'cobit', 'cissp', 'ceh', 'certified-ethical-hacker', 'aws-certified', 'azure-certified', 'gcp-certified', 'certified-scrum-master', 'safe', 'prince2', 'togaf', 'comptia', 'security+', 'network+', 'ccna', 'ccnp', 'cka', 'ckad']
+        }
+    },
+    {
         category: 'web3-blockchain',
         keywords: {
             pt: ['blockchain', 'web3', 'desenvolvedor-blockchain'],
