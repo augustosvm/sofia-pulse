@@ -6,9 +6,10 @@
  */
 
 import axios from 'axios';
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { getKeywordsByLanguage } from './shared/keywords-config';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 
@@ -77,8 +78,7 @@ async function collectAdzunaJobs() {
         process.exit(1);
     }
 
-    const client = new Client(dbConfig);
-    await client.connect();
+    const pool = new Pool(dbConfig);
 
     let totalCollected = 0;
 
@@ -111,14 +111,21 @@ async function collectAdzunaJobs() {
                             const city = job.location.area[0] || null;
                             const countryName = job.location.area[job.location.area.length - 1] || country.name;
 
-                            await client.query(`
+                            // Normalize geographic data
+                            const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                                country: countryName,
+                                city: city
+                            });
+
+                            await pool.query(`
                 INSERT INTO sofia.jobs (
                   job_id, platform, title, company,
                   location, city, country,
+                  country_id, city_id,
                   description, posted_date, url,
                   salary_min, salary_max, salary_currency, salary_period,
                   employment_type, search_keyword, collected_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
                 ON CONFLICT (job_id, platform) DO UPDATE SET
                   collected_at = NOW(),
                   description = EXCLUDED.description,
@@ -132,6 +139,8 @@ async function collectAdzunaJobs() {
                                 location,
                                 city,
                                 countryName,
+                                countryId,
+                                cityId,
                                 job.description,
                                 new Date(job.created),
                                 job.redirect_url,
@@ -168,7 +177,7 @@ async function collectAdzunaJobs() {
     }
 
     // Statistics
-    const stats = await client.query(`
+    const stats = await pool.query(`
     SELECT 
       COUNT(*) as total,
       COUNT(DISTINCT company) as companies,
@@ -180,7 +189,7 @@ async function collectAdzunaJobs() {
     WHERE platform = 'adzuna'
   `);
 
-    await client.end();
+    await pool.end();
 
     console.log('\n' + '='.repeat(60));
     console.log(`✅ Collected: ${totalCollected} tech jobs from Adzuna`);
