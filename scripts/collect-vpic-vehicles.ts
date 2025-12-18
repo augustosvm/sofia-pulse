@@ -92,9 +92,9 @@ async function collectVPICData() {
                         { timeout: 10000 }
                     );
 
-                    const models: VPICModel[] = modelsResponse.data.Results;
+                    const models: VPICModel[] = modelsResponse.data?.Results || [];
 
-                    if (models.length === 0) continue;
+                    if (!models || models.length === 0) continue;
 
                     console.log(`   ${year}: ${models.length} modelos`);
 
