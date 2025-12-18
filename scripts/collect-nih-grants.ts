@@ -30,9 +30,10 @@ if (typeof File === 'undefined') {
  * - 100% GRATUITA!
  */
 
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import axios from 'axios';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 
@@ -75,7 +76,7 @@ interface NIHGrant {
 // DATABASE FUNCTIONS
 // ============================================================================
 
-async function createTableIfNotExists(client: Client): Promise<void> {
+async function createTableIfNotExists(pool: Pool): Promise<void> {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS nih_grants (
       id SERIAL PRIMARY KEY,
@@ -118,27 +119,35 @@ async function createTableIfNotExists(client: Client): Promise<void> {
       ON nih_grants USING GIN(keywords);
   `;
 
-  await client.query(createTableQuery);
+  await pool.query(createTableQuery);
   console.log('✅ Table nih_grants ready');
 }
 
-async function insertGrant(client: Client, grant: NIHGrant): Promise<void> {
+async function insertGrant(pool: Pool, grant: NIHGrant): Promise<void> {
+  // Normalize geographic data
+  const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+    country: grant.country,
+    state: grant.state,
+    city: grant.city
+  });
+
   const insertQuery = `
     INSERT INTO nih_grants (
       project_number, title, principal_investigator,
       organization, city, state, country,
+      country_id, state_id, city_id,
       fiscal_year, award_amount_usd, nih_institute,
       project_start_date, project_end_date,
       funding_mechanism, research_area, abstract, keywords
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
     ON CONFLICT (project_number)
     DO UPDATE SET
       award_amount_usd = EXCLUDED.award_amount_usd,
       collected_at = NOW();
   `;
 
-  await client.query(insertQuery, [
+  await pool.query(insertQuery, [
     grant.project_number,
     grant.title,
     grant.principal_investigator,
@@ -146,6 +155,9 @@ async function insertGrant(client: Client, grant: NIHGrant): Promise<void> {
     grant.city,
     grant.state,
     grant.country,
+    countryId,
+    stateId,
+    cityId,
     grant.fiscal_year,
     grant.award_amount_usd,
     grant.nih_institute,
@@ -511,13 +523,13 @@ async function main() {
   console.log('='.repeat(60));
   console.log('');
 
-  const client = new Client(dbConfig);
+  const pool = new Pool(dbConfig);
 
   try {
-    await client.connect();
+    await pool.connect();
     console.log('✅ Connected to PostgreSQL');
 
-    await createTableIfNotExists(client);
+    await createTableIfNotExists(pool);
 
     console.log('');
     console.log('📊 Collecting grants...');
@@ -529,7 +541,7 @@ async function main() {
 
     console.log('💾 Inserting into database...');
     for (const grant of grants) {
-      await insertGrant(client, grant);
+      await insertGrant(pool, grant);
     }
     console.log(`✅ ${grants.length} grants inserted/updated`);
     console.log('');
@@ -549,7 +561,7 @@ async function main() {
       ORDER BY total_funding_millions DESC;
     `;
 
-    const summary = await client.query(summaryQuery);
+    const summary = await pool.query(summaryQuery);
 
     summary.rows.forEach((row) => {
       console.log(`   ${row.research_area}:`);
@@ -564,7 +576,7 @@ async function main() {
     console.error('❌ Error:', error);
     process.exit(1);
   } finally {
-    await client.end();
+    await pool.end();
   }
 }
 
