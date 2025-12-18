@@ -5,8 +5,9 @@
  */
 
 import axios from 'axios';
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 
@@ -60,8 +61,7 @@ async function collectWWRJobs() {
     console.log('💼 WeWorkRemotely Jobs Collector');
     console.log('='.repeat(60));
 
-    const client = new Client(dbConfig);
-    await client.connect();
+    const pool = new Pool(dbConfig);
 
     let totalCollected = 0;
 
@@ -93,14 +93,19 @@ async function collectWWRJobs() {
                 const location = job.region_name || 'Anywhere';
                 const isRemote = /anywhere|worldwide|remote/i.test(location);
 
-                await client.query(`
+                // Normalize geographic data
+                const { countryId } = await normalizeLocation(pool, {
+                    country: isRemote ? null : job.region_name
+                });
+
+                await pool.query(`
           INSERT INTO sofia.jobs (
             job_id, platform, title, company,
-            location, country, remote_type,
+            location, country, country_id, remote_type,
             description, posted_date, url,
             salary_min, salary_max, salary_currency, salary_period,
             employment_type, search_keyword, collected_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
             description = EXCLUDED.description,
@@ -113,6 +118,7 @@ async function collectWWRJobs() {
                     job.company_name,
                     location,
                     isRemote ? 'REMOTE' : job.region_name,
+                    countryId,
                     isRemote ? 'remote' : 'onsite',
                     job.description,
                     new Date(job.published_at),
@@ -141,7 +147,7 @@ async function collectWWRJobs() {
     }
 
     // Statistics
-    const stats = await client.query(`
+    const stats = await pool.query(`
     SELECT 
       COUNT(*) as total,
       COUNT(DISTINCT company) as companies,
@@ -152,7 +158,7 @@ async function collectWWRJobs() {
     WHERE platform = 'weworkremotely'
   `);
 
-    await client.end();
+    await pool.end();
 
     console.log('\n' + '='.repeat(60));
     console.log(`✅ Collected: ${totalCollected} tech jobs from WeWorkRemotely`);

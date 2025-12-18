@@ -5,9 +5,10 @@
  */
 
 import axios from 'axios';
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { getKeywordsByLanguage } from './shared/keywords-config';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 
@@ -39,8 +40,7 @@ async function collectGitHubJobs() {
     console.log('🔍 GitHub Jobs Collector');
     console.log('='.repeat(60));
 
-    const client = new Client(dbConfig);
-    await client.connect();
+    const pool = new Pool(dbConfig);
 
     let totalCollected = 0;
     const keywords = getKeywordsByLanguage('en');
@@ -71,13 +71,19 @@ async function collectGitHubJobs() {
                     const isRemote = /remote|anywhere|worldwide/i.test(job.location);
                     const remoteType = isRemote ? 'remote' : 'onsite';
 
-                    await client.query(`
+                    // Normalize geographic data
+                    const { countryId, cityId } = await normalizeLocation(pool, {
+                        country: country,
+                        city: city
+                    });
+
+                    await pool.query(`
             INSERT INTO sofia.jobs (
               job_id, platform, title, company, company_url,
-              location, city, country, remote_type,
+              location, city, country, country_id, city_id, remote_type,
               description, posted_date, url, search_keyword,
               employment_type, collected_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
             ON CONFLICT (job_id, platform) DO UPDATE SET
               collected_at = NOW()
           `, [
@@ -89,6 +95,8 @@ async function collectGitHubJobs() {
                         job.location,
                         city,
                         country,
+                        countryId,
+                        cityId,
                         remoteType,
                         job.description,
                         new Date(job.created_at),
@@ -98,7 +106,7 @@ async function collectGitHubJobs() {
                     ]);
 
                     totalCollected++;
-                } catch (err) {
+                } catch (err: any) {
                     console.error(`   ❌ Error inserting job ${job.id}:`, err.message);
                 }
             }
@@ -106,7 +114,7 @@ async function collectGitHubJobs() {
             // Rate limiting
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-        } catch (error) {
+        } catch (error: any) {
             if (axios.isAxiosError(error)) {
                 console.error(`   ❌ API Error: ${error.response?.status} ${error.message}`);
             } else {
@@ -115,7 +123,7 @@ async function collectGitHubJobs() {
         }
     }
 
-    await client.end();
+    await pool.end();
 
     console.log('\n' + '='.repeat(60));
     console.log(`✅ Total collected: ${totalCollected} jobs from GitHub`);
