@@ -14,6 +14,10 @@ import psycopg2
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# Import geo helpers
+sys.path.insert(0, str(Path(__file__).parent / 'shared'))
+from geo_helpers_acled import normalize_location_acled
+
 # Load .env manually (no python-dotenv dependency)
 def load_env():
     env_file = Path(__file__).parent.parent / '.env'
@@ -150,8 +154,10 @@ def save_to_database(events):
             actor1 TEXT,
             actor2 TEXT,
             country VARCHAR(100),
+            country_id INTEGER,
             region VARCHAR(100),
             location TEXT,
+            city_id INTEGER,
             latitude DECIMAL(10, 6),
             longitude DECIMAL(10, 6),
             source TEXT,
@@ -181,12 +187,19 @@ def save_to_database(events):
     
     for event in events:
         try:
+            # Normalize geographic data
+            geo = normalize_location_acled(
+                conn,
+                event.get('country'),
+                event.get('location')
+            )
+            
             cursor.execute("""
                 INSERT INTO sofia.acled_events (
                     event_id_cnty, event_date, year, event_type, sub_event_type,
-                    actor1, actor2, country, region, location,
+                    actor1, actor2, country, country_id, region, location, city_id,
                     latitude, longitude, source, notes, fatalities, timestamp
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (event_id_cnty) DO UPDATE SET
                     event_date = EXCLUDED.event_date,
                     year = EXCLUDED.year,
@@ -195,8 +208,10 @@ def save_to_database(events):
                     actor1 = EXCLUDED.actor1,
                     actor2 = EXCLUDED.actor2,
                     country = EXCLUDED.country,
+                    country_id = EXCLUDED.country_id,
                     region = EXCLUDED.region,
                     location = EXCLUDED.location,
+                    city_id = EXCLUDED.city_id,
                     latitude = EXCLUDED.latitude,
                     longitude = EXCLUDED.longitude,
                     source = EXCLUDED.source,
@@ -212,8 +227,10 @@ def save_to_database(events):
                 event.get('actor1'),
                 event.get('actor2'),
                 event.get('country'),
+                geo['country_id'],
                 event.get('region'),
                 event.get('location'),
+                geo['city_id'],
                 float(event.get('latitude', 0)) if event.get('latitude') else None,
                 float(event.get('longitude', 0)) if event.get('longitude') else None,
                 event.get('source'),
