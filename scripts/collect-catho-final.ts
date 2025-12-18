@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { getKeywordsByLanguage } from './shared/keywords-config';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 puppeteer.use(StealthPlugin());
@@ -99,11 +100,10 @@ async function main() {
   console.log('🚀 Catho Scraper - Centralized Keywords');
   console.log('='.repeat(50));
 
-  const client = new Client(DB_CONFIG);
-  await client.connect();
+  const pool = new Pool(DB_CONFIG);
 
   // Ensure unified jobs table exists
-  await client.query(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS sofia.jobs (
       id SERIAL PRIMARY KEY,
       job_id VARCHAR(500) UNIQUE,
@@ -137,19 +137,26 @@ async function main() {
       ? job.location.split('-').map((s: string) => s.trim())
       : [null, null];
 
-    await client.query(
-      `INSERT INTO sofia.jobs (job_id, title, company, location, city, state, url, platform, collected_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+    // Normalize geographic data
+    const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+      country: 'Brazil',
+      state: state,
+      city: city
+    });
+
+    await pool.query(
+      `INSERT INTO sofia.jobs (job_id, title, company, location, city, state, country, country_id, state_id, city_id, url, platform, collected_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
        ON CONFLICT (job_id) DO UPDATE SET 
          title = EXCLUDED.title,
          location = EXCLUDED.location,
          collected_at = NOW()`,
-      [jobId, job.title, job.company, job.location, city, state, job.url, 'catho']
+      [jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId, job.url, 'catho']
     );
   }
 
   console.log(`\n✅ Saved ${jobs.length} jobs!`);
-  await client.end();
+  await pool.end();
 }
 
 main();
