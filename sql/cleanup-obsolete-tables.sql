@@ -23,10 +23,14 @@ DROP TABLE IF EXISTS sofia.person_patents CASCADE;
 
 -- Tabelas duplicadas vazias
 DROP TABLE IF EXISTS sofia.tech_embedding_jobs CASCADE;
-DROP TABLE IF EXISTS sofia.columnist_insights CASCADE;
 
 -- Tabelas temporárias não mais usadas
 DROP TABLE IF EXISTS sofia.countries_normalization CASCADE;
+
+-- Tabelas de columnists (migradas para persons)
+DROP TABLE IF EXISTS sofia.columnist_insights CASCADE;
+DROP TABLE IF EXISTS sofia.columnist_papers CASCADE;
+DROP TABLE IF EXISTS sofia.columnists CASCADE;
 
 COMMIT;
 
