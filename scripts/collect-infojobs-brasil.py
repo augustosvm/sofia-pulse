@@ -8,7 +8,13 @@ Features: Busca de vagas tech no Brasil
 import requests
 import psycopg2
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Import geo helpers
+sys.path.insert(0, str(Path(__file__).parent / 'shared'))
+from geo_helpers import normalize_location
 
 load_dotenv()
 
@@ -104,18 +110,30 @@ def save_to_db(jobs):
     saved = 0
     for job in jobs:
         try:
+            # Parse location (InfoJobs Brasil)
+            location_str = job.get('location', 'Brasil')
+            parts = location_str.split(',') if location_str else []
+            city = parts[0].strip() if len(parts) > 0 else None
+            
+            # Normalize geographic data (Brasil)
+            geo = normalize_location(conn, {
+                'country': 'Brazil',
+                'city': city
+            })
+            
             cur.execute("""
                 INSERT INTO sofia.jobs (
-                    job_id, title, company, location, description, url,
-                    platform, posted_date, salary_min, salary_max,
+                    job_id, title, company, location, city, country, country_id, city_id,
+                    description, url, platform, posted_date, salary_min, salary_max,
                     search_keyword, collected_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (job_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     description = EXCLUDED.description,
                     collected_at = NOW()
             """, (
                 job['job_id'], job['title'], job['company'], job['location'],
+                city, 'Brazil', geo['country_id'], geo['city_id'],
                 job['description'], job['url'], job['platform'], 
                 job['posted_date'], job['salary_min'], job['salary_max'],
                 job['search_keyword']

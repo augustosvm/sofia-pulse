@@ -7,7 +7,13 @@ Features: Remote jobs, updated daily, 20 jobs/request
 import requests
 import psycopg2
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Import geo helpers
+sys.path.insert(0, str(Path(__file__).parent / 'shared'))
+from geo_helpers import normalize_location
 
 load_dotenv()
 
@@ -66,18 +72,29 @@ def save_to_db(jobs):
     saved = 0
     for job in jobs:
         try:
+            # Parse location (mostly remote)
+            location_str = job.get('location', 'Remote')
+            is_remote = 'remote' in location_str.lower() or location_str == 'Remote'
+            country = None if is_remote else location_str
+            
+            # Normalize geographic data
+            geo = normalize_location(conn, {
+                'country': country
+            })
+            
             cur.execute("""
                 INSERT INTO sofia.jobs (
-                    job_id, title, company, location, description, url,
-                    platform, remote_type, salary_min, salary_max, 
+                    job_id, title, company, location, country, country_id,
+                    description, url, platform, remote_type, salary_min, salary_max, 
                     posted_date, collected_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (job_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     description = EXCLUDED.description,
                     collected_at = NOW()
             """, (
                 job['job_id'], job['title'], job['company'], job['location'],
+                country, geo['country_id'],
                 job['description'], job['url'], job['platform'], 
                 job['remote_type'], job['salary_min'], job['salary_max'],
                 job['posted_date']
