@@ -1,0 +1,199 @@
+================================================================================
+🔧 CORRIGINDO SCRIPTS QUE FALHARAM
+================================================================================
+
+1️⃣ Criando tabela types...
+   ❌ Erro: relation "sofia.types" does not exist
+
+   ❌ Erro: relation "sofia.types" does not exist
+
+   ❌ Erro: relation "sofia.types" does not exist
+
+   ❌ Erro: relation "sofia.types" does not exist
+
+   ❌ Erro: syntax error at or near "SELECT"
+LINE 2:     SELECT id INTO type_id_result
+            ^
+
+   ❌ Erro: syntax error at or near "RETURN"
+LINE 1: RETURN type_id_result
+        ^
+
+   ❌ Erro: unterminated dollar-quoted string at or near "$$ LANGUAGE plpgsql"
+LINE 1: $$ LANGUAGE plpgsql
+     
+   ❌ Erro: syntax error at or near "normalized"
+LINE 1: normalized TEXT
+        ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 2:     IF type_name IS NULL OR TRIM(type_name) = '' THEN
+         
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: END IF
+            ^
+
+   ❌ Erro: syntax error at or near "normalized"
+LINE 1: normalized := normalize_string(type_name)
+        ^
+
+   ❌ Erro: relation "sofia.types" does not exist
+LINE 2:     FROM sofia.types
+                 ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: IF type_id_result IS NULL THEN
+        ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: IF type_id_result IS NULL THEN
+        ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: END IF
+            ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: END IF
+            ^
+
+   ❌ Erro: syntax error at or near "RETURN"
+LINE 1: RETURN type_id_result
+        ^
+
+   ❌ Erro: unterminated dollar-quoted string at or near "$$ LANGUAGE plpgsql"
+LINE 1: $$ LANGUAGE plpgsql
+     
+   ❌ Erro: relation "sofia.organizations" does not exist
+LINE 1: UPDATE sofia.organizations o
+               ^
+
+   ❌ Erro: relation "sofia.organizations" does not exist
+
+   ❌ Erro: relation "sofia.organizations" does not exist
+LINE 1: UPDATE sofia.organizations o
+               ^
+
+   ❌ Erro: relation "sofia.organizations" does not exist
+
+   ❌ Erro: relation "sofia.organizations" does not exist
+LINE 1: UPDATE sofia.organizations o
+               ^
+
+   ❌ Erro: relation "sofia.organizations" does not exist
+
+   ❌ Erro: column "category_id" does not exist
+LINE 3: WHERE category_id IS NULL AND category IS NOT NULL
+     
+   ❌ Erro: column "category_id" does not exist
+
+   ❌ Erro: column "data_type_id" does not exist
+LINE 3: WHERE data_type_id IS NULL AND data_type IS NOT NULL
+  
+   ❌ Erro: column "data_type_id" does not exist
+
+   ❌ Erro: relation "sofia.types" does not exist
+LINE 5: FROM sofia.types
+             ^
+
+   ❌ Erro: relation "sofia.organizations" does not exist
+LINE 7: FROM sofia.organizations
+             ^
+
+   ❌ ERRO: relation "sofia.types" does not exist
+LINE 1: SELECT COUNT(*) FROM sofia.types
+                             ^
+
+
+2️⃣ Criando tabela organizations...
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+LINE 1: INSERT INTO sofia.organizations (
+            
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ❌ Erro: syntax error at or near "normalized"
+LINE 1: normalized TEXT
+        ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 2:     IF org_name IS NULL OR TRIM(org_name) = '' THEN
+           
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: END IF
+            ^
+
+   ❌ Erro: syntax error at or near "normalized"
+LINE 1: normalized := normalize_string(org_name)
+        ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: IF org_id_result IS NULL THEN
+        ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: IF org_id_result IS NULL THEN
+        ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: END IF
+            ^
+
+   ❌ Erro: syntax error at or near "IF"
+LINE 1: END IF
+            ^
+
+   ❌ Erro: syntax error at or near "RETURN"
+LINE 1: RETURN org_id_result
+        ^
+
+   ❌ Erro: unterminated dollar-quoted string at or near "$$ LANGUAGE plpgsql"
+LINE 1: $$ LANGUAGE plpgsql
+     
+   ❌ Erro: syntax error at or near "RETURN"
+LINE 1: RETURN NEW
+        ^
+
+   ❌ Erro: unterminated dollar-quoted string at or near "$$ LANGUAGE plpgsql"
+LINE 1: $$ LANGUAGE plpgsql
+     
+   ⚠️ relation "sofia.organizations" does not exist
+
+   ⚠️ relation "sofia.organizations" does not exist
+LINE 5: FROM sofia.organizations
+             ^
+
+   ⚠️ relation "sofia.organizations" does not exist
+LINE 6: FROM sofia.organizations
+             ^
+
+   ❌ ERRO: relation "sofia.organizations" does not exist
+LINE 1: SELECT COUNT(*) FROM sofia.organizations
+                             ^
+
+
+================================================================================
+📊 VERIFICAÇÃO FINAL
+================================================================================
+
+✅ sources                      14 registros - Fontes de dados
+❌ types                NÃO EXISTE - Tipos do sistema
+✅ trends                        0 registros - Trends/tecnologias
+❌ organizations        NÃO EXISTE - Organizações (PJ)
+✅ persons                 130,934 registros - Pessoas (PF)
+❌ categories           NÃO EXISTE - Categorias
+
+================================================================================

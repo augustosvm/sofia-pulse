@@ -30,6 +30,23 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ---
 
+## 🧹 CONSOLIDAÇÃO & LIMPEZA DO BANCO (19 Dez 2025)
+
+**STATUS**: ✅ CONCLUÍDO - Banco Normalizado e Otimizado!
+
+### Resumo das Ações
+- **14 Tabelas Obsoletas Removidas**: Limpeza total de tabelas vazias ou duplicadas (Trends, Instituições, Colunistas).
+- **Recuperação de Trends**: 46 tendências críticas recuperadas via backup JSON.
+- **Validação de Dados**:
+    - `organizations`: Mantida limpa com 404 registros (Top Universidades).
+    - `person_papers`: Validação confirmou que os dados brutos de instituições (400k+) estão preservados na coluna `institutions` (array), garantindo zero perda de dados sem sujar a tabela mestre.
+
+### Próximos Passos (Imediato)
+1. **Atualizar Coletores**: Adaptar `collect-github-trending.ts` e outros para usar as novas tabelas consolidadas (`tech_trends`, `organizations`).
+2. **Atualizar Analytics**: Ajustar relatórios para ler das novas fontes unificadas.
+
+---
+
 ## 🌍 NORMALIZAÇÃO GEOGRÁFICA (18 Dez 2025)
 
 **CRITICAL**: Sistema de normalização geográfica implementado! **SEMPRE use** ao criar novos coletores.

@@ -5,12 +5,13 @@ conn = psycopg2.connect(host='localhost', user='sofia', password='sofia123strong
 conn.autocommit = True
 cur = conn.cursor()
 
-print("TABELAS MASTER CRIADAS:")
+print("VERIFICANDO TABELAS:")
 for table in ['sources', 'types', 'trends', 'organizations', 'persons']:
     try:
         cur.execute(f'SELECT COUNT(*) FROM sofia.{table}')
-        print(f'{table}: {cur.fetchone()[0]:,}')
-    except:
-        print(f'{table}: NÃO EXISTE')
+        count = cur.fetchone()[0]
+        print(f'{table}: {count}')
+    except Exception as e:
+        print(f'{table}: ERRO - {str(e)[:80]}')
 
 conn.close()

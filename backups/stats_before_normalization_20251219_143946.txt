@@ -1,0 +1,26 @@
+================================================================================
+BACKUP STATS - BEFORE NORMALIZATION
+Data: 2025-12-19 14:39:46.753657
+================================================================================
+
+CONTAGEM DE REGISTROS:
+
+sources                                   ERRO (relation "sofia.sources" does not exist
+LINE 1: SE)
+trends                                    ERRO (current transaction is aborted, commands ignored u)
+organizations                             ERRO (current transaction is aborted, commands ignored u)
+persons                                   ERRO (current transaction is aborted, commands ignored u)
+categories                                ERRO (current transaction is aborted, commands ignored u)
+tech_trends                               ERRO (current transaction is aborted, commands ignored u)
+community_posts                           ERRO (current transaction is aborted, commands ignored u)
+patents                                   ERRO (current transaction is aborted, commands ignored u)
+countries                                 ERRO (current transaction is aborted, commands ignored u)
+states                                    ERRO (current transaction is aborted, commands ignored u)
+cities                                    ERRO (current transaction is aborted, commands ignored u)
+authors                                   ERRO (current transaction is aborted, commands ignored u)
+institutions                              ERRO (current transaction is aborted, commands ignored u)
+companies                                 ERRO (current transaction is aborted, commands ignored u)
+
+================================================================================
+TODAS AS TABELAS:
+
