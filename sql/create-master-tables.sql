@@ -36,24 +36,33 @@ CREATE INDEX IF NOT EXISTS idx_companies_normalized_name ON sofia.companies(norm
 CREATE INDEX IF NOT EXISTS idx_companies_industry ON sofia.companies(industry);
 CREATE INDEX IF NOT EXISTS idx_companies_country ON sofia.companies(country_id);
 
--- 3. AUTHORS (autores de posts, papers, patents)
--- Verificar se já existe, se não criar
-CREATE TABLE IF NOT EXISTS sofia.authors (
+-- 3. PERSONS (pessoas: autores, inventores, CEOs, fundadores)
+CREATE TABLE IF NOT EXISTS sofia.persons (
     id SERIAL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     normalized_name VARCHAR(200) NOT NULL,
     email VARCHAR(300),
     username VARCHAR(100),
-    platform VARCHAR(50),  -- 'hackernews', 'reddit', 'github', 'academic'
+    platform VARCHAR(50),  -- 'hackernews', 'reddit', 'github', 'linkedin', 'academic'
+    roles TEXT[],  -- ['author', 'inventor', 'ceo', 'founder', 'researcher']
+    company_id INTEGER REFERENCES sofia.companies(id),
+    country_id INTEGER REFERENCES sofia.countries(id),
+    bio TEXT,
     profile_url VARCHAR(500),
+    linkedin_url VARCHAR(500),
+    twitter_url VARCHAR(500),
+    github_url VARCHAR(500),
     metadata JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(normalized_name, platform)
 );
 
-CREATE INDEX IF NOT EXISTS idx_authors_normalized_name ON sofia.authors(normalized_name);
-CREATE INDEX IF NOT EXISTS idx_authors_platform ON sofia.authors(platform);
-CREATE INDEX IF NOT EXISTS idx_authors_username ON sofia.authors(username);
+CREATE INDEX IF NOT EXISTS idx_persons_normalized_name ON sofia.persons(normalized_name);
+CREATE INDEX IF NOT EXISTS idx_persons_platform ON sofia.persons(platform);
+CREATE INDEX IF NOT EXISTS idx_persons_username ON sofia.persons(username);
+CREATE INDEX IF NOT EXISTS idx_persons_roles ON sofia.persons USING GIN(roles);
+CREATE INDEX IF NOT EXISTS idx_persons_company ON sofia.persons(company_id);
+CREATE INDEX IF NOT EXISTS idx_persons_country ON sofia.persons(country_id);
 
 -- 4. CATEGORIES (categorias genéricas reutilizáveis)
 CREATE TABLE IF NOT EXISTS sofia.categories (
@@ -167,45 +176,53 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Get or create author
-CREATE OR REPLACE FUNCTION get_or_create_author(
-    author_name TEXT,
-    author_platform TEXT DEFAULT NULL,
-    author_username TEXT DEFAULT NULL
+-- Get or create person
+CREATE OR REPLACE FUNCTION get_or_create_person(
+    person_name TEXT,
+    person_platform TEXT DEFAULT NULL,
+    person_username TEXT DEFAULT NULL,
+    person_roles TEXT[] DEFAULT NULL
 )
 RETURNS INTEGER AS $$
 DECLARE
-    author_id_result INTEGER;
+    person_id_result INTEGER;
     normalized TEXT;
 BEGIN
-    IF author_name IS NULL OR TRIM(author_name) = '' THEN
+    IF person_name IS NULL OR TRIM(person_name) = '' THEN
         RETURN NULL;
     END IF;
     
-    normalized := normalize_string(author_name);
+    normalized := normalize_string(person_name);
     
-    SELECT id INTO author_id_result
-    FROM sofia.authors
+    SELECT id INTO person_id_result
+    FROM sofia.persons
     WHERE normalized_name = normalized
-      AND (platform = author_platform OR (platform IS NULL AND author_platform IS NULL))
+      AND (platform = person_platform OR (platform IS NULL AND person_platform IS NULL))
     LIMIT 1;
     
-    IF author_id_result IS NULL THEN
-        INSERT INTO sofia.authors (name, normalized_name, platform, username)
-        VALUES (TRIM(author_name), normalized, author_platform, author_username)
+    IF person_id_result IS NULL THEN
+        INSERT INTO sofia.persons (name, normalized_name, platform, username, roles)
+        VALUES (TRIM(person_name), normalized, person_platform, person_username, person_roles)
         ON CONFLICT (normalized_name, platform) DO NOTHING
-        RETURNING id INTO author_id_result;
+        RETURNING id INTO person_id_result;
         
-        IF author_id_result IS NULL THEN
-            SELECT id INTO author_id_result
-            FROM sofia.authors
+        IF person_id_result IS NULL THEN
+            SELECT id INTO person_id_result
+            FROM sofia.persons
             WHERE normalized_name = normalized
-              AND (platform = author_platform OR (platform IS NULL AND author_platform IS NULL))
+              AND (platform = person_platform OR (platform IS NULL AND person_platform IS NULL))
             LIMIT 1;
+        END IF;
+    ELSE
+        -- Atualizar roles se fornecido
+        IF person_roles IS NOT NULL THEN
+            UPDATE sofia.persons
+            SET roles = array(SELECT DISTINCT unnest(COALESCE(roles, ARRAY[]::TEXT[]) || person_roles))
+            WHERE id = person_id_result;
         END IF;
     END IF;
     
-    RETURN author_id_result;
+    RETURN person_id_result;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -261,6 +278,6 @@ FROM sofia.trends
 UNION ALL
 SELECT 'companies', COUNT(*) FROM sofia.companies
 UNION ALL
-SELECT 'authors', COUNT(*) FROM sofia.authors
+SELECT 'persons', COUNT(*) FROM sofia.persons
 UNION ALL
 SELECT 'categories', COUNT(*) FROM sofia.categories;
