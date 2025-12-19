@@ -9,6 +9,13 @@ import requests
 import psycopg2
 import os
 from dotenv import load_dotenv
+import sys
+from pathlib import Path
+
+# Import geo helpers
+sys.path.insert(0, str(Path(__file__).parent / 'shared'))
+from geo_helpers import normalize_location
+
 
 load_dotenv()
 
@@ -90,9 +97,20 @@ def save_to_db(jobs):
     saved = 0
     for job in jobs:
         try:
+                        # Parse location
+            location_str = job.get('location', '')
+            parts = location_str.split(',') if location_str else []
+            city = parts[0].strip() if len(parts) > 0 else None
+            country = parts[-1].strip() if len(parts) > 0 else 'Brazil'
+            
+            # Normalize geographic data
+            geo = normalize_location(conn, {
+                'country': country,
+                'city': city
+            })
             cur.execute("""
                 INSERT INTO sofia.jobs (
-                    job_id, title, company, location, description, url,
+                    job_id, title, company, location, city, country, country_id, city_id, description, url,
                     platform, posted_date, employment_type,
                     search_keyword, collected_at
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
@@ -102,6 +120,7 @@ def save_to_db(jobs):
                     collected_at = NOW()
             """, (
                 job['job_id'], job['title'], job['company'], job['location'],
+                city, country, geo['country_id'], geo['city_id'],
                 job['description'], job['url'], job['platform'], 
                 job['posted_date'], job['employment_type'],
                 job['search_keyword']
