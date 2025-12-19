@@ -66,8 +66,8 @@ def extract_cities_with_jobs(conn):
 
     query = """
     SELECT
-        COALESCE(ci.name, fr.city, co.name, 'Unknown') as city,
-        COALESCE(co.name, fr.country, 'Unknown') as country,
+        COALESCE(ci.common_name, fr.city, co.common_name, 'Unknown') as city,
+        COALESCE(co.common_name, fr.country, 'Unknown') as country,
         COUNT(*) as deals_count,
         SUM(fr.amount_usd) as total_funding,
         ARRAY_AGG(DISTINCT fr.sector) FILTER (WHERE fr.sector IS NOT NULL) as sectors
@@ -76,7 +76,7 @@ def extract_cities_with_jobs(conn):
     LEFT JOIN sofia.cities ci ON fr.city_id = ci.id
     WHERE fr.announced_date >= CURRENT_DATE - INTERVAL '365 days'
         AND (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
-    GROUP BY ci.name, fr.city, co.name, fr.country
+    GROUP BY ci.common_name, fr.city, co.common_name, fr.country
     HAVING COUNT(*) >= 1
     ORDER BY deals_count DESC, total_funding DESC
     LIMIT 100

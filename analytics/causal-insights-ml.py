@@ -242,13 +242,13 @@ def detect_geographic_arbitrage(conn):
     # Funding by country
     cur.execute("""
         SELECT
-            COALESCE(co.name, fr.country, 'Unknown') as country,
+            COALESCE(co.common_name, fr.country, 'Unknown') as country,
             COUNT(*) as deals,
             SUM(fr.amount_usd) as total_funding
         FROM sofia.funding_rounds fr
         LEFT JOIN sofia.countries co ON fr.country_id = co.id
         WHERE (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
-        GROUP BY co.name, fr.country
+        GROUP BY co.common_name, fr.country
         ORDER BY total_funding DESC NULLS LAST
         LIMIT 20
     """)
