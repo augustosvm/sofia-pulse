@@ -1,8 +1,9 @@
 #!/usr/bin/env tsx
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { normalizeLocation } from './shared/geo-helpers';
 
 dotenv.config();
 puppeteer.use(StealthPlugin());
@@ -136,12 +137,11 @@ async function scrapeLinkedIn(keywords: string[], location: string = 'Brazil') {
 }
 
 async function saveToDatabase(jobs: LinkedInJob[]) {
-    const client = new Client(DB_CONFIG);
-    await client.connect();
+    const pool = new Pool(DB_CONFIG);
 
     try {
         // Ensure jobs table exists with all necessary columns
-        await client.query(`
+        await pool.query(`
       CREATE TABLE IF NOT EXISTS sofia.jobs (
         id SERIAL PRIMARY KEY,
         job_id VARCHAR(500) UNIQUE,
@@ -167,15 +167,26 @@ async function saveToDatabase(jobs: LinkedInJob[]) {
                 const jobIdMatch = job.url.match(/\/jobs\/view\/(\d+)/);
                 const jobId = jobIdMatch ? `linkedin-${jobIdMatch[1]}` : `linkedin-${Date.now()}-${Math.random()}`;
 
-                await client.query(
-                    `INSERT INTO sofia.jobs (job_id, title, company, location, url, platform, posted_date, collected_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+                // Parse location
+                const locationParts = job.location.split(',').map(s => s.trim());
+                const city = locationParts[0] || null;
+                const country = locationParts[locationParts.length - 1] || 'Brazil';
+
+                // Normalize geographic data
+                const { countryId, cityId } = await normalizeLocation(pool, {
+                    country: country,
+                    city: city
+                });
+
+                await pool.query(
+                    `INSERT INTO sofia.jobs (job_id, title, company, location, city, country, country_id, city_id, url, platform, posted_date, collected_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
            ON CONFLICT (job_id) DO UPDATE SET
              title = EXCLUDED.title,
              company = EXCLUDED.company,
              location = EXCLUDED.location,
              collected_at = NOW()`,
-                    [jobId, job.title, job.company, job.location, job.url, 'linkedin', job.posted_date]
+                    [jobId, job.title, job.company, job.location, city, country, countryId, cityId, job.url, 'linkedin', job.posted_date]
                 );
 
                 saved++;
@@ -187,7 +198,7 @@ async function saveToDatabase(jobs: LinkedInJob[]) {
         return saved;
 
     } finally {
-        await client.end();
+        await pool.end();
     }
 }
 
