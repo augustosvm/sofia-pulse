@@ -83,8 +83,8 @@ def extract_cities_from_funding(conn):
         AVG(fr.amount_usd) as avg_funding,
         ARRAY_AGG(DISTINCT fr.sector) FILTER (WHERE fr.sector IS NOT NULL) as sectors
     FROM sofia.funding_rounds fr
-    LEFT JOIN sofia.countries ON fr.country_id = countries.id
-    LEFT JOIN sofia.cities ON fr.city_id = cities.id
+    LEFT JOIN sofia.countries AS countries ON fr.country_id = countries.id
+    LEFT JOIN sofia.cities AS cities ON fr.city_id = cities.id
     WHERE fr.announced_date >= CURRENT_DATE - INTERVAL '365 days'
         AND (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
     GROUP BY cities.name, fr.city, countries.name, fr.country
