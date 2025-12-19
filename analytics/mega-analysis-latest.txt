@@ -1,7 +1,7 @@
 ================================================================================
 🌍 SOFIA PULSE - MEGA ANALYSIS REPORT
 ================================================================================
-Generated: 2025-12-19 10:14:09 UTC
+Generated: 2025-12-19 11:03:50 UTC
 
 This report combines data from 30+ sources:
 • Socioeconomic indicators (World Bank - 56 indicators)
@@ -16,7 +16,7 @@ This report combines data from 30+ sources:
 📊 DATABASE SUMMARY
 ================================================================================
 
-Total Records: 4,045,673
+Total Records: 4,045,676
 Total Tables: 181
 
 Records by table:
@@ -58,7 +58,7 @@ Records by table:
   • pypi_stats: 698
   • cardboard_production: 680
   • github_trending: 678
-  • hackernews_stories: 664
+  • hackernews_stories: 667
   • cities: 657
   • emerging_tech_niches: 618
   • global_universities_progress: 370
@@ -322,6 +322,11 @@ Total Amount: $18,015,000,000.00
    7. Mistral AI                     $ 415,000,000.00 Series A        France    
    8. Adept AI                       $ 350,000,000.00 Series B        USA       
 
+🌍 Top 10 Countries by Funding:
+   1. United States                    18 deals  $16,850,000,000.00
+   2. Brazil                            1 deals  $ 750,000,000.00
+   3. France                            1 deals  $ 415,000,000.00
+
 ================================================================================
 🔒 CRITICAL SECTORS
 ================================================================================
@@ -371,6 +376,6 @@ Port Traffic Records: 2,462
 ✅ MEGA ANALYSIS COMPLETE
 ================================================================================
 
-Report generated: 2025-12-19 10:15:04 UTC
+Report generated: 2025-12-19 11:04:45 UTC
 Total data sources: 30+
-Total records analyzed: 4,045,673
+Total records analyzed: 4,045,676
