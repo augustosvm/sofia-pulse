@@ -90,19 +90,20 @@ def extract_funding_activity(conn):
     """Extrai atividade de funding por país"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    query = """
-    SELECT
-        country,
-        COUNT(*) as deals_count,
-        SUM(amount_usd) as total_funding,
-        AVG(amount_usd) as avg_funding
-    FROM sofia.funding_rounds
-    WHERE announced_date >= CURRENT_DATE - INTERVAL '365 days'
-        AND country IS NOT NULL
-    GROUP BY country
-    """
-
-    cur.execute(query)
+    # Top funding countries
+    cur.execute("""
+        SELECT
+            COALESCE(co.name, fr.country, 'Unknown') as country,
+            COUNT(*) as deals,
+            SUM(fr.amount_usd) as total_funding
+        FROM sofia.funding_rounds fr
+        LEFT JOIN sofia.countries co ON fr.country_id = co.id
+        WHERE fr.announced_date >= CURRENT_DATE - INTERVAL '90 days'
+            AND (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
+        GROUP BY co.name, fr.country
+        ORDER BY total_funding DESC NULLS LAST
+        LIMIT 10
+    """)
     results = cur.fetchall()
 
     funding_data = {}
