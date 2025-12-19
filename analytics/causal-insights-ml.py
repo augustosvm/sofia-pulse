@@ -239,17 +239,23 @@ def detect_geographic_arbitrage(conn):
 
     universities_by_country = {r['country']: r['uni_count'] for r in cur.fetchall()}
 
-    # Funding por país
+    # Funding by country
     cur.execute("""
-        SELECT country, COUNT(*) as deals, SUM(amount_usd) as total
-        FROM sofia.funding_rounds
-        WHERE country IS NOT NULL
-        GROUP BY country
+        SELECT
+            COALESCE(co.name, fr.country, 'Unknown') as country,
+            COUNT(*) as deals,
+            SUM(fr.amount_usd) as total_funding
+        FROM sofia.funding_rounds fr
+        LEFT JOIN sofia.countries co ON fr.country_id = co.id
+        WHERE (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
+        GROUP BY co.name, fr.country
+        ORDER BY total_funding DESC NULLS LAST
+        LIMIT 20
     """)
 
     funding_by_country = {r['country']: {
         'deals': r['deals'],
-        'total': float(r['total'])
+        'total': float(r['total_funding'])
     } for r in cur.fetchall()}
 
     gaps = []

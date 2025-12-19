@@ -233,14 +233,18 @@ def get_funding_summary():
         """)
         summary['top_deals_30d'] = cur.fetchall()
 
-        # By country
-        cur.execute(f"""
-            SELECT country, COUNT(*) as deals, SUM(amount_usd) as total_amount
-            FROM sofia.funding_rounds
-            WHERE announced_date >= '{ninety_days_ago}'
-              AND country IS NOT NULL
-            GROUP BY country
-            ORDER BY total_amount DESC
+        # Funding by country (last 90 days)
+        cur.execute("""
+            SELECT 
+                COALESCE(co.name, fr.country, 'Unknown') as country,
+                COUNT(*) as deals,
+                SUM(fr.amount_usd) as total_funding
+            FROM sofia.funding_rounds fr
+            LEFT JOIN sofia.countries co ON fr.country_id = co.id
+            WHERE fr.announced_date >= CURRENT_DATE - INTERVAL '90 days'
+                AND (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
+            GROUP BY co.name, fr.country
+            ORDER BY total_funding DESC NULLS LAST
             LIMIT 10
         """)
         summary['by_country'] = cur.fetchall()
