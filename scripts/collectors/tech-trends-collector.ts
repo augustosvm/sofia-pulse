@@ -45,7 +45,7 @@ export interface CollectorConfig {
   /** Função que parseia a resposta da API e retorna TrendData[] */
   parseResponse: (data: any, env: NodeJS.ProcessEnv) => TrendData[] | Promise<TrendData[]>;
 
-  /** Schedule cron (ex: '0 */12 * * *' = 2x/dia) */
+  /** Schedule cron (ex: '0 12 * * *' for daily at noon) */
   schedule?: string;
 
   /** Descrição do que esse collector faz */

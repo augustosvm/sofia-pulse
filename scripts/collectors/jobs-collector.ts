@@ -50,7 +50,7 @@ export interface JobsCollectorConfig {
   /** Função que parseia a resposta da API e retorna JobData[] */
   parseResponse: (data: any, env: NodeJS.ProcessEnv) => JobData[] | Promise<JobData[]>;
 
-  /** Schedule cron (ex: '0 */6 * * *' = 4x/dia) */
+  /** Schedule cron (ex: '0 6 * * *' for daily at 6am) */
   schedule?: string;
 
   /** Descrição do que esse collector faz */

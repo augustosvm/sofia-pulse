@@ -64,7 +64,7 @@ export interface ResearchPapersConfig {
   /** Função que parseia a resposta da API e retorna PaperData[] */
   parseResponse: (data: any, env: NodeJS.ProcessEnv) => PaperData[] | Promise<PaperData[]>;
 
-  /** Schedule cron (ex: '0 8 * * 1' = 1x/semana) */
+  /** Schedule cron (ex: '0 8 * * 1' for weekly on Monday at 8am) */
   schedule?: string;
 
   /** Descrição do que esse collector faz */
