@@ -114,9 +114,10 @@ function generateCrontab(): string {
   // Summary comment
   const totalCollectors = Object.keys(techTrendsCollectors).length +
                          Object.keys(researchPapersCollectors).length +
-                         Object.keys(jobsCollectors).length;
+                         Object.keys(jobsCollectors).length +
+                         Object.keys(organizationsCollectors).length;
   lines.push('# ============================================================================');
-  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs)`);
+  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs)`);
   lines.push(`# Unique schedules: ${bySchedule.size}`);
   lines.push('# ============================================================================');
 
@@ -147,6 +148,15 @@ function installCrontab(crontabContent: string): void {
     // Install new crontab
     execSync(`crontab ${tmpFile}`);
     console.log('✅ Crontab installed successfully!');
+
+    // Give execute permissions to scripts (IMPORTANT!)
+    try {
+      execSync('chmod +x scripts/collect.ts scripts/generate-crontab.ts scripts/collectors/*.ts scripts/shared/*.ts scripts/configs/*.ts', { cwd: process.cwd() });
+      console.log('✅ Execute permissions granted to scripts');
+    } catch (error) {
+      console.warn('⚠️  Warning: Could not set execute permissions (may not be needed)');
+    }
+
     console.log('');
     console.log('Verify with: crontab -l');
 
