@@ -944,6 +944,265 @@ bash update-crontab-distributed.sh
 - `fix-database-schemas.ts` - Fix de schemas (alternativa ao psql)
 - `configure-smtp.sh` - Configurar email
 
+### ⚙️ **ARQUITETURA UNIFICADA DE COLLECTORS** (20 Dez 2025)
+
+**STATUS**: ✅ Sistema 100% config-based - Adicionar novos collectors é trivial!
+
+#### **Conceito**
+
+Todos os collectors do Sofia Pulse seguem uma **arquitetura unificada**:
+- **1 Engine genérico** por tipo de dado (Tech Trends, Papers, Jobs, Organizations)
+- **N Configs** que definem fontes de dados específicas
+- **1 Inserter compartilhado** por tabela do banco
+- **1 CLI unificado** para executar qualquer collector
+
+**Benefícios**:
+- ✅ **Zero duplicação de código** - Engine é reutilizado
+- ✅ **Adicionar nova fonte = criar config** (~50 linhas)
+- ✅ **Rate limiting automático** - Configurável por collector
+- ✅ **Tracking automático** - `collector_runs` table
+- ✅ **Cron auto-gerado** - Baseado nos schedules dos configs
+- ✅ **Error handling uniforme** - Logs, retries, notificações
+
+#### **4 Tipos de Collectors Implementados**
+
+| Tipo | Engine | Config | Inserter | Tabela | Collectors |
+|------|--------|--------|----------|---------|-----------|
+| **Tech Trends** | `tech-trends-collector.ts` | `tech-trends-config.ts` | `tech-trends-inserter.ts` | `github_trending`, `npm_stats`, `pypi_stats`, `hackernews_stories` | GitHub, NPM, PyPI, HackerNews, Reddit |
+| **Research Papers** | `research-papers-collector.ts` | `research-papers-config.ts` | `research-papers-inserter.ts` | `arxiv_ai_papers`, `openalex_papers`, `nih_grants` | ArXiv, OpenAlex, NIH |
+| **Jobs** | `jobs-collector.ts` | `jobs-config.ts` | `jobs-inserter.ts` | `jobs` | Himalayas, RemoteOK, Arbeitnow, USAJobs, Adzuna |
+| **Organizations** | `organizations-collector.ts` | `organizations-config.ts` | `organizations-inserter.ts` | `organizations` | AI Companies, Universities, NGOs |
+
+#### **Estrutura de Arquivos**
+
+```
+scripts/
+├── collectors/
+│   ├── tech-trends-collector.ts       # Engine genérico (HTTP, rate limit, tracking)
+│   ├── research-papers-collector.ts   # Engine genérico
+│   ├── jobs-collector.ts              # Engine genérico
+│   └── organizations-collector.ts     # Engine genérico
+├── configs/
+│   ├── tech-trends-config.ts          # 5 configs (GitHub, NPM, PyPI, HN, Reddit)
+│   ├── research-papers-config.ts      # 3 configs (ArXiv, OpenAlex, NIH)
+│   ├── jobs-config.ts                 # 5 configs (Himalayas, RemoteOK, etc.)
+│   └── organizations-config.ts        # 3 configs (AI Companies, Universities, NGOs)
+├── shared/
+│   ├── tech-trends-inserter.ts        # Inserção unificada (4 tabelas)
+│   ├── research-papers-inserter.ts    # Inserção unificada (3 tabelas)
+│   ├── jobs-inserter.ts               # Inserção unificada (1 tabela)
+│   └── organizations-inserter.ts      # Inserção unificada (1 tabela)
+├── utils/
+│   └── rate-limiter.ts                # Rate limiters (github, reddit, npm)
+└── collect.ts                          # CLI unificado (rota para engine correto)
+```
+
+#### **Como Funciona**
+
+**1. Config Define a Fonte**:
+```typescript
+export const githubTrending: TechTrendsCollectorConfig = {
+  name: 'github',
+  displayName: '⭐ GitHub Trending',
+  url: 'https://api.github.com/search/repositories?q=stars:>1000&sort=stars',
+  headers: (env) => ({
+    'Authorization': `token ${env.GITHUB_TOKEN}`,
+  }),
+  rateLimit: 'github', // Usa rateLimiters.github (exponential backoff)
+  parseResponse: async (data) => {
+    return data.items.map(repo => ({
+      name: repo.name,
+      stars: repo.stargazers_count,
+      url: repo.html_url,
+      topics: repo.topics || [],
+      description: repo.description,
+    }));
+  },
+  schedule: '0 */12 * * *', // Twice daily (0h, 12h)
+};
+```
+
+**2. Engine Executa o Collector**:
+```typescript
+// scripts/collectors/tech-trends-collector.ts
+export class TechTrendsCollector {
+  async collect(config: TechTrendsCollectorConfig) {
+    // 1. Start tracking (collector_runs table)
+    const runId = await this.startRun(config.name);
+
+    // 2. Fetch data (com rate limiting se configurado)
+    const response = await this.fetchWithRateLimit(config);
+
+    // 3. Parse response (função do config)
+    const items = await config.parseResponse(response.data);
+
+    // 4. Insert (via inserter compartilhado)
+    for (const item of items) {
+      await this.inserter.insert(item, config.name);
+    }
+
+    // 5. Finish tracking (success/error)
+    await this.finishRun(runId, items.length);
+  }
+}
+```
+
+**3. Inserter Salva no Banco**:
+```typescript
+// scripts/shared/tech-trends-inserter.ts
+export class TechTrendsInserter {
+  async insert(item: TechTrendData, source: string) {
+    // Roteamento automático baseado no source
+    if (source === 'github') {
+      await this.insertGitHub(item);
+    } else if (source === 'npm') {
+      await this.insertNPM(item);
+    }
+    // ... etc
+  }
+
+  private async insertGitHub(item) {
+    await this.pool.query(`
+      INSERT INTO sofia.github_trending (name, stars, url, topics, description, source)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (name) DO UPDATE SET stars = EXCLUDED.stars
+    `, [item.name, item.stars, item.url, item.topics, item.description, 'github']);
+  }
+}
+```
+
+**4. CLI Unificado**:
+```bash
+# Executar collector específico
+npx tsx scripts/collect.ts github              # Tech trend
+npx tsx scripts/collect.ts arxiv               # Research paper
+npx tsx scripts/collect.ts himalayas           # Jobs
+npx tsx scripts/collect.ts ai-companies        # Organizations
+
+# Executar todos de um tipo
+npx tsx scripts/collect.ts --all               # All tech trends
+npx tsx scripts/collect.ts --all-papers        # All research papers
+npx tsx scripts/collect.ts --all-jobs          # All jobs
+npx tsx scripts/collect.ts --all-organizations # All organizations
+```
+
+**5. Cron Auto-Gerado**:
+```bash
+# Gerar e instalar crontab baseado nos schedules dos configs
+npx tsx scripts/generate-crontab.ts --install
+
+# Resultado: 60+ cron jobs automáticos
+# - GitHub: 0 */12 * * * (twice daily)
+# - NPM: 0 7,19 * * * (7h, 19h)
+# - ArXiv: 0 1 * * * (daily 1am)
+# - Jobs: 0 6 * * * (daily 6am)
+# - AI Companies: 0 8 * * 1 (weekly Monday 8am)
+```
+
+#### **Como Adicionar Novo Collector**
+
+**Exemplo**: Adicionar Product Hunt como fonte de tech trends
+
+**Passo 1**: Criar config em `scripts/configs/tech-trends-config.ts`:
+```typescript
+export const productHunt: TechTrendsCollectorConfig = {
+  name: 'producthunt',
+  displayName: '🚀 Product Hunt',
+  url: 'https://api.producthunt.com/v2/api/graphql',
+  headers: (env) => ({
+    'Authorization': `Bearer ${env.PRODUCTHUNT_TOKEN}`,
+  }),
+  parseResponse: async (data) => {
+    return data.posts.map(post => ({
+      name: post.name,
+      votes: post.votesCount,
+      url: post.url,
+      topics: post.topics.map(t => t.name),
+      description: post.tagline,
+    }));
+  },
+  schedule: '0 10 * * *', // Daily 10am
+};
+
+// Adicionar ao export
+export const collectors = {
+  github: githubTrending,
+  npm: npmStats,
+  pypi: pypiStats,
+  hackernews: hackerNews,
+  producthunt: productHunt, // ← NOVO
+};
+```
+
+**Passo 2**: Não precisa mais nada! O sistema já:
+- ✅ Detecta o collector no CLI (`npx tsx scripts/collect.ts producthunt`)
+- ✅ Aplica rate limiting se configurado
+- ✅ Insere via inserter compartilhado
+- ✅ Gera cron job automático (`0 10 * * *`)
+- ✅ Tracking em `collector_runs`
+
+#### **Rate Limiting**
+
+Rate limiters compartilhados em `scripts/utils/rate-limiter.ts`:
+
+```typescript
+export const rateLimiters = {
+  github: new RateLimiter(
+    60,     // 60 requests per hour (sem token)
+    3600000 // 1 hour window
+  ),
+  reddit: new RateLimiter(
+    60,     // 60 requests per minute
+    60000   // 1 minute window
+  ),
+  npm: new RateLimiter(
+    100,    // 100 requests per hour
+    3600000
+  ),
+};
+
+// Exponential backoff automático
+// - Retry em caso de 403/429
+// - Aguarda até rate limit resetar
+// - Delays: 2s → 4s → 8s → 16s → 32s
+```
+
+#### **Tracking Automático**
+
+Todos os collectors registram execuções em `sofia.collector_runs`:
+
+```sql
+SELECT
+  collector_name,
+  status,
+  records_collected,
+  errors_count,
+  duration_ms,
+  started_at,
+  finished_at
+FROM sofia.collector_runs
+WHERE collector_name = 'github'
+ORDER BY started_at DESC
+LIMIT 10;
+```
+
+**Funções SQL**:
+- `sofia.start_collector_run(name, hostname)` → `run_id`
+- `sofia.finish_collector_run(run_id, status, records, errors)`
+
+#### **Tabelas Unificadas**
+
+**Organizações** (`sofia.organizations`):
+- **1 tabela única** para todos os tipos de organizações
+- Diferenciado por campo `type` (ai_company, university, ngo, research_center, etc.)
+- Campos específicos armazenados em `metadata` JSONB
+- **Exemplo**: AI Companies têm `metadata.total_funding_usd`, Universities têm `metadata.qs_rank`
+
+**Jobs** (`sofia.jobs`):
+- **1 tabela única** para todas as plataformas
+- Diferenciado por campo `platform`
+- Normalização geográfica via `country_id`, `state_id`, `city_id`
+
 ### Collectors (Com Rate Limiting)
 
 **Research** (TypeScript):
