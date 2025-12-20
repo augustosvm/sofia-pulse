@@ -3,7 +3,7 @@
  * Crontab Generator - Sofia Pulse
  *
  * Gera automaticamente o crontab baseado nos schedules definidos nas configs.
- * Suporta: Tech Trends + Research Papers + Jobs + Funding
+ * Suporta: Tech Trends + Research Papers + Jobs + Organizations + Funding
  * Isso garante que os crons estão sempre corretos e sincronizados com as configs.
  *
  * Usage:
@@ -14,6 +14,7 @@
 import { collectors as techTrendsCollectors } from './configs/tech-trends-config.js';
 import { researchPapersCollectors } from './configs/research-papers-config.js';
 import { jobsCollectors } from './configs/jobs-config.js';
+import { organizationsCollectors } from './configs/organizations-config.js';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -66,6 +67,17 @@ function generateCrontab(): string {
 
   // Add jobs collectors
   Object.values(jobsCollectors).forEach(config => {
+    if (!config.schedule) return;
+
+    if (!bySchedule.has(config.schedule)) {
+      bySchedule.set(config.schedule, []);
+    }
+
+    bySchedule.get(config.schedule)!.push(config.name);
+  });
+
+  // Add organizations collectors
+  Object.values(organizationsCollectors).forEach(config => {
     if (!config.schedule) return;
 
     if (!bySchedule.has(config.schedule)) {

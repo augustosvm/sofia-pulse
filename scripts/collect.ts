@@ -6,24 +6,29 @@
  * - Tech Trends (GitHub, NPM, PyPI, HackerNews)
  * - Research Papers (ArXiv, OpenAlex, NIH)
  * - Jobs (Himalayas, RemoteOK, Arbeitnow)
+ * - Organizations (AI Companies, Universities, NGOs)
  * - Funding (Crunchbase, YC) - futuro
  *
  * Usage:
- *   npx tsx scripts/collect.ts github           # Tech trend
- *   npx tsx scripts/collect.ts arxiv            # Research paper
- *   npx tsx scripts/collect.ts himalayas        # Jobs
- *   npx tsx scripts/collect.ts --all            # Todos tech trends
- *   npx tsx scripts/collect.ts --all-papers     # Todos papers
- *   npx tsx scripts/collect.ts --all-jobs       # Todos jobs
+ *   npx tsx scripts/collect.ts github              # Tech trend
+ *   npx tsx scripts/collect.ts arxiv               # Research paper
+ *   npx tsx scripts/collect.ts himalayas           # Jobs
+ *   npx tsx scripts/collect.ts ai-companies        # Organizations
+ *   npx tsx scripts/collect.ts --all               # Todos tech trends
+ *   npx tsx scripts/collect.ts --all-papers        # Todos papers
+ *   npx tsx scripts/collect.ts --all-jobs          # Todos jobs
+ *   npx tsx scripts/collect.ts --all-organizations # Todas organizações
  *   npx tsx scripts/collect.ts --help
  */
 
 import { runCLI as runTechTrendsCLI } from './collectors/tech-trends-collector.js';
 import { runPapersCLI as runResearchPapersCLI } from './collectors/research-papers-collector.js';
 import { runJobsCLI } from './collectors/jobs-collector.js';
+import { runOrganizationsCLI } from './collectors/organizations-collector.js';
 import { collectors as techTrendsCollectors } from './configs/tech-trends-config.js';
 import { researchPapersCollectors } from './configs/research-papers-config.js';
 import { jobsCollectors } from './configs/jobs-config.js';
+import { organizationsCollectors } from './configs/organizations-config.js';
 
 // ============================================================================
 // UNIFIED CLI
@@ -60,6 +65,12 @@ async function main() {
     return;
   }
 
+  if (collectorName === '--all-organizations') {
+    // Roda todas organizações
+    await runOrganizationsCLI(organizationsCollectors);
+    return;
+  }
+
   // Verifica se é tech trends collector
   if (collectorName in techTrendsCollectors) {
     await runTechTrendsCLI(techTrendsCollectors);
@@ -78,6 +89,12 @@ async function main() {
     return;
   }
 
+  // Verifica se é organizations collector
+  if (collectorName in organizationsCollectors) {
+    await runOrganizationsCLI(organizationsCollectors);
+    return;
+  }
+
   // Collector não encontrado
   console.error(`❌ Unknown collector: ${collectorName}`);
   console.error('');
@@ -91,31 +108,38 @@ function showHelp() {
   console.log('');
   console.log('Usage:');
   console.log('  npx tsx scripts/collect.ts <collector>');
-  console.log('  npx tsx scripts/collect.ts --all            # All tech trends');
-  console.log('  npx tsx scripts/collect.ts --all-papers     # All research papers');
-  console.log('  npx tsx scripts/collect.ts --all-jobs       # All jobs');
+  console.log('  npx tsx scripts/collect.ts --all                # All tech trends');
+  console.log('  npx tsx scripts/collect.ts --all-papers         # All research papers');
+  console.log('  npx tsx scripts/collect.ts --all-jobs           # All jobs');
+  console.log('  npx tsx scripts/collect.ts --all-organizations  # All organizations');
   console.log('');
   console.log('📊 Tech Trends Collectors:');
   Object.entries(techTrendsCollectors).forEach(([name, config]) => {
-    console.log(`  ${name.padEnd(15)} - ${config.description || config.displayName}`);
+    console.log(`  ${name.padEnd(20)} - ${config.description || config.displayName}`);
   });
   console.log('');
   console.log('📚 Research Papers Collectors:');
   Object.entries(researchPapersCollectors).forEach(([name, config]) => {
-    console.log(`  ${name.padEnd(15)} - ${config.description || config.displayName}`);
+    console.log(`  ${name.padEnd(20)} - ${config.description || config.displayName}`);
   });
   console.log('');
   console.log('💼 Jobs Collectors:');
   Object.entries(jobsCollectors).forEach(([name, config]) => {
-    console.log(`  ${name.padEnd(15)} - ${config.description || config.displayName}`);
+    console.log(`  ${name.padEnd(20)} - ${config.description || config.displayName}`);
+  });
+  console.log('');
+  console.log('🏢 Organizations Collectors:');
+  Object.entries(organizationsCollectors).forEach(([name, config]) => {
+    console.log(`  ${name.padEnd(20)} - ${config.description || config.displayName}`);
   });
   console.log('');
   console.log('Examples:');
-  console.log('  npx tsx scripts/collect.ts github          # Collect GitHub trending');
-  console.log('  npx tsx scripts/collect.ts arxiv           # Collect ArXiv papers');
-  console.log('  npx tsx scripts/collect.ts himalayas       # Collect Himalayas jobs');
-  console.log('  npx tsx scripts/collect.ts --all           # All tech trends');
-  console.log('  npx tsx scripts/collect.ts --all-jobs      # All jobs');
+  console.log('  npx tsx scripts/collect.ts github              # Collect GitHub trending');
+  console.log('  npx tsx scripts/collect.ts arxiv               # Collect ArXiv papers');
+  console.log('  npx tsx scripts/collect.ts himalayas           # Collect Himalayas jobs');
+  console.log('  npx tsx scripts/collect.ts ai-companies        # Collect AI Companies');
+  console.log('  npx tsx scripts/collect.ts --all               # All tech trends');
+  console.log('  npx tsx scripts/collect.ts --all-organizations # All organizations');
   console.log('');
 }
 
