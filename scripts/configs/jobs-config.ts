@@ -189,7 +189,7 @@ export const arbeitnowJobs: JobsCollectorConfig = {
     return jobs;
   },
 
-  schedule: '0 */12 * * *', // 2x/dia (Europa, menos updates)
+  schedule: '0 0,8,16 * * *', // 3x/dia (0h, 8h, 16h)
   allowWithoutAuth: true,
 };
 
