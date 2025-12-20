@@ -14,8 +14,8 @@
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import axios, { AxiosRequestConfig } from 'axios';
-import { TrendsInserter, TrendData } from './shared/trends-inserter.js';
-import { rateLimiters } from './utils/rate-limiter.js';
+import { TrendsInserter, TrendData } from '../shared/trends-inserter.js';
+import { rateLimiters } from '../utils/rate-limiter.js';
 
 dotenv.config();
 
