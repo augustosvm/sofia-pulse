@@ -5,10 +5,10 @@
  * Cada config define: URL, parsing, schedule, rate limits, etc.
  *
  * Schedule format (cron):
- *   '0 */12 * * *'  = A cada 12 horas
- *   '0 8 * * *'     = Todo dia às 8h
- *   '0 8 * * 1'     = Toda segunda às 8h
- *   '0 8 1 * *'     = Primeiro dia do mês às 8h
+ *   '0 12 * * *'    = Daily at noon
+ *   '0 8 * * *'     = Daily at 8am
+ *   '0 8 * * 1'     = Weekly on Monday at 8am
+ *   '0 8 1 * *'     = Monthly on 1st at 8am
  */
 
 import { CollectorConfig } from '../collectors/tech-trends-collector.js';

@@ -10,9 +10,9 @@
  * Cada config define: URL, parsing, schedule, rate limits, etc.
  *
  * Schedule format (cron):
- *   '0 */6 * * *'   = 4x/dia (0h, 6h, 12h, 18h) - dados mudam rápido
- *   '0 */12 * * *'  = 2x/dia (0h, 12h)
- *   '0 8 * * *'     = 1x/dia (8h)
+ *   '0 6 * * *'     = Daily at 6am - fast-changing data
+ *   '0 12 * * *'    = Daily at noon
+ *   '0 8 * * *'     = Daily at 8am
  */
 
 import { JobsCollectorConfig, JobData } from '../collectors/jobs-collector.js';
