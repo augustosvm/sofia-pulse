@@ -70,56 +70,74 @@ export class OrganizationsInserter {
 
   /**
    * Insere organização na tabela sofia.organizations
+   * ADAPTADO para schema atual: (id, name, normalized_name, type, source_id, metadata, created_at)
    */
   async insertOrganization(org: OrganizationData, client?: PoolClient): Promise<void> {
     const db = client || this.pool;
 
     // Validate required fields
-    if (!org.org_id || !org.name || !org.type || !org.source) {
-      throw new Error('Missing required fields: org_id, name, type, source');
+    if (!org.name || !org.type) {
+      throw new Error('Missing required fields: name, type');
     }
+
+    // Normalizar nome para usar como chave única
+    const normalizedName = org.org_id || this.normalizeName(org.name);
+
+    // Colocar TODOS os campos extras no metadata
+    const fullMetadata = {
+      ...(org.metadata || {}),
+      org_id: org.org_id,
+      source: org.source,
+      industry: org.industry,
+      location: org.location,
+      city: org.city,
+      country: org.country,
+      country_code: org.country_code,
+      founded_date: org.founded_date,
+      website: org.website,
+      description: org.description,
+      employee_count: org.employee_count,
+      revenue_range: org.revenue_range,
+      tags: org.tags,
+      sources: org.sources || [org.source],
+    };
+
+    // Remover campos null/undefined
+    Object.keys(fullMetadata).forEach(key => {
+      if (fullMetadata[key] === null || fullMetadata[key] === undefined) {
+        delete fullMetadata[key];
+      }
+    });
 
     const query = `
       INSERT INTO sofia.organizations (
-        org_id, name, type, source,
-        industry, location, city, country, country_code,
-        founded_date, website, description,
-        employee_count, revenue_range,
-        tags, sources, metadata,
-        first_seen_at, last_updated_at, collected_at
+        name, normalized_name, type, metadata
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW(), NOW())
-      ON CONFLICT (org_id)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (normalized_name)
       DO UPDATE SET
         name = EXCLUDED.name,
-        description = COALESCE(EXCLUDED.description, sofia.organizations.description),
-        website = COALESCE(EXCLUDED.website, sofia.organizations.website),
-        tags = EXCLUDED.tags,
-        sources = array_cat(sofia.organizations.sources, EXCLUDED.sources),
-        metadata = sofia.organizations.metadata || EXCLUDED.metadata,  -- Merge JSONB
-        last_updated_at = NOW(),
-        collected_at = NOW()
+        type = EXCLUDED.type,
+        metadata = sofia.organizations.metadata || EXCLUDED.metadata
     `;
 
     await db.query(query, [
-      org.org_id,
       org.name,
+      normalizedName,
       org.type,
-      org.source,
-      org.industry || null,
-      org.location || null,
-      org.city || null,
-      org.country || null,
-      org.country_code || null,
-      org.founded_date || null,
-      org.website || null,
-      org.description || null,
-      org.employee_count || null,
-      org.revenue_range || null,
-      org.tags || null,
-      org.sources || [org.source],
-      org.metadata ? JSON.stringify(org.metadata) : null,
+      JSON.stringify(fullMetadata),
     ]);
+  }
+
+  /**
+   * Normaliza nome para usar como chave única
+   */
+  private normalizeName(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
   }
 
   /**
