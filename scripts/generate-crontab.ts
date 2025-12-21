@@ -15,6 +15,7 @@ import { collectors as techTrendsCollectors } from './configs/tech-trends-config
 import { researchPapersCollectors } from './configs/research-papers-config.js';
 import { jobsCollectors } from './configs/jobs-config.js';
 import { organizationsCollectors } from './configs/organizations-config.js';
+import { fundingCollectors } from './configs/funding-config.js';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -87,6 +88,17 @@ function generateCrontab(): string {
     bySchedule.get(config.schedule)!.push(config.name);
   });
 
+  // Add funding collectors
+  Object.values(fundingCollectors).forEach(config => {
+    if (!config.schedule) return;
+
+    if (!bySchedule.has(config.schedule)) {
+      bySchedule.set(config.schedule, []);
+    }
+
+    bySchedule.get(config.schedule)!.push(config.name);
+  });
+
   // Generate cron entries
   const projectPath = process.cwd();
 
@@ -115,9 +127,10 @@ function generateCrontab(): string {
   const totalCollectors = Object.keys(techTrendsCollectors).length +
                          Object.keys(researchPapersCollectors).length +
                          Object.keys(jobsCollectors).length +
-                         Object.keys(organizationsCollectors).length;
+                         Object.keys(organizationsCollectors).length +
+                         Object.keys(fundingCollectors).length;
   lines.push('# ============================================================================');
-  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs)`);
+  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs + ${Object.keys(fundingCollectors).length} funding)`);
   lines.push(`# Unique schedules: ${bySchedule.size}`);
   lines.push('# ============================================================================');
 
@@ -192,9 +205,21 @@ function showStatistics(): void {
     schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
   });
 
+  Object.values(organizationsCollectors).forEach(config => {
+    if (!config.schedule) return;
+    schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
+  });
+
+  Object.values(fundingCollectors).forEach(config => {
+    if (!config.schedule) return;
+    schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
+  });
+
   const totalCollectors = Object.keys(techTrendsCollectors).length +
                          Object.keys(researchPapersCollectors).length +
-                         Object.keys(jobsCollectors).length;
+                         Object.keys(jobsCollectors).length +
+                         Object.keys(organizationsCollectors).length +
+                         Object.keys(fundingCollectors).length;
 
   console.log('');
   console.log('📊 Crontab Statistics');

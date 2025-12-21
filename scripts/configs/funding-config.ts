@@ -13,7 +13,7 @@
  * - Schedule (cron)
  */
 
-import { FundingCollectorConfig } from '../collectors/funding-collector.js';
+import type { FundingCollectorConfig } from '../collectors/funding-collector.js';
 
 // ============================================================================
 // Y COMBINATOR COMPANIES
@@ -95,6 +95,3 @@ export const fundingCollectors = {
   'yc-companies': ycCompanies,
   'producthunt': productHunt,
 };
-
-// TypeScript type for config (to be defined in funding-collector.ts)
-export type { FundingCollectorConfig };
