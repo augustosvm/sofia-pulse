@@ -8,6 +8,7 @@
  * - Jobs (Himalayas, RemoteOK, Arbeitnow)
  * - Organizations (AI Companies, Universities, NGOs)
  * - Funding (YC, Product Hunt, SEC Edgar)
+ * - Developer Tools (VS Code, JetBrains Marketplace)
  *
  * Usage:
  *   npx tsx scripts/collect.ts github              # Tech trend
@@ -15,11 +16,12 @@
  *   npx tsx scripts/collect.ts himalayas           # Jobs
  *   npx tsx scripts/collect.ts ai-companies        # Organizations
  *   npx tsx scripts/collect.ts yc-companies        # Funding
- *   npx tsx scripts/collect.ts --all               # Todos tech trends
- *   npx tsx scripts/collect.ts --all-papers        # Todos papers
- *   npx tsx scripts/collect.ts --all-jobs          # Todos jobs
- *   npx tsx scripts/collect.ts --all-organizations # Todas organizações
- *   npx tsx scripts/collect.ts --all-funding       # Todos funding
+ *   npx tsx scripts/collect.ts --all                # Todos tech trends
+ *   npx tsx scripts/collect.ts --all-papers         # Todos papers
+ *   npx tsx scripts/collect.ts --all-jobs           # Todos jobs
+ *   npx tsx scripts/collect.ts --all-organizations  # Todas organizações
+ *   npx tsx scripts/collect.ts --all-funding        # Todos funding
+ *   npx tsx scripts/collect.ts --all-developer-tools # Todos developer tools
  *   npx tsx scripts/collect.ts --help
  */
 
@@ -28,11 +30,13 @@ import { runPapersCLI as runResearchPapersCLI } from './collectors/research-pape
 import { runJobsCLI } from './collectors/jobs-collector.js';
 import { runOrganizationsCLI } from './collectors/organizations-collector.js';
 import { runFundingCLI } from './collectors/funding-collector.js';
+import { runDeveloperToolsCLI } from './collectors/developer-tools-collector.js';
 import { collectors as techTrendsCollectors } from './configs/tech-trends-config.js';
 import { researchPapersCollectors } from './configs/research-papers-config.js';
 import { jobsCollectors } from './configs/jobs-config.js';
 import { organizationsCollectors } from './configs/organizations-config.js';
 import { fundingCollectors } from './configs/funding-config.js';
+import { developerToolsCollectors } from './configs/developer-tools-config.js';
 
 // ============================================================================
 // UNIFIED CLI
@@ -81,6 +85,12 @@ async function main() {
     return;
   }
 
+  if (collectorName === '--all-developer-tools') {
+    // Roda todos developer tools
+    await runDeveloperToolsCLI(developerToolsCollectors);
+    return;
+  }
+
   // Verifica se é tech trends collector
   if (collectorName in techTrendsCollectors) {
     await runTechTrendsCLI(techTrendsCollectors);
@@ -111,6 +121,12 @@ async function main() {
     return;
   }
 
+  // Verifica se é developer tools collector
+  if (collectorName in developerToolsCollectors) {
+    await runDeveloperToolsCLI(developerToolsCollectors);
+    return;
+  }
+
   // Collector não encontrado
   console.error(`❌ Unknown collector: ${collectorName}`);
   console.error('');
@@ -124,11 +140,12 @@ function showHelp() {
   console.log('');
   console.log('Usage:');
   console.log('  npx tsx scripts/collect.ts <collector>');
-  console.log('  npx tsx scripts/collect.ts --all                # All tech trends');
-  console.log('  npx tsx scripts/collect.ts --all-papers         # All research papers');
-  console.log('  npx tsx scripts/collect.ts --all-jobs           # All jobs');
-  console.log('  npx tsx scripts/collect.ts --all-organizations  # All organizations');
-  console.log('  npx tsx scripts/collect.ts --all-funding        # All funding');
+  console.log('  npx tsx scripts/collect.ts --all                 # All tech trends');
+  console.log('  npx tsx scripts/collect.ts --all-papers          # All research papers');
+  console.log('  npx tsx scripts/collect.ts --all-jobs            # All jobs');
+  console.log('  npx tsx scripts/collect.ts --all-organizations   # All organizations');
+  console.log('  npx tsx scripts/collect.ts --all-funding         # All funding');
+  console.log('  npx tsx scripts/collect.ts --all-developer-tools # All developer tools');
   console.log('');
   console.log('📊 Tech Trends Collectors:');
   Object.entries(techTrendsCollectors).forEach(([name, config]) => {
@@ -155,14 +172,21 @@ function showHelp() {
     console.log(`  ${name.padEnd(20)} - ${config.description || config.displayName}`);
   });
   console.log('');
+  console.log('🔧 Developer Tools Collectors:');
+  Object.entries(developerToolsCollectors).forEach(([name, config]) => {
+    console.log(`  ${name.padEnd(20)} - ${config.description || config.displayName}`);
+  });
+  console.log('');
   console.log('Examples:');
   console.log('  npx tsx scripts/collect.ts github              # Collect GitHub trending');
   console.log('  npx tsx scripts/collect.ts arxiv               # Collect ArXiv papers');
   console.log('  npx tsx scripts/collect.ts himalayas           # Collect Himalayas jobs');
   console.log('  npx tsx scripts/collect.ts ai-companies        # Collect AI Companies');
   console.log('  npx tsx scripts/collect.ts yc-companies        # Collect YC Companies');
+  console.log('  npx tsx scripts/collect.ts vscode-marketplace  # Collect VS Code extensions');
   console.log('  npx tsx scripts/collect.ts --all               # All tech trends');
   console.log('  npx tsx scripts/collect.ts --all-funding       # All funding');
+  console.log('  npx tsx scripts/collect.ts --all-developer-tools # All developer tools');
   console.log('');
 }
 
