@@ -88,16 +88,13 @@ export class FundingInserter {
         announced_date,
         country,
         country_id,
-        state_id,
         city,
         city_id,
-        website,
         investors,
-        funding_stage,
         collected_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
-      ON CONFLICT (company_name, COALESCE(round_type, 'Unknown'), COALESCE(announced_date, '1970-01-01'))
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+      ON CONFLICT (company_name, round_type, announced_date)
       DO UPDATE SET
         sector = COALESCE(EXCLUDED.sector, sofia.funding_rounds.sector),
         amount_usd = COALESCE(EXCLUDED.amount_usd, sofia.funding_rounds.amount_usd),
@@ -105,7 +102,7 @@ export class FundingInserter {
         country = COALESCE(EXCLUDED.country, sofia.funding_rounds.country),
         country_id = COALESCE(EXCLUDED.country_id, sofia.funding_rounds.country_id),
         city = COALESCE(EXCLUDED.city, sofia.funding_rounds.city),
-        website = COALESCE(EXCLUDED.website, sofia.funding_rounds.website),
+        city_id = COALESCE(EXCLUDED.city_id, sofia.funding_rounds.city_id),
         investors = COALESCE(EXCLUDED.investors, sofia.funding_rounds.investors),
         collected_at = NOW()
     `;
@@ -119,12 +116,9 @@ export class FundingInserter {
       announcedDate,
       round.country || null,
       round.country_id || null,
-      round.state_id || null,
       round.city || null,
       round.city_id || null,
-      round.website || null,
       investorsArray,
-      round.funding_stage || round.round_type || null,
     ]);
   }
 
