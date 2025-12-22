@@ -24,7 +24,7 @@ import type { TechConferenceCollectorConfig } from '../collectors/tech-conferenc
 export const confsTech: TechConferenceCollectorConfig = {
   name: 'confs-tech',
   displayName: '🎤 Confs.tech',
-  url: 'https://raw.githubusercontent.com/tech-conferences/conference-data/main/conferences/2025.json',
+  url: 'https://raw.githubusercontent.com/tech-conferences/conference-data/main/conferences/2024.json',
   timeout: 30000,
   parseResponse: async (data) => {
     const conferences = Array.isArray(data) ? data : [];

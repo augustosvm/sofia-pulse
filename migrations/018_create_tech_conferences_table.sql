@@ -34,8 +34,8 @@ CREATE INDEX IF NOT EXISTS idx_tech_conferences_collected_at ON sofia.tech_confe
 -- Index for upcoming events
 CREATE INDEX IF NOT EXISTS idx_tech_conferences_upcoming ON sofia.tech_conferences(start_date) WHERE start_date >= CURRENT_DATE;
 
--- Index for topic search
-CREATE INDEX IF NOT EXISTS idx_tech_conferences_topics_gin ON sofia.tech_conferences USING gin(to_tsvector('english', topics)) WHERE topics IS NOT NULL;
+-- Index for topic search (GIN for full-text search)
+CREATE INDEX IF NOT EXISTS idx_tech_conferences_topics_gin ON sofia.tech_conferences USING gin(to_tsvector('english', COALESCE(topics, '')));
 
 -- Comments
 COMMENT ON TABLE sofia.tech_conferences IS 'Tech conferences and events. Leading indicator for tech trends (frameworks announced at conferences).';
