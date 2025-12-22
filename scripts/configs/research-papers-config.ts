@@ -113,7 +113,7 @@ export const openAlexPapers: ResearchPapersConfig = {
   description: '250M+ papers, 100% FREE - Substitui Microsoft Academic',
 
   // Busca top cited papers recentes em AI/ML/Biotech
-  url: 'https://api.openalex.org/works?filter=concepts.id:C154945302|C119857082,from_publication_date:2023-01-01&sort=cited_by_count:desc&per-page=1000&mailto=augustosvm@gmail.com',
+  url: 'https://api.openalex.org/works?filter=concepts.id:C154945302|C119857082,from_publication_date:2023-01-01&sort=cited_by_count:desc&per-page=200&mailto=augustosvm@gmail.com',
 
   rateLimit: 1000, // OpenAlex permite 10 req/s, usamos 1/s para ser gentil
 
