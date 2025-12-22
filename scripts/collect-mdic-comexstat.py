@@ -1,96 +1,147 @@
-#!/usr/bin/env python3
-"""
-MDIC ComexStat API Collector - Comércio Exterior Brasileiro
-Coleta dados de importação/exportação por produto, país, estado
-API: http://api.comexstat.mdic.gov.br/docs/
-"""
-
 import os
-import sys
-import psycopg2
+import time
+import json
 import requests
-from datetime import datetime, timedelta
+import urllib3
+import psycopg2
 from typing import List, Dict, Any
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
-# Database connection
-DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
-}
+# Load environment variables
+load_dotenv()
 
-# Tech-related NCM codes (Brazilian tariff classification)
-# NCM 84 = Máquinas, aparelhos e equipamentos
-# NCM 85 = Equipamentos elétricos e eletrônicos
+# Tech-related NCM codes (Brazilian tariff classification) - 8 Digit Specifics
+# Using 8-digits is required for accurate ComexStat filtering
 TECH_NCM_CODES = {
-    '8471': 'Máquinas automáticas de processamento de dados (computadores)',
-    '8473': 'Partes e acessórios para máquinas de processamento de dados',
-    '8517': 'Aparelhos elétricos para telefonia/telegrafia (smartphones, modems)',
-    '8518': 'Microfones, alto-falantes, amplificadores',
-    '8523': 'Discos, fitas e outros suportes (pen drives, cartões de memória)',
-    '8524': 'Discos, fitas e outros suportes gravados',
-    '8525': 'Aparelhos transmissores para radiodifusão',
-    '8528': 'Monitores e projetores',
-    '8529': 'Partes de aparelhos de transmissão',
-    '8534': 'Circuitos impressos',
-    '8541': 'Diodos, transistores, semicondutores (chips)',
-    '8542': 'Circuitos integrados eletrônicos',
+    # COMPUTERS
+    '84713012': 'Tablets / Laptops Leves (< 350g)',
+    '84713019': 'Laptops / Notebooks (Outros)',
+    '84714100': 'Desktops / Servidores',
+    
+    # PHONES (8517.12 was replaced by 8517.13 in 2022/2023 updates, keeping both for history)
+    '85171231': 'Smartphones (Histórico/Antigo)',
+    '85171300': 'Smartphones (Atual)',
+    '85176277': 'Dispositivos IoT / Módulos de Comunicação', # Common for modules
+    
+    # SEMICONDUCTORS (Chips)
+    '85423100': 'Processadores e Controladores (Chips)',
+    '85423200': 'Memórias (RAM/Flash)',
+    '85423900': 'Outros Circuitos Integrados',
+    
+    # PERIPHERALS & COMPONENTS
+    '85176294': 'Switches / Roteadores',
+    '85285200': 'Monitores',
+    '85340019': 'Circuitos Impressos (PCBs) Multicamadas', # High tech PCBs
 }
 
 def fetch_comexstat_data(ncm_code: str, flow: str, months_back: int = 12) -> List[Dict[str, Any]]:
     """
-    Fetch export/import data from ComexStat API
-
-    flow: 'exp' (export) or 'imp' (import)
+    Fetch trade data from MDIC ComexStat API (General - POST)
     """
+    # Calculate date range (Fixed year 2024 to ensure data availability)
+    # Using 2024 guarantees a full dataset availability
+    start_date = datetime(2024, 1, 1)
+    end_date = datetime(2024, 12, 1)
 
-    # Calculate date range (last N months)
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=months_back * 30)
+    # ComexStat API endpoint (General - POST)
+    base_url = "https://api-comexstat.mdic.gov.br/general"
 
-    # Format as YYYYMM
-    start_period = start_date.strftime('%Y%m')
-    end_period = end_date.strftime('%Y%m')
-
-    # ComexStat API endpoint
-    base_url = "http://api.comexstat.mdic.gov.br/general"
-
-    params = {
-        'filter': f'CO_NCM:{ncm_code}',
-        'periodType': 'month',
-        'periodFrom': start_period,
-        'periodTo': end_period,
-        'detailLevel': 'COUNTRY'  # Group by country
+    # POST Payload construction
+    payload = {
+        "flow": "export" if flow == 'exp' else "import",
+        "monthDetail": True,
+        "period": {
+            "from": "2024-01",
+            "to": "2024-12"
+        },
+        "filters": [
+            {
+                "filter": "ncm",
+                "values": [str(ncm_code)]
+            }
+        ],
+        "details": ["country", "state"],
+        "metrics": ["metricFOB", "metricKG"]
     }
 
-    url = f"{base_url}?{'&'.join([f'{k}={v}' for k, v in params.items()])}"
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    try:
-        response = requests.get(url, timeout=60)
+    max_retries = 3
+    retry_delay = 30 # seconds
 
-        # ComexStat may return 404 for no data
-        if response.status_code == 404:
-            print(f"   ℹ️  No data for NCM {ncm_code} ({flow})")
+    for attempt in range(max_retries):
+        try:
+            # Use POST data
+            response = requests.post(base_url, json=payload, timeout=60, verify=False)
+            
+            if response.status_code == 429:
+                print(f"   ⚠️  Rate limit (429) hit. Waiting {retry_delay}s... (Attempt {attempt+1}/{max_retries})")
+                time.sleep(retry_delay)
+                continue
+
+            # ComexStat may return 404 for no data
+            if response.status_code == 404:
+                print(f"   ℹ️  No data for NCM {ncm_code} ({flow})")
+                return []
+
+            response.raise_for_status()
+            raw_data = response.json()
+            # DEBUG PRINT
+            print(f"   🐛 RAW DATA SAMPLE: {str(raw_data)[:300]}")
+            
+            # Extract list from wrapper
+            data = []
+            if isinstance(raw_data, dict):
+                if 'data' in raw_data and isinstance(raw_data['data'], dict) and 'list' in raw_data['data']:
+                    data = raw_data['data']['list']
+                elif 'list' in raw_data:
+                    data = raw_data['list']
+            elif isinstance(raw_data, list):
+                data = raw_data
+
+            if isinstance(data, list) and len(data) > 0:
+                print(f"   ✅ NCM {ncm_code} ({flow}): {len(data)} records")
+                return data
+            elif isinstance(data, list) and len(data) == 0:
+                print(f"   ℹ️  No data (empty list) for NCM {ncm_code}")
+                return []
+            else:
+                print(f"   ⚠️  Unexpected data format: {type(raw_data)}")
+                return []
+
+        except Exception as e:
+            print(f"   ❌ Error fetching NCM {ncm_code}: {e}")
             return []
+    
+    return []
 
-        response.raise_for_status()
-        data = response.json()
-
-        if isinstance(data, list):
-            print(f"   ✅ NCM {ncm_code} ({flow}): {len(data)} records")
-            return data
-        else:
-            return []
-
-    except requests.HTTPError as e:
-        if e.response.status_code != 404:
-            print(f"   ❌ HTTP Error for NCM {ncm_code}: {e}")
-        return []
-    except Exception as e:
-        print(f"   ❌ Error fetching NCM {ncm_code}: {e}")
-        return []
+def init_db(conn):
+    """Initialize database table and indexes"""
+    cursor = conn.cursor()
+    
+    # Check if table exists before dropping, but for this task we want to ensure schema is fresh
+    cursor.execute("DROP TABLE IF EXISTS sofia.comexstat_trade")
+    
+    # Create table if not exists (Now with state_code)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sofia.comexstat_trade (
+            id SERIAL PRIMARY KEY,
+            flow VARCHAR(10) NOT NULL,
+            ncm_code VARCHAR(10) NOT NULL,
+            ncm_description TEXT,
+            period VARCHAR(10) NOT NULL,
+            country_code VARCHAR(5),
+            country_name TEXT,
+            state_code VARCHAR(2), -- Added for Regionalization
+            value_usd NUMERIC(15, 2),
+            weight_kg NUMERIC(15, 2),
+            collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT unique_trade_record UNIQUE (flow, ncm_code, period, country_code, state_code)
+        );
+    """)
+    conn.commit()
+    print("✅ Table sofia.comexstat_trade initialized (Regionalized)")
 
 def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data: List[Dict]) -> int:
     """Save ComexStat data to PostgreSQL"""
@@ -99,44 +150,52 @@ def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data:
         return 0
 
     cursor = conn.cursor()
-
-    # Create table if not exists
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sofia.comexstat_trade (
-            id SERIAL PRIMARY KEY,
-            flow VARCHAR(10) NOT NULL,
-            ncm_code VARCHAR(10) NOT NULL,
-            ncm_description TEXT,
-            period VARCHAR(6) NOT NULL,
-            country_code VARCHAR(10),
-            country_name TEXT,
-            value_usd DECIMAL(18, 2),
-            weight_kg DECIMAL(18, 2),
-            collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(flow, ncm_code, period, country_code)
-        )
-    """)
-
-    # Create indexes
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_comexstat_ncm_period
-        ON sofia.comexstat_trade(ncm_code, period DESC)
-    """)
-
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_comexstat_flow
-        ON sofia.comexstat_trade(flow, period DESC)
-    """)
-
     inserted = 0
+
+    # State Mapping (Name -> Code)
+    STATE_MAP = {
+        'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 'Ceará': 'CE',
+        'Distrito Federal': 'DF', 'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA',
+        'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG', 'Pará': 'PA',
+        'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE', 'Piauí': 'PI', 'Rio de Janeiro': 'RJ',
+        'Rio Grande do Norte': 'RN', 'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR',
+        'Santa Catarina': 'SC', 'São Paulo': 'SP', 'Sergipe': 'SE', 'Tocantins': 'TO',
+        'Exterior': 'EX', 'Não Declarada': 'ND'
+    }
 
     for record in data:
         try:
+            # Key extraction for POST response: 'year', 'monthNumber', 'country', 'state'
+            anno = record.get('year') or record.get('coAno')
+            mes = record.get('monthNumber') or record.get('coMes')
+            
+            if anno and mes:
+                period = f"{anno}{str(mes).zfill(2)}"
+            else:
+                period = record.get('period') or datetime.now().strftime('%Y%m')
+
+            country_name = record.get('country') or record.get('noPais') or 'Unknown'
+            country_code = 'XX' 
+            
+            state_raw = record.get('state') or record.get('sgUf') or 'BR'
+            state_code = STATE_MAP.get(state_raw, 'BR')
+            if state_code == 'BR' and len(state_raw) == 2:
+                state_code = state_raw
+            
+            val_usd = record.get('metricFOB') or record.get('vlFob') or 0
+            val_kg = record.get('metricKG') or record.get('kgLiquido') or 0
+
+            # Filter out invalid metric values
+            try: val_usd = float(val_usd)
+            except: val_usd = 0
+            try: val_kg = float(val_kg) 
+            except: val_kg = 0
+
             cursor.execute("""
                 INSERT INTO sofia.comexstat_trade
-                (flow, ncm_code, ncm_description, period, country_code, country_name, value_usd, weight_kg)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (flow, ncm_code, period, country_code)
+                (flow, ncm_code, ncm_description, period, country_code, country_name, state_code, value_usd, weight_kg)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (flow, ncm_code, period, country_code, state_code)
                 DO UPDATE SET
                     value_usd = EXCLUDED.value_usd,
                     weight_kg = EXCLUDED.weight_kg
@@ -144,63 +203,68 @@ def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data:
                 flow,
                 ncm_code,
                 ncm_description,
-                record.get('CO_MES', ''),  # Period YYYYMM
-                record.get('CO_PAIS', ''),  # Country code
-                record.get('NO_PAIS', 'Unknown'),  # Country name
-                record.get('VL_FOB', 0),  # Value in USD
-                record.get('KG_LIQUIDO', 0)  # Weight in kg
+                period,
+                country_code,
+                country_name,
+                state_code,
+                val_usd,
+                val_kg
             ))
-
             inserted += 1
-
         except Exception as e:
-            print(f"   ⚠️  Error inserting record: {e}")
+            print(f"   ⚠️ Error inserting record: {e}")
             continue
 
     conn.commit()
-    cursor.close()
-
     return inserted
 
 def main():
-    print("="*80)
+    print("======================================================================")
     print("📊 MDIC ComexStat API - Comércio Exterior Brasileiro")
-    print("="*80)
-    print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"📡 Source: http://api.comexstat.mdic.gov.br/")
-    print("")
+    print("📡 Source: https://api-comexstat.mdic.gov.br/")
+    print("======================================================================")
 
-    # Connect to database
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        print("✅ Database connected")
-        print("")
+        conn = psycopg2.connect(
+            host=os.getenv('POSTGRES_HOST'),
+            port=os.getenv('POSTGRES_PORT'),
+            user=os.getenv('POSTGRES_USER'),
+            password=os.getenv('POSTGRES_PASSWORD'),
+            database=os.getenv('POSTGRES_DB')
+        )
+        print("\n✅ Database connected")
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
-        sys.exit(1)
+        print(f"\n❌ Database connection failed: {e}")
+        return
 
+    init_db(conn)
+
+    print("\n📊 Fetching tech products trade data (NCM codes)...\n")
+    
     total_records = 0
-
-    print("📊 Fetching tech products trade data (NCM codes)...")
-    print("")
 
     for ncm_code, description in TECH_NCM_CODES.items():
         print(f"📦 {description} (NCM: {ncm_code})")
 
         # Fetch exports
-        export_data = fetch_comexstat_data(ncm_code, 'exp', months_back=12)
+        export_data = fetch_comexstat_data(ncm_code, 'exp')
         if export_data:
             inserted = save_to_database(conn, ncm_code, description, 'export', export_data)
             total_records += inserted
             print(f"   💾 Exports: {inserted} records")
 
+        time.sleep(5)
+
         # Fetch imports
-        import_data = fetch_comexstat_data(ncm_code, 'imp', months_back=12)
+        import_data = fetch_comexstat_data(ncm_code, 'imp')
         if import_data:
             inserted = save_to_database(conn, ncm_code, description, 'import', import_data)
             total_records += inserted
             print(f"   💾 Imports: {inserted} records")
+
+        print("   ⏳ Sleeping 10s...")
+        time.sleep(10) # Respect rate limits
 
         print("")
 
@@ -208,20 +272,9 @@ def main():
 
     print("="*80)
     print("✅ MDIC COMEXSTAT COLLECTION COMPLETE")
-    print("="*80)
-    print("")
-    print(f"📦 Total NCM codes: {len(TECH_NCM_CODES)}")
     print(f"💾 Total records: {total_records}")
-    print("")
-    print("Tech products tracked:")
-    for ncm, desc in TECH_NCM_CODES.items():
-        print(f"  • {ncm}: {desc}")
-    print("")
-    print("💡 Use cases:")
-    print("  • Correlate chip imports with engineer demand")
-    print("  • Track smartphone exports vs local production")
-    print("  • Identify growing tech export sectors")
-    print("")
+    print("="*80)
 
 if __name__ == '__main__':
+    load_dotenv()
     main()

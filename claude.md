@@ -105,6 +105,31 @@ geo = normalize_location(conn, {
 
 ## 🚀 NOVIDADES
 
+### ✅ **COLETORES BRASIL: MDIC & FIESP** (22 Dez 2025)
+
+**MAJOR UPDATE**: Implementação de coletores regionais granulares para o Brasil!
+
+1. **MDIC ComexStat (Regionalizado)** 🇧🇷
+   - **Status**: ✅ Funcionando (801 registros)
+   - **Granularidade**: Por Estado (UF) e Município
+   - **NCMs Monitorados**: Tablets/Laptops (84713012), Smartphones (85171300), Processadores (85423100)
+   - **Correção**: Implementado POST request com `details: ['state']` e `monthDetail: true`
+   - **Script**: `scripts/collect-mdic-comexstat.py`
+
+2. **FIESP (Indicadores Industriais)** 🏭
+   - **Status**: ✅ Funcionando
+   - **Sensor FIESP**: 234 registros (Sentimento de Mercado, Vendas, Estoque)
+   - **INA (Atividade)**: 298 registros (Vendas Reais, NUCI, Horas Trabalhadas)
+   - **Feature**: Scraping inteligente detecta arquivos Excel em sub-páginas
+   - **Script**: `scripts/collect-fiesp-data.py`
+
+**Banco de Dados**:
+- `sofia.comexstat_trade` (Dados de comércio exterior regionalizados)
+- `sofia.fiesp_sensor` (Sentimento industrial)
+- `sofia.fiesp_ina` (Nível de atividade industrial)
+
+---
+
 ### ✅ **3 CACHES JSON AUTOMATIZADOS** (17 Dez 2025)
 
 **MAJOR FEATURE**: Sistema completo de caches JSON com 3 análises automatizadas!
@@ -706,7 +731,8 @@ geo = normalize_location(conn, {
 - ✅ BACEN SGS - Selic, IPCA, câmbio, PIB (séries temporais)
 - ✅ IBGE API - Censos, PIB, inflação, emprego, demografia
 - ✅ IPEA - Séries econômicas históricas (desde 1940s)
-- ✅ ComexStat/MDIC - Importação/exportação por produto
+- ✅ ComexStat/MDIC - Importação/exportação regionalizada (State-level)
+- ✅ FIESP - Sensor e INA (Indicadores industriais SP/BR)
 
 **Setoriais**:
 - ✅ Brazil Ministries - 12 ministérios, dados orçamentários
