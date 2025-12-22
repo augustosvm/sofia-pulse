@@ -1,9 +1,9 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2025-12-12 UTC
-**Branch**: `claude/fix-deployment-script-errors-01DFTu3TQVACwYj4RZzJJNPH`
+**Data**: 2025-12-22 UTC
+**Branch**: `claude/fix-postgres-backup-container-01SaDtDWvJ7Ztm94wacRnCfY`
 **Email**: augustosvm@gmail.com
-**Status**: ✅ SISTEMA 100% FUNCIONAL - 55+ COLETORES + 33 RELATÓRIOS + WHATSAPP
+**Status**: ✅ SISTEMA 100% FUNCIONAL - 58+ COLETORES (3 NOVOS TIPOS) + 33 RELATÓRIOS + WHATSAPP + COMPLIANCE
 
 ---
 
@@ -30,6 +30,129 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ---
 
+## 🚀 NOVOS COLETORES - UNIFIED ARCHITECTURE (22 Dez 2025)
+
+**STATUS**: ✅ 3 NOVOS TIPOS DE COLETORES IMPLEMENTADOS
+
+### Arquitetura Unificada: 1 Engine + N Configs + 1 Inserter
+
+Implementada arquitetura escalável que permite adicionar novos coletores rapidamente:
+- **1 Generic Engine** por tipo (funding, developer-tools, conferences)
+- **N Configurations** para diferentes fontes (YC, Product Hunt, VS Code, etc.)
+- **1 Shared Inserter** com deduplicação automática
+- **Auto-generated Crontab** via `generate-crontab.ts`
+
+### 1. 💰 Funding Collectors
+
+**Tabela**: `sofia.funding_rounds`
+**Deduplicação**: `(company_name, round_type, announced_date)`
+**Campos**: company_name, round_type, sector, amount_usd, valuation_usd, country, city, investors, **source**
+
+**Fontes Configuradas**:
+- ✅ **YC Companies** (`yc-companies`) - 500 companies em 1.45s
+- 🔧 **Product Hunt** (`product-hunt`) - Pendente configuração
+- 🔧 **Crunchbase Free** (`crunchbase-free`) - 500 req/mês
+
+**Arquivos**:
+- `scripts/configs/funding-config.ts` - Configurações de fontes
+- `scripts/shared/funding-inserter.ts` - Inserter unificado
+- `scripts/collectors/funding-collector.ts` - Engine genérico
+- `migrations/016_create_funding_rounds_table.sql`
+
+**Execução**:
+```bash
+npx tsx scripts/collect.ts --collector yc-companies
+npx tsx scripts/collect.ts --all-funding
+```
+
+### 2. 🔌 Developer Tools Collectors
+
+**Tabela**: `sofia.developer_tools`
+**Deduplicação**: `(tool_id, platform)`
+**Campos**: tool_name, tool_id, platform, category, downloads, rating, version, publisher, **source**
+
+**Fontes Configuradas**:
+- ✅ **VS Code Marketplace** (`vscode-marketplace`) - 100 extensions em 0.83s
+- ⚠️ **JetBrains Marketplace** (`jetbrains-marketplace`) - 400 error (needs fix)
+
+**Arquivos**:
+- `scripts/configs/developer-tools-config.ts`
+- `scripts/shared/developer-tools-inserter.ts`
+- `scripts/collectors/developer-tools-collector.ts`
+- `migrations/017_create_developer_tools_table.sql`
+
+**Execução**:
+```bash
+npx tsx scripts/collect.ts --collector vscode-marketplace
+npx tsx scripts/collect.ts --all-developer-tools
+```
+
+### 3. 🎤 Tech Conferences Collectors
+
+**Tabela**: `sofia.tech_conferences`
+**Deduplicação**: `(event_name, start_date)`
+**Campos**: event_name, event_type, category, start_date, end_date, location_city, location_country, is_online, website_url, topics, **source**
+
+**Fontes Configuradas**:
+- ⚠️ **Confs.tech** (`confs-tech`) - 404 error (repository structure changed)
+
+**Arquivos**:
+- `scripts/configs/tech-conferences-config.ts`
+- `scripts/shared/tech-conferences-inserter.ts`
+- `scripts/collectors/tech-conferences-collector.ts`
+- `migrations/018_create_tech_conferences_table.sql`
+
+**Execução**:
+```bash
+npx tsx scripts/collect.ts --collector confs-tech
+npx tsx scripts/collect.ts --all-conferences
+```
+
+### 🔒 Compliance - Source Tracking
+
+**CRÍTICO**: Todos os 3 novos tipos de coletores implementam tracking de **source** para compliance!
+
+**Migration**: `migrations/019_add_source_column_for_compliance.sql`
+
+**Campos adicionados**:
+- `sofia.funding_rounds.source` - yc-companies, product-hunt, crunchbase-free
+- `sofia.developer_tools.source` - vscode-marketplace, jetbrains-marketplace
+- `sofia.tech_conferences.source` - confs-tech, meetup
+
+**Índices criados**:
+```sql
+CREATE INDEX idx_funding_rounds_source ON sofia.funding_rounds(source);
+CREATE INDEX idx_developer_tools_source ON sofia.developer_tools(source);
+CREATE INDEX idx_tech_conferences_source ON sofia.tech_conferences(source);
+```
+
+**Exemplo de query**:
+```sql
+-- Ver todas as fontes de funding
+SELECT source, COUNT(*) FROM sofia.funding_rounds GROUP BY source;
+
+-- Filtrar por fonte específica
+SELECT * FROM sofia.developer_tools WHERE source = 'vscode-marketplace';
+```
+
+### 📊 Próximos Passos
+
+1. **Fix APIs com erro**:
+   - JetBrains Marketplace (400 error - parâmetros incorretos)
+   - Confs.tech (404 error - estrutura do repo mudou)
+
+2. **Adicionar mais fontes**:
+   - Funding: Product Hunt, Crunchbase Free
+   - Developer Tools: Chrome Web Store, npm packages
+   - Conferences: Meetup API, Eventbrite
+
+3. **Integrar nos analytics**:
+   - Correlacionar funding rounds com papers (lag temporal)
+   - Detectar trending tools (crescimento de downloads)
+   - Prever tech trends via conference topics
+
+---
+
 ## 🧹 CONSOLIDAÇÃO & LIMPEZA DO BANCO (19 Dez 2025)
 
 **STATUS**: ✅ CONCLUÍDO - Banco Normalizado e Otimizado!
@@ -44,6 +167,41 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 ### Próximos Passos (Imediato)
 1. **Atualizar Coletores**: Adaptar `collect-github-trending.ts` e outros para usar as novas tabelas consolidadas (`tech_trends`, `organizations`).
 2. **Atualizar Analytics**: Ajustar relatórios para ler das novas fontes unificadas.
+
+### 🔍 Phase 1 Investigation Results (22 Dez 2025)
+
+**Executado**: `scripts/consolidate-database.ts`
+
+**Resultados**:
+
+1. ✅ **hacker_news_stories**: DROPPED
+   - Tabela duplicada vazia (0 registros)
+   - Versão ativa: `hackernews_stories` (751 registros)
+
+2. ✅ **women_eurostat_data**: LEGÍTIMA (807,866 registros)
+   - **Tamanho**: 1.2 GB
+   - **Período**: 1960-2024 (64 anos de dados históricos!)
+   - **Cobertura**: 37 países, 17 datasets
+   - **Conclusão**: NÃO é duplicação, dados históricos valiosos
+
+3. ✅ **Embeddings**: USO MÍNIMO (1,272 registros totais)
+   - `github_embeddings`: 955 records (19 MB) ✅ EM USO
+   - `hackernews_embeddings`: 271 records (5.5 MB) ✅ EM USO
+   - `pypi_embeddings`: 27 records (4.8 MB) - sem timestamps
+   - `npm_embeddings`: 19 records (3.4 MB) - sem timestamps
+   - `reddit_embeddings`: 0 records (1.2 MB) ⚠️ VAZIA
+   - `paper_embeddings`: schema error (column created_at missing)
+   - `author_embeddings`: schema error (column created_at missing)
+   - `university_embeddings`: schema error (column created_at missing)
+
+**Decisões**:
+- ⚠️ **Embeddings vazias ou com erro podem ser dropadas** (~10 MB economizados)
+- ✅ **women_eurostat_data MANTER** - dados históricos únicos
+- ✅ **1 tabela duplicada removida com sucesso**
+
+**Scripts**:
+- `scripts/consolidate-database.ts` - Investigation runner
+- `scripts/check-women-eurostat-schema.ts` - Schema checker
 
 ---
 

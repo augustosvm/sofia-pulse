@@ -27,7 +27,10 @@
       "Bash(git checkout:*)",
       "Bash(npx tsc:*)",
       "Bash(psql:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(node --loader tsx scripts/generate-crontab.ts:*)",
+      "Bash(git pull:*)",
+      "Bash(scp:*)"
     ],
     "deny": [],
     "ask": []
