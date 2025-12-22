@@ -1,12 +1,13 @@
 /**
- * Research Papers Collectors Configuration - Sofia Pulse
+ * Research Papers Collectors Configuration - V2 (UNIFIED TABLE)
+ *
+ * UPDATED: Uses consolidated sofia.research_papers table
+ * Replaces: arxiv_ai_papers, openalex_papers, bdtd_theses
  *
  * Configurações para collectors de papers acadêmicos:
  * - ArXiv AI/ML Papers
  * - OpenAlex Research Papers
  * - NIH Grants
- *
- * Cada config define: URL, parsing, schedule, rate limits, etc.
  *
  * Schedule format (cron):
  *   '0 8 * * 1'     = Toda segunda às 8h (papers não mudam rápido)
@@ -74,8 +75,8 @@ export const arxivAIPapers: ResearchPapersConfig = {
       const is_breakthrough = breakthroughIndicators.filter(r => r.test(text)).length >= 2;
 
       papers.push({
-        table: 'arxiv_ai_papers',
-        id: arxiv_id,
+        source: 'arxiv', // UPDATED: unified table
+        source_id: arxiv_id,
         title,
         authors,
         published_date: published,
@@ -154,8 +155,8 @@ export const openAlexPapers: ResearchPapersConfig = {
       const doi = work.doi?.replace('https://doi.org/', '') || null;
 
       papers.push({
-        table: 'openalex_papers',
-        id: openalex_id,
+        source: 'openalex', // UPDATED: unified table
+        source_id: openalex_id,
         title: work.title || '',
         authors: authors.length > 0 ? authors : ['Unknown'],
         published_date: pubDate,

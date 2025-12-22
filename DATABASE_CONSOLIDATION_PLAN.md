@@ -163,6 +163,16 @@
 
 **View criada**: `sofia.latest_research_papers` (estatísticas por source)
 
+**Collector Updates** (22 Dez 2025 - 23:30 UTC):
+- ✅ `research-papers-inserter.ts` - Unified inserter criado
+- ✅ `research-papers-config.ts` - Atualizado para usar `source`/`source_id`
+- ✅ `research-papers-collector.ts` - Atualizado para usar ResearchPapersInserter
+- ✅ **Teste ArXiv**: 1000 papers coletados com sucesso (Run ID: 58)
+- ✅ **Verificação**: 4,394 arxiv + 2,700 openalex + 10 bdtd = 7,104 total
+- ✅ **Tabelas antigas DROPADAS**: arxiv_ai_papers, openalex_papers, bdtd_theses
+
+**Status**: ✅ **FASE COMPLETA** - Sistema unificado em produção
+
 ---
 
 #### 3. ✅ Jobs Tables (2 → 1 tabela) - 7,848 jobs migrados

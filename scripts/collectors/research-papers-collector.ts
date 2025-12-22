@@ -1,13 +1,16 @@
 #!/usr/bin/env tsx
 /**
- * Research Papers Collector - Sofia Pulse
+ * Research Papers Collector V2 - Sofia Pulse (UNIFIED TABLE)
+ *
+ * UPDATED: Uses consolidated sofia.research_papers table
+ * Replaces: arxiv_ai_papers, openalex_papers, bdtd_theses
  *
  * Core engine para coletar research papers de APIs acadêmicas.
  * Centraliza: HTTP requests, rate limiting, error handling, logging, inserção no banco.
  *
- * Diferença do tech-trends-collector:
- * - Usa PapersInserter ao invés de TrendsInserter
- * - Suporta múltiplas tables (arxiv_ai_papers, openalex_papers, nih_grants)
+ * Features:
+ * - Usa ResearchPapersInserter (unified table)
+ * - Suporta múltiplas sources: arxiv, openalex, nih, bdtd
  * - Schema rico: authors[], abstract, categories[], citations, etc.
  *
  * Usage:
@@ -20,7 +23,7 @@ import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import axios, { AxiosRequestConfig } from 'axios';
 import { rateLimiters } from '../utils/rate-limiter.js';
-import { PapersInserter } from '../shared/papers-inserter.js';
+import { ResearchPapersInserter } from '../shared/research-papers-inserter.js';
 
 dotenv.config();
 
@@ -29,11 +32,11 @@ dotenv.config();
 // ============================================================================
 
 export interface PaperData {
-  // Table to insert into
-  table: 'arxiv_ai_papers' | 'openalex_papers' | 'nih_grants';
+  // Source (UPDATED: unified table)
+  source: 'arxiv' | 'openalex' | 'nih' | 'bdtd';
 
   // Common fields (all papers have these)
-  id: string;           // arxiv_id, openalex_id, grant_id
+  source_id: string;    // arxiv_id, openalex_id, grant_id, thesis_id
   title: string;
   authors: string[];
   published_date?: string;
@@ -92,19 +95,45 @@ const dbConfig = {
 
 export class ResearchPapersCollector {
   private pool: Pool;
-  private inserter: PapersInserter;
+  private inserter: ResearchPapersInserter;
 
   constructor() {
     this.pool = new Pool(dbConfig);
-    this.inserter = new PapersInserter(this.pool);
+    this.inserter = new ResearchPapersInserter(this.pool);
   }
 
   /**
-   * Insere um paper no banco usando PapersInserter
+   * Insere um paper no banco usando ResearchPapersInserter (unified table)
    */
   private async insertPaper(paper: PaperData): Promise<void> {
-    // Usa o inserter genérico que detecta o tipo automaticamente
-    await this.inserter.insert(paper.data, paper.table);
+    // Convert to ResearchPaperData format
+    await this.inserter.insertPaper({
+      title: paper.title,
+      source: paper.source,
+      source_id: paper.source_id,
+      abstract: paper.data.abstract,
+      authors: paper.authors,
+      keywords: paper.data.keywords || paper.data.concepts,
+      publication_date: paper.published_date || paper.data.publication_date,
+      publication_year: paper.data.publication_year,
+      doi: paper.data.doi,
+      primary_category: paper.data.primary_category || paper.data.primary_concept,
+      categories: paper.data.categories || paper.data.concepts,
+      area: paper.data.area,
+      pdf_url: paper.data.pdf_url,
+      journal: paper.data.journal,
+      publisher: paper.data.publisher,
+      is_open_access: paper.data.is_open_access,
+      university: paper.data.university,
+      program: paper.data.program,
+      degree_type: paper.data.degree_type,
+      language: paper.data.language,
+      author_institutions: paper.data.author_institutions,
+      author_countries: paper.data.author_countries,
+      cited_by_count: paper.data.cited_by_count,
+      referenced_works_count: paper.data.referenced_works_count,
+      is_breakthrough: paper.data.is_breakthrough,
+    });
   }
 
   /**
