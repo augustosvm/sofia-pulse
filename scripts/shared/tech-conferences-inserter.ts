@@ -92,9 +92,10 @@ export class TechConferencesInserter {
         attendee_count,
         speaker_count,
         organizer,
+        source,
         collected_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
       ON CONFLICT (event_name, start_date)
       DO UPDATE SET
         event_type = EXCLUDED.event_type,
@@ -109,6 +110,7 @@ export class TechConferencesInserter {
         attendee_count = COALESCE(EXCLUDED.attendee_count, sofia.tech_conferences.attendee_count),
         speaker_count = COALESCE(EXCLUDED.speaker_count, sofia.tech_conferences.speaker_count),
         organizer = COALESCE(EXCLUDED.organizer, sofia.tech_conferences.organizer),
+        source = EXCLUDED.source,
         collected_at = NOW()
     `;
 
@@ -127,6 +129,7 @@ export class TechConferencesInserter {
       conference.attendee_count || null,
       conference.speaker_count || null,
       conference.organizer || null,
+      conference.source || 'unknown',
     ]);
   }
 

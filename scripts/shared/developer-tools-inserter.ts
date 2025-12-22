@@ -75,9 +75,10 @@ export class DeveloperToolsInserter {
         tags,
         homepage_url,
         repository_url,
+        source,
         collected_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
       ON CONFLICT (tool_id, platform)
       DO UPDATE SET
         tool_name = EXCLUDED.tool_name,
@@ -91,6 +92,7 @@ export class DeveloperToolsInserter {
         tags = COALESCE(EXCLUDED.tags, sofia.developer_tools.tags),
         homepage_url = COALESCE(EXCLUDED.homepage_url, sofia.developer_tools.homepage_url),
         repository_url = COALESCE(EXCLUDED.repository_url, sofia.developer_tools.repository_url),
+        source = EXCLUDED.source,
         collected_at = NOW()
     `;
 
@@ -108,6 +110,7 @@ export class DeveloperToolsInserter {
       tool.tags || null,
       tool.homepage_url || null,
       tool.repository_url || null,
+      tool.source || 'unknown',
     ]);
   }
 
