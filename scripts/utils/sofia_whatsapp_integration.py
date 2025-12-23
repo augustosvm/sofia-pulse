@@ -172,10 +172,8 @@ class SofiaWhatsAppIntegration:
 
         except Exception as e:
             print(f"\n❌ WhatsApp send error: {e}")
-            import traceback
-            traceback.print_exc()
-            print("="*60 + "\n")
-            return False
+            print("🔄 Falling back to direct send...")
+            return self.send_whatsapp_direct(message)
 
     def send_whatsapp_direct(self, message: str) -> bool:
         """

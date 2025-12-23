@@ -11,6 +11,9 @@ from io import BytesIO
 from typing import Optional, List, Dict
 from dotenv import load_dotenv
 
+# Add scripts directory to path to allow importing utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 load_dotenv()
 
 # Database connection
@@ -364,4 +367,24 @@ def main():
     conn.close()
 
 if __name__ == "__main__":
-    main()
+    COLLECTOR_NAME = 'fiesp-data'
+    try:
+        main()
+    except Exception as e:
+        print(f"❌ Fatal error: {e}")
+        try:
+            conn = psycopg2.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            # Assuming sofia.finish_collector_run exists or basic logging
+            # For now just alert
+            pass
+        except: pass
+
+        # Send WhatsApp Alert
+        try:
+            from utils.whatsapp_alerts import alert_collector_failed
+            alert_collector_failed(COLLECTOR_NAME, str(e))
+        except Exception as alert_e:
+            print(f"⚠️  Could not send alert: {alert_e}")
+        
+        sys.exit(1)

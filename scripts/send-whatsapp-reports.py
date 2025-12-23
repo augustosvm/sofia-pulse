@@ -37,8 +37,10 @@ def send_mega_summary():
 _Relatório completo no email_
 _Total: 23 reports + CSVs_
 """
-        send_whatsapp_alert(message, level='INFO')
-        print("✅ MEGA Analysis summary sent to WhatsApp")
+        if send_whatsapp_alert(message, level='INFO'):
+            print("✅ MEGA Analysis summary sent to WhatsApp")
+        else:
+            print("❌ Failed to send MEGA Analysis summary")
     else:
         print("⚠️  MEGA Analysis not found")
 
@@ -55,8 +57,10 @@ def send_top10_trends():
 ---
 _Relatório completo no email_
 """
-        send_whatsapp_alert(message, level='INFO')
-        print("✅ Top 10 Trends sent to WhatsApp")
+        if send_whatsapp_alert(message, level='INFO'):
+            print("✅ Top 10 Trends sent to WhatsApp")
+        else:
+            print("❌ Failed to send Top 10 Trends")
     else:
         print("⚠️  Top 10 Trends not found")
 
@@ -75,8 +79,10 @@ def send_playbook_summary():
 _Playbook completo no email_
 _Narrativas prontas para publicação_
 """
-        send_whatsapp_alert(message, level='INFO')
-        print("✅ Gemini Playbook sent to WhatsApp")
+        if send_whatsapp_alert(message, level='INFO'):
+             print("✅ Gemini Playbook sent to WhatsApp")
+        else:
+             print("❌ Failed to send Gemini Playbook")
     else:
         print("⚠️  Gemini Playbook not found (GEMINI_API_KEY configured?)")
 
@@ -94,8 +100,10 @@ def send_intelligence_summary():
 ---
 _Relatório completo no email_
 """
-        send_whatsapp_alert(message, level='INFO')
-        print("✅ Career Trends sent to WhatsApp")
+        if send_whatsapp_alert(message, level='INFO'):
+            print("✅ Career Trends sent to WhatsApp")
+        else:
+            print("❌ Failed to send Career Trends")
 
     # Capital Flow
     capital_report = 'analytics/capital-flow-latest.txt'
@@ -108,8 +116,10 @@ _Relatório completo no email_
 ---
 _Relatório completo no email_
 """
-        send_whatsapp_alert(message, level='INFO')
-        print("✅ Capital Flow sent to WhatsApp")
+        if send_whatsapp_alert(message, level='INFO'):
+            print("✅ Capital Flow sent to WhatsApp")
+        else:
+            print("❌ Failed to send Capital Flow")
 
 def send_socioeconomic_summary():
     """Send Socioeconomic Intelligence summary via WhatsApp"""
@@ -126,8 +136,10 @@ def send_socioeconomic_summary():
 _Relatório completo no email_
 _Metodologia: INSEAD Global Talent Index_
 """
-        send_whatsapp_alert(message, level='INFO')
-        print("✅ Tech Talent Cities sent to WhatsApp")
+        if send_whatsapp_alert(message, level='INFO'):
+            print("✅ Tech Talent Cities sent to WhatsApp")
+        else:
+            print("❌ Failed to send Tech Talent Cities")
 
     # Innovation Hubs
     innovation_report = 'analytics/innovation-hubs-latest.txt'
@@ -141,8 +153,10 @@ _Metodologia: INSEAD Global Talent Index_
 _Relatório completo no email_
 _Metodologia: WIPO Global Innovation Index_
 """
-        send_whatsapp_alert(message, level='INFO')
-        print("✅ Innovation Hubs sent to WhatsApp")
+        if send_whatsapp_alert(message, level='INFO'):
+            print("✅ Innovation Hubs sent to WhatsApp")
+        else:
+            print("❌ Failed to send Innovation Hubs")
 
 def send_completion_summary():
     """Send final completion summary with all artifacts"""
@@ -195,8 +209,10 @@ _Sofia Pulse Intelligence System_
 _Próxima execução: 22:00 UTC / 19:00 BRT_
 """
 
-    send_whatsapp_alert(message, level='INFO')
-    print("✅ Completion summary sent to WhatsApp")
+    if send_whatsapp_alert(message, level='INFO'):
+        print("✅ Completion summary sent to WhatsApp")
+    else:
+        print("❌ Failed to send Completion summary")
 
 def main():
     """Send all report summaries via WhatsApp"""

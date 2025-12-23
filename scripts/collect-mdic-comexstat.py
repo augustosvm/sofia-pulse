@@ -6,7 +6,11 @@ import urllib3
 import psycopg2
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
+import sys
 from dotenv import load_dotenv
+
+# Add scripts directory to path to allow importing utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load environment variables
 load_dotenv()
@@ -34,6 +38,8 @@ TECH_NCM_CODES = {
     '85285200': 'Monitores',
     '85340019': 'Circuitos Impressos (PCBs) Multicamadas', # High tech PCBs
 }
+
+COLLECTOR_NAME = 'mdic-regional'
 
 def fetch_comexstat_data(ncm_code: str, flow: str, months_back: int = 12) -> List[Dict[str, Any]]:
     """
@@ -88,7 +94,7 @@ def fetch_comexstat_data(ncm_code: str, flow: str, months_back: int = 12) -> Lis
             response.raise_for_status()
             raw_data = response.json()
             # DEBUG PRINT
-            print(f"   🐛 RAW DATA SAMPLE: {str(raw_data)[:300]}")
+            # print(f"   🐛 RAW DATA SAMPLE: {str(raw_data)[:300]}")
             
             # Extract list from wrapper
             data = []
@@ -120,10 +126,9 @@ def init_db(conn):
     """Initialize database table and indexes"""
     cursor = conn.cursor()
     
-    # Check if table exists before dropping, but for this task we want to ensure schema is fresh
-    cursor.execute("DROP TABLE IF EXISTS sofia.comexstat_trade")
+    # REMOVED DROP TABLE to persist data
     
-    # Create table if not exists (Now with state_code)
+    # Create table if not exists (Now with state_code and source)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.comexstat_trade (
             id SERIAL PRIMARY KEY,
@@ -136,12 +141,13 @@ def init_db(conn):
             state_code VARCHAR(2), -- Added for Regionalization
             value_usd NUMERIC(15, 2),
             weight_kg NUMERIC(15, 2),
+            source VARCHAR(50) DEFAULT 'mdic-comexstat',
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT unique_trade_record UNIQUE (flow, ncm_code, period, country_code, state_code)
         );
     """)
     conn.commit()
-    print("✅ Table sofia.comexstat_trade initialized (Regionalized)")
+    print("✅ Table sofia.comexstat_trade initialized (Regionalized + Source)")
 
 def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data: List[Dict]) -> int:
     """Save ComexStat data to PostgreSQL"""
@@ -193,12 +199,14 @@ def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data:
 
             cursor.execute("""
                 INSERT INTO sofia.comexstat_trade
-                (flow, ncm_code, ncm_description, period, country_code, country_name, state_code, value_usd, weight_kg)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (flow, ncm_code, ncm_description, period, country_code, country_name, state_code, value_usd, weight_kg, source)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'mdic-comexstat')
                 ON CONFLICT (flow, ncm_code, period, country_code, state_code)
                 DO UPDATE SET
                     value_usd = EXCLUDED.value_usd,
-                    weight_kg = EXCLUDED.weight_kg
+                    weight_kg = EXCLUDED.weight_kg,
+                    source = EXCLUDED.source,
+                    collected_at = CURRENT_TIMESTAMP
             """, (
                 flow,
                 ncm_code,
@@ -213,10 +221,40 @@ def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data:
             inserted += 1
         except Exception as e:
             print(f"   ⚠️ Error inserting record: {e}")
+            conn.rollback()
             continue
 
     conn.commit()
     return inserted
+
+def log_run_start(conn, collector_name):
+    """Log the start of a collector run in the database"""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT sofia.start_collector_run(%s)", (collector_name,))
+        run_id = cursor.fetchone()[0]
+        conn.commit()
+        return run_id
+    except Exception as e:
+        print(f"❌ Failed to log run start: {e}")
+        conn.rollback()
+        return None
+
+def log_run_finish(conn, run_id, status, items_collected=0, items_failed=0, error_message=None):
+    """Log the finish of a collector run"""
+    if not run_id:
+        return
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT sofia.finish_collector_run(
+                %s, %s, %s, %s, %s
+            )
+        """, (run_id, status, items_collected, items_failed, error_message))
+        conn.commit()
+    except Exception as e:
+        print(f"❌ Failed to log run finish: {e}")
+        conn.rollback()
 
 def main():
     print("======================================================================")
@@ -225,6 +263,10 @@ def main():
     print("📡 Source: https://api-comexstat.mdic.gov.br/")
     print("======================================================================")
 
+    conn = None
+    run_id = None
+    total_records = 0
+    
     try:
         conn = psycopg2.connect(
             host=os.getenv('POSTGRES_HOST'),
@@ -234,46 +276,60 @@ def main():
             database=os.getenv('POSTGRES_DB')
         )
         print("\n✅ Database connected")
+
+        init_db(conn)
+        
+        # Log Start
+        run_id = log_run_start(conn, COLLECTOR_NAME)
+
+        print("\n📊 Fetching tech products trade data (NCM codes)...\n")
+        
+        for ncm_code, description in TECH_NCM_CODES.items():
+            print(f"📦 {description} (NCM: {ncm_code})")
+
+            # Fetch exports
+            export_data = fetch_comexstat_data(ncm_code, 'exp')
+            if export_data:
+                inserted = save_to_database(conn, ncm_code, description, 'export', export_data)
+                total_records += inserted
+                print(f"   💾 Exports: {inserted} records")
+
+            time.sleep(5)
+
+            # Fetch imports
+            import_data = fetch_comexstat_data(ncm_code, 'imp')
+            if import_data:
+                inserted = save_to_database(conn, ncm_code, description, 'import', import_data)
+                total_records += inserted
+                print(f"   💾 Imports: {inserted} records")
+
+            print("   ⏳ Sleeping 5s...")
+            time.sleep(5) # Respect rate limits
+
+            print("")
+        
+        print("="*80)
+        print("✅ MDIC COMEXSTAT COLLECTION COMPLETE")
+        print(f"💾 Total records: {total_records}")
+        print("="*80)
+        
+        # Log Success
+        log_run_finish(conn, run_id, 'success', items_collected=total_records)
+
     except Exception as e:
-        print(f"\n❌ Database connection failed: {e}")
-        return
-
-    init_db(conn)
-
-    print("\n📊 Fetching tech products trade data (NCM codes)...\n")
-    
-    total_records = 0
-
-    for ncm_code, description in TECH_NCM_CODES.items():
-        print(f"📦 {description} (NCM: {ncm_code})")
-
-        # Fetch exports
-        export_data = fetch_comexstat_data(ncm_code, 'exp')
-        if export_data:
-            inserted = save_to_database(conn, ncm_code, description, 'export', export_data)
-            total_records += inserted
-            print(f"   💾 Exports: {inserted} records")
-
-        time.sleep(5)
-
-        # Fetch imports
-        import_data = fetch_comexstat_data(ncm_code, 'imp')
-        if import_data:
-            inserted = save_to_database(conn, ncm_code, description, 'import', import_data)
-            total_records += inserted
-            print(f"   💾 Imports: {inserted} records")
-
-        print("   ⏳ Sleeping 10s...")
-        time.sleep(10) # Respect rate limits
-
-        print("")
-
-    conn.close()
-
-    print("="*80)
-    print("✅ MDIC COMEXSTAT COLLECTION COMPLETE")
-    print(f"💾 Total records: {total_records}")
-    print("="*80)
+        print(f"\n❌ Critical Error: {e}")
+        if conn and run_id:
+            log_run_finish(conn, run_id, 'error', items_collected=total_records, error_message=str(e))
+            
+        # Send WhatsApp Alert
+        try:
+            from utils.whatsapp_alerts import alert_collector_failed
+            alert_collector_failed(COLLECTOR_NAME, str(e))
+        except Exception as alert_e:
+            print(f"⚠️  Could not send alert: {alert_e}")
+    finally:
+        if conn:
+            conn.close()
 
 if __name__ == '__main__':
     load_dotenv()

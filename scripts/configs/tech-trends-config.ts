@@ -250,6 +250,42 @@ export const hackerNews: CollectorConfig = {
   allowWithoutAuth: true,
 };
 
+export const stackOverflow: CollectorConfig = {
+  name: 'stackoverflow',
+  displayName: '🥞 StackOverflow Trending Tags',
+  description: 'Top tags/tecnologias (perguntas) no StackOverflow',
+
+  url: 'https://api.stackexchange.com/2.3/tags?order=desc&sort=popular&site=stackoverflow&pagesize=100',
+
+  parseResponse: (data) => {
+    if (!data.items || !Array.isArray(data.items)) {
+      return [];
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return data.items.map((item: any): TrendData => ({
+      source: 'stackoverflow',
+      name: item.name,
+      trend_type: 'tag',
+      category: 'programming', // Default, could be refined
+      score: item.count,
+      mentions: item.count,
+      period_start: today,
+      period_end: now,
+      metadata: {
+        has_synonyms: item.has_synonyms,
+        is_moderator_only: item.is_moderator_only,
+        is_required: item.is_required,
+      }
+    }));
+  },
+
+  schedule: '0 9 * * *', // 1x/dia às 9h
+  allowWithoutAuth: true,
+};
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -263,6 +299,7 @@ export const collectors: Record<string, CollectorConfig> = {
   npm: npmStats,
   pypi: pypiStats,
   hackernews: hackerNews,
+  stackoverflow: stackOverflow,
 
   // TODO: Adicionar os outros 84 collectors
   // arxiv: arxivCollector,

@@ -64,9 +64,9 @@ class CollectorStatus(Enum):
 class RetryPolicy:
     """Retry configuration for a collector."""
     max_attempts: int = 3
-    initial_delay_sec: int = 60        # 1 minute
-    max_delay_sec: int = 3600          # 1 hour
-    backoff_multiplier: float = 2.0    # Exponential backoff
+    initial_delay_sec: int = 30         # 30 seconds
+    max_delay_sec: int = 300            # 5 minutes (was 3600)
+    backoff_multiplier: float = 2.0     # Exponential backoff
     retry_on_errors: List[str] = field(default_factory=lambda: ['timeout', 'connection', 'rate_limit'])
 
 
@@ -201,19 +201,51 @@ class IntelligentScheduler:
 
         # CRITICAL: Real-time data sources
         self.register_collector(
-            'github_trending',
-            'scripts/incremental-loader-template.py',
+            'github',
+            'npx tsx scripts/collect.ts github',
             priority='critical',
             retry_max=5,
             retry_delay_sec=300  # 5 min
         )
 
         self.register_collector(
-            'hacker_news',
-            'scripts/incremental-loader-template.py',
+            'hackernews',
+            'npx tsx scripts/collect.ts hackernews',
             priority='critical',
             retry_max=5,
             retry_delay_sec=300
+        )
+
+        self.register_collector(
+            'reddit',
+            'npx tsx scripts/collect.ts reddit',
+            priority='high',
+            retry_max=3,
+            retry_delay_sec=600
+        )
+
+        self.register_collector(
+            'npm',
+            'npx tsx scripts/collect.ts npm',
+            priority='normal',
+            retry_max=2,
+            retry_delay_sec=3600
+        )
+
+        self.register_collector(
+            'pypi',
+            'npx tsx scripts/collect.ts pypi',
+            priority='normal',
+            retry_max=2,
+            retry_delay_sec=3600
+        )
+
+        self.register_collector(
+            'stackoverflow',
+            'npx tsx scripts/collect.ts stackoverflow',
+            priority='normal',
+            retry_max=2,
+            retry_delay_sec=3600
         )
 
         # HIGH: Daily economic indicators
@@ -267,6 +299,65 @@ class IntelligentScheduler:
             dependencies=['brazil_ibge']  # Depends on IBGE
         )
 
+        # BRAZIL: Data Collectors
+        self.register_collector(
+            'mdic-regional',
+            'scripts/collect-mdic-comexstat.py',
+            priority='normal',
+            retry_max=3,
+            retry_delay_sec=300
+        )
+
+        self.register_collector(
+            'fiesp-data',
+            'scripts/collect-fiesp-data.py',
+            priority='normal',
+            retry_max=3,
+            retry_delay_sec=3600
+        )
+
+        # UNIFIED: Organizations
+        self.register_collector(
+            'ai-companies',
+            'npx tsx scripts/collect.ts ai-companies',
+            priority='high',
+            retry_max=2,
+            retry_delay_sec=3600
+        )
+        
+        self.register_collector(
+            'universities',
+            'npx tsx scripts/collect.ts universities',
+            priority='normal',
+            retry_max=1,
+            retry_delay_sec=3600
+        )
+
+        self.register_collector(
+            'ngos',
+            'npx tsx scripts/collect.ts ngos',
+            priority='normal',
+            retry_max=1,
+            retry_delay_sec=3600
+        )
+
+        # UNIFIED: Funding
+        self.register_collector(
+            'yc-companies',
+            'npx tsx scripts/collect.ts yc-companies',
+            priority='normal',
+            retry_max=2,
+            retry_delay_sec=3600
+        )
+
+        self.register_collector(
+            'producthunt',
+            'npx tsx scripts/collect.ts producthunt',
+            priority='high',
+            retry_max=3,
+            retry_delay_sec=900
+        )
+
         print(f"\n✅ Registered {len(self.tasks)} collectors")
 
     # ========================================================================
@@ -290,9 +381,17 @@ class IntelligentScheduler:
         run_id = self.start_collector_run(task.collector_name)
 
         try:
+            # Determine command based on file extension
+            if task.script_path.endswith('.ts'):
+                cmd = ['npx.cmd', 'tsx', task.script_path] if os.name == 'nt' else ['npx', 'tsx', task.script_path]
+            elif task.script_path.endswith('.py'):
+                cmd = [sys.executable, task.script_path]
+            else:
+                cmd = task.script_path.split()
+
             # Execute script
             result = subprocess.run(
-                ['python3', task.script_path],
+                cmd,
                 capture_output=True,
                 text=True,
                 timeout=3600  # 1 hour timeout
@@ -473,10 +572,19 @@ class IntelligentScheduler:
     # SCHEDULER LOOP
     # ========================================================================
 
-    def run_once(self):
-        """Run all pending tasks once."""
+    def run_once(self, max_runtime_minutes: int = 60):
+        """
+        Run all pending tasks once.
+        
+        Args:
+            max_runtime_minutes: Maximum runtime in minutes (default: 60)
+        """
+        start_time = datetime.now()
+        max_runtime = timedelta(minutes=max_runtime_minutes)
+        
         print("\n" + "="*80)
         print("🚀 RUNNING SCHEDULED TASKS")
+        print(f"   Max Runtime: {max_runtime_minutes} minutes")
         print("="*80)
 
         # Sort tasks by priority
@@ -486,6 +594,12 @@ class IntelligentScheduler:
         )
 
         for task in tasks:
+            # Check if we've exceeded max runtime
+            elapsed = datetime.now() - start_time
+            if elapsed > max_runtime:
+                print(f"\n⏰ Max runtime ({max_runtime_minutes}min) exceeded. Stopping.")
+                break
+                
             # Check circuit breaker
             if not self.check_circuit_breaker(task):
                 continue
@@ -494,11 +608,11 @@ class IntelligentScheduler:
             if not self.check_dependencies(task):
                 continue
 
-            # Execute with retry
+            # Execute with retry (but skip retry if we're running out of time)
             success = self.execute_collector(task)
 
-            if not success:
-                # Retry with backoff
+            if not success and (datetime.now() - start_time) < (max_runtime * 0.8):
+                # Only retry if we have 20% of time left
                 success = self.retry_with_backoff(task)
 
             if not success:
@@ -507,6 +621,7 @@ class IntelligentScheduler:
 
         print("\n" + "="*80)
         print("✅ SCHEDULED RUN COMPLETE")
+        print(f"   Runtime: {(datetime.now() - start_time).total_seconds():.1f}s")
         print("="*80)
 
     def run(self, interval_sec: int = 300):

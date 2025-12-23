@@ -574,3 +574,22 @@ bash auto-setup.sh
 **Ãšltima AtualizaÃ§Ã£o**: 2025-11-18 23:30 UTC
 **Branch**: `claude/resume-context-demo-01Jwa7QikzGJHnTZjJLMp5AE`
 **Status**: âœ… Pronto para uso
+
+
+##  ATUALIZAÇÃO: 2025-12-23
+
+###  1. Agendador Inteligente (Windows)
+**Problema**: Cron não roda nativamente no Windows.
+**Solução**: Criado intelligent_scheduler.py que substitui o Crontab, rodando scripts Python e TS/Node com intervalos configuráveis, retentativas e alertas no WhatsApp.
+
+###  2. StackOverflow & Coletor Unificado
+**Feito**: Migrado StackOverflow para o generic-collector (unificado).
+**Tabela**: sofia.tech_trends (agora unificada para todos os trends).
+**Comando**: 
+px tsx scripts/collect.ts stackoverflow (integrado ao scheduler).
+
+###  3. Auditoria Brasil (FIESP/MDIC)
+- **MDIC**: Usa mapeamento de estados próprio (STATE_MAP), não usa o normalizador compartilhado.
+- **FIESP**: Foca em índices agregados (INA/Sensor), sem granularidade de cidades que exija normalização complexa.
+- **Ação**: Mantidos como estão por hora, pois funcionam. Normalização centralizada sugerida para futuro.
+

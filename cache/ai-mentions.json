@@ -1,111 +1,90 @@
 {
   "brazil": {
-    "total_papers": 24,
-    "percentage_of_world": 0.4922067268252666,
+    "total_papers": 0,
+    "percentage_of_world": 0,
     "top_models": []
   },
   "latam": {
-    "total_papers": 21,
-    "percentage_of_world": 0.4306808859721083,
+    "total_papers": 0,
+    "percentage_of_world": 0,
     "top_models": []
   },
   "north_america": {
-    "total_papers": 103,
-    "percentage_of_world": 2.1123872026251025,
+    "total_papers": 0,
+    "percentage_of_world": 0,
     "top_models": []
   },
   "europe": {
-    "total_papers": 253,
-    "percentage_of_world": 5.188679245283019,
-    "top_models": [
-      {
-        "name": "Transformer",
-        "count": 2,
-        "percentage": 50
-      },
-      {
-        "name": "GPT",
-        "count": 1,
-        "percentage": 25
-      },
-      {
-        "name": "ChatGPT",
-        "count": 1,
-        "percentage": 25
-      }
-    ]
+    "total_papers": 0,
+    "percentage_of_world": 0,
+    "top_models": []
   },
   "asia": {
-    "total_papers": 121,
-    "percentage_of_world": 2.4815422477440525,
+    "total_papers": 0,
+    "percentage_of_world": 0,
     "top_models": []
   },
   "oceania": {
-    "total_papers": 11,
-    "percentage_of_world": 0.2255947497949139,
+    "total_papers": 0,
+    "percentage_of_world": 0,
     "top_models": []
   },
   "africa": {
-    "total_papers": 22,
-    "percentage_of_world": 0.4511894995898278,
+    "total_papers": 0,
+    "percentage_of_world": 0,
     "top_models": []
   },
   "world": {
-    "total_papers": 4876,
+    "total_papers": 83,
     "percentage_of_world": 100,
     "top_models": [
       {
         "name": "Transformer",
-        "count": 230,
-        "percentage": 32.71692745376956
-      },
-      {
-        "name": "GPT",
-        "count": 118,
-        "percentage": 16.78520625889047
-      },
-      {
-        "name": "BERT",
-        "count": 68,
-        "percentage": 9.672830725462305
+        "count": 5,
+        "percentage": 20
       },
       {
         "name": "LLaMA",
-        "count": 57,
-        "percentage": 8.108108108108109
+        "count": 4,
+        "percentage": 16
       },
       {
         "name": "Llama",
-        "count": 57,
-        "percentage": 8.108108108108109
+        "count": 4,
+        "percentage": 16
       },
       {
-        "name": "GPT-4",
-        "count": 42,
-        "percentage": 5.974395448079658
+        "name": "GPT",
+        "count": 3,
+        "percentage": 12
+      },
+      {
+        "name": "BERT",
+        "count": 3,
+        "percentage": 12
       },
       {
         "name": "Gemini",
-        "count": 37,
-        "percentage": 5.263157894736842
+        "count": 3,
+        "percentage": 12
       },
       {
-        "name": "Claude",
-        "count": 30,
-        "percentage": 4.267425320056899
+        "name": "Stable Diffusion",
+        "count": 1,
+        "percentage": 4
       },
       {
-        "name": "Mistral",
-        "count": 17,
-        "percentage": 2.418207681365576
+        "name": "GPT-3",
+        "count": 1,
+        "percentage": 4
       },
       {
-        "name": "OpenAI",
-        "count": 12,
-        "percentage": 1.7069701280227598
+        "name": "GPT-4",
+        "count": 1,
+        "percentage": 4
       }
     ]
   },
-  "period": "2025-09-17 to 2025-12-17",
-  "generated_at": "2025-12-17T19:39:44.662Z"
+  "period": "2025-09-23 to 2025-12-23",
+  "generated_at": "2025-12-23T18:40:04.690Z"
 }

@@ -3,7 +3,7 @@
  * Crontab Generator - Sofia Pulse
  *
  * Gera automaticamente o crontab baseado nos schedules definidos nas configs.
- * Suporta: Tech Trends + Research Papers + Jobs + Organizations + Funding + Developer Tools
+ * Suporta: Tech Trends + Research Papers + Jobs + Organizations + Funding + Developer Tools + Tech Conferences + Brazil
  * Isso garante que os crons estão sempre corretos e sincronizados com as configs.
  *
  * Usage:
@@ -18,6 +18,7 @@ import { organizationsCollectors } from './configs/organizations-config.js';
 import { fundingCollectors } from './configs/funding-config.js';
 import { developerToolsCollectors } from './configs/developer-tools-config.js';
 import { techConferencesCollectors } from './configs/tech-conferences-config.js';
+import { brazilCollectors } from './configs/brazil-config.js';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -149,12 +150,12 @@ function generateCrontab(): string {
 
   // Summary comment
   const totalCollectors = Object.keys(techTrendsCollectors).length +
-                         Object.keys(researchPapersCollectors).length +
-                         Object.keys(jobsCollectors).length +
-                         Object.keys(organizationsCollectors).length +
-                         Object.keys(fundingCollectors).length +
-                         Object.keys(developerToolsCollectors).length +
-                         Object.keys(techConferencesCollectors).length;
+    Object.keys(researchPapersCollectors).length +
+    Object.keys(jobsCollectors).length +
+    Object.keys(organizationsCollectors).length +
+    Object.keys(fundingCollectors).length +
+    Object.keys(developerToolsCollectors).length +
+    Object.keys(techConferencesCollectors).length;
   lines.push('# ============================================================================');
   lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs + ${Object.keys(fundingCollectors).length} funding + ${Object.keys(developerToolsCollectors).length} devtools + ${Object.keys(techConferencesCollectors).length} conf)`);
   lines.push(`# Unique schedules: ${bySchedule.size}`);
@@ -252,12 +253,12 @@ function showStatistics(): void {
   });
 
   const totalCollectors = Object.keys(techTrendsCollectors).length +
-                         Object.keys(researchPapersCollectors).length +
-                         Object.keys(jobsCollectors).length +
-                         Object.keys(organizationsCollectors).length +
-                         Object.keys(fundingCollectors).length +
-                         Object.keys(developerToolsCollectors).length +
-                         Object.keys(techConferencesCollectors).length;
+    Object.keys(researchPapersCollectors).length +
+    Object.keys(jobsCollectors).length +
+    Object.keys(organizationsCollectors).length +
+    Object.keys(fundingCollectors).length +
+    Object.keys(developerToolsCollectors).length +
+    Object.keys(techConferencesCollectors).length;
 
   console.log('');
   console.log('📊 Crontab Statistics');
