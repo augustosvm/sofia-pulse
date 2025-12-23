@@ -1,0 +1,12 @@
+# Generate Regional Research Cache (3x daily)
+30 11 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-regional-cache-v5-final.ts >> logs/regional-cache.log 2>&1
+30 15 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-regional-cache-v5-final.ts >> logs/regional-cache.log 2>&1
+30 22 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-regional-cache-v5-final.ts >> logs/regional-cache.log 2>&1
+# Generate Trending Tech Cache (3x daily)
+35 11 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-trending-cache.ts >> logs/trending-cache.log 2>&1
+35 15 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-trending-cache.ts >> logs/trending-cache.log 2>&1
+35 22 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-trending-cache.ts >> logs/trending-cache.log 2>&1
+# Generate AI Mentions Cache (3x daily)
+40 11 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-ai-mentions-cache.ts >> logs/ai-mentions-cache.log 2>&1
+40 15 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-ai-mentions-cache.ts >> logs/ai-mentions-cache.log 2>&1
+40 22 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/generate-ai-mentions-cache.ts >> logs/ai-mentions-cache.log 2>&1
