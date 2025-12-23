@@ -90,6 +90,20 @@ export class PersonsInserter {
 
     const normalized_name = this.normalizeName(person.full_name);
 
+    // Check if person already exists
+    const checkQuery = `
+      SELECT id FROM sofia.persons
+      WHERE normalized_name = $1
+      LIMIT 1
+    `;
+    const existing = await db.query(checkQuery, [normalized_name]);
+
+    if (existing.rows.length > 0) {
+      // Person already exists, skip (or could update)
+      return;
+    }
+
+    // Insert new person
     const query = `
       INSERT INTO sofia.persons (
         full_name,
@@ -109,20 +123,6 @@ export class PersonsInserter {
         last_updated
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
-      ON CONFLICT (normalized_name)
-      DO UPDATE SET
-        -- Update if source provides better data
-        orcid_id = COALESCE(EXCLUDED.orcid_id, sofia.persons.orcid_id),
-        h_index = GREATEST(COALESCE(EXCLUDED.h_index, 0), COALESCE(sofia.persons.h_index, 0)),
-        total_citations = GREATEST(COALESCE(EXCLUDED.total_citations, 0), COALESCE(sofia.persons.total_citations, 0)),
-        total_papers = GREATEST(COALESCE(EXCLUDED.total_papers, 0), COALESCE(sofia.persons.total_papers, 0)),
-        gender = COALESCE(EXCLUDED.gender, sofia.persons.gender),
-        country = COALESCE(EXCLUDED.country, sofia.persons.country),
-        city = COALESCE(EXCLUDED.city, sofia.persons.city),
-        primary_affiliation = COALESCE(EXCLUDED.primary_affiliation, sofia.persons.primary_affiliation),
-        data_sources = array_cat(sofia.persons.data_sources, EXCLUDED.data_sources),
-        metadata = COALESCE(EXCLUDED.metadata, sofia.persons.metadata),
-        last_updated = NOW()
     `;
 
     await db.query(query, [
