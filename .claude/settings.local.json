@@ -30,7 +30,8 @@
       "Bash(git rm:*)",
       "Bash(node --loader tsx scripts/generate-crontab.ts:*)",
       "Bash(git pull:*)",
-      "Bash(scp:*)"
+      "Bash(scp:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

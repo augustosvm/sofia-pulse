@@ -1351,10 +1351,20 @@ LIMIT 10;
 #### **Tabelas Unificadas**
 
 **Organizações** (`sofia.organizations`):
-- **1 tabela única** para todos os tipos de organizações
+- **1 tabela única** para todos os tipos de organizações (pessoas jurídicas)
 - Diferenciado por campo `type` (ai_company, university, ngo, research_center, etc.)
 - Campos específicos armazenados em `metadata` JSONB
 - **Exemplo**: AI Companies têm `metadata.total_funding_usd`, Universities têm `metadata.qs_rank`
+
+**Pessoas** (`sofia.persons`):
+- **1 tabela única** para TODAS as pessoas físicas (researchers, authors, founders, etc.)
+- Diferenciado por campo `type` (researcher, author, founder, ceo, etc.)
+- **222,454 pessoas** consolidadas (22 Dez 2025):
+  - `researcher`: 130,934 (pesquisadores de universidades - OpenAlex)
+  - `author`: 91,520 (autores de papers - ArXiv, OpenAlex)
+- **Relacionamentos**: Todas as pessoas devem se relacionar com suas respectivas tabelas de dados (papers, funding, repos, etc.)
+- **Exemplo**: Pesquisadores têm `country`, `primary_affiliation`, `total_papers`
+- **REGRA IMPORTANTE**: TODAS as pessoas físicas devem estar nesta tabela, não criar tabelas separadas
 
 **Jobs** (`sofia.jobs`):
 - **1 tabela única** para todas as plataformas
