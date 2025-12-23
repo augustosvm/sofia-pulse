@@ -14,21 +14,30 @@ from pathlib import Path
 # Load .env file
 try:
     from dotenv import load_dotenv
-    # Find .env file (look in current dir and parent dirs)
-    env_path = Path(__file__).parent.parent.parent / '.env'
+    # Find .env file - look in project root
+    current_dir = Path(__file__).resolve()
+    # Go up from scripts/utils/ to project root
+    project_root = current_dir.parent.parent.parent
+    env_path = project_root / '.env'
+    
     if env_path.exists():
         load_dotenv(env_path)
+        print(f"[DEBUG] Loaded .env from: {env_path}")
     else:
         load_dotenv()  # Try current directory
+        print(f"[DEBUG] .env not found at {env_path}, using environment variables")
 except ImportError:
     print("⚠️  python-dotenv not installed. Install with: pip install python-dotenv")
     print("   Falling back to environment variables only")
 
-# Configuration
-WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
+# Configuration - with fallback to WHATSAPP_SENDER if WHATSAPP_NUMBER not set
+WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER') or os.getenv('WHATSAPP_SENDER', 'YOUR_WHATSAPP_NUMBER')
 SOFIA_API_URL = os.getenv('SOFIA_API_URL', 'http://localhost:8001/api/v2/chat')
 WHATSAPP_API_URL = os.getenv('WHATSAPP_API_URL', 'http://91.98.158.19:3001/send')
 WHATSAPP_ENABLED = os.getenv('WHATSAPP_ENABLED', 'true').lower() == 'true'
+
+print(f"[DEBUG] WhatsApp Number loaded: {WHATSAPP_NUMBER}")
+print(f"[DEBUG] WhatsApp Enabled: {WHATSAPP_ENABLED}")
 
 class SofiaWhatsAppIntegration:
     """Integrates Sofia API intelligence with WhatsApp alerts"""
