@@ -22,7 +22,6 @@ COLLECTORS=(
     "ngos"
     "yc-companies"
     "nvd"
-    "cisa"
     "gdelt"
     "mdic-regional"
     "fiesp-data"
