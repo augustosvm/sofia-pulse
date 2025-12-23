@@ -1,183 +1,255 @@
 # 🤖 CLAUDE - Sofia Pulse Context (Current)
 
 **Date**: 2025-12-23  
-**Status**: Full System Unification Complete ✅
+**Status**: Production Active - 85% Operational ✅
 
 > [!NOTE]
 > History moved to `CLAUDE_HISTORY.md` due to size.
 
-## 🎯 Major Achievement: 100% Collector Unification
+---
 
-Successfully unified **ALL 70+ collectors** into a single, observable, and compliant architecture.
+## 🎯 Current Status: Production Deployment Complete
 
-### ✅ Unified Architecture (Native TypeScript)
+Successfully unified **70+ collectors** and deployed to production server with WhatsApp notifications.
 
-All these collectors run via `npx tsx scripts/collect.ts [name]` and write to unified tables:
+### ✅ What's Working (11/13 collectors - 85%)
 
-| Domain | Collectors | Table | Records | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tech Trends** | `github`, `hackernews`, `npm`, `pypi`, `stackoverflow` | `sofia.tech_trends` | 100 | ✅ **ACTIVE** |
-| **Research** | `arxiv` | `sofia.research_papers` | 83 | ✅ **ACTIVE** |
-| **Jobs** | `himalayas`, `remoteok`, `arbeitnow` | `sofia.jobs` | 7,848 | ✅ **ACTIVE** |
-| **Industry Signals** | `nvd_cve`, `cisa_kev`, `space_launches`, `gdelt`, `ai_regulation` | `sofia.industry_signals` | Active | ✅ **ACTIVE** |
-| **Organizations** | `ai-companies`, `universities`, `ngos` | `sofia.organizations` | Active | ✅ **ACTIVE** |
-| **Funding** | `yc-companies`, `producthunt` | `sofia.funding_rounds` | 2,077 | ✅ **ACTIVE** |
-| **Developer Tools** | `vscode-extensions`, `jetbrains-marketplace` | `sofia.developer_tools` | 100 | ✅ **ACTIVE** |
-| **Conferences** | `confs-tech`, `meetup` | `sofia.tech_conferences` | Active | ✅ **ACTIVE** |
+**Production Server**: `api-tiespecialistas`  
+**Last Run**: 704 records inserted in 1m 24s  
+**WhatsApp**: Active on 551151990773 (TIE Especialistas)
 
-### 🇧🇷 Brazil Data (Python Bridge)
+| Collector | Records/Run | Status |
+|:---|:---:|:---|
+| GitHub | 100 | ✅ |
+| HackerNews | 4 | ✅ |
+| StackOverflow | 100 | ✅ |
+| Himalayas | 0 | ✅ |
+| RemoteOK | Active | ✅ |
+| AI Companies | Active | ✅ |
+| Universities | Active | ✅ |
+| NGOs | Active | ✅ |
+| YC Companies | 500 | ✅ |
+| NVD | Active | ✅ |
+| GDELT | Active | ✅ |
 
-| Collector | Table | Records | Status |
-| :--- | :--- | :--- | :--- |
-| `mdic-regional` | `sofia.comexstat_trade` | 1,596 | ✅ **ACTIVE** |
-| `fiesp-data` | `sofia.fiesp_sensor`, `sofia.fiesp_ina` | 234 | ✅ **ACTIVE** |
+### ❌ Known Issues (2 collectors)
 
-### 🐍 Legacy Python Collectors (Mass Migration - 43 collectors)
+| Collector | Error | Impact | Priority |
+|:---|:---|:---|:---|
+| MDIC Regional | Timeout | Missing Brazil trade data | Medium |
+| FIESP Data | Timeout | Missing industry sentiment | Medium |
 
-**Universal Python Bridge** created to integrate legacy scripts without rewriting:
+**CISA**: Removed (permanently blocked HTTP 403)
 
-**Config**: `scripts/configs/legacy-python-config.ts`  
-**Runner**: `scripts/collectors/python-bridge-collector.ts`  
-**Command**: `npx tsx scripts/collect.ts [legacy-name]`
+---
 
-**Categories**:
-- **Security** (4): `acled-conflicts`, `brazil-security`, `world-security`, `geopolitical-impacts`
-- **Economic** (13): `bacen-sgs`, `commodity-prices`, `energy-global`, `fao-agriculture`, etc.
-- **Social/Health** (6): `drugs-data`, `who-health`, `unicef`, `un-sdg`, etc.
-- **Women/Gender** (6): `women-brazil`, `women-eurostat`, `women-world-bank`, etc.
-- **Sports** (3): `sports-federations`, `sports-regional`, `world-sports`
-- **Jobs** (7): Legacy job APIs (careerjet, infojobs, etc.)
-- **Other** (4): `hdx-humanitarian`, `cepal-latam`, `brazil-ministries`, `world-tourism`
+## 📊 System Architecture
 
-**Status**: ✅ All 43 collectors accessible via unified CLI
-
-## 📊 Data Governance & Compliance
-
-**Goal**: 100% source tracking and auditability
-
-**Implementation**:
-- Created `scripts/register_compliance.ts`
-- Populated `sofia.data_sources` with **58+ unified collectors**
-- Mapped licenses (`CC_BY`, `MIT`, `GOVT_PUBLIC`, `PROPRIETARY`)
-- Tracked update frequencies and providers
-
-**Verification**:
-```sql
-SELECT COUNT(*) FROM sofia.data_sources;
--- Result: 58 sources registered
-```
-
-**Status**: ✅ 100% coverage
-
-## 🧠 Analysis & Intelligence Engine
-
-**Created**: `scripts/analyze-pulse.ts`
-
-**Generates unified intelligence reports combining**:
-- Job Market (7,848 active positions)
-- Tech Trends (StackOverflow, GitHub, NPM, PyPI)
-- Economic Indicators (MDIC ComexStat trade data)
-- Industry Sentiment (FIESP Sensor)
-- Strategic Risks (GDELT, NVD, CISA)
-
-**Command**: `npx tsx scripts/analyze-pulse.ts`
-
-**Status**: ✅ Verified - All new data sources integrated
-
-## ⚙️ System Architecture
-
-### Single Entry Point
+### Unified CLI
 ```bash
 npx tsx scripts/collect.ts [collector-name]
 npx tsx scripts/collect.ts --all
-npx tsx scripts/collect.ts --all-legacy
 ```
 
-### Shared Infrastructure
-- **Inserters**: `organizations-inserter.ts`, `funding-inserter.ts`, `trends-inserter.ts`
-- **Rate Limiters**: Unified rate limiting across all collectors
-- **Error Handling**: Consistent retry logic and fallbacks
-- **Logging**: Centralized logging to `sofia.collector_runs`
+### Data Tables
 
-## 🐛 Critical Fixes
+| Table | Records | Update Frequency | Status |
+|:---|:---:|:---|:---|
+| `sofia.tech_trends` | 200+ | Hourly | ✅ Active |
+| `sofia.jobs` | 7,848 | Hourly | ✅ Active |
+| `sofia.funding_rounds` | 2,577 | Hourly | ✅ Active |
+| `sofia.organizations` | Active | Hourly | ✅ Active |
+| `sofia.industry_signals` | Active | Hourly | ✅ Active |
+| `sofia.comexstat_trade` | 1,596 | - | ⚠️ Not updating |
+| `sofia.fiesp_sensor` | 234 | - | ⚠️ Not updating |
+| `sofia.data_sources` | 58 | Static | ✅ Compliance |
 
-### Scheduler Issues (RESOLVED)
-**Problem**: `intelligent_scheduler.py` was stuck in infinite retry loops (waiting 1 hour between retries)
+### 70+ Collectors Unified
 
-**Root Cause**: 
-- Retry delays too aggressive (3600s = 1 hour)
-- No maximum runtime timeout
-- Method `retry_with_backoff()` causing hangs
+**Native TypeScript** (27 collectors):
+- Tech Trends: GitHub, HackerNews, NPM, PyPI, StackOverflow
+- Jobs: Himalayas, RemoteOK, Arbeitnow
+- Organizations: AI Companies, Universities, NGOs
+- Funding: YC Companies, Product Hunt
+- Industry: NVD, GDELT, Space, AI Regulation
+- Developer Tools: VSCode, JetBrains
+- Conferences: Confs.tech, Meetup
 
-**Solution**:
-1. ✅ Reduced retry delays: 30s initial, 5min max (was 1 hour)
-2. ✅ Added 60-minute timeout to `run_once()`
-3. ✅ Skip retries if running out of time (80% threshold)
-4. ✅ Created `run-collectors-fast.ps1` for immediate execution
-
-**Status**: ✅ Scheduler fixed and tested
-
-## 🚀 Server Deployment (NEW)
-
-**Files Created**:
-- `setup-server.sh`: Automated server configuration
-- `run-collectors.sh`: Production collector runner with logging
-- `sofia-pulse-collectors.service`: Systemd service definition
-- `sofia-pulse-collectors.timer`: Systemd timer (runs hourly)
-
-**Deployment Options**:
-1. **Cron** (simple): `0 * * * * cd /path && ./run-collectors.sh`
-2. **Systemd Timer** (recommended): Automatic restart, logging, monitoring
-3. **Docker** (isolated): Full containerization
-
-**Documentation**: See `SERVER_SETUP.md`
-
-**Status**: ✅ Ready for production deployment
-
-## 📈 Current Metrics
-
-- **Total Collectors**: 70+
-- **Active Data Sources**: 58 registered
-- **Total Records**: 
-  - Jobs: 7,848
-  - Tech Trends: 100
-  - Trade Data: 1,596
-  - Industry Sentiment: 234
-  - Research Papers: 83
-  - Funding Rounds: 2,077
-
-## 🔜 Next Steps
-
-### Immediate
-1. ✅ Deploy to server using `setup-server.sh`
-2. ✅ Configure systemd timer for hourly execution
-3. ⏳ Monitor first 24h of automated runs
-
-### Short Term
-1. Add geographic normalization (`country_id` FKs)
-2. Implement parallel collector execution (speed up runs)
-3. Create monitoring dashboard (Grafana/Metabase)
-
-### Medium Term
-1. Add more granular location data (neighborhoods, venues)
-2. Implement ML-based anomaly detection
-3. Create automated insight generation
+**Python Bridge** (43 legacy collectors):
+- Security (4), Economic (13), Social/Health (6)
+- Women/Gender (6), Sports (3), Jobs (7), Other (4)
 
 ---
 
-## 🎉 Summary
+## 🔧 Recent Fixes (All in GitHub)
 
-**Before**: 70+ disparate scripts, no visibility, manual execution, data silos
+### 1. Python Compatibility
+**Issue**: `spawn python ENOENT` on Ubuntu  
+**Fix**: Changed to `python3` in python-bridge-collector.ts  
+**Commit**: 3256db7
 
-**After**: 
-- ✅ Single unified CLI (`collect.ts`)
-- ✅ 100% source tracking (`data_sources`)
-- ✅ Automated analysis (`analyze-pulse.ts`)
-- ✅ Production-ready server deployment
-- ✅ Comprehensive logging and monitoring
+### 2. WhatsApp Configuration
+**Issue**: Using wrong number (027 instead of 011)  
+**Fix**: Prioritize `WHATSAPP_SENDER` over `WHATSAPP_NUMBER`  
+**Commit**: 31d024c
 
-**Status**: 🚀 **PRODUCTION READY**
+### 3. CISA Removal
+**Issue**: HTTP 403 (permanently blocked)  
+**Fix**: Removed from production collector list  
+**Commit**: de61bdf
+
+### 4. Notification System
+**Feature**: WhatsApp notifications with INSERT counts  
+**Implementation**: `run-collectors-with-notifications.sh`  
+**Commit**: 57a6e73
 
 ---
 
-*For past logs and development history, see [CLAUDE_HISTORY.md](./CLAUDE_HISTORY.md)*
+## 📱 WhatsApp Notifications
+
+**Recipient**: 551151990773 (TIE Especialistas)  
+**Frequency**: After each collector + final summary
+
+**Format**:
+```
+✅ github
+📊 100 novos registros
+⏱️ [1/13]
+
+🏁 Sofia Pulse - Coleta Finalizada
+✅ Sucesso: 11/13 (85%)
+❌ Falhas: 2/13
+📊 Total Inserido: 704 registros
+⏱️ Duração: 1m 24s
+```
+
+---
+
+## 🔜 Pending Tasks
+
+### Priority 1: Fix MDIC & FIESP Timeouts
+- [ ] Investigate python3 compatibility issues
+- [ ] Test with increased timeout (currently 300s)
+- [ ] Verify API endpoints are accessible
+- [ ] Check file permissions for FIESP Excel files
+
+### Priority 2: Improve Insert Tracking
+- [ ] Some collectors show "?" for insert counts
+- [ ] Standardize output format across all collectors
+- [ ] Better regex patterns in notification script
+
+### Priority 3: Monitoring & Alerts
+- [ ] Add Grafana dashboard for collector metrics
+- [ ] Alert on repeated failures (3+ consecutive)
+- [ ] Track insert trends over time
+- [ ] Monitor API rate limits
+
+### Priority 4: Systemd Integration
+- [ ] Update systemd service to use notification script
+- [ ] Configure proper restart policies
+- [ ] Set up log rotation
+- [ ] Add health check endpoint
+
+---
+
+## 🚀 Deployment Commands
+
+### Update Code
+```bash
+cd /home/ubuntu/sofia-pulse
+git pull origin master
+```
+
+### Run Collectors
+```bash
+./run-collectors-with-notifications.sh
+```
+
+### Check Status
+```bash
+sudo systemctl status sofia-pulse-collectors.timer
+tail -f logs/collectors-*.log
+```
+
+### View Database
+```sql
+-- Recent collector runs
+SELECT collector_name, status, started_at, completed_at 
+FROM sofia.collector_runs 
+ORDER BY started_at DESC 
+LIMIT 20;
+
+-- Data freshness
+SELECT source, COUNT(*), MAX(collected_at) as last_update
+FROM sofia.tech_trends
+GROUP BY source;
+```
+
+---
+
+## 📈 Success Metrics
+
+- ✅ **Unification**: 70+ collectors → 1 CLI
+- ✅ **Automation**: Systemd timer active (hourly)
+- ✅ **Notifications**: WhatsApp working (551151990773)
+- ✅ **Governance**: 58 sources tracked in `data_sources`
+- ✅ **Production**: 85% success rate (11/13)
+- ✅ **Code Quality**: All fixes in GitHub (no manual edits)
+
+---
+
+## 🐛 Troubleshooting
+
+### Collectors Not Running
+```bash
+# Check systemd
+sudo systemctl status sofia-pulse-collectors.timer
+sudo journalctl -u sofia-pulse-collectors.service -f
+
+# Check logs
+tail -100 logs/collectors-*.log
+
+# Test manually
+npx tsx scripts/collect.ts github
+```
+
+### WhatsApp Not Sending
+```bash
+# Verify .env
+grep WHATSAPP .env
+
+# Check API
+curl http://91.98.158.19:3001/status
+
+# Test integration
+python3 scripts/utils/sofia_whatsapp_integration.py
+```
+
+### Database Connection Issues
+```bash
+# Verify .env
+grep DB_ .env
+
+# Test connection
+psql -h localhost -U sofia -d sofia_db
+```
+
+---
+
+## 📝 Documentation
+
+- **Setup Guide**: `SERVER_SETUP.md`
+- **Deploy Guide**: `DEPLOY_GUIDE.md`
+- **Walkthrough**: `walkthrough.md`
+- **Task List**: `task.md`
+- **History**: `CLAUDE_HISTORY.md`
+
+---
+
+**Status**: 🟢 **PRODUCTION ACTIVE**  
+**Next Execution**: Automatic (hourly via systemd)  
+**Monitoring**: WhatsApp notifications enabled
+
+---
+
+*Last Updated: 2025-12-23 16:59 BRT*
