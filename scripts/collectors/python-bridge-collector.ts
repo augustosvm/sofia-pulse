@@ -41,7 +41,7 @@ async function runPythonScript(config: PythonCollectorConfig): Promise<void> {
     console.log('='.repeat(50));
 
     return new Promise((resolve, reject) => {
-        const pythonProcess = spawn('python', [config.script], {
+        const pythonProcess = spawn('python3', [config.script], {
             stdio: 'inherit', // Pipe logs directly to console
         });
 
