@@ -30,8 +30,8 @@ except ImportError:
     print("⚠️  python-dotenv not installed. Install with: pip install python-dotenv")
     print("   Falling back to environment variables only")
 
-# Configuration - with fallback to WHATSAPP_SENDER if WHATSAPP_NUMBER not set
-WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER') or os.getenv('WHATSAPP_SENDER', 'YOUR_WHATSAPP_NUMBER')
+# Configuration - use WHATSAPP_SENDER (TIE number) as primary
+WHATSAPP_NUMBER = os.getenv('WHATSAPP_SENDER') or os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
 SOFIA_API_URL = os.getenv('SOFIA_API_URL', 'http://localhost:8001/api/v2/chat')
 WHATSAPP_API_URL = os.getenv('WHATSAPP_API_URL', 'http://91.98.158.19:3001/send')
 WHATSAPP_ENABLED = os.getenv('WHATSAPP_ENABLED', 'true').lower() == 'true'
