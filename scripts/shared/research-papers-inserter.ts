@@ -9,9 +9,11 @@
  * - Deduplication via UNIQUE (source, source_id)
  * - Supports all paper sources: arxiv, openalex, bdtd
  * - ON CONFLICT handling
+ * - AUTO-INSERT AUTHORS into sofia.persons (with PersonsInserter)
  */
 
 import { Pool, PoolClient } from 'pg';
+import { PersonsInserter } from './persons-inserter';
 
 // ============================================================================
 // TYPES
@@ -66,13 +68,18 @@ export interface ResearchPaperData {
 
 export class ResearchPapersInserter {
   private pool: Pool;
+  private personsInserter: PersonsInserter;
+  private insertAuthors: boolean;
 
-  constructor(pool: Pool) {
+  constructor(pool: Pool, options?: { insertAuthors?: boolean }) {
     this.pool = pool;
+    this.personsInserter = new PersonsInserter(pool);
+    this.insertAuthors = options?.insertAuthors !== false; // Default: true
   }
 
   /**
    * Insert research paper into unified research_papers table
+   * Also inserts authors into sofia.persons if insertAuthors is enabled
    */
   async insertPaper(
     paper: ResearchPaperData,
@@ -91,6 +98,26 @@ export class ResearchPapersInserter {
       publicationDate = typeof paper.publication_date === 'string'
         ? new Date(paper.publication_date)
         : paper.publication_date;
+    }
+
+    // INSERT AUTHORS into sofia.persons FIRST (if enabled)
+    if (this.insertAuthors && paper.authors && paper.authors.length > 0) {
+      for (const authorName of paper.authors) {
+        if (!authorName || authorName === 'Unknown') continue;
+
+        try {
+          await this.personsInserter.insertPerson({
+            full_name: authorName,
+            type: 'author',
+            data_sources: [paper.source],
+            country: paper.author_countries?.[0],  // First country if available
+            primary_affiliation: paper.author_institutions?.[0],  // First institution
+          }, client);
+        } catch (error) {
+          console.error(`Failed to insert author ${authorName}:`, error);
+          // Continue even if author insert fails
+        }
+      }
     }
 
     const query = `
