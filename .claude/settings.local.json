@@ -23,7 +23,15 @@
       "Bash(cat:*)",
       "Bash(psql postgresql://sofia:sofia123strong@91.98.158.19:5432/sofia_db -c \"\\d sofia.github_trending\")",
       "Bash(psql postgresql://sofia:sofia123strong@91.98.158.19:5432/sofia_db -c \"\\d sofia.npm_stats\")",
-      "Bash(psql postgresql://sofia:sofia123strong@91.98.158.19:5432/sofia_db -c \"\\d sofia.pypi_stats\")"
+      "Bash(psql postgresql://sofia:sofia123strong@91.98.158.19:5432/sofia_db -c \"\\d sofia.pypi_stats\")",
+      "Bash(git checkout:*)",
+      "Bash(npx tsc:*)",
+      "Bash(psql:*)",
+      "Bash(git rm:*)",
+      "Bash(node --loader tsx scripts/generate-crontab.ts:*)",
+      "Bash(git pull:*)",
+      "Bash(scp:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

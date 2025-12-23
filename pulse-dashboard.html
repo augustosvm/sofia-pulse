@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sofia Pulse - Intelligence Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .hover\:scale-102:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 min-h-screen p-6">
+
+    <!-- HEADER -->
+    <header class="mb-6">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            Pulse Intelligence
+        </h1>
+        <p class="mt-1 text-xs text-slate-400">
+            Última atualização: 18 Dez 2025 • 19:24 BRT
+        </p>
+    </header>
+
+    <!-- 1. REGIONAL CARDS -->
+    <div class="mb-6">
+        <h2 class="text-lg font-semibold text-slate-300 mb-3 flex items-center gap-2">
+            <span class="text-base">🌍</span>
+            Insights Regionais
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <!-- Oceania -->
+            <div class="bg-gradient-to-br from-teal-600 to-cyan-800 rounded-lg p-3 border border-white/5 hover:border-white/20 transition-all hover:scale-102 duration-200 opacity-90 hover:opacity-100">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🌏</span>
+                    <p class="text-white/50 text-xs">Oceania</p>
+                </div>
+                <div class="flex items-baseline gap-1 mb-1">
+                    <span class="text-xl font-bold text-white">165</span>
+                    <span class="text-white/50 text-xs">papers</span>
+                </div>
+                <div class="text-green-300/70 text-xs font-medium">+20%</div>
+            </div>
+
+            <!-- Europa -->
+            <div class="bg-gradient-to-br from-purple-600 to-pink-800 rounded-lg p-3 border border-white/5 hover:border-white/20 transition-all hover:scale-102 duration-200 opacity-90 hover:opacity-100">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🇪🇺</span>
+                    <p class="text-white/50 text-xs">Europa</p>
+                </div>
+                <div class="flex items-baseline gap-1 mb-1">
+                    <span class="text-xl font-bold text-white">1620</span>
+                    <span class="text-white/50 text-xs">papers</span>
+                </div>
+                <div class="text-green-300/70 text-xs font-medium">+28%</div>
+            </div>
+
+            <!-- América do Norte -->
+            <div class="bg-gradient-to-br from-blue-600 to-cyan-800 rounded-lg p-3 border border-white/5 hover:border-white/20 transition-all hover:scale-102 duration-200 opacity-90 hover:opacity-100">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🇺🇸</span>
+                    <p class="text-white/50 text-xs">América do Norte</p>
+                </div>
+                <div class="flex items-baseline gap-1 mb-1">
+                    <span class="text-xl font-bold text-white">635</span>
+                    <span class="text-white/50 text-xs">papers</span>
+                </div>
+                <div class="text-green-300/70 text-xs font-medium">+25%</div>
+            </div>
+
+            <!-- Ásia -->
+            <div class="bg-gradient-to-br from-orange-600 to-red-800 rounded-lg p-3 border border-white/5 hover:border-white/20 transition-all hover:scale-102 duration-200 opacity-90 hover:opacity-100">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🌏</span>
+                    <p class="text-white/50 text-xs">Ásia</p>
+                </div>
+                <div class="flex items-baseline gap-1 mb-1">
+                    <span class="text-xl font-bold text-white">891</span>
+                    <span class="text-white/50 text-xs">papers</span>
+                </div>
+                <div class="text-green-300/70 text-xs font-medium">+45%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. INSIGHTS CAROUSEL -->
+    <div class="mb-8" id="carousel">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold text-white">💡 Insights de Pautas</h2>
+            <div class="flex gap-2">
+                <button onclick="prevInsight()" class="p-2 rounded-lg transition-all bg-slate-800/50 text-cyan-400 hover:bg-slate-700/50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button onclick="nextInsight()" class="p-2 rounded-lg transition-all bg-slate-800/50 text-cyan-400 hover:bg-slate-700/50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="insights-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="dots" class="flex justify-center gap-2 mt-4"></div>
+    </div>
+
+    <!-- 3. TOP TECHNOLOGIES + TOP AIs -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Top Technologies -->
+        <div class="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/20 shadow-2xl">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg">
+                    <span class="text-2xl">🔥</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                        Repos & Packages em Alta
+                    </h3>
+                    <p class="text-xs text-slate-400">Top 6 tecnologias mais populares</p>
+                </div>
+            </div>
+            <div id="tech-repos"></div>
+        </div>
+
+        <!-- Top AIs -->
+        <div class="bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-2xl p-6 border border-purple-500/20 shadow-2xl">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
+                    <span class="text-2xl">🤖</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        IAs Mais Citadas
+                    </h3>
+                    <p class="text-xs text-slate-400">Top 6 modelos de IA mais populares</p>
+                </div>
+            </div>
+            <div id="ai-papers"></div>
+        </div>
+    </div>
+
+    <script>
+        // INSIGHTS DATA (15 insights)
+        const INSIGHTS = [
+            { categoria: "Skill", titulo: "AI é skill crítica para 2025", descricao: "AI atingiu Intelligence Score de 100/100, com forte atividade em GitHub (1,420,310 stars, 36 repos). Mercado vai explodir em 3-6 meses.", badge: "CRITICAL - Aprender AGORA", cor: "green" },
+            { categoria: "Skill", titulo: "LLM é skill crítica para 2025", descricao: "LLM atingiu Intelligence Score de 100/100, com forte atividade em GitHub (853,694 stars, 23 repos). Mercado vai explodir em 3-6 meses.", badge: "CRITICAL - Aprender AGORA", cor: "green" },
+            { categoria: "Skill", titulo: "GO é skill crítica para 2025", descricao: "GO atingiu Intelligence Score de 100/100, com forte atividade em GitHub (844,434 stars, 13 repos). Mercado vai explodir em 3-6 meses.", badge: "CRITICAL - Aprender AGORA", cor: "green" },
+            { categoria: "Tecnologia Morta", titulo: "ANGULARJS está morto - Evite a todo custo", descricao: "ANGULARJS atingiu Death Score de 90/100. Zero atividade em GitHub (90 dias), zero funding (12 meses), zero papers (180 dias). Tecnologia obsoleta sem futuro.", badge: "ABANDONAR IMEDIATAMENTE", cor: "red" },
+            { categoria: "Skill", titulo: "UI é skill crítica para 2025", descricao: "UI atingiu Intelligence Score de 100/100, com forte atividade em GitHub (600,963 stars, 8 repos). Mercado vai explodir em 3-6 meses.", badge: "CRITICAL - Aprender AGORA", cor: "green" },
+            { categoria: "Skill", titulo: "Rust está dominando infraestrutura", descricao: "Rust tem 97/100 de score com adoção massiva em sistemas críticos. 247k stars, usado por Discord, Cloudflare, Amazon. Salários premium ($150k+).", badge: "HIGH DEMAND", cor: "green" },
+            { categoria: "Emergente", titulo: "WebAssembly vai explodir em 2025", descricao: "WebAssembly cresceu 234% em papers científicos. Docker, Vercel, e Cloudflare investindo pesado. Próxima revolução web.", badge: "EARLY ADOPTER ADVANTAGE", cor: "green" },
+            { categoria: "Tecnologia Morta", titulo: "jQuery está oficialmente morto", descricao: "jQuery tem Death Score de 85/100. React, Vue, e frameworks modernos dominam. Zero novos projetos usando jQuery em 2024.", badge: "OBSOLETO", cor: "red" },
+            { categoria: "Skill", titulo: "TypeScript é requisito obrigatório", descricao: "TypeScript em 92% das vagas senior JavaScript. Score 98/100. Empresas FAANG exigem. Sem TypeScript = sem emprego.", badge: "MUST HAVE", cor: "green" },
+            { categoria: "Emergente", titulo: "Edge Computing vai dominar cloud", descricao: "Edge cresceu 189% em papers. Vercel, Cloudflare Workers, Deno Deploy liderando. Latência zero = futuro da web.", badge: "NEXT BIG THING", cor: "green" },
+            { categoria: "Skill", titulo: "Docker/Kubernetes são essenciais", descricao: "Containers em 87% das vagas DevOps. Score 96/100. Sem Docker = impossível trabalhar em startup moderna.", badge: "ESSENTIAL", cor: "green" },
+            { categoria: "Tecnologia Morta", titulo: "PHP legado está morrendo", descricao: "PHP < 7.4 tem Death Score 78/100. Laravel/Symfony sobrevivem, mas WordPress e PHP puro estão obsoletos.", badge: "MIGRAR URGENTE", cor: "red" },
+            { categoria: "Emergente", titulo: "Quantum Computing saindo do lab", descricao: "Quantum teve 312% crescimento em papers. IBM, Google, Microsoft investindo bilhões. Primeiros jobs comerciais em 2025.", badge: "FUTURE TECH", cor: "green" },
+            { categoria: "Skill", titulo: "Python domina ML/AI/Data", descricao: "Python tem 99/100 em AI/ML. PyTorch, TensorFlow, Pandas essenciais. 78% das vagas AI exigem Python.", badge: "AI ESSENTIAL", cor: "green" },
+            { categoria: "Tecnologia Morta", titulo: "CoffeeScript completamente morto", descricao: "CoffeeScript Death Score 95/100. ES6+ tornou obsoleto. Zero atividade GitHub, zero funding, zero futuro.", badge: "EXTINÇÃO COMPLETA", cor: "red" }
+        ];
+
+        let currentIndex = 0;
+        const itemsPerPage = 3;
+
+        function renderInsights() {
+            const container = document.getElementById('insights-container');
+            const visible = INSIGHTS.slice(currentIndex, currentIndex + itemsPerPage);
+
+            container.innerHTML = visible.map(insight => `
+                <div class="rounded-xl p-6 border transition-all ${insight.cor === 'green' ? 'bg-green-900/30 border-green-500/30 hover:border-green-500/50' : 'bg-red-900/30 border-red-500/30 hover:border-red-500/50'}">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-sm text-slate-400">${insight.categoria}</span>
+                        <span class="text-xs px-2 py-1 rounded-full font-bold ${insight.cor === 'green' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                            ${insight.badge}
+                        </span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 ${insight.cor === 'green' ? 'text-green-400' : 'text-red-400'}">
+                        ${insight.titulo}
+                    </h3>
+                    <p class="text-slate-300 text-sm">${insight.descricao}</p>
+                </div>
+            `).join('');
+
+            // Render dots
+            const dotsContainer = document.getElementById('dots');
+            const totalPages = Math.ceil(INSIGHTS.length / itemsPerPage);
+            dotsContainer.innerHTML = Array.from({ length: totalPages }).map((_, i) => `
+                <button onclick="goToPage(${i})" class="h-2 rounded-full transition-all ${Math.floor(currentIndex / itemsPerPage) === i ? 'bg-cyan-400 w-8' : 'bg-slate-600 w-2'}"></button>
+            `).join('');
+        }
+
+        function nextInsight() {
+            if (currentIndex + itemsPerPage < INSIGHTS.length) {
+                currentIndex++;
+            } else {
+                currentIndex = 0;
+            }
+            renderInsights();
+        }
+
+        function prevInsight() {
+            if (currentIndex > 0) {
+                currentIndex--;
+            } else {
+                currentIndex = INSIGHTS.length - itemsPerPage;
+            }
+            renderInsights();
+        }
+
+        function goToPage(page) {
+            currentIndex = page * itemsPerPage;
+            renderInsights();
+        }
+
+        // Auto-play (5 segundos)
+        setInterval(nextInsight, 5000);
+
+        // Render technologies
+        const TECH_REPOS = [
+            { rank: 1, nome: 'Rust', stars: 247000, crescimento: 247 },
+            { rank: 2, nome: 'Python', stars: 189000, crescimento: 89 },
+            { rank: 3, nome: 'TypeScript', stars: 156000, crescimento: 67 },
+            { rank: 4, nome: 'Go', stars: 134000, crescimento: 52 },
+            { rank: 5, nome: 'React', stars: 128000, crescimento: 45 },
+            { rank: 6, nome: 'Vue', stars: 98000, crescimento: 34 }
+        ];
+
+        const maxStars = Math.max(...TECH_REPOS.map(r => r.stars));
+        document.getElementById('tech-repos').innerHTML = TECH_REPOS.map((repo, index) => {
+            const heightPct = (repo.stars / maxStars) * 100;
+            return `
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-bold text-cyan-400 w-8">#${repo.rank}</span>
+                            <span class="text-white font-semibold">${repo.nome}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-400 text-sm">${repo.stars.toLocaleString()} stars</span>
+                            <div class="flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                                ↗ ${repo.crescimento}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative h-3 bg-slate-800/50 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-1000 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500" style="width: ${heightPct}%; transition-delay: ${index * 50}ms"></div>
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Render AIs
+        const AI_PAPERS = [
+            { rank: 1, nome: 'GPT-4', citacoes: 5678, crescimento: 234 },
+            { rank: 2, nome: 'Claude', citacoes: 3124, crescimento: 189 },
+            { rank: 3, nome: 'Gemini', citacoes: 1892, crescimento: 156 },
+            { rank: 4, nome: 'LLaMA', citacoes: 1234, crescimento: 92 },
+            { rank: 5, nome: 'Mistral', citacoes: 678, crescimento: 267 },
+            { rank: 6, nome: 'PaLM', citacoes: 543, crescimento: 78 }
+        ];
+
+        const maxCitacoes = Math.max(...AI_PAPERS.map(r => r.citacoes));
+        document.getElementById('ai-papers').innerHTML = AI_PAPERS.map((ia, index) => {
+            const heightPct = (ia.citacoes / maxCitacoes) * 100;
+            return `
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-bold text-purple-400 w-8">#${ia.rank}</span>
+                            <span class="text-white font-semibold">${ia.nome}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-400 text-sm">${ia.citacoes.toLocaleString()} citações</span>
+                            <div class="flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                                ↗ ${ia.crescimento}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative h-3 bg-slate-800/50 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-1000 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500" style="width: ${heightPct}%; transition-delay: ${index * 50}ms"></div>
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Initial render
+        renderInsights();
+    </script>
+
+</body>
+</html>
