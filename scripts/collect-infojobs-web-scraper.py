@@ -187,8 +187,7 @@ def insert_jobs(jobs):
 
         except Exception as e:
             print(f"   ⚠️  Erro ao inserir vaga '{job.get('title', 'N/A')[:50]}': {e}")
-            import traceback
-            traceback.print_exc()
+            conn.rollback()  # Rollback para continuar com próxima vaga
             continue
 
     conn.commit()
