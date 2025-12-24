@@ -191,7 +191,7 @@ function generateCrontab(): string {
 
     collectorNames.forEach(name => {
       const logFile = `${projectPath}/logs/${name}-collector.log`;
-      const command = `cd ${projectPath} && npx tsx scripts/collect.ts ${name} >> ${logFile} 2>&1`;
+      const command = `cd ${projectPath} && bash scripts/collect-with-notification.sh ${name} >> ${logFile} 2>&1`;
       lines.push(`${schedule} ${command}`);
     });
 
