@@ -166,6 +166,16 @@ npx tsx scripts/collect.ts --all
   - ✅ Company metadata stored in JSONB (url, location, country)
 **Status**: ✅ Production active - ALL job collectors inherit this feature
 
+### 8. Adzuna API Credentials
+**Feature**: Configured Adzuna Jobs API credentials
+**Date**: 2025-12-24
+**Details**:
+  - Application: TI Especialistas's App
+  - Coverage: 50k+ jobs/day, 20+ countries
+  - Added credentials to `.env` (App ID: 43326746)
+  - Updated `.env.example` with template for Adzuna, USAJOBS, ProductHunt
+**Status**: ✅ Active - Ready for production deployment
+
 ---
 
 ## 📱 WhatsApp Notifications
