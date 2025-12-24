@@ -8,7 +8,12 @@ This prevents duplicates and ensures referential integrity with normalized table
 
 from typing import Optional
 import psycopg2
-from .geo_id_helpers import get_country_id, get_state_id, get_city_id
+
+# Support both relative and absolute imports
+try:
+    from .geo_id_helpers import get_country_id, get_state_id, get_city_id
+except ImportError:
+    from geo_id_helpers import get_country_id, get_state_id, get_city_id
 
 
 def get_or_create_country(conn, country_name: Optional[str]) -> Optional[int]:
