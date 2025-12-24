@@ -36,7 +36,8 @@ _whatsapp_raw = os.getenv('WHATSAPP_SENDER') or os.getenv('WHATSAPP_NUMBER', '')
 PLACEHOLDERS = ['YOUR_WHATSAPP_NUMBER', 'YOUR_BUSINESS_NUMBER', 'your_whatsapp_number_here', '']
 WHATSAPP_NUMBER = '551151990773' if _whatsapp_raw in PLACEHOLDERS else _whatsapp_raw
 
-SOFIA_API_URL = os.getenv('SOFIA_API_URL', 'http://localhost:8001/api/v2/chat')
+_sofia_api = os.getenv('SOFIA_API_URL', '')
+SOFIA_API_URL = 'http://91.98.158.19:8001/api/v2/chat' if not _sofia_api else _sofia_api
 
 _whatsapp_api = os.getenv('WHATSAPP_API_URL', '')
 WHATSAPP_API_URL = 'http://91.98.158.19:3001/send' if _whatsapp_api in ['your_api_url_here', ''] else _whatsapp_api

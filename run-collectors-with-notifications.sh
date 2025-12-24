@@ -39,7 +39,7 @@ import sys
 sys.path.append('$SCRIPT_DIR/scripts/utils')
 from sofia_whatsapp_integration import SofiaWhatsAppIntegration
 integration = SofiaWhatsAppIntegration()
-integration.send_whatsapp_direct('''$message''')
+integration.send_whatsapp('''$message''')
 "
 }
 
