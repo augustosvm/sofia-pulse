@@ -36,6 +36,10 @@ _whatsapp_raw = os.getenv('WHATSAPP_SENDER') or os.getenv('WHATSAPP_NUMBER', '')
 PLACEHOLDERS = ['YOUR_WHATSAPP_NUMBER', 'YOUR_BUSINESS_NUMBER', 'your_whatsapp_number_here', '']
 WHATSAPP_NUMBER = '551151990773' if _whatsapp_raw in PLACEHOLDERS else _whatsapp_raw
 
+# Receiver (destination) - can be different from sender
+_whatsapp_receiver = os.getenv('WHATSAPP_RECEIVER', '')
+WHATSAPP_RECEIVER = WHATSAPP_NUMBER if not _whatsapp_receiver or _whatsapp_receiver in PLACEHOLDERS else _whatsapp_receiver
+
 _sofia_api = os.getenv('SOFIA_API_URL', '')
 SOFIA_API_URL = 'http://91.98.158.19:8001/api/v2/chat' if not _sofia_api else _sofia_api
 
@@ -45,7 +49,8 @@ WHATSAPP_API_URL = 'http://91.98.158.19:3001/send' if _whatsapp_api in ['your_ap
 _enabled = os.getenv('WHATSAPP_ENABLED') or os.getenv('ALERT_WHATSAPP_ENABLED', 'true')
 WHATSAPP_ENABLED = _enabled.lower() == 'true'
 
-print(f"[DEBUG] WhatsApp Number loaded: {WHATSAPP_NUMBER}")
+print(f"[DEBUG] WhatsApp Sender: {WHATSAPP_NUMBER}")
+print(f"[DEBUG] WhatsApp Receiver: {WHATSAPP_RECEIVER}")
 print(f"[DEBUG] WhatsApp Enabled: {WHATSAPP_ENABLED}")
 
 class SofiaWhatsAppIntegration:
@@ -55,6 +60,7 @@ class SofiaWhatsAppIntegration:
         self.sofia_api_url = SOFIA_API_URL
         self.whatsapp_api_url = WHATSAPP_API_URL
         self.whatsapp_number = WHATSAPP_NUMBER
+        self.whatsapp_receiver = WHATSAPP_RECEIVER
         self.enabled = WHATSAPP_ENABLED
 
         # Backward compatibility
@@ -144,12 +150,13 @@ class SofiaWhatsAppIntegration:
                 'query': message,
                 'user_id': 'sofia-pulse',
                 'channel': 'whatsapp',
-                'phone': self.whatsapp_number
+                'phone': self.whatsapp_receiver
             }
 
             print(f"[WHATSAPP DEBUG] Configuração:")
             print(f"  • API URL: {self.api_url}")
-            print(f"  • Número destino: {self.whatsapp_number}")
+            print(f"  • Sender: {self.whatsapp_number}")
+            print(f"  • Receiver: {self.whatsapp_receiver}")
             print(f"  • WhatsApp enabled: {self.enabled}")
             print(f"  • Tamanho mensagem: {len(message)} caracteres")
             print(f"  • Primeiros 100 chars: {message[:100]}")
@@ -216,14 +223,14 @@ class SofiaWhatsAppIntegration:
 
         try:
             payload = {
-                'from': self.whatsapp_number,  # Sender (same as receiver in this case)
-                'to': self.whatsapp_number,     # Receiver
+                'to': self.whatsapp_receiver,  # Receiver (destination)
                 'message': message
             }
 
             print(f"[WHATSAPP DIRECT] Configuration:")
             print(f"  • API URL: {self.whatsapp_api_url}")
-            print(f"  • Número (from/to): {self.whatsapp_number}")
+            print(f"  • Sender: {self.whatsapp_number}")
+            print(f"  • Receiver: {self.whatsapp_receiver}")
             print(f"  • Tamanho mensagem: {len(message)} caracteres")
 
             print(f"\n[WHATSAPP DIRECT] Enviando POST...")
