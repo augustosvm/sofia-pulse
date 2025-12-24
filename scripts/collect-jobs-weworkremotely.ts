@@ -8,6 +8,7 @@ import axios from 'axios';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 
@@ -92,23 +93,40 @@ async function collectWWRJobs() {
                 // Extract location (WWR is mostly remote)
                 const location = job.region_name || 'Anywhere';
                 const isRemote = /anywhere|worldwide|remote/i.test(location);
+                const country = isRemote ? null : job.region_name;
 
-                // Normalize geographic data
-                const { countryId } = await normalizeLocation(pool, {
-                    country: isRemote ? null : job.region_name
+                // Normalize geographic data (remote jobs have null for city/state)
+                const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                    country: country,
+                    state: null,
+                    city: null
                 });
+
+                // Get or create organization
+                const organizationId = await getOrCreateOrganization(
+                    pool,
+                    job.company_name,
+                    null,
+                    location,
+                    country,
+                    'weworkremotely'
+                );
 
                 await pool.query(`
           INSERT INTO sofia.jobs (
             job_id, platform, title, company,
-            location, country, country_id, remote_type,
+            location, city, state, country, country_id, state_id, city_id, remote_type,
             description, posted_date, url,
             salary_min, salary_max, salary_currency, salary_period,
-            employment_type, search_keyword, collected_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+            employment_type, search_keyword, organization_id, collected_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
             description = EXCLUDED.description,
+            organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+            country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+            state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+            city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
             salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
             salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
         `, [
@@ -117,8 +135,12 @@ async function collectWWRJobs() {
                     job.title,
                     job.company_name,
                     location,
-                    isRemote ? 'REMOTE' : job.region_name,
+                    null, // city (remote jobs)
+                    null, // state (remote jobs)
+                    country,
                     countryId,
+                    stateId,
+                    cityId,
                     isRemote ? 'remote' : 'onsite',
                     job.description,
                     new Date(job.published_at),
@@ -128,7 +150,8 @@ async function collectWWRJobs() {
                     salary.currency,
                     salary.period,
                     job.job_type.toLowerCase(),
-                    job.category_name
+                    job.category_name,
+                    organizationId
                 ]);
 
                 totalCollected++;
