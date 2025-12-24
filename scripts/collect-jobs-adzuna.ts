@@ -118,6 +118,16 @@ async function collectAdzunaJobs() {
                                 city: city
                             });
 
+                            // Get or create organization
+                            const organizationId = await getOrCreateOrganization(
+                                pool,
+                                job.company.display_name,
+                                null,
+                                location,
+                                countryName,
+                                'adzuna'
+                            );
+
                             await pool.query(`
                 INSERT INTO sofia.jobs (
                     organization_id,
@@ -134,6 +144,7 @@ async function collectAdzunaJobs() {
                   salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
                   salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
               `, [
+                                organizationId,
                                 job.id,
                                 'adzuna',
                                 job.title,

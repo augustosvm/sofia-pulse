@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { getKeywordsByLanguage } from './shared/keywords-config';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 puppeteer.use(StealthPlugin());
@@ -144,9 +145,19 @@ async function main() {
       city: city
     });
 
+    // Get or create organization
+    const organizationId = await getOrCreateOrganization(
+      pool,
+      job.company,
+      null,
+      job.location,
+      'Brazil',
+      'catho'
+    );
+
     await pool.query(
-      `INSERT INTO sofia.jobs (job_id, title, company, location, city, state, country, country_id, state_id, city_id, url, platform, collected_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+      `INSERT INTO sofia.jobs (job_id, title, company, location, city, state, country, country_id, state_id, city_id, url, platform, organization_id, collected_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
        ON CONFLICT (job_id) DO UPDATE SET
          title = EXCLUDED.title,
          location = EXCLUDED.location,
@@ -154,7 +165,7 @@ async function main() {
          state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
          city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
          collected_at = NOW()`,
-      [jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId, job.url, 'catho']
+      [jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId, job.url, 'catho', organizationId]
     );
   }
 

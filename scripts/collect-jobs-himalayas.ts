@@ -84,14 +84,17 @@ async function collectHimalayasJobs() {
                     country: country
                 });
 
+                // Get or create organization
+                const organizationId = await getOrCreateOrganization(pool, job.companyName, null, location, country, 'himalayas');
+
                 await pool.query(`
           INSERT INTO sofia.jobs (
             job_id, platform, title, company,
             location, country, country_id, remote_type,
             description, posted_date, url,
             salary_min, salary_max, salary_currency, salary_period,
-            employment_type, skills_required, collected_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+            employment_type, skills_required, organization_id, collected_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
             description = EXCLUDED.description,
@@ -115,7 +118,8 @@ async function collectHimalayasJobs() {
                     job.currency || 'USD',
                     'yearly',
                     job.employmentType?.toLowerCase() || 'full-time',
-                    skills.length > 0 ? skills : null
+                    skills.length > 0 ? skills : null,
+                    organizationId
                 ]);
 
                 totalCollected++;
