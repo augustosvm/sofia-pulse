@@ -33,7 +33,7 @@ if (typeof File === 'undefined') {
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import axios from 'axios';
-import { normalizeLocation } from './shared/geo-helpers';
+import { normalizeLocation } from './shared/geo-helpers.js';
 
 dotenv.config();
 

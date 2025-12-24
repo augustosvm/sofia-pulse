@@ -31,7 +31,8 @@
       "Bash(node --loader tsx scripts/generate-crontab.ts:*)",
       "Bash(git pull:*)",
       "Bash(scp:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(xargs sed:*)"
     ],
     "deny": [],
     "ask": []

@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { normalizeLocation } from './shared/geo-helpers';
+import { normalizeLocation } from './shared/geo-helpers.js';
 
 dotenv.config();
 puppeteer.use(StealthPlugin());

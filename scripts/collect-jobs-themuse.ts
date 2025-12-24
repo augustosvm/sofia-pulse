@@ -7,7 +7,7 @@
 import axios from 'axios';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
-import { normalizeLocation } from './shared/geo-helpers';
+import { normalizeLocation } from './shared/geo-helpers.js';
 
 dotenv.config();
 
