@@ -18,10 +18,15 @@ import { organizationsCollectors } from './configs/organizations-config.js';
 import { fundingCollectors } from './configs/funding-config.js';
 import { developerToolsCollectors } from './configs/developer-tools-config.js';
 import { techConferencesCollectors } from './configs/tech-conferences-config.js';
-import { brazilCollectors } from './configs/brazil-config.js';
+import { collectors as brazilCollectors } from './configs/brazil-config.js';
+import { collectors as industrySignalsCollectors } from './configs/industry-signals-config.js';
+import { collectors as pythonCollectorsRaw } from './configs/legacy-python-config.js';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+
+// Convert Python collectors Record to array
+const pythonCollectors = Object.values(pythonCollectorsRaw);
 
 // ============================================================================
 // CRONTAB GENERATION
@@ -124,6 +129,39 @@ function generateCrontab(): string {
     bySchedule.get(config.schedule)!.push(config.name);
   });
 
+  // Add Brazil collectors
+  Object.values(brazilCollectors).forEach(config => {
+    if (!config.schedule) return;
+
+    if (!bySchedule.has(config.schedule)) {
+      bySchedule.set(config.schedule, []);
+    }
+
+    bySchedule.get(config.schedule)!.push(config.name);
+  });
+
+  // Add Industry Signals collectors
+  Object.values(industrySignalsCollectors).forEach(config => {
+    if (!config.schedule) return;
+
+    if (!bySchedule.has(config.schedule)) {
+      bySchedule.set(config.schedule, []);
+    }
+
+    bySchedule.get(config.schedule)!.push(config.name);
+  });
+
+  // Add Python Legacy collectors
+  pythonCollectors.forEach(config => {
+    if (!config.schedule) return;
+
+    if (!bySchedule.has(config.schedule)) {
+      bySchedule.set(config.schedule, []);
+    }
+
+    bySchedule.get(config.schedule)!.push(config.name);
+  });
+
   // Generate cron entries
   const projectPath = process.cwd();
 
@@ -155,9 +193,12 @@ function generateCrontab(): string {
     Object.keys(organizationsCollectors).length +
     Object.keys(fundingCollectors).length +
     Object.keys(developerToolsCollectors).length +
-    Object.keys(techConferencesCollectors).length;
+    Object.keys(techConferencesCollectors).length +
+    Object.keys(brazilCollectors).length +
+    Object.keys(industrySignalsCollectors).length +
+    pythonCollectors.length;
   lines.push('# ============================================================================');
-  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs + ${Object.keys(fundingCollectors).length} funding + ${Object.keys(developerToolsCollectors).length} devtools + ${Object.keys(techConferencesCollectors).length} conf)`);
+  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs + ${Object.keys(fundingCollectors).length} funding + ${Object.keys(developerToolsCollectors).length} devtools + ${Object.keys(techConferencesCollectors).length} conf + ${Object.keys(brazilCollectors).length} brazil + ${Object.keys(industrySignalsCollectors).length} industry + ${pythonCollectors.length} python)`);
   lines.push(`# Unique schedules: ${bySchedule.size}`);
   lines.push('# ============================================================================');
 
@@ -252,13 +293,31 @@ function showStatistics(): void {
     schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
   });
 
+  Object.values(brazilCollectors).forEach(config => {
+    if (!config.schedule) return;
+    schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
+  });
+
+  Object.values(industrySignalsCollectors).forEach(config => {
+    if (!config.schedule) return;
+    schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
+  });
+
+  pythonCollectors.forEach(config => {
+    if (!config.schedule) return;
+    schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
+  });
+
   const totalCollectors = Object.keys(techTrendsCollectors).length +
     Object.keys(researchPapersCollectors).length +
     Object.keys(jobsCollectors).length +
     Object.keys(organizationsCollectors).length +
     Object.keys(fundingCollectors).length +
     Object.keys(developerToolsCollectors).length +
-    Object.keys(techConferencesCollectors).length;
+    Object.keys(techConferencesCollectors).length +
+    Object.keys(brazilCollectors).length +
+    Object.keys(industrySignalsCollectors).length +
+    pythonCollectors.length;
 
   console.log('');
   console.log('📊 Crontab Statistics');
