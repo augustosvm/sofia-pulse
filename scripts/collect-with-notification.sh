@@ -15,11 +15,31 @@ fi
 OUTPUT=$(npx tsx scripts/collect.ts "$COLLECTOR_NAME" 2>&1)
 EXIT_CODE=$?
 
-# Extract insert count from output
+# Extract insert count from output (try multiple patterns)
+# Pattern 1: "Collected: 123"
 INSERTS=$(echo "$OUTPUT" | grep -oP "Collected:\s*\K\d+" | tail -1)
+
+# Pattern 2: "Inserted 123"
 if [ -z "$INSERTS" ]; then
     INSERTS=$(echo "$OUTPUT" | grep -oP "Inserted\s*\K\d+" | tail -1)
 fi
+
+# Pattern 3: "Inseridas: 123" (Portuguese - InfoJobs)
+if [ -z "$INSERTS" ]; then
+    INSERTS=$(echo "$OUTPUT" | grep -oP "Inseridas:\s*\K\d+" | tail -1)
+fi
+
+# Pattern 4: "✅ Saved 123"
+if [ -z "$INSERTS" ]; then
+    INSERTS=$(echo "$OUTPUT" | grep -oP "Saved\s*\K\d+" | tail -1)
+fi
+
+# Pattern 5: Generic number before "records" or "vagas"
+if [ -z "$INSERTS" ]; then
+    INSERTS=$(echo "$OUTPUT" | grep -oP "\d+(?=\s+(records|vagas|jobs))" | tail -1)
+fi
+
+# Fallback
 if [ -z "$INSERTS" ]; then
     INSERTS="?"
 fi
