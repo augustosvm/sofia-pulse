@@ -68,11 +68,13 @@ def main():
         if count > 0:
             # Safest states (lowest homicide rate)
             cur.execute("""
-                SELECT region_name, region_code, indicator, value, year
-                FROM sofia.brazil_security_data
-                WHERE LOWER(indicator) LIKE '%homic%' OR LOWER(indicator) LIKE '%murder%'
-                  AND value IS NOT NULL
-                ORDER BY value ASC
+                SELECT s.name, s.code, bsd.indicator, bsd.value, bsd.year
+                FROM sofia.brazil_security_data bsd
+                JOIN sofia.states s ON bsd.state_id = s.id
+                WHERE bsd.indicator = 'homicide_rate'
+                  AND bsd.value IS NOT NULL
+                  AND bsd.year = (SELECT MAX(year) FROM sofia.brazil_security_data WHERE indicator = 'homicide_rate')
+                ORDER BY bsd.value ASC
                 LIMIT 10
             """)
             rows = cur.fetchall()
@@ -85,11 +87,13 @@ def main():
 
             # Most dangerous states
             cur.execute("""
-                SELECT region_name, region_code, indicator, value, year
-                FROM sofia.brazil_security_data
-                WHERE (LOWER(indicator) LIKE '%homic%' OR LOWER(indicator) LIKE '%murder%')
-                  AND value IS NOT NULL
-                ORDER BY value DESC
+                SELECT s.name, s.code, bsd.indicator, bsd.value, bsd.year
+                FROM sofia.brazil_security_data bsd
+                JOIN sofia.states s ON bsd.state_id = s.id
+                WHERE bsd.indicator = 'homicide_rate'
+                  AND bsd.value IS NOT NULL
+                  AND bsd.year = (SELECT MAX(year) FROM sofia.brazil_security_data WHERE indicator = 'homicide_rate')
+                ORDER BY bsd.value DESC
                 LIMIT 10
             """)
             rows = cur.fetchall()
