@@ -138,8 +138,22 @@ def insert_jobs(jobs):
 
     for job in jobs:
         try:
-            # Normalizar localização (já assume Brasil)
-            geo = normalize_location(conn, job['location'])
+            # Normalizar localização retorna dict com country_id, state_id, city_id
+            from geo_id_helpers import get_country_id, get_state_id, get_city_id
+
+            # Brasil é sempre o país
+            country_id = get_country_id(conn, 'Brazil')
+            state_id = None
+            city_id = None
+
+            # Tentar extrair estado/cidade da localização
+            if job['location']:
+                parts = job['location'].split(',')
+                if len(parts) >= 2:
+                    city_name = parts[0].strip()
+                    state_name = parts[1].strip()
+                    state_id = get_state_id(conn, state_name, country_id) if country_id else None
+                    city_id = get_city_id(conn, city_name, state_id, country_id) if state_id and country_id else None
 
             cursor.execute("""
                 INSERT INTO sofia.jobs (
@@ -164,9 +178,9 @@ def insert_jobs(jobs):
                 job['description'],
                 job['url'],
                 job['posted_date'],
-                geo['country_id'],
-                geo['state_id'],
-                geo['city_id']
+                country_id,
+                state_id,
+                city_id
             ))
 
             inserted += 1
