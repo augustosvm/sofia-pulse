@@ -9,6 +9,7 @@ import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { getKeywordsByLanguage } from './shared/keywords-config';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 
@@ -65,6 +66,7 @@ async function collectGitHubJobs() {
                     // Extract location details
                     const locationParts = job.location.split(',').map(s => s.trim());
                     const city = locationParts[0] || null;
+                    const state = locationParts.length > 2 ? locationParts[1] : null;
                     const country = locationParts[locationParts.length - 1] || null;
 
                     // Detect remote
@@ -72,20 +74,35 @@ async function collectGitHubJobs() {
                     const remoteType = isRemote ? 'remote' : 'onsite';
 
                     // Normalize geographic data
-                    const { countryId, cityId } = await normalizeLocation(pool, {
+                    const { countryId, stateId, cityId } = await normalizeLocation(pool, {
                         country: country,
+                        state: state,
                         city: city
                     });
+
+                    // Get or create organization
+                    const organizationId = await getOrCreateOrganization(
+                        pool,
+                        job.company,
+                        job.company_url,
+                        job.location,
+                        country,
+                        'github'
+                    );
 
                     await pool.query(`
             INSERT INTO sofia.jobs (
               job_id, platform, title, company, company_url,
-              location, city, country, country_id, city_id, remote_type,
+              location, city, state, country, country_id, state_id, city_id, remote_type,
               description, posted_date, url, search_keyword,
-              employment_type, collected_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+              employment_type, organization_id, collected_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
             ON CONFLICT (job_id, platform) DO UPDATE SET
-              collected_at = NOW()
+              collected_at = NOW(),
+              organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+              country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+              state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+              city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
           `, [
                         job.id,
                         'github',
@@ -94,15 +111,18 @@ async function collectGitHubJobs() {
                         job.company_url,
                         job.location,
                         city,
+                        state,
                         country,
                         countryId,
+                        stateId,
                         cityId,
                         remoteType,
                         job.description,
                         new Date(job.created_at),
                         job.url,
                         keyword,
-                        job.type.toLowerCase()
+                        job.type.toLowerCase(),
+                        organizationId
                     ]);
 
                     totalCollected++;
