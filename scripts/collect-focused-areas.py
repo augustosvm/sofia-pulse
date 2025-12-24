@@ -8,6 +8,12 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+import sys
+from pathlib import Path
+
+# Import geo helpers
+sys.path.insert(0, str(Path(__file__).parent / 'shared'))
+from geo_helpers import normalize_location
 
 load_dotenv()
 
@@ -75,7 +81,7 @@ def save_to_db(jobs):
     """Salva vagas no banco"""
     if not jobs:
         return 0
-    
+
     conn = psycopg2.connect(
         host=os.getenv('POSTGRES_HOST'),
         port=os.getenv('POSTGRES_PORT', '5432'),
@@ -84,21 +90,45 @@ def save_to_db(jobs):
         database=os.getenv('POSTGRES_DB')
     )
     cur = conn.cursor()
-    
+
     saved = 0
     for job in jobs:
         try:
+            # Parse location - Remotive pode ter "Worldwide", "USA", "Europe", etc.
+            location_str = job.get('location', 'Worldwide')
+
+            # Extract country from location
+            country = None
+            city = None
+            if location_str and location_str not in ['Worldwide', 'Remote', 'Global']:
+                parts = location_str.split(',')
+                if len(parts) > 1:
+                    city = parts[0].strip()
+                    country = parts[-1].strip()
+                else:
+                    # Single word could be country
+                    country = location_str.strip()
+
+            # Normalize geographic data
+            geo = normalize_location(conn, {
+                'country': country,
+                'city': city
+            })
+
             cur.execute("""
                 INSERT INTO sofia.jobs (
-                    job_id, title, company, location, description, url,
-                    platform, remote_type, posted_date, search_keyword, collected_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    job_id, title, company, location, city, country, country_id, city_id,
+                    description, url, platform, remote_type, posted_date, search_keyword, collected_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (job_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     description = EXCLUDED.description,
+                    country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                    city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
                     collected_at = NOW()
             """, (
                 job['job_id'], job['title'], job['company'], job['location'],
+                city, country, geo['country_id'], geo['city_id'],
                 job['description'], job['url'], job['platform'], job['remote_type'],
                 job['posted_date'], job['search_keyword']
             ))
