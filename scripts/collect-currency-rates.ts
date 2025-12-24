@@ -214,9 +214,9 @@ async function saveExchangeRates(pool: Pool, rates: ExchangeRate[]): Promise<num
 // ============================================================================
 
 async function main() {
-  console.log('='repeat(70));
+  console.log('='.repeat(70));
   console.log('💱 CURRENCY EXCHANGE RATES COLLECTOR');
-  console.log('='repeat(70));
+  console.log('='.repeat(70));
 
   const pool = new Pool(dbConfig);
   const rates: ExchangeRate[] = [];
@@ -271,7 +271,7 @@ async function main() {
     const inserted = await saveExchangeRates(pool, rates);
 
     console.log(`\n✅ Saved ${inserted} exchange rates`);
-    console.log('='repeat(70));
+    console.log('='.repeat(70));
 
     // Show sample rates
     console.log('\n📈 Sample Rates (to USD):');
