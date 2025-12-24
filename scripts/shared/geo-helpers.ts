@@ -82,6 +82,5 @@ export async function normalizeLocation(
     const countryId = await getOrCreateCountry(pool, location.country);
     const stateId = await getOrCreateState(pool, location.state, countryId);
     const cityId = await getOrCreateCity(pool, location.city, stateId, countryId);
-
     return { countryId, stateId, cityId };
 }

@@ -94,6 +94,7 @@ async function collectHimalayasJobs() {
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
             description = EXCLUDED.description,
+            country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
             salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
             salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
         `, [
