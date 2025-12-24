@@ -147,9 +147,12 @@ async function main() {
     await pool.query(
       `INSERT INTO sofia.jobs (job_id, title, company, location, city, state, country, country_id, state_id, city_id, url, platform, collected_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
-       ON CONFLICT (job_id) DO UPDATE SET 
+       ON CONFLICT (job_id) DO UPDATE SET
          title = EXCLUDED.title,
          location = EXCLUDED.location,
+         country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+         state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+         city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
          collected_at = NOW()`,
       [jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId, job.url, 'catho']
     );

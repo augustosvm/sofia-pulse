@@ -111,17 +111,18 @@ def save_to_db(jobs):
             cur.execute("""
                 INSERT INTO sofia.jobs (
                     job_id, title, company, location, city, country, country_id, city_id, description, url,
-                    platform, posted_date, employment_type,
-                    search_keyword, collected_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    platform, posted_date, employment_type, search_keyword, collected_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (job_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     description = EXCLUDED.description,
+                    country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                    city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
                     collected_at = NOW()
             """, (
                 job['job_id'], job['title'], job['company'], job['location'],
                 city, country, geo['country_id'], geo['city_id'],
-                job['description'], job['url'], job['platform'], 
+                job['description'], job['url'], job['platform'],
                 job['posted_date'], job['employment_type'],
                 job['search_keyword']
             ))
