@@ -138,8 +138,8 @@ def insert_jobs(jobs):
 
     for job in jobs:
         try:
-            # Normalizar localização
-            geo = normalize_location(conn, job['location'], 'Brazil')
+            # Normalizar localização (já assume Brasil)
+            geo = normalize_location(conn, job['location'])
 
             cursor.execute("""
                 INSERT INTO sofia.jobs (
