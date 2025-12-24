@@ -12,6 +12,7 @@
  */
 
 import { Pool, PoolClient } from 'pg';
+import { getOrCreateOrganization } from './org-helpers.js';
 
 // ============================================================================
 // TYPES
@@ -23,6 +24,10 @@ export interface JobData {
   platform: string;         // Source platform (linkedin, remoteok, himalayas, etc.)
   title: string;
   company: string;
+
+  // Company/Organization fields
+  company_url?: string;     // Company website
+  organization_id?: number; // Foreign key to sofia.organizations
 
   // Location fields
   location?: string;        // Full location string (ex: 'San Francisco, CA, USA')
@@ -71,24 +76,40 @@ export class JobsInserter {
       throw new Error('Missing required fields: job_id, platform, title, company');
     }
 
+    // Get or create organization if not already provided
+    let organizationId = job.organization_id;
+    if (!organizationId && job.company) {
+      organizationId = await getOrCreateOrganization(
+        db,
+        job.company,
+        job.company_url,
+        job.location,
+        job.country,
+        job.platform
+      );
+    }
+
     const query = `
       INSERT INTO sofia.jobs (
-        job_id, platform, title, company,
+        job_id, platform, title, company, company_url,
         location, city, country, country_id, city_id, remote_type,
         description, url, posted_date,
         salary_min, salary_max, salary_currency, salary_period,
         employment_type, skills_required, search_keyword,
+        organization_id,
         collected_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
       ON CONFLICT (job_id, platform)
       DO UPDATE SET
         title = EXCLUDED.title,
         company = EXCLUDED.company,
+        company_url = COALESCE(EXCLUDED.company_url, sofia.jobs.company_url),
         location = EXCLUDED.location,
         description = EXCLUDED.description,
         salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
         salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max),
+        organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
         collected_at = NOW()
     `;
 
@@ -97,6 +118,7 @@ export class JobsInserter {
       job.platform,
       job.title,
       job.company,
+      job.company_url || null,
       job.location || null,
       job.city || null,
       job.country || null,
@@ -113,6 +135,7 @@ export class JobsInserter {
       job.employment_type || null,
       job.skills_required || null,
       job.search_keyword || null,
+      organizationId || null,
     ]);
   }
 
