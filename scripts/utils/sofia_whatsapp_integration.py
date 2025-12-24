@@ -31,10 +31,18 @@ except ImportError:
     print("   Falling back to environment variables only")
 
 # Configuration - use WHATSAPP_SENDER (TIE number) as primary
-WHATSAPP_NUMBER = os.getenv('WHATSAPP_SENDER') or os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
+_whatsapp_raw = os.getenv('WHATSAPP_SENDER') or os.getenv('WHATSAPP_NUMBER', '')
+# Fallback to production number if placeholder detected (for local dev environments)
+PLACEHOLDERS = ['YOUR_WHATSAPP_NUMBER', 'YOUR_BUSINESS_NUMBER', 'your_whatsapp_number_here', '']
+WHATSAPP_NUMBER = '551151990773' if _whatsapp_raw in PLACEHOLDERS else _whatsapp_raw
+
 SOFIA_API_URL = os.getenv('SOFIA_API_URL', 'http://localhost:8001/api/v2/chat')
-WHATSAPP_API_URL = os.getenv('WHATSAPP_API_URL', 'http://91.98.158.19:3001/send')
-WHATSAPP_ENABLED = os.getenv('WHATSAPP_ENABLED', 'true').lower() == 'true'
+
+_whatsapp_api = os.getenv('WHATSAPP_API_URL', '')
+WHATSAPP_API_URL = 'http://91.98.158.19:3001/send' if _whatsapp_api in ['your_api_url_here', ''] else _whatsapp_api
+
+_enabled = os.getenv('WHATSAPP_ENABLED') or os.getenv('ALERT_WHATSAPP_ENABLED', 'true')
+WHATSAPP_ENABLED = _enabled.lower() == 'true'
 
 print(f"[DEBUG] WhatsApp Number loaded: {WHATSAPP_NUMBER}")
 print(f"[DEBUG] WhatsApp Enabled: {WHATSAPP_ENABLED}")
