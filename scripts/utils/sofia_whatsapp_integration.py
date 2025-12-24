@@ -215,13 +215,14 @@ class SofiaWhatsAppIntegration:
 
         try:
             payload = {
-                'to': self.whatsapp_number,
+                'from': self.whatsapp_number,  # Sender (same as receiver in this case)
+                'to': self.whatsapp_number,     # Receiver
                 'message': message
             }
 
             print(f"[WHATSAPP DIRECT] Configuration:")
             print(f"  • API URL: {self.whatsapp_api_url}")
-            print(f"  • Número destino: {self.whatsapp_number}")
+            print(f"  • Número (from/to): {self.whatsapp_number}")
             print(f"  • Tamanho mensagem: {len(message)} caracteres")
 
             print(f"\n[WHATSAPP DIRECT] Enviando POST...")
