@@ -60,7 +60,7 @@ def main():
         if count > 0:
             # Life expectancy by country
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_code as country, indicator, value, year
                 FROM sofia.who_health_data
                 WHERE LOWER(indicator) LIKE '%life%expect%'
                 ORDER BY value DESC
@@ -92,7 +92,7 @@ def main():
 
             # Mortality rates
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_code as country, indicator, value, year
                 FROM sofia.who_health_data
                 WHERE LOWER(indicator) LIKE '%mortality%' OR LOWER(indicator) LIKE '%death%'
                 ORDER BY value ASC
@@ -128,7 +128,7 @@ def main():
         if count > 0:
             # Child mortality
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_code as country, indicator, value, year
                 FROM sofia.unicef_children_data
                 WHERE LOWER(indicator) LIKE '%mortality%' OR LOWER(indicator) LIKE '%death%'
                 ORDER BY value ASC
@@ -144,7 +144,7 @@ def main():
 
             # Education indicators
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_code as country, indicator, value, year
                 FROM sofia.unicef_children_data
                 WHERE LOWER(indicator) LIKE '%school%' OR LOWER(indicator) LIKE '%education%'
                 ORDER BY value DESC
@@ -180,7 +180,7 @@ def main():
         if count > 0:
             # Crisis areas
             cur.execute("""
-                SELECT country, indicator, value, year, source
+                SELECT country_code as country, indicator, value, year, source
                 FROM sofia.hdx_humanitarian_data
                 ORDER BY year DESC, value DESC
                 LIMIT 20
@@ -215,7 +215,7 @@ def main():
 
         if count > 0:
             cur.execute("""
-                SELECT country, indicator, value, year
+                SELECT country_code as country, indicator, value, year
                 FROM sofia.ilo_labor_data
                 ORDER BY year DESC
                 LIMIT 20
