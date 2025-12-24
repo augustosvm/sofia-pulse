@@ -78,10 +78,18 @@ def scrape_infojobs(keyword, max_pages=3):
                     company_elem = item.find('a', class_='js-offer-company')
                     company = company_elem.get_text(strip=True) if company_elem else 'Não informado'
 
-                    # Localização
+                    # Localização - tentar múltiplos seletores
                     location_elem = item.find('span', class_='location') or \
-                                  item.find('p', class_='job-location')
+                                  item.find('p', class_='job-location') or \
+                                  item.find('span', class_='job-location') or \
+                                  item.find('div', class_='offer-location')
                     location = location_elem.get_text(strip=True) if location_elem else ''
+
+                    # Salário - tentar múltiplos seletores
+                    salary_elem = item.find('span', class_='salary') or \
+                                 item.find('div', class_='offer-salary') or \
+                                 item.find('span', class_='job-salary')
+                    salary = salary_elem.get_text(strip=True) if salary_elem else None
 
                     # Descrição
                     desc_elem = item.find('div', class_='offer-description') or \
@@ -97,6 +105,7 @@ def scrape_infojobs(keyword, max_pages=3):
                         'title': title,
                         'company': company,
                         'location': location,
+                        'salary': salary,
                         'description': description[:500],
                         'url': job_url,
                         'posted_date': datetime.now().date()
@@ -131,12 +140,14 @@ def insert_jobs(jobs):
             cursor.execute("""
                 INSERT INTO sofia.jobs (
                     job_id, platform, title, company, location,
-                    description, url, posted_date, collected_at,
+                    salary, description, url, posted_date, collected_at,
                     country_id, state_id, city_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
                 ON CONFLICT (job_id, platform) DO UPDATE SET
                     title = EXCLUDED.title,
+                    salary = EXCLUDED.salary,
+                    location = EXCLUDED.location,
                     description = EXCLUDED.description,
                     collected_at = NOW()
             """, (
@@ -145,6 +156,7 @@ def insert_jobs(jobs):
                 job['title'],
                 job['company'],
                 job['location'],
+                job.get('salary'),
                 job['description'],
                 job['url'],
                 job['posted_date'],
