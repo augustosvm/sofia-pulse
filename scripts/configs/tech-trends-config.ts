@@ -246,7 +246,7 @@ export const hackerNews: CollectorConfig = {
       });
   },
 
-  schedule: '0 */12 * * *', // 2x/dia (mesma freq que GitHub)
+  schedule: '0 7,15,23 * * *', // 3x/dia - 7h, 15h e 23h
   allowWithoutAuth: true,
 };
 
@@ -282,7 +282,7 @@ export const stackOverflow: CollectorConfig = {
     }));
   },
 
-  schedule: '0 9 * * *', // 1x/dia às 9h
+  schedule: '0 9,17,1 * * *', // 3x/dia - 9h, 17h e 1h
   allowWithoutAuth: true,
 };
 

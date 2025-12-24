@@ -73,7 +73,7 @@ export const himalayasJobs: JobsCollectorConfig = {
     return jobs;
   },
 
-  schedule: '0 */6 * * *', // 4x/dia (vagas mudam rápido)
+  schedule: '0 6,18 * * *', // 2x/dia - 6h e 18h
   allowWithoutAuth: true,
 };
 
@@ -136,7 +136,7 @@ export const remoteokJobs: JobsCollectorConfig = {
     return jobs;
   },
 
-  schedule: '0 */6 * * *', // 4x/dia
+  schedule: '0 8,20 * * *', // 2x/dia - 8h e 20h
   allowWithoutAuth: true,
 };
 
@@ -189,7 +189,7 @@ export const arbeitnowJobs: JobsCollectorConfig = {
     return jobs;
   },
 
-  schedule: '0 0,8,16 * * *', // 3x/dia (0h, 8h, 16h)
+  schedule: '0 10,22 * * *', // 2x/dia - 10h e 22h
   allowWithoutAuth: true,
 };
 

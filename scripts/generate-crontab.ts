@@ -164,7 +164,7 @@ function generateCrontab(): string {
 
   // Add standalone collectors (Greenhouse, etc.)
   const standaloneCollectors = [
-    { name: 'greenhouse', schedule: '0 */6 * * *' }, // 4x/day (like other job boards)
+    { name: 'greenhouse', schedule: '0 12,0 * * *' }, // 2x/day - 12h e 0h (meia-noite)
   ];
 
   standaloneCollectors.forEach(config => {
