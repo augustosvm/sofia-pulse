@@ -60,7 +60,7 @@ export const collectors: Record<string, PythonCollectorConfig> = {
     // --- JOBS & TECH (Legacy) ---
     'careerjet-api': { name: 'careerjet-api', description: 'Careerjet Jobs', script: 'scripts/collect-careerjet-api.py', schedule: '0 10 * * *', category: 'economic' },
     'freejobs-api': { name: 'freejobs-api', description: 'Free Jobs API', script: 'scripts/collect-freejobs-api.py', schedule: '0 10 * * *', category: 'economic' },
-    'infojobs-brasil': { name: 'infojobs-brasil', description: 'Infojobs Brazil', script: 'scripts/collect-infojobs-brasil.py', schedule: '0 10 * * *', category: 'economic' },
+    'infojobs-brasil': { name: 'infojobs-brasil', description: 'InfoJobs Brasil Web Scraper', script: 'scripts/collect-infojobs-web-scraper.py', schedule: '0 */6 * * *', category: 'economic' },
     'rapidapi-activejobs': { name: 'rapidapi-activejobs', description: 'ActiveJobs API', script: 'scripts/collect-rapidapi-activejobs.py', schedule: '0 10 * * *', category: 'economic' },
     'rapidapi-linkedin': { name: 'rapidapi-linkedin', description: 'LinkedIn Jobs API', script: 'scripts/collect-rapidapi-linkedin.py', schedule: '0 10 * * *', category: 'economic' },
     'serpapi-googlejobs': { name: 'serpapi-googlejobs', description: 'Google Jobs Search', script: 'scripts/collect-serpapi-googlejobs.py', schedule: '0 10 * * *', category: 'economic' },
