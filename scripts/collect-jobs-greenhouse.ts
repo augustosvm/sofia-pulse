@@ -9,6 +9,7 @@ import axios from 'axios';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 
@@ -195,6 +196,16 @@ async function collectGreenhouseJobs() {
 
                         const { countryId, cityId } = normalizedLocation;
 
+                        // Get or create organization
+                        const organizationId = await getOrCreateOrganization(
+                            pool,
+                            job.company_name,
+                            null, // Greenhouse doesn't provide company URL
+                            locationName,
+                            country,
+                            'greenhouse'
+                        );
+
                         // Add to bulk insert
                         const jobValues = [
                             `greenhouse-${job.id}`,
@@ -209,12 +220,13 @@ async function collectGreenhouseJobs() {
                             remoteType,
                             job.absolute_url,
                             new Date(job.updated_at),
-                            employmentType
+                            employmentType,
+                            organizationId
                         ];
 
-                        placeholders.push(`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10}, $${paramIndex + 11}, $${paramIndex + 12}, NOW())`);
+                        placeholders.push(`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10}, $${paramIndex + 11}, $${paramIndex + 12}, $${paramIndex + 13}, NOW())`);
                         values.push(...jobValues);
-                        paramIndex += 13;
+                        paramIndex += 14;
 
                     } catch (err: any) {
                         // Skip this job on error
@@ -231,12 +243,13 @@ async function collectGreenhouseJobs() {
                             INSERT INTO sofia.jobs (
                                 job_id, platform, title, company,
                                 location, city, country, country_id, city_id, remote_type,
-                                url, posted_date, employment_type, collected_at
+                                url, posted_date, employment_type, organization_id, collected_at
                             ) VALUES ${placeholders.join(', ')}
                             ON CONFLICT (job_id, platform) DO UPDATE SET
                                 title = EXCLUDED.title,
                                 location = EXCLUDED.location,
                                 city = EXCLUDED.city,
+                                organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
                                 country = EXCLUDED.country,
                                 collected_at = NOW(),
                                 country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
