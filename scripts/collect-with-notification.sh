@@ -16,10 +16,10 @@ OUTPUT=$(npx tsx scripts/collect.ts "$COLLECTOR_NAME" 2>&1)
 EXIT_CODE=$?
 
 # Extract insert count from output (try multiple patterns)
-# Pattern 1: "Collected: 123"
-INSERTS=$(echo "$OUTPUT" | grep -oP "Collected:\s*\K\d+" | tail -1)
+# Pattern 1: "Collected: 123" or "Total collected: 123"
+INSERTS=$(echo "$OUTPUT" | grep -oP "(Total\s+)?[Cc]ollected:\s*\K\d+" | tail -1)
 
-# Pattern 2: "Inserted 123"
+# Pattern 2: "Inserted 123" or "✅ Inserted 123"
 if [ -z "$INSERTS" ]; then
     INSERTS=$(echo "$OUTPUT" | grep -oP "Inserted\s*\K\d+" | tail -1)
 fi
@@ -29,14 +29,24 @@ if [ -z "$INSERTS" ]; then
     INSERTS=$(echo "$OUTPUT" | grep -oP "Inseridas:\s*\K\d+" | tail -1)
 fi
 
-# Pattern 4: "✅ Saved 123"
+# Pattern 4: "✅ Saved 123" or "Saved 123"
 if [ -z "$INSERTS" ]; then
     INSERTS=$(echo "$OUTPUT" | grep -oP "Saved\s*\K\d+" | tail -1)
 fi
 
-# Pattern 5: Generic number before "records" or "vagas"
+# Pattern 5: "✅ 123" at end of output (common pattern)
 if [ -z "$INSERTS" ]; then
-    INSERTS=$(echo "$OUTPUT" | grep -oP "\d+(?=\s+(records|vagas|jobs))" | tail -1)
+    INSERTS=$(echo "$OUTPUT" | grep -oP "✅\s*\K\d+" | tail -1)
+fi
+
+# Pattern 6: Generic number before "records", "vagas", "jobs", "items"
+if [ -z "$INSERTS" ]; then
+    INSERTS=$(echo "$OUTPUT" | grep -oP "\d+(?=\s+(records|vagas|jobs|items|entries|papers|companies|organizations))" | tail -1)
+fi
+
+# Pattern 7: "Salvos: 123" or "Novos: 123" (Portuguese)
+if [ -z "$INSERTS" ]; then
+    INSERTS=$(echo "$OUTPUT" | grep -oP "(Salvos|Novos):\s*\K\d+" | tail -1)
 fi
 
 # Fallback
