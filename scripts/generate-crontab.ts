@@ -162,6 +162,18 @@ function generateCrontab(): string {
     bySchedule.get(config.schedule)!.push(config.name);
   });
 
+  // Add standalone collectors (Greenhouse, etc.)
+  const standaloneCollectors = [
+    { name: 'greenhouse', schedule: '0 */6 * * *' }, // 4x/day (like other job boards)
+  ];
+
+  standaloneCollectors.forEach(config => {
+    if (!bySchedule.has(config.schedule)) {
+      bySchedule.set(config.schedule, []);
+    }
+    bySchedule.get(config.schedule)!.push(config.name);
+  });
+
   // Generate cron entries
   const projectPath = process.cwd();
 
@@ -187,6 +199,7 @@ function generateCrontab(): string {
   });
 
   // Summary comment
+  const standaloneCount = 1; // greenhouse
   const totalCollectors = Object.keys(techTrendsCollectors).length +
     Object.keys(researchPapersCollectors).length +
     Object.keys(jobsCollectors).length +
@@ -196,9 +209,10 @@ function generateCrontab(): string {
     Object.keys(techConferencesCollectors).length +
     Object.keys(brazilCollectors).length +
     Object.keys(industrySignalsCollectors).length +
-    pythonCollectors.length;
+    pythonCollectors.length +
+    standaloneCount;
   lines.push('# ============================================================================');
-  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs + ${Object.keys(fundingCollectors).length} funding + ${Object.keys(developerToolsCollectors).length} devtools + ${Object.keys(techConferencesCollectors).length} conf + ${Object.keys(brazilCollectors).length} brazil + ${Object.keys(industrySignalsCollectors).length} industry + ${pythonCollectors.length} python)`);
+  lines.push(`# Total collectors: ${totalCollectors} (${Object.keys(techTrendsCollectors).length} tech + ${Object.keys(researchPapersCollectors).length} papers + ${Object.keys(jobsCollectors).length} jobs + ${Object.keys(organizationsCollectors).length} orgs + ${Object.keys(fundingCollectors).length} funding + ${Object.keys(developerToolsCollectors).length} devtools + ${Object.keys(techConferencesCollectors).length} conf + ${Object.keys(brazilCollectors).length} brazil + ${Object.keys(industrySignalsCollectors).length} industry + ${pythonCollectors.length} python + ${standaloneCount} standalone)`);
   lines.push(`# Unique schedules: ${bySchedule.size}`);
   lines.push('# ============================================================================');
 
@@ -308,6 +322,15 @@ function showStatistics(): void {
     schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
   });
 
+  // Standalone collectors
+  const standaloneCollectors = [
+    { name: 'greenhouse', schedule: '0 */6 * * *' },
+  ];
+  standaloneCollectors.forEach(config => {
+    schedules.set(config.schedule, (schedules.get(config.schedule) || 0) + 1);
+  });
+
+  const standaloneCount = standaloneCollectors.length;
   const totalCollectors = Object.keys(techTrendsCollectors).length +
     Object.keys(researchPapersCollectors).length +
     Object.keys(jobsCollectors).length +
@@ -317,7 +340,8 @@ function showStatistics(): void {
     Object.keys(techConferencesCollectors).length +
     Object.keys(brazilCollectors).length +
     Object.keys(industrySignalsCollectors).length +
-    pythonCollectors.length;
+    pythonCollectors.length +
+    standaloneCount;
 
   console.log('');
   console.log('📊 Crontab Statistics');

@@ -12,6 +12,24 @@ import { normalizeLocation } from './shared/geo-helpers.js';
 
 dotenv.config();
 
+// US State codes mapping (Greenhouse has many US companies)
+const US_STATES = new Set([
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
+]);
+
+// Country aliases
+const COUNTRY_ALIASES: Record<string, string> = {
+    'U.K.': 'United Kingdom',
+    'UK': 'United Kingdom',
+    'U.S.': 'United States',
+    'U.S.A.': 'United States',
+    'USA': 'United States',
+};
+
 const dbConfig = {
     host: process.env.POSTGRES_HOST || 'localhost',
     port: parseInt(process.env.POSTGRES_PORT || '5432'),
@@ -22,10 +40,26 @@ const dbConfig = {
 
 // Top tech companies using Greenhouse
 const COMPANIES = [
-    'coinbase', 'gitlab', 'dropbox', 'airbnb', 'stripe', 'doordash',
-    'robinhood', 'instacart', 'databricks', 'figma', 'notion',
-    'plaid', 'airtable', 'reddit', 'discord', 'roblox',
-    'cloudflare', 'benchling', 'gusto', 'convoy', 'rippling'
+    'coinbase',
+    'gitlab',
+    'dropbox',
+    'airbnb',
+    'stripe',
+    'doordash',
+    'robinhood',
+    'databricks',
+    'figma',
+    'notion',
+    'plaid',
+    'airtable',
+    'reddit',
+    'discord',
+    'cloudflare',
+    'gusto',
+    'rippling',
+    'lattice',
+    'canva',
+    'grammarly'
 ];
 
 interface GreenhouseJob {
@@ -51,6 +85,10 @@ async function collectGreenhouseJobs() {
     const pool = new Pool(dbConfig);
 
     let totalCollected = 0;
+    let totalProcessed = 0;
+
+    // Cache for normalized locations to avoid repeated queries
+    const locationCache = new Map<string, { countryId: number | null; cityId: number | null }>();
 
     for (const company of COMPANIES) {
         try {
@@ -64,81 +102,180 @@ async function collectGreenhouseJobs() {
             const jobs = response.data?.jobs || [];
             console.log(`   Found: ${jobs.length} jobs`);
 
-            for (const job of jobs) {
-                try {
-                    // Extract location details
-                    const locationName = job.location?.name || 'Remote';
-                    const locationParts = locationName.split(',').map(s => s.trim());
+            // Process in batches of 100 for bulk insert
+            const BATCH_SIZE = 100;
+            for (let i = 0; i < jobs.length; i += BATCH_SIZE) {
+                const batch = jobs.slice(i, Math.min(i + BATCH_SIZE, jobs.length));
 
-                    // Parse city and country
-                    let city: string | null = null;
-                    let country: string | null = null;
+                // Show progress
+                const progress = Math.round((i / jobs.length) * 100);
+                console.log(`   Progress: ${i}/${jobs.length} (${progress}%)`);
 
-                    // Handle "Remote - USA", "San Francisco, CA", "New York", etc.
-                    if (locationName.includes('Remote')) {
-                        // Extract country from "Remote - USA" or "Remote - US"
-                        const remoteMatch = locationName.match(/Remote\s*[-–]\s*([A-Z]{2,3}|[A-Z][a-z]+)/);
-                        if (remoteMatch) {
-                            country = remoteMatch[1];
+                // Prepare bulk insert data
+                const values: any[] = [];
+                const placeholders: string[] = [];
+                let paramIndex = 1;
+
+                for (const job of batch) {
+                    try {
+                        totalProcessed++;
+
+                        // Extract location details
+                        const locationName = job.location?.name || 'Remote';
+                        const locationParts = locationName.split(',').map(s => s.trim());
+
+                        // Parse city and country
+                        let city: string | null = null;
+                        let country: string | null = null;
+
+                        // Handle "Remote - USA", "Hybrid - Luxembourg", etc.
+                        if (locationName.includes('Remote') || locationName.includes('Hybrid')) {
+                            const match = locationName.match(/(?:Remote|Hybrid)\s*[-–]\s*(.+)/);
+                            if (match) {
+                                const extracted = match[1].trim();
+
+                                // Check if extracted part contains comma (e.g., "New York, NY")
+                                if (extracted.includes(',')) {
+                                    const parts = extracted.split(',').map(s => s.trim());
+                                    city = parts[0];
+                                    const lastPart = parts[parts.length - 1];
+
+                                    if (US_STATES.has(lastPart.toUpperCase())) {
+                                        country = 'United States';
+                                    } else {
+                                        country = COUNTRY_ALIASES[lastPart] || lastPart;
+                                    }
+                                } else if (US_STATES.has(extracted.toUpperCase())) {
+                                    country = 'United States';
+                                } else {
+                                    country = COUNTRY_ALIASES[extracted] || extracted;
+                                }
+                            }
+                        } else if (locationParts.length > 1) {
+                            city = locationParts[0];
+                            const lastPart = locationParts[locationParts.length - 1];
+
+                            if (US_STATES.has(lastPart.toUpperCase())) {
+                                country = 'United States';
+                            } else {
+                                country = COUNTRY_ALIASES[lastPart] || lastPart;
+                            }
+                        } else if (locationParts.length === 1 && !locationName.match(/remote|worldwide|global/i)) {
+                            if (US_STATES.has(locationParts[0].toUpperCase())) {
+                                country = 'United States';
+                            } else {
+                                city = locationParts[0];
+                                country = 'United States';
+                            }
                         }
-                    } else if (locationParts.length > 1) {
-                        // "San Francisco, CA" or "New York, USA"
-                        city = locationParts[0];
-                        country = locationParts[locationParts.length - 1];
-                    } else if (locationParts.length === 1 && !locationName.match(/remote|worldwide|global/i)) {
-                        // Single word: could be city or country
-                        city = locationParts[0];
-                        country = 'United States'; // Default for most Greenhouse jobs
+
+                        // Determine remote type
+                        const isRemote = /remote|anywhere|worldwide/i.test(locationName);
+                        const remoteType = isRemote ? 'remote' : 'onsite';
+
+                        // Extract employment type from metadata
+                        const employmentMeta = job.metadata?.find(m => m.name === 'Employment Type');
+                        const employmentType = employmentMeta?.value_type === 'single_select'
+                            ? (employmentMeta.value as string)?.toLowerCase()
+                            : 'full-time';
+
+                        // Use cache for normalized locations
+                        const cacheKey = `${country}|${city}`;
+                        let normalizedLocation;
+
+                        if (locationCache.has(cacheKey)) {
+                            normalizedLocation = locationCache.get(cacheKey)!;
+                        } else {
+                            normalizedLocation = await normalizeLocation(pool, {
+                                country: country,
+                                city: city
+                            });
+                            locationCache.set(cacheKey, normalizedLocation);
+                        }
+
+                        const { countryId, cityId } = normalizedLocation;
+
+                        // Add to bulk insert
+                        const jobValues = [
+                            `greenhouse-${job.id}`,
+                            'greenhouse',
+                            job.title,
+                            job.company_name,
+                            locationName,
+                            city,
+                            country,
+                            countryId,
+                            cityId,
+                            remoteType,
+                            job.absolute_url,
+                            new Date(job.updated_at),
+                            employmentType
+                        ];
+
+                        placeholders.push(`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10}, $${paramIndex + 11}, $${paramIndex + 12}, NOW())`);
+                        values.push(...jobValues);
+                        paramIndex += 13;
+
+                    } catch (err: any) {
+                        // Skip this job on error
+                        if (totalProcessed <= 10) {
+                            console.error(`   ⚠️ Skipping job ${job.id}:`, err.message);
+                        }
                     }
+                }
 
-                    // Determine remote type
-                    const isRemote = /remote|anywhere|worldwide/i.test(locationName);
-                    const remoteType = isRemote ? 'remote' : 'onsite';
+                // Execute bulk insert (use DO NOTHING to handle both unique constraints)
+                if (placeholders.length > 0) {
+                    try {
+                        const result = await pool.query(`
+                            INSERT INTO sofia.jobs (
+                                job_id, platform, title, company,
+                                location, city, country, country_id, city_id, remote_type,
+                                url, posted_date, employment_type, collected_at
+                            ) VALUES ${placeholders.join(', ')}
+                            ON CONFLICT (job_id, platform) DO UPDATE SET
+                                title = EXCLUDED.title,
+                                location = EXCLUDED.location,
+                                city = EXCLUDED.city,
+                                country = EXCLUDED.country,
+                                collected_at = NOW(),
+                                country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                                city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
+                                remote_type = EXCLUDED.remote_type,
+                                url = EXCLUDED.url,
+                                posted_date = EXCLUDED.posted_date,
+                                employment_type = EXCLUDED.employment_type
+                        `, values);
 
-                    // Extract employment type from metadata
-                    const employmentMeta = job.metadata?.find(m => m.name === 'Employment Type');
-                    const employmentType = employmentMeta?.value_type === 'single_select'
-                        ? (employmentMeta.value as string)?.toLowerCase()
-                        : 'full-time';
+                        totalCollected += result.rowCount || 0;
+                    } catch (err: any) {
+                        // If bulk insert fails (likely due to idx_jobs_unique_posting), try individual inserts
+                        if (err.message.includes('idx_jobs_unique_posting')) {
+                            console.log(`   ⚠️ Bulk insert conflict, using DO NOTHING approach`);
 
-                    // Normalize geographic data
-                    const { countryId, cityId } = await normalizeLocation(pool, {
-                        country: country,
-                        city: city
-                    });
+                            try {
+                                const result = await pool.query(`
+                                    INSERT INTO sofia.jobs (
+                                        job_id, platform, title, company,
+                                        location, city, country, country_id, city_id, remote_type,
+                                        url, posted_date, employment_type, collected_at
+                                    ) VALUES ${placeholders.join(', ')}
+                                    ON CONFLICT DO NOTHING
+                                `, values);
 
-                    await pool.query(`
-                        INSERT INTO sofia.jobs (
-                            job_id, platform, title, company,
-                            location, city, country, country_id, city_id, remote_type,
-                            url, posted_date, employment_type, collected_at
-                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
-                        ON CONFLICT (job_id, platform) DO UPDATE SET
-                            collected_at = NOW(),
-                            country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
-                            city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
-                    `, [
-                        `greenhouse-${job.id}`,
-                        'greenhouse',
-                        job.title,
-                        job.company_name,
-                        locationName,
-                        city,
-                        country,
-                        countryId,
-                        cityId,
-                        remoteType,
-                        job.absolute_url,
-                        new Date(job.updated_at),
-                        employmentType
-                    ]);
-
-                    totalCollected++;
-
-                } catch (err: any) {
-                    console.error(`   ❌ Error inserting job ${job.id}:`, err.message);
+                                totalCollected += result.rowCount || 0;
+                            } catch (err2: any) {
+                                console.error(`   ❌ Fallback insert also failed:`, err2.message);
+                            }
+                        } else {
+                            console.error(`   ❌ Bulk insert error:`, err.message);
+                        }
+                    }
                 }
             }
+
+            console.log(`   ✅ Completed: ${totalCollected} jobs inserted/updated`);
+            console.log(`   📦 Location cache size: ${locationCache.size} unique locations`);
 
             // Rate limit: 1 second between companies
             await new Promise(resolve => setTimeout(resolve, 1000));

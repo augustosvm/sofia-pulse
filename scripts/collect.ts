@@ -37,6 +37,7 @@ import { runTechConferencesCLI } from './collectors/tech-conferences-collector.j
 import { runBrazilCLI } from './collectors/brazil-collector.js';
 import { runIndustrySignalsCLI } from './collectors/industry-signals-collector.js';
 import { runPythonBridgeCLI } from './collectors/python-bridge-collector.js';
+import { collectGreenhouseJobs } from './collect-jobs-greenhouse.js';
 
 import { collectors as techTrendsCollectors } from './configs/tech-trends-config.js';
 import { researchPapersCollectors } from './configs/research-papers-config.js';
@@ -179,6 +180,12 @@ async function main() {
     // Verifica se é Legacy Python Collector
     if (collectorName in legacyPythonCollectors) {
       await runPythonBridgeCLI(legacyPythonCollectors);
+      return;
+    }
+
+    // Special case: Greenhouse (standalone collector)
+    if (collectorName === 'greenhouse') {
+      await collectGreenhouseJobs();
       return;
     }
 
