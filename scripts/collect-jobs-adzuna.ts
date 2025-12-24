@@ -10,6 +10,7 @@ import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { getKeywordsByLanguage } from './shared/keywords-config';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 
@@ -119,13 +120,14 @@ async function collectAdzunaJobs() {
 
                             await pool.query(`
                 INSERT INTO sofia.jobs (
+                    organization_id,
                   job_id, platform, title, company,
                   location, city, country,
                   country_id, city_id,
                   description, posted_date, url,
                   salary_min, salary_max, salary_currency, salary_period,
                   employment_type, search_keyword, collected_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
                 ON CONFLICT (job_id, platform) DO UPDATE SET
                   collected_at = NOW(),
                   description = EXCLUDED.description,
