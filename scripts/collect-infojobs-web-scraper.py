@@ -158,13 +158,12 @@ def insert_jobs(jobs):
             cursor.execute("""
                 INSERT INTO sofia.jobs (
                     job_id, platform, title, company, location,
-                    salary, description, url, posted_date, collected_at,
+                    description, url, posted_date, collected_at,
                     country_id, state_id, city_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
                 ON CONFLICT (job_id, platform) DO UPDATE SET
                     title = EXCLUDED.title,
-                    salary = EXCLUDED.salary,
                     location = EXCLUDED.location,
                     description = EXCLUDED.description,
                     collected_at = NOW()
@@ -174,7 +173,6 @@ def insert_jobs(jobs):
                 job['title'],
                 job['company'],
                 job['location'],
-                job.get('salary'),
                 job['description'],
                 job['url'],
                 job['posted_date'],

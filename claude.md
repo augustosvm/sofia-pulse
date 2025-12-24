@@ -1,7 +1,7 @@
 # 🤖 CLAUDE - Sofia Pulse Context (Current)
 
-**Date**: 2025-12-23
-**Status**: ⚠️ Crontab Fixed - Awaiting First Run
+**Date**: 2025-12-24
+**Status**: ✅ InfoJobs Brasil Collector Active
 
 > [!NOTE]
 > History moved to `CLAUDE_HISTORY.md` due to size.
@@ -85,7 +85,7 @@ npx tsx scripts/collect.ts --all
 | Table | Records | Update Frequency | Status |
 |:---|:---:|:---|:---|
 | `sofia.tech_trends` | 200+ | Hourly | ✅ Active |
-| `sofia.jobs` | 7,848 | Hourly | ✅ Active |
+| `sofia.jobs` | 7,979+ | Hourly | ✅ Active (NEW: +131 InfoJobs) |
 | `sofia.funding_rounds` | 2,577 | Hourly | ✅ Active |
 | `sofia.organizations` | Active | Hourly | ✅ Active |
 | `sofia.industry_signals` | Active | Hourly | ✅ Active |
@@ -104,9 +104,9 @@ npx tsx scripts/collect.ts --all
 - Developer Tools: VSCode, JetBrains
 - Conferences: Confs.tech, Meetup
 
-**Python Bridge** (43 legacy collectors):
+**Python Bridge** (43+ legacy collectors):
 - Security (4), Economic (13), Social/Health (6)
-- Women/Gender (6), Sports (3), Jobs (7), Other (4)
+- Women/Gender (6), Sports (3), Jobs (8 - **NEW: InfoJobs Brasil**), Other (4)
 
 ---
 
@@ -138,6 +138,15 @@ npx tsx scripts/collect.ts --all
 **Feature**: WhatsApp notifications with INSERT counts
 **Implementation**: `run-collectors-with-notifications.sh`
 **Commit**: 57a6e73
+
+### 6. InfoJobs Brasil Web Scraper
+**Feature**: New collector for InfoJobs Brasil job listings
+**Date**: 2025-12-24
+**Implementation**: `scripts/collect-infojobs-web-scraper.py`
+**Coverage**: 131 tech jobs inserted on first run
+**Keywords**: desenvolvedor, programador, python, javascript, react, node, java, engenheiro de software
+**Database**: Uses normalized geographic IDs (country_id, state_id, city_id)
+**Status**: ✅ Production ready
 
 ---
 
@@ -353,7 +362,7 @@ psql -h localhost -U sofia -d sofia_db
 
 ---
 
-*Last Updated: 2025-12-24 01:45 BRT*
+*Last Updated: 2025-12-24 10:45 BRT*
 
 ---
 
@@ -388,4 +397,4 @@ psql -h localhost -U sofia -d sofia_db
 
 ---
 
-*Last Updated: 2025-12-24 01:45 BRT*
+*Last Updated: 2025-12-24 10:45 BRT*
