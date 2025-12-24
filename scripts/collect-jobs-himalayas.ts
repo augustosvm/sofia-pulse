@@ -71,6 +71,8 @@ async function collectHimalayasJobs() {
                 const locations = job.locationRestrictions || ['Remote'];
                 const location = locations.join(', ');
                 const country = locations[0] || 'REMOTE';
+                const city = locations.length > 1 ? locations[1] : null;
+                const state = locations.length > 2 ? locations[2] : null;
                 const isRemote = locations.some(loc => /anywhere|worldwide|remote/i.test(loc));
 
                 // Extract skills from categories
@@ -80,8 +82,10 @@ async function collectHimalayasJobs() {
                 const postedDate = new Date(job.pubDate * 1000);
 
                 // Normalize geographic data
-                const { countryId } = await normalizeLocation(pool, {
-                    country: country
+                const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                    country: country,
+                    state: state,
+                    city: city
                 });
 
                 // Get or create organization
@@ -90,14 +94,15 @@ async function collectHimalayasJobs() {
                 await pool.query(`
           INSERT INTO sofia.jobs (
             job_id, platform, title, company,
-            location, country, country_id, remote_type,
+            location, city, state, country, country_id, state_id, city_id, remote_type,
             description, posted_date, url,
             salary_min, salary_max, salary_currency, salary_period,
             employment_type, skills_required, organization_id, collected_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
             description = EXCLUDED.description,
+            organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
             country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
             salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
             salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
@@ -107,8 +112,12 @@ async function collectHimalayasJobs() {
                     job.title,
                     job.companyName,
                     location,
+                    city,
+                    state,
                     country,
                     countryId,
+                    stateId,
+                    cityId,
                     isRemote ? 'remote' : 'onsite',
                     job.description,
                     postedDate,

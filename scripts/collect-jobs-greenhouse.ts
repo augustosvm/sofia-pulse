@@ -89,7 +89,7 @@ async function collectGreenhouseJobs() {
     let totalProcessed = 0;
 
     // Cache for normalized locations to avoid repeated queries
-    const locationCache = new Map<string, { countryId: number | null; cityId: number | null }>();
+    const locationCache = new Map<string, { countryId: number | null; stateId: number | null; cityId: number | null }>();
 
     for (const company of COMPANIES) {
         try {
@@ -125,8 +125,9 @@ async function collectGreenhouseJobs() {
                         const locationName = job.location?.name || 'Remote';
                         const locationParts = locationName.split(',').map(s => s.trim());
 
-                        // Parse city and country
+                        // Parse city, state, and country
                         let city: string | null = null;
+                        let state: string | null = null;
                         let country: string | null = null;
 
                         // Handle "Remote - USA", "Hybrid - Luxembourg", etc.
@@ -142,11 +143,13 @@ async function collectGreenhouseJobs() {
                                     const lastPart = parts[parts.length - 1];
 
                                     if (US_STATES.has(lastPart.toUpperCase())) {
+                                        state = lastPart;
                                         country = 'United States';
                                     } else {
                                         country = COUNTRY_ALIASES[lastPart] || lastPart;
                                     }
                                 } else if (US_STATES.has(extracted.toUpperCase())) {
+                                    state = extracted;
                                     country = 'United States';
                                 } else {
                                     country = COUNTRY_ALIASES[extracted] || extracted;
@@ -157,12 +160,14 @@ async function collectGreenhouseJobs() {
                             const lastPart = locationParts[locationParts.length - 1];
 
                             if (US_STATES.has(lastPart.toUpperCase())) {
+                                state = lastPart;
                                 country = 'United States';
                             } else {
                                 country = COUNTRY_ALIASES[lastPart] || lastPart;
                             }
                         } else if (locationParts.length === 1 && !locationName.match(/remote|worldwide|global/i)) {
                             if (US_STATES.has(locationParts[0].toUpperCase())) {
+                                state = locationParts[0];
                                 country = 'United States';
                             } else {
                                 city = locationParts[0];
@@ -181,7 +186,7 @@ async function collectGreenhouseJobs() {
                             : 'full-time';
 
                         // Use cache for normalized locations
-                        const cacheKey = `${country}|${city}`;
+                        const cacheKey = `${country}|${state}|${city}`;
                         let normalizedLocation;
 
                         if (locationCache.has(cacheKey)) {
@@ -189,12 +194,13 @@ async function collectGreenhouseJobs() {
                         } else {
                             normalizedLocation = await normalizeLocation(pool, {
                                 country: country,
+                                state: state,
                                 city: city
                             });
                             locationCache.set(cacheKey, normalizedLocation);
                         }
 
-                        const { countryId, cityId } = normalizedLocation;
+                        const { countryId, stateId, cityId } = normalizedLocation;
 
                         // Get or create organization
                         const organizationId = await getOrCreateOrganization(
@@ -214,8 +220,10 @@ async function collectGreenhouseJobs() {
                             job.company_name,
                             locationName,
                             city,
+                            state,
                             country,
                             countryId,
+                            stateId,
                             cityId,
                             remoteType,
                             job.absolute_url,
@@ -224,9 +232,9 @@ async function collectGreenhouseJobs() {
                             organizationId
                         ];
 
-                        placeholders.push(`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10}, $${paramIndex + 11}, $${paramIndex + 12}, $${paramIndex + 13}, NOW())`);
+                        placeholders.push(`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7}, $${paramIndex + 8}, $${paramIndex + 9}, $${paramIndex + 10}, $${paramIndex + 11}, $${paramIndex + 12}, $${paramIndex + 13}, $${paramIndex + 14}, $${paramIndex + 15}, NOW())`);
                         values.push(...jobValues);
-                        paramIndex += 14;
+                        paramIndex += 16;
 
                     } catch (err: any) {
                         // Skip this job on error
@@ -242,17 +250,19 @@ async function collectGreenhouseJobs() {
                         const result = await pool.query(`
                             INSERT INTO sofia.jobs (
                                 job_id, platform, title, company,
-                                location, city, country, country_id, city_id, remote_type,
+                                location, city, state, country, country_id, state_id, city_id, remote_type,
                                 url, posted_date, employment_type, organization_id, collected_at
                             ) VALUES ${placeholders.join(', ')}
                             ON CONFLICT (job_id, platform) DO UPDATE SET
                                 title = EXCLUDED.title,
                                 location = EXCLUDED.location,
                                 city = EXCLUDED.city,
+                                state = EXCLUDED.state,
                                 organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
                                 country = EXCLUDED.country,
                                 collected_at = NOW(),
                                 country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                                state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
                                 city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
                                 remote_type = EXCLUDED.remote_type,
                                 url = EXCLUDED.url,
@@ -270,8 +280,8 @@ async function collectGreenhouseJobs() {
                                 const result = await pool.query(`
                                     INSERT INTO sofia.jobs (
                                         job_id, platform, title, company,
-                                        location, city, country, country_id, city_id, remote_type,
-                                        url, posted_date, employment_type, collected_at
+                                        location, city, state, country, country_id, state_id, city_id, remote_type,
+                                        url, posted_date, employment_type, organization_id, collected_at
                                     ) VALUES ${placeholders.join(', ')}
                                     ON CONFLICT DO NOTHING
                                 `, values);

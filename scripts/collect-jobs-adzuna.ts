@@ -110,11 +110,13 @@ async function collectAdzunaJobs() {
                             // Extract location details
                             const location = job.location.display_name;
                             const city = job.location.area[0] || null;
+                            const state = job.location.area.length > 2 ? job.location.area[1] : null;
                             const countryName = job.location.area[job.location.area.length - 1] || country.name;
 
                             // Normalize geographic data
                             const { countryId, stateId, cityId } = await normalizeLocation(pool, {
                                 country: countryName,
+                                state: state,
                                 city: city
                             });
 
@@ -132,15 +134,16 @@ async function collectAdzunaJobs() {
                 INSERT INTO sofia.jobs (
                     organization_id,
                   job_id, platform, title, company,
-                  location, city, country,
-                  country_id, city_id,
+                  location, city, state, country,
+                  country_id, state_id, city_id,
                   description, posted_date, url,
                   salary_min, salary_max, salary_currency, salary_period,
                   employment_type, search_keyword, collected_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
                 ON CONFLICT (job_id, platform) DO UPDATE SET
                   collected_at = NOW(),
                   description = EXCLUDED.description,
+                  organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
                   salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
                   salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
               `, [
@@ -151,8 +154,10 @@ async function collectAdzunaJobs() {
                                 job.company.display_name,
                                 location,
                                 city,
+                                state,
                                 countryName,
                                 countryId,
+                                stateId,
                                 cityId,
                                 job.description,
                                 new Date(job.created),
