@@ -84,8 +84,9 @@ async function fetchFromExchangeRateAPI(): Promise<Record<string, number>> {
 
   const response = await axios.get(url, { timeout: 10000 });
 
-  if (response.data.result !== 'success') {
-    throw new Error(`API error: ${response.data['error-type']}`);
+  if (response.data.result !== 'success' || !response.data.conversion_rates) {
+    console.log(`   ⚠️  API error: ${response.data['error-type'] || 'No conversion rates'}`);
+    return {};
   }
 
   console.log(`   ✅ Fetched ${Object.keys(response.data.conversion_rates).length} rates`);
