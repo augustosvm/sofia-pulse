@@ -113,7 +113,7 @@ export class JobsInserter {
         collected_at = NOW()
     `;
 
-    await db.query(query, [
+    const result = await db.query(query, [
       job.job_id,
       job.platform,
       job.title,
@@ -137,6 +137,25 @@ export class JobsInserter {
       job.search_keyword || null,
       organizationId || null,
     ]);
+
+    // Auto-convert salary to USD if currency is provided
+    if (job.salary_currency && (job.salary_min || job.salary_max)) {
+      try {
+        // Get job ID for conversion
+        const jobIdResult = await db.query(`
+          SELECT id FROM sofia.jobs
+          WHERE job_id = $1 AND platform = $2
+        `, [job.job_id, job.platform]);
+
+        if (jobIdResult.rows.length > 0) {
+          const dbJobId = jobIdResult.rows[0].id;
+          await db.query(`SELECT sofia.convert_job_salary_to_usd($1)`, [dbJobId]);
+        }
+      } catch (error) {
+        // Log but don't fail the insert if conversion fails
+        console.error(`   ⚠️  Currency conversion failed for ${job.job_id}:`, error);
+      }
+    }
   }
 
   /**
