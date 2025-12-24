@@ -353,4 +353,39 @@ psql -h localhost -U sofia -d sofia_db
 
 ---
 
-*Last Updated: 2025-12-23 16:59 BRT*
+*Last Updated: 2025-12-24 01:45 BRT*
+
+---
+
+## 🎉 Latest Updates (2025-12-24)
+
+### ✅ Geographic Normalization Complete!
+
+**All 68 collectors now use normalized geographic IDs automatically!**
+
+**What changed:**
+1. ✅ Created `geo-id-helpers.ts` and `geo_id_helpers.py` with intelligent lookup functions
+2. ✅ Updated `geo-helpers.ts/py` to use new lookup functions (no more get_or_create)
+3. ✅ Added UNIQUE constraint to `jobs` table: `(job_id, platform)`
+4. ✅ Normalized 30+ tables with 95%+ coverage
+5. ✅ All collectors automatically inherit normalized IDs via `normalizeLocation()`
+
+**Impact:**
+- 🎯 ZERO individual collector updates needed!
+- 🔒 Prevents duplicate countries/states/cities
+- 📊 All new data uses normalized foreign keys
+- ⚡ Backwards compatible (existing collectors work unchanged)
+
+**Tables Normalized (Coverage):**
+- gender_indicators (874k) → 99.9%
+- women_eurostat_data (808k) → 100%
+- persons (227k) → 100%
+- who_health_data (48k) → 100%
+- world_drugs_data (10k) → 100%
+- + 25 more tables
+
+**Git Commit**: `b2d4deb` - Pushed to master
+
+---
+
+*Last Updated: 2025-12-24 01:45 BRT*
