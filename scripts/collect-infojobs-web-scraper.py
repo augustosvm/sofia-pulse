@@ -14,9 +14,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from datetime import datetime
 
-# Import geo helpers
+# Import helpers
 sys.path.insert(0, str(Path(__file__).parent / 'shared'))
 from geo_helpers import normalize_location
+from org_helpers import get_or_create_organization
 
 load_dotenv()
 
@@ -155,17 +156,28 @@ def insert_jobs(jobs):
                     state_id = get_state_id(cursor, state_name, country_id) if country_id else None
                     city_id = get_city_id(cursor, city_name, state_id, country_id) if state_id and country_id else None
 
+            # Get or create organization
+            organization_id = get_or_create_organization(
+                cursor,
+                job['company'],
+                company_url=None,  # InfoJobs doesn't provide company URLs
+                location=job['location'],
+                country='Brazil',
+                source='infojobs-br'
+            )
+
             cursor.execute("""
                 INSERT INTO sofia.jobs (
                     job_id, platform, title, company, location,
                     description, url, posted_date, collected_at,
-                    country_id, state_id, city_id
+                    country_id, state_id, city_id, organization_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s, %s)
                 ON CONFLICT (job_id, platform) DO UPDATE SET
                     title = EXCLUDED.title,
                     location = EXCLUDED.location,
                     description = EXCLUDED.description,
+                    organization_id = EXCLUDED.organization_id,
                     collected_at = NOW()
             """, (
                 job['job_id'],
@@ -178,7 +190,8 @@ def insert_jobs(jobs):
                 job['posted_date'],
                 country_id,
                 state_id,
-                city_id
+                city_id,
+                organization_id
             ))
 
             inserted += 1
