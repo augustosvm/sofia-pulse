@@ -9,6 +9,7 @@ import axios from 'axios';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 
@@ -141,23 +142,36 @@ async function collectArbeitnowJobs() {
                     job.job_types.includes('part_time') ? 'part-time' :
                         'contract';
 
-                // Normalize geographic data
-                const { countryId, cityId } = await normalizeLocation(pool, {
+                // Normalize geographic data (European jobs usually don't have states)
+                const { countryId, stateId, cityId } = await normalizeLocation(pool, {
                     country: country,
+                    state: null,
                     city: city
                 });
+
+                // Get or create organization
+                const organizationId = await getOrCreateOrganization(
+                    pool,
+                    job.company_name,
+                    null,
+                    job.location,
+                    country,
+                    'arbeitnow'
+                );
 
                 await pool.query(`
           INSERT INTO sofia.jobs (
             job_id, platform, title, company,
-            location, city, country, country_id, city_id, remote_type,
+            location, city, state, country, country_id, state_id, city_id, remote_type,
             description, posted_date, url,
-            employment_type, skills_required, collected_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+            employment_type, skills_required, organization_id, collected_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
             description = EXCLUDED.description,
+            organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
             country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+            state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
             city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
         `, [
                     job.slug,
@@ -166,15 +180,18 @@ async function collectArbeitnowJobs() {
                     job.company_name,
                     job.location,
                     city,
+                    null, // state (European jobs don't have states)
                     country,
                     countryId,
+                    stateId,
                     cityId,
                     remoteType,
                     job.description,
                     new Date(job.created_at * 1000), // Unix timestamp to Date
                     job.url,
                     employmentType,
-                    skills.length > 0 ? skills : null
+                    skills.length > 0 ? skills : null,
+                    organizationId
                 ]);
 
                 totalCollected++;
