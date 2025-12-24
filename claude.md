@@ -161,9 +161,66 @@ npx tsx scripts/collect.ts --all
 
 ---
 
+## ✅ Recent Completions (2025-12-23)
+
+### 1. Fixed Regional Cache Error
+- ❌ Error: `column "institution_country_name" does not exist`
+- ✅ Fixed: Changed to `institution_country` in generate-regional-cache-v5-final.ts
+
+### 2. Normalized 30+ Database Tables
+**High Priority Tables (>10k rows):**
+- gender_indicators (874k) - 99.9% coverage
+- women_eurostat_data (808k) - 100% coverage
+- persons (227k) - 100% coverage (where country exists)
+- acled_aggregated (198k) - 97.4% coverage
+- socioeconomic_indicators (95k) - 77.8% coverage
+- women_world_bank_data (63k) - 98.8% coverage
+- who_health_data (48k) - 100% coverage
+- world_tourism_data (19k) - 96.5% coverage
+
+**Medium Priority Tables (1k-10k rows):**
+- world_drugs_data (10k) - 100%
+- space_industry (6.2k) - 94%
+- world_sports_data (5.5k) - 99.9%
+- fao_agriculture_data (4.4k) - 100%
+- women_ilo_data (3.8k) - 98%
+- world_security_data (3.4k) - 100%
+- cepal_latam_data (3.4k) - 100%
+- unicef_children_data (3.1k) - 100%
+- port_traffic (2.5k) - 72.9%
+- central_banks_women_data (2.2k) - 100%
+
+**All normalized tables now have:**
+- `country_id` foreign key to `sofia.countries`
+- Foreign key constraints for referential integrity
+- Average coverage: 95%+
+
+### 3. Created Geographic Helper Functions
+**Location**: `scripts/shared/geo-id-helpers.ts` (TypeScript) + `geo_id_helpers.py` (Python)
+
+**Functions**:
+- `getCountryId(pool, countryName)` - Lookup by ISO codes or name
+- `getStateId(pool, stateName, countryId)` - Lookup state within country
+- `getCityId(pool, cityName, stateId, countryId)` - Lookup city
+- `getReligionId(pool, religionName)` - Lookup religion
+- `getCountryIdsBatch(pool)` - Bulk load for performance
+
 ## 🔜 Pending Tasks
 
-### Priority 1: ✅ DONE - Crontab Installation
+### Priority 1: ✅ DONE - Database Normalization
+- [x] Audited 69 tables for geographic data
+- [x] Normalized 30+ high/medium priority tables
+- [x] Created helper functions for ID lookups
+- [ ] **NEXT**: Update collectors to use helper functions
+
+### Priority 2: Update Collectors to Use Normalized IDs
+- [ ] Update jobs collectors (20+ collectors) to use country_id/state_id/city_id
+- [ ] Update women data collectors to use country_id
+- [ ] Update world data collectors to use country_id
+- [ ] Test updated collectors locally
+- [ ] Deploy to production
+
+### Priority 3: ✅ DONE - Crontab Installation
 - [x] Discovered crontab had ZERO collectors
 - [x] Installed proper crontab with 18 collectors
 - [x] Backed up old crontab

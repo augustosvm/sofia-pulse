@@ -246,7 +246,7 @@ async function generateRegionalCache() {
     // Universities
     console.log('  🎓 University papers...');
     const univPapers = await pool.query(`
-      SELECT id, institution_country_name, research_areas
+      SELECT id, institution_country, research_areas
       FROM sofia.global_research_institutions
       WHERE publication_year >= 2023
     `);
@@ -258,8 +258,8 @@ async function generateRegionalCache() {
       regionPapers.world.add(paper.id);
       if (areas.length > 0) regionTags.world.push(...areas);
 
-      if (paper.institution_country_name) {
-        const region = normalizeCountryToRegion(paper.institution_country_name);
+      if (paper.institution_country) {
+        const region = normalizeCountryToRegion(paper.institution_country);
         if (region) {
           regionPapers[region].add(paper.id);
           if (areas.length > 0) regionTags[region].push(...areas);

@@ -1,13 +1,18 @@
 /**
  * Geographic Normalization Helpers for TypeScript
- * Funções para obter/criar países, estados e cidades normalizados
+ * Funções para obter países, estados e cidades normalizados
+ *
+ * UPDATED 2025-12-23: Now uses normalized lookup functions instead of get_or_create
+ * This prevents duplicates and ensures referential integrity with normalized tables.
  */
 
 import { Pool } from 'pg';
+import { getCountryId, getStateId, getCityId } from './geo-id-helpers.js';
 
 /**
- * Obtém ou cria um país normalizado
- * Usa a função SQL get_or_create_country()
+ * Obtém um país normalizado da tabela sofia.countries
+ * Tenta múltiplas estratégias: ISO codes, nome comum, etc.
+ * NÃO cria novos registros - apenas faz lookup
  */
 export async function getOrCreateCountry(
     pool: Pool,
@@ -17,21 +22,14 @@ export async function getOrCreateCountry(
         return null;
     }
 
-    try {
-        const result = await pool.query(
-            'SELECT get_or_create_country($1) as country_id',
-            [countryName.trim()]
-        );
-        return result.rows[0]?.country_id || null;
-    } catch (error) {
-        console.error(`Erro ao normalizar país "${countryName}":`, error);
-        return null;
-    }
+    // Use new lookup function that tries ISO codes and names
+    return await getCountryId(pool, countryName.trim());
 }
 
 /**
- * Obtém ou cria um estado normalizado
- * Usa a função SQL get_or_create_state()
+ * Obtém um estado normalizado da tabela sofia.states
+ * Busca por código (2 letras) ou nome dentro do país especificado
+ * NÃO cria novos registros - apenas faz lookup
  */
 export async function getOrCreateState(
     pool: Pool,
@@ -42,21 +40,14 @@ export async function getOrCreateState(
         return null;
     }
 
-    try {
-        const result = await pool.query(
-            'SELECT get_or_create_state($1, $2) as state_id',
-            [stateName.trim(), countryId]
-        );
-        return result.rows[0]?.state_id || null;
-    } catch (error) {
-        console.error(`Erro ao normalizar estado "${stateName}":`, error);
-        return null;
-    }
+    // Use new lookup function that tries state code and name
+    return await getStateId(pool, stateName.trim(), countryId);
 }
 
 /**
- * Obtém ou cria uma cidade normalizada
- * Usa a função SQL get_or_create_city()
+ * Obtém uma cidade normalizada da tabela sofia.cities
+ * Busca por nome dentro do estado/país especificado
+ * NÃO cria novos registros - apenas faz lookup
  */
 export async function getOrCreateCity(
     pool: Pool,
@@ -68,16 +59,8 @@ export async function getOrCreateCity(
         return null;
     }
 
-    try {
-        const result = await pool.query(
-            'SELECT get_or_create_city($1, $2, $3) as city_id',
-            [cityName.trim(), stateId, countryId]
-        );
-        return result.rows[0]?.city_id || null;
-    } catch (error) {
-        console.error(`Erro ao normalizar cidade "${cityName}":`, error);
-        return null;
-    }
+    // Use new lookup function that tries with state_id and country_id
+    return await getCityId(pool, cityName.trim(), stateId, countryId);
 }
 
 /**
