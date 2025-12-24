@@ -77,11 +77,25 @@ def scrape_infojobs(keyword, max_pages=3):
                     if job_url and not job_url.startswith('http'):
                         job_url = 'https://www.infojobs.com.br' + job_url
 
-                    # Empresa - procurar múltiplos seletores
-                    company_elem = item.find(string=lambda text: text and ('empresa' in text.lower() or 'company' in text.lower()))
-                    if not company_elem:
-                        company_elem = item.find('span', class_=lambda x: x and 'company' in str(x).lower())
-                    company = company_elem.get_text(strip=True) if company_elem and hasattr(company_elem, 'get_text') else company_elem.strip() if company_elem else 'Não informado'
+                    # Empresa - procurar no container de informações da empresa
+                    # A empresa está em <a class="text-body text-decoration-none">
+                    # Pegar o texto completo, ignorando spans internos
+                    company_elem = item.find('a', class_='text-body text-decoration-none')
+
+                    if company_elem:
+                        # Pegar todo o texto do link
+                        company = company_elem.get_text(strip=True)
+                    else:
+                        company = 'Não informado'
+
+                    # Limpar textos indesejados
+                    if company and len(company) > 100:
+                        # Se o texto é muito longo, provavelmente pegou coisa errada
+                        company = 'Não informado'
+
+                    # Normalizar "Empresa confidencial" -> "Confidencial"
+                    if 'empresaconfidencial' in company.lower().replace(' ', ''):
+                        company = 'Confidencial'
 
                     # Localização - tentar múltiplos seletores
                     location_elem = item.find('span', class_='location') or \
