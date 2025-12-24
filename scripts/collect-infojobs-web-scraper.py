@@ -56,27 +56,31 @@ def scrape_infojobs(keyword, max_pages=3):
             soup = BeautifulSoup(response.text, 'html.parser')
 
             # Encontrar listagem de vagas
-            job_items = soup.find_all('div', class_='element-offer') or \
-                       soup.find_all('article', class_='js-offer-item')
+            job_items = soup.find_all('div', class_='js_vacancyLoad')
 
             print(f"   ✅ Encontrados {len(job_items)} anúncios")
 
             for item in job_items:
                 try:
-                    # Título
-                    title_elem = item.find('h2') or item.find('a', class_='js-offer-title')
+                    # Título e URL
+                    title_elem = item.find('h2') or item.find('h3') or item.find('a')
                     if not title_elem:
                         continue
 
                     title = title_elem.get_text(strip=True)
-                    job_url = title_elem.find('a')['href'] if title_elem.find('a') else ''
 
-                    if not job_url.startswith('http'):
+                    # URL - procurar link
+                    link_elem = item.find('a', href=True)
+                    job_url = link_elem['href'] if link_elem else ''
+
+                    if job_url and not job_url.startswith('http'):
                         job_url = 'https://www.infojobs.com.br' + job_url
 
-                    # Empresa
-                    company_elem = item.find('a', class_='js-offer-company')
-                    company = company_elem.get_text(strip=True) if company_elem else 'Não informado'
+                    # Empresa - procurar múltiplos seletores
+                    company_elem = item.find(string=lambda text: text and ('empresa' in text.lower() or 'company' in text.lower()))
+                    if not company_elem:
+                        company_elem = item.find('span', class_=lambda x: x and 'company' in str(x).lower())
+                    company = company_elem.get_text(strip=True) if company_elem and hasattr(company_elem, 'get_text') else company_elem.strip() if company_elem else 'Não informado'
 
                     # Localização - tentar múltiplos seletores
                     location_elem = item.find('span', class_='location') or \
