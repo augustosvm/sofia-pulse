@@ -139,7 +139,7 @@ async function collectAdzunaJobs() {
                   description, posted_date, url,
                   salary_min, salary_max, salary_currency, salary_period,
                   employment_type, search_keyword, collected_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
                 ON CONFLICT (job_id, platform) DO UPDATE SET
                   collected_at = NOW(),
                   description = EXCLUDED.description,
