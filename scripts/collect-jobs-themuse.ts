@@ -8,6 +8,7 @@ import axios from 'axios';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 
@@ -141,19 +142,22 @@ async function collectTheMuseJobs() {
                         const location = job.locations[0]?.name || 'Remote';
                         const locationParts = location.split(',').map(s => s.trim());
                         const city = locationParts[0] || null;
+                        let state: string | null = null;
 
-                        // Determine country
+                        // Determine country and state
                         let country = 'United States'; // Default for TheMuse (primarily US jobs)
                         if (locationParts.length > 1) {
                             const lastPart = locationParts[locationParts.length - 1];
                             // Check if last part is a US state code
                             if (US_STATES.has(lastPart.toUpperCase())) {
+                                state = lastPart;
                                 country = 'United States';
                             } else {
                                 country = lastPart; // Assume it's a country name
                             }
                         } else if (location && US_STATES.has(location.toUpperCase())) {
                             // Single part is a US state code
+                            state = location;
                             country = 'United States';
                         } else if (!/remote|flexible|anywhere/i.test(location)) {
                             // Single part, not a state, not remote → might be a country
@@ -177,24 +181,37 @@ async function collectTheMuseJobs() {
                         const salary = extractSalaryFromDescription(job.contents);
 
                         // Normalize geographic data
-                        const { countryId, cityId } = await normalizeLocation(pool, {
+                        const { countryId, stateId, cityId } = await normalizeLocation(pool, {
                             country: country,
+                            state: state,
                             city: city
                         });
+
+                        // Get or create organization
+                        const organizationId = await getOrCreateOrganization(
+                            pool,
+                            job.company.name,
+                            null,
+                            location,
+                            country,
+                            'themuse'
+                        );
 
                         await pool.query(`
               INSERT INTO sofia.jobs (
                 job_id, platform, title, company,
-                location, city, country, country_id, city_id, remote_type,
+                location, city, state, country, country_id, state_id, city_id, remote_type,
                 description, posted_date, url,
                 salary_min, salary_max, salary_currency, salary_period,
                 seniority_level, skills_required, search_keyword,
-                collected_at
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
+                organization_id, collected_at
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
               ON CONFLICT (job_id, platform) DO UPDATE SET
                 collected_at = NOW(),
                 description = EXCLUDED.description,
+                organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
                 country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
                 city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
                 salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
                 salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
@@ -205,8 +222,10 @@ async function collectTheMuseJobs() {
                             job.company.name,
                             location,
                             city,
+                            state,
                             country,
                             countryId,
+                            stateId,
                             cityId,
                             remoteType,
                             job.contents,
@@ -218,7 +237,8 @@ async function collectTheMuseJobs() {
                             salary.period,
                             seniorityLevel,
                             skills.length > 0 ? skills : null,
-                            category
+                            category,
+                            organizationId
                         ]);
 
                         totalCollected++;
