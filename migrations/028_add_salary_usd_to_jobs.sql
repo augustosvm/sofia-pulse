@@ -58,7 +58,12 @@ BEGIN
     FROM sofia.jobs
     WHERE id = p_job_id;
 
-    -- Skip if no currency or already USD
+    -- Skip if no salary values at all
+    IF v_min IS NULL AND v_max IS NULL THEN
+        RETURN;
+    END IF;
+
+    -- If currency is USD or NULL, just copy values
     IF v_currency IS NULL OR UPPER(v_currency) = 'USD' THEN
         UPDATE sofia.jobs
         SET salary_min_usd = v_min,
