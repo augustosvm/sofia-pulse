@@ -9,6 +9,7 @@ import axios from 'axios';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { normalizeLocation } from './shared/geo-helpers.js';
+import { getOrCreateOrganization } from './shared/org-helpers.js';
 
 dotenv.config();
 
@@ -97,20 +98,33 @@ async function collectFindworkJobs() {
                     const city = null;
 
                     // Normalize geographic data (will be NULL for remote)
-                    const { countryId, cityId } = await normalizeLocation(pool, {
+                    const { countryId, stateId, cityId } = await normalizeLocation(pool, {
                         country: country,
+                        state: null,
                         city: city
                     });
+
+                    // Get or create organization
+                    const organizationId = await getOrCreateOrganization(
+                        pool,
+                        company,
+                        null,
+                        location,
+                        country,
+                        'findwork'
+                    );
 
                     await pool.query(`
                         INSERT INTO sofia.jobs (
                             job_id, platform, title, company,
-                            location, city, country, country_id, city_id, remote_type,
-                            url, search_keyword, collected_at
-                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+                            location, city, state, country, country_id, state_id, city_id, remote_type,
+                            url, search_keyword, organization_id, collected_at
+                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
                         ON CONFLICT (job_id, platform) DO UPDATE SET
                             collected_at = NOW(),
+                            organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
                             country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                            state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
                             city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
                     `, [
                         `findwork-${job.id}`,
@@ -119,12 +133,15 @@ async function collectFindworkJobs() {
                         company,
                         location,
                         city,
+                        null, // state
                         country,
                         countryId,
+                        stateId,
                         cityId,
                         'remote',
                         `https://findwork.dev/${job.id}/${job.slug}`,
-                        query
+                        query,
+                        organizationId
                     ]);
 
                     totalCollected++;
