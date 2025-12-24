@@ -11,6 +11,15 @@ import { normalizeLocation } from './shared/geo-helpers.js';
 
 dotenv.config();
 
+// US State codes mapping (TheMuse is primarily US jobs)
+const US_STATES = new Set([
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
+]);
+
 const dbConfig = {
     host: process.env.POSTGRES_HOST || 'localhost',
     port: parseInt(process.env.POSTGRES_PORT || '5432'),
@@ -132,7 +141,24 @@ async function collectTheMuseJobs() {
                         const location = job.locations[0]?.name || 'Remote';
                         const locationParts = location.split(',').map(s => s.trim());
                         const city = locationParts[0] || null;
-                        const country = locationParts[locationParts.length - 1] || 'USA';
+
+                        // Determine country
+                        let country = 'United States'; // Default for TheMuse (primarily US jobs)
+                        if (locationParts.length > 1) {
+                            const lastPart = locationParts[locationParts.length - 1];
+                            // Check if last part is a US state code
+                            if (US_STATES.has(lastPart.toUpperCase())) {
+                                country = 'United States';
+                            } else {
+                                country = lastPart; // Assume it's a country name
+                            }
+                        } else if (location && US_STATES.has(location.toUpperCase())) {
+                            // Single part is a US state code
+                            country = 'United States';
+                        } else if (!/remote|flexible|anywhere/i.test(location)) {
+                            // Single part, not a state, not remote → might be a country
+                            country = location;
+                        }
 
                         // Detect remote
                         const isRemote = /remote|anywhere|flexible/i.test(location);
@@ -168,6 +194,8 @@ async function collectTheMuseJobs() {
               ON CONFLICT (job_id, platform) DO UPDATE SET
                 collected_at = NOW(),
                 description = EXCLUDED.description,
+                country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
                 salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
                 salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
             `, [

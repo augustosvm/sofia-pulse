@@ -12,6 +12,57 @@ import { normalizeLocation } from './shared/geo-helpers.js';
 
 dotenv.config();
 
+// Map of European cities to countries (Arbeitnow is mainly European jobs)
+const CITY_TO_COUNTRY: Record<string, string> = {
+    // Germany (most common in Arbeitnow)
+    'Berlin': 'Germany', 'Munich': 'Germany', 'Hamburg': 'Germany', 'Frankfurt': 'Germany',
+    'Cologne': 'Germany', 'Stuttgart': 'Germany', 'Düsseldorf': 'Germany', 'Dortmund': 'Germany',
+    'Essen': 'Germany', 'Leipzig': 'Germany', 'Bremen': 'Germany', 'Dresden': 'Germany',
+    'Hanover': 'Germany', 'Nuremberg': 'Germany', 'Duisburg': 'Germany', 'Bochum': 'Germany',
+    'Wuppertal': 'Germany', 'Bielefeld': 'Germany', 'Bonn': 'Germany', 'Münster': 'Germany',
+    'Karlsruhe': 'Germany', 'Mannheim': 'Germany', 'Augsburg': 'Germany', 'Wiesbaden': 'Germany',
+    'Gelsenkirchen': 'Germany', 'Mönchengladbach': 'Germany', 'Braunschweig': 'Germany',
+    'Chemnitz': 'Germany', 'Kiel': 'Germany', 'Aachen': 'Germany', 'Halle': 'Germany',
+    'Magdeburg': 'Germany', 'Freiburg': 'Germany', 'Krefeld': 'Germany', 'Lübeck': 'Germany',
+    'Mainz': 'Germany', 'Erfurt': 'Germany', 'Rostock': 'Germany', 'Kassel': 'Germany',
+    'Hagen': 'Germany', 'Potsdam': 'Germany', 'Saarbrücken': 'Germany', 'Hamm': 'Germany',
+    'Mülheim': 'Germany', 'Ludwigshafen': 'Germany', 'Oldenburg': 'Germany', 'Leverkusen': 'Germany',
+    'Osnabrück': 'Germany', 'Solingen': 'Germany', 'Heidelberg': 'Germany', 'Darmstadt': 'Germany',
+    'Regensburg': 'Germany', 'Ingolstadt': 'Germany', 'Würzburg': 'Germany', 'Fürth': 'Germany',
+    'Wolfsburg': 'Germany', 'Ulm': 'Germany', 'Heilbronn': 'Germany', 'Pforzheim': 'Germany',
+    'Göttingen': 'Germany', 'Bottrop': 'Germany', 'Trier': 'Germany', 'Recklinghausen': 'Germany',
+    'Bremerhaven': 'Germany', 'Koblenz': 'Germany', 'Bergisch Gladbach': 'Germany',
+    'Reutlingen': 'Germany', 'Jena': 'Germany', 'Remscheid': 'Germany', 'Erlangen': 'Germany',
+    'Moers': 'Germany', 'Siegen': 'Germany', 'Hildesheim': 'Germany', 'Salzgitter': 'Germany',
+    'Gütersloh': 'Germany', 'Ditzingen': 'Germany', 'Unterschleißheim': 'Germany',
+    'Tübingen': 'Germany', 'Neuss': 'Germany',
+
+    // Netherlands
+    'Amsterdam': 'Netherlands', 'Rotterdam': 'Netherlands', 'The Hague': 'Netherlands',
+    'Utrecht': 'Netherlands', 'Eindhoven': 'Netherlands', 'Tilburg': 'Netherlands',
+    'Groningen': 'Netherlands', 'Almere': 'Netherlands', 'Breda': 'Netherlands',
+
+    // UK
+    'London': 'United Kingdom', 'Manchester': 'United Kingdom', 'Birmingham': 'United Kingdom',
+    'Leeds': 'United Kingdom', 'Glasgow': 'United Kingdom', 'Liverpool': 'United Kingdom',
+    'Edinburgh': 'United Kingdom', 'Bristol': 'United Kingdom', 'Cambridge': 'United Kingdom',
+    'Oxford': 'United Kingdom',
+
+    // France
+    'Paris': 'France', 'Lyon': 'France', 'Marseille': 'France', 'Toulouse': 'France',
+    'Nice': 'France', 'Nantes': 'France', 'Strasbourg': 'France', 'Montpellier': 'France',
+
+    // Spain
+    'Madrid': 'Spain', 'Barcelona': 'Spain', 'Valencia': 'Spain', 'Seville': 'Spain',
+    'Bilbao': 'Spain', 'Malaga': 'Spain',
+
+    // Others
+    'Vienna': 'Austria', 'Zurich': 'Switzerland', 'Geneva': 'Switzerland',
+    'Brussels': 'Belgium', 'Copenhagen': 'Denmark', 'Stockholm': 'Sweden',
+    'Oslo': 'Norway', 'Helsinki': 'Finland', 'Dublin': 'Ireland',
+    'Prague': 'Czech Republic', 'Warsaw': 'Poland', 'Budapest': 'Hungary',
+};
+
 const dbConfig = {
     host: process.env.POSTGRES_HOST || 'localhost',
     port: parseInt(process.env.POSTGRES_PORT || '5432'),
@@ -58,7 +109,19 @@ async function collectArbeitnowJobs() {
                 // Extract location details
                 const locationParts = job.location.split(',').map(s => s.trim());
                 const city = locationParts[0] || null;
-                const country = locationParts[locationParts.length - 1] || null;
+
+                // Determine country
+                let country: string | null = null;
+                if (locationParts.length > 1) {
+                    // Has comma: last part is likely the country
+                    country = locationParts[locationParts.length - 1];
+                } else if (city && CITY_TO_COUNTRY[city]) {
+                    // Single word: lookup in city map
+                    country = CITY_TO_COUNTRY[city];
+                } else {
+                    // Unknown single-word location: assume Germany (Arbeitnow's main market)
+                    country = 'Germany';
+                }
 
                 // Determine remote type
                 let remoteType = 'onsite';
@@ -93,7 +156,9 @@ async function collectArbeitnowJobs() {
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
           ON CONFLICT (job_id, platform) DO UPDATE SET
             collected_at = NOW(),
-            description = EXCLUDED.description
+            description = EXCLUDED.description,
+            country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+            city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
         `, [
                     job.slug,
                     'arbeitnow',
