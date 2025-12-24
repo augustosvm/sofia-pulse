@@ -1,7 +1,7 @@
 # 🤖 CLAUDE - Sofia Pulse Context (Current)
 
 **Date**: 2025-12-24
-**Status**: ✅ InfoJobs Brasil Collector Active
+**Status**: ✅ Jobs→Organizations Integration Complete
 
 > [!NOTE]
 > History moved to `CLAUDE_HISTORY.md` due to size.
@@ -85,9 +85,9 @@ npx tsx scripts/collect.ts --all
 | Table | Records | Update Frequency | Status |
 |:---|:---:|:---|:---|
 | `sofia.tech_trends` | 200+ | Hourly | ✅ Active |
-| `sofia.jobs` | 7,979+ | Hourly | ✅ Active (NEW: +131 InfoJobs) |
+| `sofia.jobs` | 8,100+ | Hourly | ✅ Active (+134 InfoJobs, 97 linked to orgs) |
+| `sofia.organizations` | 2,300+ | Dynamic | ✅ Active (+73 from InfoJobs) |
 | `sofia.funding_rounds` | 2,577 | Hourly | ✅ Active |
-| `sofia.organizations` | Active | Hourly | ✅ Active |
 | `sofia.industry_signals` | Active | Hourly | ✅ Active |
 | `sofia.comexstat_trade` | 1,596 | - | ⚠️ Not updating |
 | `sofia.fiesp_sensor` | 234 | - | ⚠️ Not updating |
@@ -106,7 +106,8 @@ npx tsx scripts/collect.ts --all
 
 **Python Bridge** (43+ legacy collectors):
 - Security (4), Economic (13), Social/Health (6)
-- Women/Gender (6), Sports (3), Jobs (8 - **NEW: InfoJobs Brasil**), Other (4)
+- Women/Gender (6), Sports (3), Jobs (8 - **InfoJobs Brasil ✅**), Other (4)
+- **All jobs now auto-link to organizations table**
 
 ---
 
@@ -143,10 +144,27 @@ npx tsx scripts/collect.ts --all
 **Feature**: New collector for InfoJobs Brasil job listings
 **Date**: 2025-12-24
 **Implementation**: `scripts/collect-infojobs-web-scraper.py`
-**Coverage**: 131 tech jobs inserted on first run
+**Coverage**: 134 tech jobs inserted, 97 linked to 73 unique companies
 **Keywords**: desenvolvedor, programador, python, javascript, react, node, java, engenheiro de software
 **Database**: Uses normalized geographic IDs (country_id, state_id, city_id)
 **Status**: ✅ Production ready
+
+### 7. Jobs→Organizations Integration
+**Feature**: All job collectors now automatically link companies to normalized organizations table
+**Date**: 2025-12-24
+**Impact**: 🏢 No duplicate companies, 📊 Track hiring trends, 🔗 Link jobs+funding+tech trends
+**Implementation**:
+  - Migration `025_add_organization_id_to_jobs.sql` - Added organization_id column
+  - Migration `026_fix_get_or_create_organization.sql` - SQL function adapted to production schema
+  - `scripts/shared/org-helpers.ts` - TypeScript helper functions
+  - `scripts/shared/org_helpers.py` - Python helper functions
+  - `scripts/shared/jobs-inserter.ts` - Auto-links ALL jobs to organizations
+**Results**:
+  - ✅ InfoJobs: 97/134 jobs linked to 73 unique companies
+  - ✅ Top hiring: MOBLY (5 jobs), MANPOWER (5 jobs), EASYHUNTER (3 jobs)
+  - ✅ Auto-deduplication via normalized_name
+  - ✅ Company metadata stored in JSONB (url, location, country)
+**Status**: ✅ Production active - ALL job collectors inherit this feature
 
 ---
 
@@ -362,7 +380,7 @@ psql -h localhost -U sofia -d sofia_db
 
 ---
 
-*Last Updated: 2025-12-24 10:45 BRT*
+*Last Updated: 2025-12-24 15:30 BRT*
 
 ---
 
@@ -397,4 +415,4 @@ psql -h localhost -U sofia -d sofia_db
 
 ---
 
-*Last Updated: 2025-12-24 10:45 BRT*
+*Last Updated: 2025-12-24 15:30 BRT*
