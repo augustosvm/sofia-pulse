@@ -48,6 +48,12 @@ export interface FundingCollectorConfig {
   /** Rate limiter a usar ('github', 'reddit', etc.) ou tempo em ms */
   rateLimit?: keyof typeof rateLimiters | number;
 
+  /** HTTP method (default: 'GET') */
+  method?: 'GET' | 'POST';
+
+  /** GraphQL query for GraphQL APIs (requires method: 'POST') */
+  graphqlQuery?: string;
+
   /** Função que parseia a resposta da API e retorna FundingRoundData[] */
   parseResponse: (data: any, env: NodeJS.ProcessEnv) => FundingRoundData[] | Promise<FundingRoundData[]>;
 
@@ -149,15 +155,26 @@ export class FundingCollector {
         validateStatus: (status) => status >= 200 && status < 500,
       };
 
+      const method = config.method || 'GET';
+      const requestData = config.graphqlQuery ? { query: config.graphqlQuery } : undefined;
+
       if (config.rateLimit && typeof config.rateLimit === 'string' && config.rateLimit in rateLimiters) {
         // Usa rate limiter específico
-        response = await rateLimiters[config.rateLimit as keyof typeof rateLimiters].get(url, requestConfig);
+        if (method === 'POST') {
+          response = await rateLimiters[config.rateLimit as keyof typeof rateLimiters].post(url, requestData, requestConfig);
+        } else {
+          response = await rateLimiters[config.rateLimit as keyof typeof rateLimiters].get(url, requestConfig);
+        }
       } else {
         // Request direto (com delay opcional)
         if (config.rateLimit && typeof config.rateLimit === 'number') {
           await this.delay(config.rateLimit);
         }
-        response = await axios.get(url, requestConfig);
+        if (method === 'POST') {
+          response = await axios.post(url, requestData, requestConfig);
+        } else {
+          response = await axios.get(url, requestConfig);
+        }
       }
 
       if (response.status !== 200) {

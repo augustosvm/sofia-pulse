@@ -55,6 +55,38 @@ export const productHunt: FundingCollectorConfig = {
   name: 'producthunt',
   displayName: '🔥 Product Hunt Launches',
   url: 'https://api.producthunt.com/v2/api/graphql',
+  method: 'POST',
+  graphqlQuery: `
+    query {
+      posts(first: 50, order: VOTES) {
+        edges {
+          node {
+            id
+            name
+            tagline
+            description
+            website
+            votesCount
+            createdAt
+            topics {
+              edges {
+                node {
+                  name
+                }
+              }
+            }
+            makers {
+              edges {
+                node {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `,
   headers: (env) => ({
     'Authorization': `Bearer ${env.PRODUCTHUNT_TOKEN}`,
     'Content-Type': 'application/json',
