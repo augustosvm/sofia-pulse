@@ -75,13 +75,6 @@ export const productHunt: FundingCollectorConfig = {
                 }
               }
             }
-            makers {
-              edges {
-                node {
-                  name
-                }
-              }
-            }
           }
         }
       }
@@ -94,6 +87,11 @@ export const productHunt: FundingCollectorConfig = {
   timeout: 30000,
   parseResponse: async (data) => {
     // Product Hunt GraphQL response parsing
+    if (data?.errors) {
+      console.log(`   ❌ GraphQL Errors:`, JSON.stringify(data.errors, null, 2));
+      return [];
+    }
+
     const posts = data?.data?.posts?.edges || [];
 
     return posts.map((edge: any) => {
@@ -109,7 +107,6 @@ export const productHunt: FundingCollectorConfig = {
         source: 'producthunt',
         metadata: {
           votes: post.votesCount || 0,
-          makers: post.makers?.edges?.map((m: any) => m.node.name) || [],
         },
       };
     });
