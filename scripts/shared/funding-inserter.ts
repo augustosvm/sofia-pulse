@@ -12,6 +12,7 @@
  */
 
 import { Pool, PoolClient } from 'pg';
+import { normalizeLocation } from './geo-helpers.js';
 
 // ============================================================================
 // TYPES
@@ -60,6 +61,22 @@ export class FundingInserter {
     // Validate required fields
     if (!round.company_name) {
       throw new Error('Missing required field: company_name');
+    }
+
+    // Geographic normalization - if IDs not provided but strings are, normalize them
+    if (!round.country_id && round.country) {
+      try {
+        const normalized = await normalizeLocation(this.pool, {
+          country: round.country,
+          state: null,
+          city: round.city || null,
+        });
+        round.country_id = normalized.countryId;
+        round.city_id = normalized.cityId;
+      } catch (error) {
+        // Normalization failed, will use string values only
+        console.log(`   ⚠️  Could not normalize location: ${round.country}`);
+      }
     }
 
     // Prepare investors (array or string)
