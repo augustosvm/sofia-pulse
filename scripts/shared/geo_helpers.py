@@ -10,10 +10,17 @@ from typing import Optional
 import psycopg2
 
 # Support both relative and absolute imports
+# Try different import methods to work in various contexts
 try:
+    # Method 1: Relative import (when used as package)
     from .geo_id_helpers import get_country_id, get_state_id, get_city_id
-except ImportError:
-    from geo_id_helpers import get_country_id, get_state_id, get_city_id
+except (ImportError, ValueError):
+    try:
+        # Method 2: Absolute import from shared package
+        from shared.geo_id_helpers import get_country_id, get_state_id, get_city_id
+    except ImportError:
+        # Method 3: Direct import (when script in same directory)
+        from geo_id_helpers import get_country_id, get_state_id, get_city_id
 
 
 def get_or_create_country(conn, country_name: Optional[str]) -> Optional[int]:
