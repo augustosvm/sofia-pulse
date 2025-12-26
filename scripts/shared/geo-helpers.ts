@@ -4,14 +4,74 @@
  *
  * UPDATED 2025-12-23: Now uses normalized lookup functions instead of get_or_create
  * This prevents duplicates and ensures referential integrity with normalized tables.
+ *
+ * UPDATED 2025-12-26: Added intelligent fallbacks for common mismatches
  */
 
 import { Pool } from 'pg';
 import { getCountryId, getStateId, getCityId } from './geo-id-helpers.js';
 
+// ============================================================================
+// INTELLIGENT FALLBACKS - Maps common mistakes to correct countries
+// ============================================================================
+
+const CITY_TO_COUNTRY: Record<string, string> = {
+  'berlin': 'Germany', 'munich': 'Germany', 'hamburg': 'Germany',
+  'dublin': 'Ireland', 'london': 'United Kingdom', 'manchester': 'United Kingdom',
+  'paris': 'France', 'amsterdam': 'Netherlands', 'barcelona': 'Spain',
+  'bangalore': 'India', 'bengaluru': 'India', 'mumbai': 'India',
+  'singapore': 'Singapore', 'tokyo': 'Japan', 'seoul': 'South Korea',
+  'sydney': 'Australia', 'melbourne': 'Australia',
+  'são paulo': 'Brazil', 'sao paulo': 'Brazil', 'rio de janeiro': 'Brazil',
+  'buenos aires': 'Argentina', 'santiago': 'Chile',
+  'toronto': 'Canada', 'vancouver': 'Canada',
+  'new york': 'United States', 'los angeles': 'United States',
+  'san francisco': 'United States', 'chicago': 'United States',
+};
+
+const STATE_TO_COUNTRY: Record<string, string> = {
+  'california': 'United States', 'texas': 'United States',
+  'florida': 'United States', 'new york': 'United States',
+};
+
+const COUNTRY_ALIASES: Record<string, string> = {
+  'brasil': 'Brazil', 'usa': 'United States', 'us': 'United States',
+  'uk': 'United Kingdom', 'uae': 'United Arab Emirates',
+};
+
+/**
+ * Aplica fallbacks inteligentes para corrigir erros comuns
+ */
+function applyIntelligentFallbacks(countryName: string): string {
+    const normalized = countryName.toLowerCase().trim();
+
+    // Ignore "Remote" and similar
+    if (/^(remote|anywhere|worldwide|global)$/i.test(normalized)) {
+        return '';
+    }
+
+    // Try alias first
+    if (COUNTRY_ALIASES[normalized]) {
+        return COUNTRY_ALIASES[normalized];
+    }
+
+    // Try city to country
+    if (CITY_TO_COUNTRY[normalized]) {
+        return CITY_TO_COUNTRY[normalized];
+    }
+
+    // Try state to country
+    if (STATE_TO_COUNTRY[normalized]) {
+        return STATE_TO_COUNTRY[normalized];
+    }
+
+    // Return original if no fallback found
+    return countryName;
+}
+
 /**
  * Obtém um país normalizado da tabela sofia.countries
- * Tenta múltiplas estratégias: ISO codes, nome comum, etc.
+ * Tenta múltiplas estratégias: ISO codes, nome comum, fallbacks inteligentes
  * NÃO cria novos registros - apenas faz lookup
  */
 export async function getOrCreateCountry(
@@ -22,8 +82,14 @@ export async function getOrCreateCountry(
         return null;
     }
 
+    // Apply intelligent fallbacks first
+    const correctedName = applyIntelligentFallbacks(countryName.trim());
+    if (!correctedName) {
+        return null; // "Remote" etc
+    }
+
     // Use new lookup function that tries ISO codes and names
-    return await getCountryId(pool, countryName.trim());
+    return await getCountryId(pool, correctedName);
 }
 
 /**

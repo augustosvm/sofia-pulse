@@ -4,10 +4,13 @@ Funções para obter países, estados e cidades normalizados
 
 UPDATED 2025-12-23: Now uses normalized lookup functions instead of get_or_create
 This prevents duplicates and ensures referential integrity with normalized tables.
+
+UPDATED 2025-12-26: Added intelligent fallbacks for common mismatches
 """
 
 from typing import Optional
 import psycopg2
+import re
 
 # Support both relative and absolute imports
 # Try different import methods to work in various contexts
@@ -23,18 +26,76 @@ except (ImportError, ValueError):
         from geo_id_helpers import get_country_id, get_state_id, get_city_id
 
 
+# ============================================================================
+# INTELLIGENT FALLBACKS - Maps common mistakes to correct countries
+# ============================================================================
+
+CITY_TO_COUNTRY = {
+    'berlin': 'Germany', 'munich': 'Germany', 'hamburg': 'Germany',
+    'dublin': 'Ireland', 'london': 'United Kingdom', 'manchester': 'United Kingdom',
+    'paris': 'France', 'amsterdam': 'Netherlands', 'barcelona': 'Spain',
+    'bangalore': 'India', 'bengaluru': 'India', 'mumbai': 'India',
+    'singapore': 'Singapore', 'tokyo': 'Japan', 'seoul': 'South Korea',
+    'sydney': 'Australia', 'melbourne': 'Australia',
+    'são paulo': 'Brazil', 'sao paulo': 'Brazil', 'rio de janeiro': 'Brazil',
+    'buenos aires': 'Argentina', 'santiago': 'Chile',
+    'toronto': 'Canada', 'vancouver': 'Canada',
+    'new york': 'United States', 'los angeles': 'United States',
+    'san francisco': 'United States', 'chicago': 'United States',
+}
+
+STATE_TO_COUNTRY = {
+    'california': 'United States', 'texas': 'United States',
+    'florida': 'United States', 'new york': 'United States',
+}
+
+COUNTRY_ALIASES = {
+    'brasil': 'Brazil', 'usa': 'United States', 'us': 'United States',
+    'uk': 'United Kingdom', 'uae': 'United Arab Emirates',
+}
+
+
+def apply_intelligent_fallbacks(country_name: str) -> str:
+    """Aplica fallbacks inteligentes para corrigir erros comuns"""
+    normalized = country_name.lower().strip()
+
+    # Ignore "Remote" and similar
+    if re.match(r'^(remote|anywhere|worldwide|global)$', normalized, re.IGNORECASE):
+        return ''
+
+    # Try alias first
+    if normalized in COUNTRY_ALIASES:
+        return COUNTRY_ALIASES[normalized]
+
+    # Try city to country
+    if normalized in CITY_TO_COUNTRY:
+        return CITY_TO_COUNTRY[normalized]
+
+    # Try state to country
+    if normalized in STATE_TO_COUNTRY:
+        return STATE_TO_COUNTRY[normalized]
+
+    # Return original if no fallback found
+    return country_name
+
+
 def get_or_create_country(conn, country_name: Optional[str]) -> Optional[int]:
     """
     Obtém um país normalizado da tabela sofia.countries
-    Tenta múltiplas estratégias: ISO codes, nome comum, etc.
+    Tenta múltiplas estratégias: ISO codes, nome comum, fallbacks inteligentes
     NÃO cria novos registros - apenas faz lookup
     """
     if not country_name or not country_name.strip():
         return None
 
+    # Apply intelligent fallbacks first
+    corrected_name = apply_intelligent_fallbacks(country_name.strip())
+    if not corrected_name:
+        return None  # "Remote" etc
+
     try:
         with conn.cursor() as cursor:
-            return get_country_id(cursor, country_name.strip())
+            return get_country_id(cursor, corrected_name)
     except Exception as e:
         print(f'Erro ao normalizar país "{country_name}": {e}')
         return None
