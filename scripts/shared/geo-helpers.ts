@@ -148,7 +148,7 @@ const COUNTRY_ALIASES: Record<string, string> = {
   'italia': 'Italy', 'italy': 'Italy',
   // Common abbreviations
   'usa': 'United States', 'us': 'United States', 'uk': 'United Kingdom',
-  'uae': 'United Arab Emirates', 'uae': 'United Arab Emirates',
+  'uae': 'United Arab Emirates',
   // ISO codes that might be misused
   'il': 'Israel', 'nz': 'New Zealand', 'au': 'Australia', 'ca': 'Canada',
   'de': 'Germany', 'fr': 'France', 'nl': 'Netherlands', 'ch': 'Switzerland',
