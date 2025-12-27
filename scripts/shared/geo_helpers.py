@@ -172,6 +172,198 @@ COUNTRY_ALIASES = {
     'cl': 'Chile', 'co': 'Colombia', 'pe': 'Peru', 'za': 'South Africa',
 }
 
+# City name normalization map - Fixes common malformed city names
+# Empty string = filter out (invalid location)
+CITY_NAME_FIXES = {
+    # ========== BRAZIL - Partial/malformed names ==========
+    'paulo': 'São Paulo',
+    'sao paulo': 'São Paulo',
+    'rio': 'Rio de Janeiro',
+    'janeiro': 'Rio de Janeiro',  # "Janeiro" alone → Rio de Janeiro
+    'belo': 'Belo Horizonte',
+    'horizonte': 'Belo Horizonte',  # "Horizonte" alone → Belo Horizonte
+    'bh': 'Belo Horizonte',
+    'poa': 'Porto Alegre',
+    'alegre': 'Porto Alegre',  # "Alegre" alone → Porto Alegre
+    'floripa': 'Florianópolis',
+    'bsb': 'Brasília',
+    'brasilia': 'Brasília',
+    'sampa': 'São Paulo',
+    'sp': 'São Paulo',
+    'rj': 'Rio de Janeiro',
+    # New partial names
+    'andre': 'Santo André',
+    'preto': 'Ribeirão Preto',
+    'campo': 'Campo Grande',
+    'sul': 'Porto Alegre',  # Could be "Rio Grande do Sul" but likely Porto Alegre
+    'leopoldo': 'São Leopoldo',
+    'camboriu': 'Balneário Camboriú',
+
+    # ========== USA - Common variations ==========
+    'san francisco bay area': 'San Francisco',
+    'sf bay area': 'San Francisco',
+    'bay area': 'San Francisco',
+    'nyc': 'New York',
+    'new york city': 'New York',
+    'la': 'Los Angeles',
+    'sf': 'San Francisco',
+    'philly': 'Philadelphia',
+    'dc': 'Washington',
+    'washington dc': 'Washington',
+
+    # ========== INDIA - Alternative spellings ==========
+    'bangalore': 'Bengaluru',
+    'bombay': 'Mumbai',
+    'calcutta': 'Kolkata',
+    'madras': 'Chennai',
+
+    # ========== EUROPE - Alternative names ==========
+    'wien': 'Vienna',
+    'münchen': 'Munich',
+    'muenchen': 'Munich',
+    'köln': 'Cologne',
+    'koeln': 'Cologne',
+    'warszawa': 'Warsaw',
+    'frankfurt am main': 'Frankfurt',
+
+    # ========== COUNTRIES MISTAKEN AS CITIES - Filter out ==========
+    'united states': '',
+    'usa': '',
+    'canada': '',
+    'brasil': '',
+    'brazil': '',
+    'mexico': '',
+    'méxico': '',
+    'india': '',
+    'china': '',
+    'singapore': '',
+    'portugal': '',
+    'españa': '',
+    'spain': '',
+    'france': '',
+    'germany': '',
+    'deutschland': '',
+    'uk': '',
+    'united kingdom': '',
+    'ireland': '',
+    'australia': '',
+    'new zealand': '',
+    'philippines': '',
+    'italy': '',
+    'italia': '',
+    'nederland': '',
+    'netherlands': '',
+    'schweiz': '',
+    'switzerland': '',
+    'österreich': '',
+    'poland': '',
+    'serbia': '',
+    'south africa': '',
+    'japan': '',
+    'korea': '',
+
+    # ========== REMOTE/HYBRID PATTERNS - Filter out ==========
+    'remote': '',
+    'hybrid': '',
+    'in-office': '',
+    'on-site': '',
+    'distributed': '',
+    'flexible / remote': '',
+    'us-remote': '',
+    'remote usa': '',
+    'remote, us': '',
+    'remote, emea': '',
+    'remote, americas': '',
+    'remote, canada; remote, us': '',
+    # Regional patterns
+    'northeast - united states': '',
+    'us': '',  # "US" alone is not a city
+
+    # ========== INVALID/PLACEHOLDER VALUES - Filter out ==========
+    'n/a': '',
+    'na': '',
+    'location': '',
+    'tbd': '',
+    'tba': '',
+    'various': '',
+    'multiple': '',
+    'qualquer lugar': '',  # Portuguese for "anywhere"
+    'latam': '',
+    'emea': '',
+    'apac': '',
+}
+
+
+def normalize_city_name(city_name: str) -> str:
+    """
+    Normaliza nomes de cidades malformados
+    Retorna string vazia se deve ser filtrado (Remote, Hybrid, etc)
+    """
+    normalized = city_name.lower().strip()
+
+    # Filter out empty/null
+    if not normalized:
+        return ''
+
+    # ========== PATTERN 1: Remote work patterns ==========
+    # "Remote", "Remote - USA", "Remote - Canada: Select locations", etc.
+    if re.match(r'^remote[\s\-]', normalized) or re.search(r'[\s\-]remote$', normalized, re.IGNORECASE):
+        return ''
+
+    # "Hybrid", "Hybrid - Luxembourg", "San Francisco; Hybrid", etc.
+    if 'hybrid' in normalized:
+        return ''
+
+    # "Distributed", "Flexible", "In-Office", "On-Site", "Virtual"
+    if re.match(r'^(distributed|flexible|in-office|on-site|virtual|anywhere|worldwide|global)', normalized, re.IGNORECASE):
+        return ''
+
+    # ========== PATTERN 2: Multi-city lists ==========
+    # "Denver, CO;San Francisco, CA;New York, NY;..."
+    # "San Francisco, CA; New York City, NY; Austin, TX"
+    if ';' in normalized or normalized.count(',') >= 3:
+        return ''  # Too many cities, can't pick one
+
+    # ========== PATTERN 3: Invalid placeholders ==========
+    # "LOCATION", "N/A", "TBD", "NA", etc.
+    if re.match(r'^(location|n/a|na|tbd|tba|various|multiple)$', normalized, re.IGNORECASE):
+        return ''
+
+    # Regional aggregations: "LATAM", "EMEA", "APAC"
+    if re.match(r'^(latam|emea|apac|americas|europe|asia)$', normalized, re.IGNORECASE):
+        return ''
+
+    # ========== PATTERN 4: Check exact match in fixes map ==========
+    if normalized in CITY_NAME_FIXES:
+        fixed = CITY_NAME_FIXES[normalized]
+        return fixed  # Could be empty string if it's a filter pattern
+
+    # ========== PATTERN 5: Extract city from "City, State" format ==========
+    # "Charlotte, NC" → "Charlotte"
+    # But NOT "San Francisco, CA; New York" (already filtered above)
+    if ',' in normalized:
+        parts = normalized.split(',')
+        if len(parts) == 2:
+            city_part = parts[0].strip()
+            # Recursively check if the extracted city part is valid
+            clean_city = normalize_city_name(city_part)
+            if clean_city:
+                return clean_city
+
+    # ========== PATTERN 6: Extract city from "City; Hybrid" format ==========
+    # "San Francisco; Hybrid" → "San Francisco"
+    # "Berlin; Hybrid" → "Berlin"
+    if ';' in normalized:
+        parts = normalized.split(';')
+        first_part = parts[0].strip()
+        # Recursively check if the first part is a valid city
+        clean_city = normalize_city_name(first_part)
+        if clean_city:
+            return clean_city
+
+    # Return original if no fix/filter found
+    return city_name.strip()
+
 
 def apply_intelligent_fallbacks(country_name: str) -> str:
     """Aplica fallbacks inteligentes para corrigir erros comuns"""
@@ -268,9 +460,14 @@ def get_or_create_city(
     if not city_name or not city_name.strip() or not country_id:
         return None
 
+    # Apply city name normalization first (fixes "Paulo" → "São Paulo", filters "Remote", etc)
+    normalized_name = normalize_city_name(city_name)
+    if not normalized_name:
+        return None  # Filtered out (Remote, Hybrid, etc)
+
     try:
         with conn.cursor() as cursor:
-            return get_city_id(cursor, city_name.strip(), state_id, country_id)
+            return get_city_id(cursor, normalized_name, state_id, country_id)
     except Exception as e:
         print(f'Erro ao normalizar cidade "{city_name}": {e}')
         return None

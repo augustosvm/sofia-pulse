@@ -8,6 +8,8 @@ from datetime import datetime
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 
+from shared.geo_helpers import normalize_location
+
 load_dotenv()
 
 # Database connection

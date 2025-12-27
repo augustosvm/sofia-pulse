@@ -10,6 +10,8 @@ import sys
 from dotenv import load_dotenv
 
 # Add scripts directory to path to allow importing utils
+from shared.geo_helpers import normalize_location
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load environment variables
@@ -138,9 +140,11 @@ def init_db(conn):
             period VARCHAR(10) NOT NULL,
             country_code VARCHAR(5),
             country_name TEXT,
-            state_code VARCHAR(2), -- Added for Regionalization
+            state_code VARCHAR(2),
             value_usd NUMERIC(15, 2),
             weight_kg NUMERIC(15, 2),
+            country_id INTEGER REFERENCES sofia.countries(id),
+            state_id INTEGER REFERENCES sofia.states(id),
             source VARCHAR(50) DEFAULT 'mdic-comexstat',
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT unique_trade_record UNIQUE (flow, ncm_code, period, country_code, state_code)
@@ -194,17 +198,27 @@ def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data:
             # Filter out invalid metric values
             try: val_usd = float(val_usd)
             except: val_usd = 0
-            try: val_kg = float(val_kg) 
+            try: val_kg = float(val_kg)
             except: val_kg = 0
+
+            # Normalize geographic location
+            location = normalize_location(conn, {
+                'country': country_name or country_code,
+                'state': state_code  # Brazilian state code (2-letter)
+            })
+            country_id = location['country_id']
+            state_id = location['state_id']
 
             cursor.execute("""
                 INSERT INTO sofia.comexstat_trade
-                (flow, ncm_code, ncm_description, period, country_code, country_name, state_code, value_usd, weight_kg, source)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'mdic-comexstat')
+                (flow, ncm_code, ncm_description, period, country_code, country_name, state_code, value_usd, weight_kg, country_id, state_id, source)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'mdic-comexstat')
                 ON CONFLICT (flow, ncm_code, period, country_code, state_code)
                 DO UPDATE SET
                     value_usd = EXCLUDED.value_usd,
                     weight_kg = EXCLUDED.weight_kg,
+                    country_id = EXCLUDED.country_id,
+                    state_id = EXCLUDED.state_id,
                     source = EXCLUDED.source,
                     collected_at = CURRENT_TIMESTAMP
             """, (
@@ -216,7 +230,9 @@ def save_to_database(conn, ncm_code: str, ncm_description: str, flow: str, data:
                 country_name,
                 state_code,
                 val_usd,
-                val_kg
+                val_kg,
+                country_id,
+                state_id
             ))
             inserted += 1
         except Exception as e:

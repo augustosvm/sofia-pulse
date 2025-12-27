@@ -12,6 +12,8 @@ from typing import Optional, List, Dict
 from dotenv import load_dotenv
 
 # Add scripts directory to path to allow importing utils
+from shared.geo_helpers import normalize_location
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()

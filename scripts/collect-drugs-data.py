@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 World Drug Consumption Data Collector
 Coleta dados oficiais de consumo de drogas por pais, tipo e regiao
@@ -325,6 +327,13 @@ def save_to_database(conn) -> int:
         )
     """)
 
+    # Add geographic normalization columns
+    cursor.execute("""
+        ALTER TABLE sofia.world_drugs_data
+        ADD COLUMN IF NOT EXISTS country_id INTEGER REFERENCES sofia.countries(id),
+        ADD COLUMN IF NOT EXISTS state_id INTEGER REFERENCES sofia.states(id)
+    """)
+
     cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_drugs_country
         ON sofia.world_drugs_data(country_code)
@@ -354,12 +363,16 @@ def save_to_database(conn) -> int:
                         region = reg.title()
                         break
 
+                # Normalize geographic location
+                location = normalize_location(conn, {'country': country_data[1]})  # country_name
+                country_id = location['country_id']
+
                 cursor.execute("""
                     INSERT INTO sofia.world_drugs_data
-                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, source, country_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (country_code, state_code, drug_type, year)
-                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent
+                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent, country_id = EXCLUDED.country_id
                 """, (
                     region,
                     country_data[0],
@@ -368,7 +381,8 @@ def save_to_database(conn) -> int:
                     'National',
                     drug_type,
                     country_data[2],
-                    'UNODC World Drug Report 2024'
+                    'UNODC World Drug Report 2024',
+                    country_id
                 ))
                 inserted += 1
             except:
@@ -377,14 +391,23 @@ def save_to_database(conn) -> int:
     # Save Brazil state-level data
     for state_code, state_data in BRAZIL_STATES_DRUGS.items():
         state_name, cannabis, cocaine, alcohol = state_data
+
+        # Normalize geographic location (Brazil + state) - do once per state
+        location = normalize_location(conn, {
+            'country': 'Brazil',
+            'state': state_name
+        })
+        country_id = location['country_id']
+        state_id = location['state_id']
+
         for drug_type, prevalence in [('cannabis', cannabis), ('cocaine', cocaine), ('alcohol_binge', alcohol)]:
             try:
                 cursor.execute("""
                     INSERT INTO sofia.world_drugs_data
-                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, source, country_id, state_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (country_code, state_code, drug_type, year)
-                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent
+                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
                 """, (
                     'Americas',
                     'BRA',
@@ -393,7 +416,9 @@ def save_to_database(conn) -> int:
                     state_name,
                     drug_type,
                     prevalence,
-                    'Fiocruz/IBGE PeNSE'
+                    'Fiocruz/IBGE PeNSE',
+                    country_id,
+                    state_id
                 ))
                 inserted += 1
             except:
@@ -402,14 +427,23 @@ def save_to_database(conn) -> int:
     # Save US state-level data
     for state_code, state_data in US_STATES_DRUGS.items():
         state_name, cannabis, cocaine, opioids = state_data
+
+        # Normalize geographic location (USA + state) - do once per state
+        location = normalize_location(conn, {
+            'country': 'United States',
+            'state': state_name
+        })
+        country_id = location['country_id']
+        state_id = location['state_id']
+
         for drug_type, prevalence in [('cannabis', cannabis), ('cocaine', cocaine), ('opioid_misuse', opioids)]:
             try:
                 cursor.execute("""
                     INSERT INTO sofia.world_drugs_data
-                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, source, country_id, state_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (country_code, state_code, drug_type, year)
-                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent
+                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
                 """, (
                     'Americas',
                     'USA',
@@ -418,7 +452,9 @@ def save_to_database(conn) -> int:
                     state_name,
                     drug_type,
                     prevalence,
-                    'SAMHSA NSDUH 2023'
+                    'SAMHSA NSDUH 2023',
+                    country_id,
+                    state_id
                 ))
                 inserted += 1
             except:
@@ -457,13 +493,17 @@ def save_who_data(conn, records: List[Dict]) -> int:
                 region = reg.title()
                 break
 
+        # Normalize geographic location
+        location = normalize_location(conn, {'country': country})
+        country_id = location['country_id']
+
         try:
             cursor.execute("""
                 INSERT INTO sofia.world_drugs_data
-                (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, year, source)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, year, source, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (country_code, state_code, drug_type, year)
-                DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent
+                DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent, country_id = EXCLUDED.country_id
             """, (
                 region,
                 country,
@@ -473,7 +513,8 @@ def save_who_data(conn, records: List[Dict]) -> int:
                 drug_type,
                 float(value),
                 int(record.get('TimeDim', 2020)) if record.get('TimeDim') else 2020,
-                'WHO Global Health Observatory'
+                'WHO Global Health Observatory',
+                country_id
             ))
             inserted += 1
         except:
@@ -557,22 +598,28 @@ def main():
                         region = reg.title()
                         break
 
+                # Normalize geographic location
+                country_name = r.get('country', {}).get('value', '')
+                location = normalize_location(conn, {'country': country_name or country})
+                country_id = location['country_id']
+
                 cursor.execute("""
                     INSERT INTO sofia.world_drugs_data
-                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, year, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (region, country_code, country_name, state_code, state_name, drug_type, prevalence_percent, year, source, country_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (country_code, state_code, drug_type, year)
-                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent
+                    DO UPDATE SET prevalence_percent = EXCLUDED.prevalence_percent, country_id = EXCLUDED.country_id
                 """, (
                     region,
                     country,
-                    r.get('country', {}).get('value', ''),
+                    country_name,
                     'ALL',
                     'National',
                     'alcohol_liters_capita',
                     float(r.get('value')),
                     int(r.get('date')) if r.get('date') else 2020,
-                    'World Bank'
+                    'World Bank',
+                    country_id
                 ))
                 total_records += 1
             except:

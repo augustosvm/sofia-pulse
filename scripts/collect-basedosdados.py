@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Base dos Dados Collector - Brazilian Open Data Platform
 

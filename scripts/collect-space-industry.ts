@@ -20,6 +20,7 @@ if (typeof File === 'undefined') {
  * - Company info
  */
 
+import { normalizeLocation } from './shared/geo-helpers';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 
@@ -175,8 +176,8 @@ async function saveEvents(events: SpaceEvent[]): Promise<void> {
             launch_site, rocket_type, payload_type, payload_count,
             orbit_type, status, customers, contract_value_usd,
             country, description, source, source_url
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          , country_id)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
           ON CONFLICT DO NOTHING
           `,
           [

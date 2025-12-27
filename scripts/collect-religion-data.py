@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 World Religion Data Collector
 Coleta dados oficiais de religiao por pais

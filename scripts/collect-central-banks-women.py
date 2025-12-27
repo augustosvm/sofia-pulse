@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Central Banks Women's Data Collector
 Coleta dados de mulheres dos bancos centrais das Americas, Europa e Asia
@@ -353,17 +355,22 @@ def save_to_database(conn, records: List[Dict]) -> int:
         bank_info = country_to_bank[country]
 
         try:
+            # Normalize country to get country_id
+            location = normalize_location(conn, {'country': country})
+            country_id = location['country_id']
+
             cursor.execute("""
                 INSERT INTO sofia.central_banks_women_data
-                (region, central_bank_code, central_bank_name, country_code, indicator_code, indicator_name, year, value, source)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (region, central_bank_code, central_bank_name, country_code, country_id, indicator_code, indicator_name, year, value, source)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (central_bank_code, indicator_code, year)
-                DO UPDATE SET value = EXCLUDED.value
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
             """, (
                 bank_info['region'],
                 bank_info['code'],
                 bank_info['name'],
                 country,
+                country_id,
                 record.get('indicator_code', ''),
                 record.get('indicator_name', ''),
                 int(record.get('date')) if record.get('date') else None,

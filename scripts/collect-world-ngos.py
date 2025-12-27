@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Top 200 World NGOs Data Collector
 Coleta dados das 200 maiores ONGs do mundo de varios setores

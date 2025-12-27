@@ -17,9 +17,13 @@ Federacoes:
 """
 
 import os
+from shared.geo_helpers import normalize_location
 import sys
+from shared.geo_helpers import normalize_location
 import psycopg2
+from shared.geo_helpers import normalize_location
 import requests
+from shared.geo_helpers import normalize_location
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -284,6 +288,7 @@ def save_to_database(conn) -> int:
     # Create federations table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.sports_federations (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             federation_code VARCHAR(50) NOT NULL,
             federation_name TEXT,
@@ -346,20 +351,25 @@ def save_to_database(conn) -> int:
     # Save federation info
     for fed_code, fed_data in FEDERATIONS_DATA.items():
         try:
+            # Normalize headquarters location
+            headquarters = fed_data.get('headquarters', '')
+            location = normalize_location(conn, {'country': headquarters})
+            country_id = location['country_id']
+
             cursor.execute("""
-                INSERT INTO sofia.sports_federations
-                (federation_code, federation_name, sport, founded, headquarters, member_count, website)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO sofia.sports_federations (federation_code, federation_name, sport, founded, headquarters, member_count, website, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (federation_code)
-                DO UPDATE SET federation_name = EXCLUDED.federation_name
+                DO UPDATE SET federation_name = EXCLUDED.federation_name, country_id = EXCLUDED.country_id
             """, (
                 fed_code,
                 fed_data.get('name', ''),
                 fed_data.get('sport', ''),
                 fed_data.get('founded'),
-                fed_data.get('headquarters', ''),
+                headquarters,
                 fed_data.get('member_associations', fed_data.get('member_federations', fed_data.get('member_countries', 0))),
-                fed_data.get('website', '')
+                fed_data.get('website', ''),
+                country_id
             ))
             inserted += 1
         except:
@@ -378,7 +388,7 @@ def save_to_database(conn) -> int:
                             cursor.execute("""
                                 INSERT INTO sofia.sports_rankings
                                 (federation, ranking_type, sex, rank, country_code, country_name, entity_name, year)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                                 ON CONFLICT (federation, ranking_type, sex, rank, year)
                                 DO UPDATE SET country_code = EXCLUDED.country_code
                             """, (
@@ -402,7 +412,7 @@ def save_to_database(conn) -> int:
                     cursor.execute("""
                         INSERT INTO sofia.olympics_medals
                         (olympics_year, olympics_name, country_code, country_name, gold, silver, bronze, total)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (olympics_year, country_code)
                         DO UPDATE SET gold = EXCLUDED.gold, silver = EXCLUDED.silver, bronze = EXCLUDED.bronze, total = EXCLUDED.total
                     """, (

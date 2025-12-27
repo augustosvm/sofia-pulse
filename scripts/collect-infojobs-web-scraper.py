@@ -153,22 +153,24 @@ def insert_jobs(jobs):
 
     for job in jobs:
         try:
-            # Normalizar localização retorna dict com country_id, state_id, city_id
-            from geo_id_helpers import get_country_id, get_state_id, get_city_id
-
-            # Brasil é sempre o país (usar cursor, não conn)
-            country_id = get_country_id(cursor, 'Brazil')
-            state_id = None
-            city_id = None
-
-            # Tentar extrair estado/cidade da localização
+            # Extrair cidade e estado da localização
+            city_name = None
+            state_name = None
             if job['location']:
                 parts = job['location'].split(',')
                 if len(parts) >= 2:
                     city_name = parts[0].strip()
                     state_name = parts[1].strip()
-                    state_id = get_state_id(cursor, state_name, country_id) if country_id else None
-                    city_id = get_city_id(cursor, city_name, state_id, country_id) if state_id and country_id else None
+
+            # Normalizar localização com geo_helpers
+            location = normalize_location(conn, {
+                'country': 'Brazil',
+                'state': state_name,
+                'city': city_name
+            })
+            country_id = location['country_id']
+            state_id = location['state_id']
+            city_id = location['city_id']
 
             # Get or create organization
             organization_id = get_or_create_organization(
@@ -191,6 +193,9 @@ def insert_jobs(jobs):
                     title = EXCLUDED.title,
                     location = EXCLUDED.location,
                     description = EXCLUDED.description,
+                    country_id = EXCLUDED.country_id,
+                    state_id = EXCLUDED.state_id,
+                    city_id = EXCLUDED.city_id,
                     organization_id = EXCLUDED.organization_id,
                     collected_at = NOW()
             """, (

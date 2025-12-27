@@ -158,6 +158,208 @@ const COUNTRY_ALIASES: Record<string, string> = {
 };
 
 /**
+ * City name normalization map - Fixes common malformed city names
+ * Maps: misspelling/partial → correct name
+ * Empty string = filter out (invalid location)
+ */
+const CITY_NAME_FIXES: Record<string, string> = {
+  // ========== BRAZIL - Partial/malformed names ==========
+  'paulo': 'São Paulo',
+  'sao paulo': 'São Paulo',
+  'rio': 'Rio de Janeiro',
+  'janeiro': 'Rio de Janeiro',  // "Janeiro" alone → Rio de Janeiro
+  'belo': 'Belo Horizonte',
+  'horizonte': 'Belo Horizonte',  // "Horizonte" alone → Belo Horizonte
+  'bh': 'Belo Horizonte',
+  'poa': 'Porto Alegre',
+  'alegre': 'Porto Alegre',  // "Alegre" alone → Porto Alegre
+  'floripa': 'Florianópolis',
+  'bsb': 'Brasília',
+  'brasilia': 'Brasília',
+  'sampa': 'São Paulo',
+  'sp': 'São Paulo',
+  'rj': 'Rio de Janeiro',
+  // New partial names
+  'andre': 'Santo André',
+  'preto': 'Ribeirão Preto',
+  'campo': 'Campo Grande',
+  'sul': 'Porto Alegre',  // Could be "Rio Grande do Sul" but likely Porto Alegre
+  'leopoldo': 'São Leopoldo',
+  'camboriu': 'Balneário Camboriú',
+
+  // ========== USA - Common variations ==========
+  'san francisco bay area': 'San Francisco',
+  'sf bay area': 'San Francisco',
+  'bay area': 'San Francisco',
+  'nyc': 'New York',
+  'new york city': 'New York',
+  'la': 'Los Angeles',
+  'sf': 'San Francisco',
+  'philly': 'Philadelphia',
+  'dc': 'Washington',
+  'washington dc': 'Washington',
+
+  // ========== INDIA - Alternative spellings ==========
+  'bangalore': 'Bengaluru',
+  'bombay': 'Mumbai',
+  'calcutta': 'Kolkata',
+  'madras': 'Chennai',
+
+  // ========== EUROPE - Alternative names ==========
+  'wien': 'Vienna',
+  'münchen': 'Munich',
+  'muenchen': 'Munich',
+  'köln': 'Cologne',
+  'koeln': 'Cologne',
+  'warszawa': 'Warsaw',
+  'frankfurt am main': 'Frankfurt',
+
+  // ========== COUNTRIES MISTAKEN AS CITIES - Filter out ==========
+  'united states': '',
+  'usa': '',
+  'canada': '',
+  'brasil': '',
+  'brazil': '',
+  'mexico': '',
+  'méxico': '',
+  'india': '',
+  'china': '',
+  'singapore': '',
+  'portugal': '',
+  'españa': '',
+  'spain': '',
+  'france': '',
+  'germany': '',
+  'deutschland': '',
+  'uk': '',
+  'united kingdom': '',
+  'ireland': '',
+  'australia': '',
+  'new zealand': '',
+  'philippines': '',
+  'italy': '',
+  'italia': '',
+  'nederland': '',
+  'netherlands': '',
+  'schweiz': '',
+  'switzerland': '',
+  'österreich': '',
+  'poland': '',
+  'serbia': '',
+  'south africa': '',
+  'japan': '',
+  'korea': '',
+
+  // ========== REMOTE/HYBRID PATTERNS - Filter out ==========
+  'remote': '',
+  'hybrid': '',
+  'in-office': '',
+  'on-site': '',
+  'distributed': '',
+  'flexible / remote': '',
+  'us-remote': '',
+  'remote usa': '',
+  'remote, us': '',
+  'remote, emea': '',
+  'remote, americas': '',
+  'remote, canada; remote, us': '',
+  // Regional patterns
+  'northeast - united states': '',
+  'us': '',  // "US" alone is not a city
+
+  // ========== INVALID/PLACEHOLDER VALUES - Filter out ==========
+  'n/a': '',
+  'na': '',
+  'location': '',
+  'tbd': '',
+  'tba': '',
+  'various': '',
+  'multiple': '',
+  'qualquer lugar': '',  // Portuguese for "anywhere"
+  'latam': '',
+  'emea': '',
+  'apac': '',
+};
+
+/**
+ * Normaliza nomes de cidades malformados
+ * Retorna string vazia se deve ser filtrado (Remote, Hybrid, etc)
+ */
+function normalizeCityName(cityName: string): string {
+    const normalized = cityName.toLowerCase().trim();
+
+    // Filter out empty/null
+    if (!normalized) return '';
+
+    // ========== PATTERN 1: Remote work patterns ==========
+    // "Remote", "Remote - USA", "Remote - Canada: Select locations", etc.
+    if (/^remote[\s\-]/.test(normalized) || /[\s\-]remote$/i.test(normalized)) {
+        return '';
+    }
+
+    // "Hybrid", "Hybrid - Luxembourg", "San Francisco; Hybrid", etc.
+    if (/hybrid/i.test(normalized)) {
+        return '';
+    }
+
+    // "Distributed", "Flexible", "In-Office", "On-Site", "Virtual"
+    if (/^(distributed|flexible|in-office|on-site|virtual|anywhere|worldwide|global)/i.test(normalized)) {
+        return '';
+    }
+
+    // ========== PATTERN 2: Multi-city lists ==========
+    // "Denver, CO;San Francisco, CA;New York, NY;..."
+    // "San Francisco, CA; New York City, NY; Austin, TX"
+    if (normalized.includes(';') || (normalized.match(/,/g) || []).length >= 3) {
+        return '';  // Too many cities, can't pick one
+    }
+
+    // ========== PATTERN 3: Invalid placeholders ==========
+    // "LOCATION", "N/A", "TBD", "NA", etc.
+    if (/^(location|n\/a|na|tbd|tba|various|multiple)$/i.test(normalized)) {
+        return '';
+    }
+
+    // Regional aggregations: "LATAM", "EMEA", "APAC"
+    if (/^(latam|emea|apac|americas|europe|asia)$/i.test(normalized)) {
+        return '';
+    }
+
+    // ========== PATTERN 4: Check exact match in fixes map ==========
+    if (CITY_NAME_FIXES[normalized]) {
+        const fixed = CITY_NAME_FIXES[normalized];
+        return fixed;  // Could be empty string if it's a filter pattern
+    }
+
+    // ========== PATTERN 5: Extract city from "City, State" format ==========
+    // "Charlotte, NC" → "Charlotte"
+    // But NOT "San Francisco, CA; New York" (already filtered above)
+    if (normalized.includes(',')) {
+        const parts = normalized.split(',');
+        if (parts.length === 2) {
+            const cityPart = parts[0].trim();
+            // Recursively check if the extracted city part is valid
+            const cleanCity = normalizeCityName(cityPart);
+            if (cleanCity) return cleanCity;
+        }
+    }
+
+    // ========== PATTERN 6: Extract city from "City; Hybrid" format ==========
+    // "San Francisco; Hybrid" → "San Francisco"
+    // "Berlin; Hybrid" → "Berlin"
+    if (normalized.includes(';')) {
+        const parts = normalized.split(';');
+        const firstPart = parts[0].trim();
+        // Recursively check if the first part is a valid city
+        const cleanCity = normalizeCityName(firstPart);
+        if (cleanCity) return cleanCity;
+    }
+
+    // Return original if no fix/filter found
+    return cityName.trim();
+}
+
+/**
  * Aplica fallbacks inteligentes para corrigir erros comuns
  */
 function applyIntelligentFallbacks(countryName: string): string {
@@ -261,8 +463,14 @@ export async function getOrCreateCity(
         return null;
     }
 
+    // Apply city name normalization first (fixes "Paulo" → "São Paulo", filters "Remote", etc)
+    const normalizedName = normalizeCityName(cityName);
+    if (!normalizedName) {
+        return null;  // Filtered out (Remote, Hybrid, etc)
+    }
+
     // Use new lookup function that tries with state_id and country_id
-    return await getCityId(pool, cityName.trim(), stateId, countryId);
+    return await getCityId(pool, normalizedName, stateId, countryId);
 }
 
 /**

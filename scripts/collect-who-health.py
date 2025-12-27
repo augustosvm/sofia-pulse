@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 WHO (World Health Organization) Data Collector
 Coleta dados de saúde global: doenças, mortalidade, sistemas de saúde

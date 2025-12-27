@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 ILOSTAT (International Labour Organization) Collector
 Coleta dados de trabalho: emprego, desemprego, salários, gap salarial

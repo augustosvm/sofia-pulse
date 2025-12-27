@@ -12,10 +12,14 @@ FREE DATA SOURCE ✅
 """
 
 import requests
+from shared.geo_helpers import normalize_location
 import pandas as pd
+from shared.geo_helpers import normalize_location
 import psycopg2
+from shared.geo_helpers import normalize_location
 from psycopg2.extras import execute_batch
 import os
+from shared.geo_helpers import normalize_location
 from datetime import datetime
 
 DB_CONFIG = {

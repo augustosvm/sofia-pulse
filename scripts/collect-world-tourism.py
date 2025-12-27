@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 World Tourism Data Collector
 Coleta dados de turismo mundial de fontes oficiais
@@ -183,18 +185,26 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_i
             continue
 
         try:
+            country_code = record.get('countryiso3code', record.get('country', {}).get('id'))
+            country_name = record.get('country', {}).get('value')
+
+            # Normalize country to get country_id
+            location = normalize_location(conn, {'country': country_code or country_name})
+            country_id = location['country_id']
+
             cursor.execute("""
                 INSERT INTO sofia.world_tourism_data
-                (indicator_code, indicator_name, category, country_code, country_name, year, value, unit)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                (indicator_code, indicator_name, category, country_code, country_name, country_id, year, value, unit)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (indicator_code, country_code, year)
-                DO UPDATE SET value = EXCLUDED.value
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
             """, (
                 indicator_code,
                 indicator_info.get('name', ''),
                 indicator_info.get('category', 'other'),
-                record.get('countryiso3code', record.get('country', {}).get('id')),
-                record.get('country', {}).get('value'),
+                country_code,
+                country_name,
+                country_id,
                 int(record.get('date')) if record.get('date') else None,
                 float(value),
                 indicator_info.get('unit', '')
@@ -300,18 +310,26 @@ def main():
             if r.get('value') is None:
                 continue
             try:
+                country_code = r.get('countryiso3code', r.get('country', {}).get('id', ''))
+                country_name = r.get('country', {}).get('value', '')
+
+                # Normalize country to get country_id
+                location = normalize_location(conn, {'country': country_code or country_name})
+                country_id = location['country_id']
+
                 cursor.execute("""
                     INSERT INTO sofia.world_tourism_data
-                    (indicator_code, indicator_name, category, country_code, country_name, year, value, unit)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    (indicator_code, indicator_name, category, country_code, country_name, country_id, year, value, unit)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (indicator_code, country_code, year)
-                    DO UPDATE SET value = EXCLUDED.value
+                    DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
                 """, (
                     r.get('indicator_code', ''),
                     r.get('indicator', {}).get('value', ''),
                     'regional',
-                    r.get('countryiso3code', r.get('country', {}).get('id', '')),
-                    r.get('country', {}).get('value', ''),
+                    country_code,
+                    country_name,
+                    country_id,
                     int(r.get('date')) if r.get('date') else None,
                     float(r.get('value')),
                     ''

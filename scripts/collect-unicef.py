@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 UNICEF Data Collector
 Coleta dados de crianças: educação, saúde, nutrição, proteção

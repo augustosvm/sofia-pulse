@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 European Gender Data Collector - Eurostat
 Coleta dados de genero da Uniao Europeia via Eurostat API
@@ -309,17 +311,22 @@ def save_to_database(conn, records: List[Dict], dataset_info: Dict) -> int:
             if year and len(year) >= 4:
                 year = year[:4]  # Extract year from formats like "2023" or "2023Q1"
 
+            # Normalize country to get country_id
+            location = normalize_location(conn, {'country': country})
+            country_id = location['country_id']
+
             cursor.execute("""
                 INSERT INTO sofia.women_eurostat_data
-                (dataset_code, dataset_name, category, country_code, year, sex, age_group, value, unit)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (dataset_code, dataset_name, category, country_code, country_id, year, sex, age_group, value, unit)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (dataset_code, country_code, year, sex, age_group)
-                DO UPDATE SET value = EXCLUDED.value
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
             """, (
                 record.get('dataset', ''),
                 dataset_info.get('name', ''),
                 dataset_info.get('category', 'other'),
                 country,
+                country_id,
                 year,
                 record.get('sex', 'T'),
                 record.get('age_code', record.get('AGE_code', 'TOTAL')),

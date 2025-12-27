@@ -8,9 +8,13 @@ Organizations: OCHA, UNHCR, MSF, WFP
 """
 
 import os
+from shared.geo_helpers import normalize_location
 import sys
+from shared.geo_helpers import normalize_location
 import psycopg2
+from shared.geo_helpers import normalize_location
 import requests
+from shared.geo_helpers import normalize_location
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -101,6 +105,7 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.hdx_humanitarian_data (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             dataset_id VARCHAR(100) NOT NULL,
             dataset_name TEXT,
@@ -145,17 +150,16 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
                     countries.append(group.get('name').upper()[:3])
 
             cursor.execute("""
-                INSERT INTO sofia.hdx_humanitarian_data
-                (dataset_id, dataset_name, title, organization, source, tags, country_codes,
-                 date_created, date_modified, num_resources, total_downloads, methodology, notes, url)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO sofia.hdx_humanitarian_data (dataset_id, dataset_name, title, organization, source, tags, country_codes,
+                 date_created, date_modified, num_resources, total_downloads, methodology, notes, url, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (dataset_id)
                 DO UPDATE SET
                     date_modified = EXCLUDED.date_modified,
                     num_resources = EXCLUDED.num_resources,
                     total_downloads = EXCLUDED.total_downloads
             """, (
-                dataset.get('id', ''),
+                dataset.get('id', '', country_id = EXCLUDED.country_id),
                 dataset.get('name', ''),
                 dataset.get('title', ''),
                 dataset.get('organization', {}).get('name', source),

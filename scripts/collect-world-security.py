@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 World Security Data Collector
 Coleta dados de segurança dos principais paises das Americas, Europa e Asia

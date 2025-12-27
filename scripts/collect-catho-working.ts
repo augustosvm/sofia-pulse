@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 
 import { Client } from 'pg';
+import { normalizeLocation } from './shared/geo-helpers';
 import * as dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
@@ -119,8 +120,8 @@ async function createTable(client: Client) {
 
 async function upsertJob(client: Client, job: CathoJob) {
   await client.query(
-    `INSERT INTO sofia.catho_jobs (job_id, platform, title, company, location, url)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO sofia.catho_jobs (job_id, platform, title, company, location, url, country_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (job_id) DO UPDATE SET collected_at = NOW()`,
     [job.job_id, job.platform, job.title, job.company, job.location, job.url]
   );

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 FAO (Food and Agriculture Organization) Data Collector
 Coleta dados de agricultura, alimentos, pecuária, pesca

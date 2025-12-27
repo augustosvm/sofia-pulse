@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 CEPAL/ECLAC (Economic Commission for Latin America) Data Collector
 Coleta dados da América Latina: feminicídio, economia, desenvolvimento
@@ -126,6 +128,7 @@ def save_indicators_to_database(conn, records: List[Dict], indicator_code: str, 
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.cepal_latam_data (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             indicator_code VARCHAR(50) NOT NULL,
             indicator_name TEXT,
@@ -151,19 +154,24 @@ def save_indicators_to_database(conn, records: List[Dict], indicator_code: str, 
             continue
 
         try:
+            # Normalize country
+            location = normalize_location(conn, {'country': record.get('country_name') or record.get('country_code')})
+            country_id = location['country_id']
+
             cursor.execute("""
                 INSERT INTO sofia.cepal_latam_data
-                (indicator_code, indicator_name, country_code, country_name, year, value)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (indicator_code, indicator_name, country_code, country_name, year, value, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (indicator_code, country_code, year)
-                DO UPDATE SET value = EXCLUDED.value
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
             """, (
                 indicator_code,
                 indicator_name,
                 record.get('countryiso3code', record.get('country', {}).get('id')),
                 record.get('country', {}).get('value'),
                 int(record.get('date')) if record.get('date') else None,
-                float(record.get('value'))
+                float(record.get('value')),
+                country_id
             ))
             inserted += 1
         except:
@@ -181,6 +189,7 @@ def save_femicide_data(conn) -> int:
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.cepal_femicide (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             country_code VARCHAR(3) NOT NULL,
             year INTEGER NOT NULL,

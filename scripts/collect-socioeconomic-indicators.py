@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Sofia Pulse - Socioeconomic Indicators Collector
 Collects socioeconomic data for all countries from World Bank API (2015+)

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+from shared.geo_helpers import normalize_location
 """
 ACLED (Armed Conflict Location & Event Data Project) Collector
 Coleta dados de conflitos violentos, protestos e eventos políticos globais

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 ILO Women's Labor Data Collector - ILOSTAT
 Coleta dados de trabalho feminino de todos os paises via ILO SDMX API

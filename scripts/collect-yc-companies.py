@@ -6,8 +6,11 @@ Auth: Nenhuma (100% gratuito)
 Features: 5500+ startups YC, batches, funding stages
 """
 import requests
+from shared.geo_helpers import normalize_location
 import psycopg2
+from shared.geo_helpers import normalize_location
 import os
+from shared.geo_helpers import normalize_location
 from dotenv import load_dotenv
 
 load_dotenv()

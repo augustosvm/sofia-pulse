@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 World Bank Gender Data Collector
 Coleta indicadores de gênero: participação feminina, gap salarial, educação

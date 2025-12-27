@@ -71,8 +71,22 @@ async function collectHimalayasJobs() {
                 const locations = job.locationRestrictions || ['Remote'];
                 const location = locations.join(', ');
                 const country = locations[0] || 'REMOTE';
-                const city = locations.length > 1 ? locations[1] : null;
-                const state = locations.length > 2 ? locations[2] : null;
+
+                // Only use locations[1] as state if it's not a country name
+                // Common countries to filter out: Brazil, France, Portugal, etc.
+                const knownCountries = ['brazil', 'france', 'portugal', 'spain', 'italy', 'germany',
+                                       'united states', 'canada', 'mexico', 'argentina', 'chile',
+                                       'united kingdom', 'ireland', 'netherlands', 'belgium',
+                                       'switzerland', 'austria', 'poland', 'sweden', 'norway',
+                                       'denmark', 'finland', 'india', 'china', 'japan', 'singapore',
+                                       'australia', 'new zealand'];
+
+                const potentialState = locations.length > 1 ? locations[1] : null;
+                const state = potentialState && !knownCountries.includes(potentialState.toLowerCase()) ? potentialState : null;
+
+                const potentialCity = locations.length > 2 ? locations[2] : null;
+                const city = potentialCity && !knownCountries.includes(potentialCity.toLowerCase()) ? potentialCity : null;
+
                 const isRemote = locations.some(loc => /anywhere|worldwide|remote/i.test(loc));
 
                 // Extract skills from categories

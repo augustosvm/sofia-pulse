@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Brazilian Security Data Collector
 Coleta dados oficiais de seguranca publica do Brasil
@@ -360,6 +362,14 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
         )
     """)
 
+    # Add geographic normalization columns if they don't exist
+    cursor.execute("""
+        ALTER TABLE sofia.brazil_security_data
+        ADD COLUMN IF NOT EXISTS country_id INTEGER REFERENCES sofia.countries(id),
+        ADD COLUMN IF NOT EXISTS state_id INTEGER REFERENCES sofia.states(id),
+        ADD COLUMN IF NOT EXISTS city_id INTEGER REFERENCES sofia.cities(id)
+    """)
+
     # Create city-level table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.brazil_security_cities (
@@ -374,6 +384,14 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(city, state, year)
         )
+    """)
+
+    # Add geographic normalization columns to cities table
+    cursor.execute("""
+        ALTER TABLE sofia.brazil_security_cities
+        ADD COLUMN IF NOT EXISTS country_id INTEGER REFERENCES sofia.countries(id),
+        ADD COLUMN IF NOT EXISTS state_id INTEGER REFERENCES sofia.states(id),
+        ADD COLUMN IF NOT EXISTS city_id INTEGER REFERENCES sofia.cities(id)
     """)
 
     cursor.execute("""
@@ -391,13 +409,21 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
     if data_type == 'state_level':
         for r in records:
             try:
+                # Normalize geographic location (Brazil + state)
+                location = normalize_location(conn, {
+                    'country': 'Brazil',
+                    'state': r['state_name']
+                })
+                country_id = location['country_id']
+                state_id = location['state_id']
+
                 # Homicide rate
                 cursor.execute("""
                     INSERT INTO sofia.brazil_security_data
-                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id, state_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
-                    DO UPDATE SET value = EXCLUDED.value
+                    DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
                 """, (
                     'crime_rate',
                     'homicide_rate',
@@ -407,17 +433,19 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
                     r['year'],
                     r['homicide_rate'],
                     'per 100,000',
-                    r['source']
+                    r['source'],
+                    country_id,
+                    state_id
                 ))
                 inserted += 1
 
                 # Robbery rate
                 cursor.execute("""
                     INSERT INTO sofia.brazil_security_data
-                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id, state_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
-                    DO UPDATE SET value = EXCLUDED.value
+                    DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
                 """, (
                     'crime_rate',
                     'robbery_rate',
@@ -427,17 +455,19 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
                     r['year'],
                     r['robbery_rate'],
                     'per 100,000',
-                    r['source']
+                    r['source'],
+                    country_id,
+                    state_id
                 ))
                 inserted += 1
 
                 # Femicide count
                 cursor.execute("""
                     INSERT INTO sofia.brazil_security_data
-                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id, state_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
-                    DO UPDATE SET value = EXCLUDED.value
+                    DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
                 """, (
                     'femicide',
                     'femicide_count',
@@ -447,7 +477,9 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
                     r['year'],
                     r['femicide_count'],
                     'count',
-                    r['source']
+                    r['source'],
+                    country_id,
+                    state_id
                 ))
                 inserted += 1
             except:
@@ -456,12 +488,27 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
     elif data_type == 'city_level':
         for r in records:
             try:
+                # Normalize geographic location (Brazil + state + city)
+                location = normalize_location(conn, {
+                    'country': 'Brazil',
+                    'state': r['state'],
+                    'city': r['city']
+                })
+                country_id = location['country_id']
+                state_id = location['state_id']
+                city_id = location['city_id']
+
                 cursor.execute("""
                     INSERT INTO sofia.brazil_security_cities
-                    (city, state, population_millions, year, homicide_rate, robbery_rate, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    (city, state, population_millions, year, homicide_rate, robbery_rate, source, country_id, state_id, city_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (city, state, year)
-                    DO UPDATE SET homicide_rate = EXCLUDED.homicide_rate, robbery_rate = EXCLUDED.robbery_rate
+                    DO UPDATE SET
+                        homicide_rate = EXCLUDED.homicide_rate,
+                        robbery_rate = EXCLUDED.robbery_rate,
+                        country_id = EXCLUDED.country_id,
+                        state_id = EXCLUDED.state_id,
+                        city_id = EXCLUDED.city_id
                 """, (
                     r['city'],
                     r['state'],
@@ -469,23 +516,30 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
                     r['year'],
                     r['homicide_rate'],
                     r['robbery_rate'],
-                    r['source']
+                    r['source'],
+                    country_id,
+                    state_id,
+                    city_id
                 ))
                 inserted += 1
             except:
                 continue
 
     elif data_type == 'datasus':
+        # Normalize Brazil country_id (do once outside loop)
+        location = normalize_location(conn, {'country': 'Brazil'})
+        country_id = location['country_id']
+
         for r in records:
             if r.get('value') is None:
                 continue
             try:
                 cursor.execute("""
                     INSERT INTO sofia.brazil_security_data
-                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
-                    DO UPDATE SET value = EXCLUDED.value
+                    DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
                 """, (
                     'mortality',
                     r.get('indicator_code', ''),
@@ -495,7 +549,8 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
                     int(r.get('date', 0)),
                     float(r.get('value')),
                     'per 100,000',
-                    'World Bank / DataSUS'
+                    'World Bank / DataSUS',
+                    country_id
                 ))
                 inserted += 1
             except:

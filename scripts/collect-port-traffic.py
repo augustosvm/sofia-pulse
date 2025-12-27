@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Sofia Pulse - Port Traffic Collector
 Collects global port container traffic data from World Bank

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Brazilian Women's Data Collector - IBGE, IPEA, Secretaria da Mulher
 Coleta dados especificos de mulheres no Brasil
@@ -202,6 +204,7 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.women_brazil_data (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             source VARCHAR(20) NOT NULL,
             indicator_code VARCHAR(50) NOT NULL,
@@ -245,13 +248,15 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
             sex = record.get('D3N', record.get('sexo', 'Total'))
             unit = record.get('MN', record.get('unidade', ''))
 
-            cursor.execute("""
-                INSERT INTO sofia.women_brazil_data
-                (source, indicator_code, indicator_name, category, region, period, sex, value, unit)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (source, indicator_code, region, period, sex)
-                DO UPDATE SET value = EXCLUDED.value
-            """, (
+            # Normalize Brazil (region is state)
+            location = normalize_location(conn, {'country': 'Brazil', 'state': region}),
+            country_id = location['country_id']
+
+            cursor.execute(""",
+                INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (source, indicator_code, region, period, sex),
+                DO UPDATE SET value = EXCLUDED.value            """, (
                 'IBGE',
                 table_id,
                 table_info.get('name', ''),
@@ -260,7 +265,8 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
                 period,
                 sex,
                 float(str(value).replace(',', '.')) if value else None,
-                unit
+                unit,
+                country_id
             ))
             inserted += 1
         except Exception as e:
@@ -282,6 +288,7 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
     # Use same table as IBGE
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.women_brazil_data (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             source VARCHAR(20) NOT NULL,
             indicator_code VARCHAR(50) NOT NULL,
@@ -313,10 +320,9 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
             else:
                 continue
 
-            cursor.execute("""
-                INSERT INTO sofia.women_brazil_data
-                (source, indicator_code, indicator_name, category, region, period, sex, value, unit)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            cursor.execute(""",
+                INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (source, indicator_code, region, period, sex)
                 DO UPDATE SET value = EXCLUDED.value
             """, (
@@ -328,7 +334,8 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
                 period,
                 'Mulheres',
                 float(value),
-                ''
+                '',
+                country_id
             ))
             inserted += 1
         except Exception as e:
@@ -440,10 +447,9 @@ def main():
         for r in records:
             if r.get('value'):
                 try:
-                    cursor.execute("""
-                        INSERT INTO sofia.women_brazil_data
-                        (source, indicator_code, indicator_name, category, region, period, sex, value, unit)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    cursor.execute(""",
+                        INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (source, indicator_code, region, period, sex)
                         DO UPDATE SET value = EXCLUDED.value
                     """, (
@@ -455,7 +461,8 @@ def main():
                         r.get('date', ''),
                         'Mulheres',
                         float(r.get('value')),
-                        'per 100,000'
+                        'per 100,000',
+                country_id
                     ))
                     total_records += 1
                 except:

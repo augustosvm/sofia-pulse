@@ -16,6 +16,7 @@
  */
 
 import { Client } from 'pg';
+import { normalizeLocation } from './shared/geo-helpers';
 import * as dotenv from 'dotenv';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
@@ -377,8 +378,8 @@ async function upsertJob(client: Client, job: CathoJob): Promise<void> {
       job_id, platform, title, company, location, city, country, remote_type,
       description, posted_date, salary_min, salary_max, salary_currency, salary_period,
       employment_type, seniority_level, skills_required, url, job_niche
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+    , country_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
     ON CONFLICT (job_id) DO UPDATE SET
       title = EXCLUDED.title,
       description = EXCLUDED.description,

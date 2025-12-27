@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 World Sports Data Collector
 Coleta dados de participacao esportiva por genero e indicadores socioeconomicos
@@ -231,6 +233,7 @@ def save_who_data(conn, records: List[Dict], indicator: Dict) -> int:
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.world_sports_data (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             source VARCHAR(50) NOT NULL,
             indicator_code VARCHAR(100),
@@ -267,12 +270,15 @@ def save_who_data(conn, records: List[Dict], indicator: Dict) -> int:
             continue
 
         try:
+            # Normalize country
+            location = normalize_location(conn, {'country': country_code})
+            country_id = location['country_id']
+
             cursor.execute("""
-                INSERT INTO sofia.world_sports_data
-                (source, indicator_code, indicator_name, category, country_code, sex, year, value)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO sofia.world_sports_data (source, indicator_code, indicator_name, category, country_code, sex, year, value, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (source, indicator_code, country_code, sex, year)
-                DO UPDATE SET value = EXCLUDED.value
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
             """, (
                 'WHO',
                 indicator.get('code', ''),
@@ -281,7 +287,8 @@ def save_who_data(conn, records: List[Dict], indicator: Dict) -> int:
                 country,
                 record.get('Dim1', 'BTSX'),
                 int(record.get('TimeDim', 0)) if record.get('TimeDim') else None,
-                float(value)
+                float(value),
+                country_id
             ))
             inserted += 1
         except:
@@ -309,15 +316,14 @@ def save_worldbank_data(conn, records: List[Dict], indicator_code: str, indicato
 
         try:
             cursor.execute("""
-                INSERT INTO sofia.world_sports_data
-                (source, indicator_code, indicator_name, category, country_code, sex, year, value)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO sofia.world_sports_data (source, indicator_code, indicator_name, category, country_code, sex, year, value, country_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (source, indicator_code, country_code, sex, year)
                 DO UPDATE SET value = EXCLUDED.value
             """, (
                 'World Bank',
                 indicator_code,
-                indicator_info.get('name', ''),
+                indicator_info.get('name', '', country_id = EXCLUDED.country_id),
                 indicator_info.get('category', 'economic'),
                 record.get('countryiso3code', record.get('country', {}).get('id')),
                 'BTSX',  # Both sexes for general indicators
@@ -384,14 +390,13 @@ def main():
         for r in eurostat_data:
             try:
                 cursor.execute("""
-                    INSERT INTO sofia.world_sports_data
-                    (source, indicator_code, indicator_name, category, country_code, sex, year, value)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO sofia.world_sports_data (source, indicator_code, indicator_name, category, country_code, sex, year, value, country_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (source, indicator_code, country_code, sex, year)
                     DO UPDATE SET value = EXCLUDED.value
                 """, (
                     'Eurostat',
-                    r.get('dataset', ''),
+                    r.get('dataset', '', country_id = EXCLUDED.country_id),
                     r.get('dataset_name', ''),
                     r.get('category', 'participation'),
                     'EU',

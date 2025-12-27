@@ -6,11 +6,15 @@ Auth: Nenhuma (100% gratuito)
 Features: IPOs, funding rounds, Form D (venture capital), Form S-1
 """
 import requests
+from shared.geo_helpers import normalize_location
 import psycopg2
+from shared.geo_helpers import normalize_location
 import os
+from shared.geo_helpers import normalize_location
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import time
+from shared.geo_helpers import normalize_location
 
 load_dotenv()
 

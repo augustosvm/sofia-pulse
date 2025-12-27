@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 Comprehensive Women & Gender Data Collector - World Bank
 Coleta dados extensivos sobre mulheres de todas as fontes do World Bank

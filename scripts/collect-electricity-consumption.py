@@ -5,13 +5,18 @@ Collects global electricity consumption data from EIA API
 """
 
 import os
+from shared.geo_helpers import normalize_location
 import sys
+from shared.geo_helpers import normalize_location
 import requests
+from shared.geo_helpers import normalize_location
 import psycopg2
+from shared.geo_helpers import normalize_location
 from psycopg2.extras import execute_batch
 from datetime import datetime
 from typing import List, Dict, Any
 import pandas as pd
+from shared.geo_helpers import normalize_location
 from dotenv import load_dotenv
 
 # Load environment variables

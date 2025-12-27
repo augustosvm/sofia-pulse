@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from shared.geo_helpers import normalize_location
+
 """
 US Federal Reserve Women's Data Collector - FRED API
 Coleta dados de mulheres dos EUA via Federal Reserve Economic Data

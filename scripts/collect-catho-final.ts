@@ -161,6 +161,7 @@ async function main() {
        ON CONFLICT (job_id) DO UPDATE SET
          title = EXCLUDED.title,
          location = EXCLUDED.location,
+         organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
          country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
          state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
          city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),

@@ -12,9 +12,13 @@ Federacoes por regiao:
 """
 
 import os
+from shared.geo_helpers import normalize_location
 import sys
+from shared.geo_helpers import normalize_location
 import psycopg2
+from shared.geo_helpers import normalize_location
 import requests
+from shared.geo_helpers import normalize_location
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -476,6 +480,7 @@ def save_to_database(conn) -> int:
     # Create regional sports table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sofia.sports_regional (
+            country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
             sport VARCHAR(100) NOT NULL,
             world_federation VARCHAR(100),
@@ -518,20 +523,24 @@ def save_to_database(conn) -> int:
                 region = fed_data.get('region', '')
                 for i, country in enumerate(fed_data.get('top_countries', [])):
                     try:
-                        cursor.execute("""
-                            INSERT INTO sofia.sports_regional
-                            (sport, world_federation, regional_federation, region, country_code, country_name, ranking)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s)
-                            ON CONFLICT (sport, region, country_code)
-                            DO UPDATE SET ranking = EXCLUDED.ranking
-                        """, (
+                        # Normalize country
+                        country_code = country[0]
+                        location = normalize_location(conn, {'country': country_code}),
+                        country_id = location['country_id']
+
+                        cursor.execute(""",
+                            INSERT INTO sofia.sports_regional (sport, world_federation, regional_federation, region, country_code, country_name, ranking, country_id)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT (sport, region, country_code),
+                            DO UPDATE SET ranking = EXCLUDED.ranking                        """, (
                             sport_name,
                             world_fed,
                             fed_code,
                             region,
                             country[0],
                             country[1],
-                            i + 1
+                            i + 1,
+                            country_id
                         ))
                         inserted += 1
                     except:
@@ -542,10 +551,9 @@ def save_to_database(conn) -> int:
                 countries = region_data.get('countries', [])
                 for i, country in enumerate(countries):
                     try:
-                        cursor.execute("""
-                            INSERT INTO sofia.sports_regional
-                            (sport, world_federation, region, country_code, country_name, ranking, popularity_level)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        cursor.execute(""",
+                            INSERT INTO sofia.sports_regional (sport, world_federation, region, country_code, country_name, ranking, popularity_level, country_id)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                             ON CONFLICT (sport, region, country_code)
                             DO UPDATE SET ranking = EXCLUDED.ranking
                         """, (
@@ -555,7 +563,8 @@ def save_to_database(conn) -> int:
                             country[0],
                             country[1],
                             i + 1,
-                            region_data.get('dominance', region_data.get('popularity', 'Medium'))
+                            region_data.get('dominance', region_data.get('popularity', 'Medium')),
+                            country_id
                         ))
                         inserted += 1
                     except:
@@ -568,10 +577,9 @@ def save_to_database(conn) -> int:
                 sex = 'men' if 'men' in ranking_key else ('women' if 'women' in ranking_key else 'mixed')
                 for ranking in rankings:
                     try:
-                        cursor.execute("""
-                            INSERT INTO sofia.sports_regional
-                            (sport, world_federation, region, country_code, country_name, ranking)
-                            VALUES (%s, %s, %s, %s, %s, %s)
+                        cursor.execute(""",
+                            INSERT INTO sofia.sports_regional (sport, world_federation, region, country_code, country_name, ranking, country_id)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
                             ON CONFLICT (sport, region, country_code)
                             DO UPDATE SET ranking = EXCLUDED.ranking
                         """, (
@@ -580,7 +588,8 @@ def save_to_database(conn) -> int:
                             f'World ({sex})',
                             ranking[0],
                             ranking[1],
-                            ranking[2] if len(ranking) > 2 else 0
+                            ranking[2] if len(ranking) > 2 else 0,
+                country_id
                         ))
                         inserted += 1
                     except:
@@ -591,10 +600,9 @@ def save_to_database(conn) -> int:
             for discipline, disc_data in sport_data['disciplines'].items():
                 for i, country in enumerate(disc_data.get('top_countries', [])):
                     try:
-                        cursor.execute("""
-                            INSERT INTO sofia.sports_regional
-                            (sport, world_federation, region, country_code, country_name, ranking)
-                            VALUES (%s, %s, %s, %s, %s, %s)
+                        cursor.execute(""",
+                            INSERT INTO sofia.sports_regional (sport, world_federation, region, country_code, country_name, ranking, country_id)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
                             ON CONFLICT (sport, region, country_code)
                             DO UPDATE SET ranking = EXCLUDED.ranking
                         """, (
@@ -603,7 +611,8 @@ def save_to_database(conn) -> int:
                             'World',
                             country[0],
                             country[1],
-                            i + 1
+                            i + 1,
+                country_id
                         ))
                         inserted += 1
                     except:

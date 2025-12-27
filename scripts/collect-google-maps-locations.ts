@@ -6,6 +6,7 @@
  */
 
 import axios from 'axios';
+import { normalizeLocation } from './shared/geo-helpers';
 import { Client } from 'pg';
 import dotenv from 'dotenv';
 
@@ -132,7 +133,7 @@ async function enrichLocationsWithGoogleMaps() {
                         INSERT INTO sofia.locations_geocoded (
                             location_name, formatted_address, latitude, longitude,
                             place_id, place_types, country, city, state
-                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                        , country_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                         ON CONFLICT (location_name) DO UPDATE SET
                             formatted_address = EXCLUDED.formatted_address,
                             latitude = EXCLUDED.latitude,

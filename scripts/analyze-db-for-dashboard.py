@@ -101,19 +101,21 @@ def analyze_geographic_data(conn):
     # 1. Funding por cidade
     try:
         cur.execute("""
-            SELECT 
-                city,
-                country,
+            SELECT
+                ci.name as city,
+                co.common_name as country,
                 COUNT(*) as deals,
-                SUM(amount_usd) as total_funding
-            FROM sofia.funding_rounds
-            WHERE city IS NOT NULL AND city != ''
-            GROUP BY city, country
+                SUM(f.amount_usd) as total_funding
+            FROM sofia.funding_rounds f
+            LEFT JOIN sofia.cities ci ON f.city_id = ci.id
+            LEFT JOIN sofia.countries co ON f.country_id = co.id
+            WHERE ci.name IS NOT NULL
+            GROUP BY ci.id, ci.name, co.id, co.common_name
             ORDER BY total_funding DESC NULLS LAST
             LIMIT 20
         """)
         funding_cities = cur.fetchall()
-        
+
         print("\n1. FUNDING POR CIDADE (Top 20):")
         print("-" * 80)
         for i, row in enumerate(funding_cities, 1):
@@ -122,43 +124,38 @@ def analyze_geographic_data(conn):
     except Exception as e:
         print(f"⚠️  Funding por cidade: {str(e)[:100]}")
     
-    # 2. Papers por país/instituição
+    # 2. Papers por tópico (research areas)
     try:
         cur.execute("""
-            SELECT 
-                COALESCE(institutions, 'Unknown') as institution,
-                COUNT(*) as papers
+            SELECT
+                COUNT(*) as total_papers,
+                COUNT(DISTINCT doi) as unique_dois
             FROM sofia.openalex_papers
-            WHERE institutions IS NOT NULL
-            GROUP BY institutions
-            ORDER BY papers DESC
-            LIMIT 15
         """)
-        papers_inst = cur.fetchall()
-        
-        print("\n2. PAPERS POR INSTITUIÇÃO (Top 15):")
+        papers_stats = cur.fetchone()
+
+        print("\n2. PAPERS ACADÊMICOS (OpenAlex):")
         print("-" * 80)
-        for i, row in enumerate(papers_inst, 1):
-            inst = row['institution'][:50]
-            print(f"{i:2}. {inst:52} {row['papers']:4} papers")
+        print(f"Total de papers: {papers_stats['total_papers']:,}")
+        print(f"DOIs únicos: {papers_stats['unique_dois']:,}")
     except Exception as e:
-        print(f"⚠️  Papers por instituição: {str(e)[:100]}")
+        print(f"⚠️  Papers stats: {str(e)[:100]}")
     
     # 3. Dados socioeconômicos por país
     try:
         cur.execute("""
-            SELECT 
-                country_name,
-                COUNT(DISTINCT indicator_code) as indicators,
+            SELECT
+                c.common_name as country_name,
+                COUNT(DISTINCT s.indicator_code) as indicators,
                 COUNT(*) as data_points
-            FROM sofia.socioeconomic_indicators
-            WHERE country_name IS NOT NULL
-            GROUP BY country_name
+            FROM sofia.socioeconomic_indicators s
+            JOIN sofia.countries c ON s.country_id = c.id
+            GROUP BY c.id, c.common_name
             ORDER BY data_points DESC
             LIMIT 20
         """)
         socio_countries = cur.fetchall()
-        
+
         print("\n3. DADOS SOCIOECONÔMICOS POR PAÍS (Top 20):")
         print("-" * 80)
         for i, row in enumerate(socio_countries, 1):

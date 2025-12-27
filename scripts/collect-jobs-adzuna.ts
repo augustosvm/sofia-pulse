@@ -108,10 +108,32 @@ async function collectAdzunaJobs() {
                     for (const job of jobs) {
                         try {
                             // Extract location details
+                            // Adzuna API format varies by country:
+                            // USA: ["US", "State", "County", "City"] (4 elements)
+                            // UK: ["UK", "City"] (2 elements)
+                            // France: ["France", "Region", "Dept", "Arr", "City"] (4-5 elements)
+                            // Brazil: ["Brasil"] (1 element - country only)
                             const location = job.location.display_name;
-                            const city = job.location.area[0] || null;
-                            const state = job.location.area.length > 2 ? job.location.area[1] : null;
-                            const countryName = job.location.area[job.location.area.length - 1] || country.name;
+                            const areaLength = job.location.area.length;
+
+                            let city = null;
+                            let state = null;
+
+                            if (areaLength === 1) {
+                                // Only country (e.g., Brazil: ["Brasil"])
+                                city = null;
+                                state = null;
+                            } else if (areaLength === 2) {
+                                // Country + City (e.g., UK: ["UK", "London"])
+                                city = job.location.area[1];
+                                state = null;
+                            } else if (areaLength >= 3) {
+                                // Multiple levels - last is city, second might be state
+                                city = job.location.area[areaLength - 1]; // Last element
+                                state = job.location.area[1]; // Second element (state/region)
+                            }
+
+                            const countryName = country.name; // Use mapped country name
 
                             // Normalize geographic data
                             const { countryId, stateId, cityId } = await normalizeLocation(pool, {
