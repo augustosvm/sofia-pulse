@@ -155,6 +155,22 @@ STATE_TO_COUNTRY = {
 }
 
 COUNTRY_ALIASES = {
+    # Portuguese country names (for MDIC ComexStat and other Brazilian sources)
+    'estados unidos': 'United States', 'panamá': 'Panama', 'panama': 'Panama',
+    'colômbia': 'Colombia', 'colombia': 'Colombia', 'uruguai': 'Uruguay',
+    'reino unido': 'United Kingdom', 'bolívia': 'Bolivia', 'bolivia': 'Bolivia',
+    'alemanha': 'Germany', 'frança': 'France', 'franca': 'France', 'canadá': 'Canada', 'canada': 'Canada',
+    'bélgica': 'Belgium', 'belgica': 'Belgium', 'irlanda': 'Ireland',
+    'coreia do sul': 'South Korea', 'áfrica do sul': 'South Africa', 'africa do sul': 'South Africa',
+    'países baixos (holanda)': 'Netherlands', 'países baixos': 'Netherlands', 'paises baixos': 'Netherlands',
+    'holanda': 'Netherlands', 'hong kong': 'Hong Kong', 'taiwan (formosa)': 'Taiwan',
+    'emirados árabes unidos': 'United Arab Emirates', 'emirados arabes unidos': 'United Arab Emirates',
+    'singapura': 'Singapore', 'noruega': 'Norway', 'suécia': 'Sweden', 'suecia': 'Sweden',
+    'sérvia': 'Serbia', 'serbia': 'Serbia', 'mauritânia': 'Mauritania', 'mauritania': 'Mauritania',
+    'lituânia': 'Lithuania', 'lituania': 'Lithuania', 'moçambique': 'Mozambique', 'mocambique': 'Mozambique',
+    'república dominicana': 'Dominican Republic', 'republica dominicana': 'Dominican Republic',
+    'porto rico': 'Puerto Rico', 'trinidad e tobago': 'Trinidad and Tobago',
+    'hungria': 'Hungary', 'filipinas': 'Philippines',
     # Language variations
     'brasil': 'Brazil', 'deutschland': 'Germany', 'nederland': 'Netherlands',
     'schweiz': 'Switzerland', 'suisse': 'Switzerland', 'svizzera': 'Switzerland',
