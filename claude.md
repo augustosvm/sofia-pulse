@@ -615,4 +615,71 @@ psql -h localhost -U sofia -d sofia_db
 
 ---
 
-*Last Updated: 2025-12-29 13:30 BRT*
+## 📊 Data Quality Audit (2025-12-29)
+
+### ✅ Completed Checks
+
+**1. Duplicate Organizations:**
+- ✅ 0 duplicates found (database clean)
+- Migration: `049_cleanup_duplicate_organizations.sql`
+
+**2. Referential Integrity:**
+- ✅ 369 orphaned city_id fixed in tech_jobs
+- ✅ All foreign keys valid
+- ✅ 1,165 unused organizations (OK - available for future use)
+- Migration: `050_fix_orphaned_city_ids.sql`
+
+**3. Normalization Coverage Audit:**
+- ✅ 27 tables analyzed
+- Full report: `DATA_QUALITY_REPORT.md`
+
+### 📊 Coverage Summary
+
+| Entity | Coverage | Status | Details |
+|:---|---:|:---:|:---|
+| **Organizations** | 61.4% | ⚠️ | 16,395/26,691 normalized |
+| **Countries** | 30.4% | ❌ | 155,929/512,622 normalized |
+| **States** | 13.5% | ❌ | 1,653/12,249 normalized |
+| **Cities** | 44.2% | ⚠️ | 4,711/10,653 normalized |
+
+### 🚨 Critical Issues Identified
+
+| Priority | Issue | Impact | Records |
+|:---:|:---|:---:|---:|
+| 🔴 P1 | **authors** not normalized | HIGH | 245,965 |
+| 🔴 P1 | **publications** not normalized | MEDIUM | 350 |
+| 🔴 P1 | **gdelt_events** not normalized | MEDIUM | 2,751 |
+| 🔴 P1 | **comexstat_trade** states 0.1% | HIGH | 1,596 |
+| 🟠 P2 | **jobs** organization_id 12.8% | HIGH | 9,090 |
+| 🟠 P2 | **funding_rounds** org_id 87.6% | MEDIUM | 1,000 |
+
+### 🎯 Recommended Next Steps
+
+**Priority 1 (Critical):**
+1. ⚠️ Backfill authors.country_id (245,965 records)
+2. ⚠️ Backfill publications.country_id (350 records)
+3. ⚠️ Backfill gdelt_events.country_id (2,751 records)
+4. ⚠️ Fix comexstat_trade.state_id mapping (1,596 records)
+
+**Priority 2 (High):**
+5. ⚠️ Backfill jobs.organization_id (9,090 records)
+6. ⚠️ Backfill funding_rounds.organization_id (1,000 records)
+
+**Priority 3 (Medium):**
+7. ⚠️ Add missing cities to cities table (1,867 cities)
+8. ⚠️ Improve state normalization for jobs
+
+### 📝 Tools Created
+
+**Validation Scripts:**
+- `scripts/validate-referential-integrity.py` - Check FK integrity
+- `scripts/audit-normalization-coverage.py` - Coverage audit
+- `scripts/run-cleanup-duplicates.py` - Cleanup duplicates
+- `scripts/run-fix-orphaned-cities.py` - Fix orphaned FKs
+
+**Reports:**
+- `DATA_QUALITY_REPORT.md` - Complete analysis with details
+
+---
+
+*Last Updated: 2025-12-29 14:30 BRT*
