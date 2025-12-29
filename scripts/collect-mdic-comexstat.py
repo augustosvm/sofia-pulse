@@ -75,17 +75,18 @@ def fetch_comexstat_data(ncm_code: str, flow: str, months_back: int = 12) -> Lis
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    max_retries = 3
+    max_retries = 5
     retry_delay = 30 # seconds
 
     for attempt in range(max_retries):
         try:
-            # Use POST data
-            response = requests.post(base_url, json=payload, timeout=60, verify=False)
+            # Use POST data with longer timeout
+            response = requests.post(base_url, json=payload, timeout=180, verify=False)
             
             if response.status_code == 429:
-                print(f"   ⚠️  Rate limit (429) hit. Waiting {retry_delay}s... (Attempt {attempt+1}/{max_retries})")
-                time.sleep(retry_delay)
+                backoff = retry_delay * (2 ** attempt)  # Exponential backoff
+                print(f"   ⚠️  Rate limit (429) hit. Waiting {backoff}s... (Attempt {attempt+1}/{max_retries})")
+                time.sleep(backoff)
                 continue
 
             # ComexStat may return 404 for no data
@@ -118,10 +119,25 @@ def fetch_comexstat_data(ncm_code: str, flow: str, months_back: int = 12) -> Lis
                 print(f"   ⚠️  Unexpected data format: {type(raw_data)}")
                 return []
 
+        except requests.exceptions.Timeout:
+            print(f"   ⏱️  Timeout on attempt {attempt+1}/{max_retries} for NCM {ncm_code} ({flow})")
+            if attempt < max_retries - 1:
+                backoff = retry_delay * (2 ** attempt)
+                print(f"   🔄 Retrying in {backoff}s...")
+                time.sleep(backoff)
+                continue
+            else:
+                print(f"   ❌ Max retries reached for NCM {ncm_code} ({flow})")
+                return []
         except Exception as e:
-            print(f"   ❌ Error fetching NCM {ncm_code}: {e}")
+            print(f"   ❌ Error fetching NCM {ncm_code} ({flow}): {type(e).__name__}: {e}")
+            if attempt < max_retries - 1:
+                backoff = retry_delay * (2 ** attempt)
+                print(f"   🔄 Retrying in {backoff}s...")
+                time.sleep(backoff)
+                continue
             return []
-    
+
     return []
 
 def init_db(conn):
@@ -299,9 +315,13 @@ def main():
         run_id = log_run_start(conn, COLLECTOR_NAME)
 
         print("\n📊 Fetching tech products trade data (NCM codes)...\n")
-        
+
+        total_ncm = len(TECH_NCM_CODES)
+        current_ncm = 0
+
         for ncm_code, description in TECH_NCM_CODES.items():
-            print(f"📦 {description} (NCM: {ncm_code})")
+            current_ncm += 1
+            print(f"📦 [{current_ncm}/{total_ncm}] {description} (NCM: {ncm_code})")
 
             # Fetch exports
             export_data = fetch_comexstat_data(ncm_code, 'exp')

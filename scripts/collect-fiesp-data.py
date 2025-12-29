@@ -69,44 +69,59 @@ def init_db(conn):
     cursor.close()
     print("✅ Database tables initialized (sofia.fiesp_ina, sofia.fiesp_sensor)")
 
-def get_excel_links(url: str) -> Dict[str, str]:
+def get_excel_links(url: str, max_retries: int = 3) -> Dict[str, str]:
     """Scrape FIESP page for latest Excel links for Sensor and INA"""
     print(f"🔍 Scanning {url} for Excel files...")
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
-    
-    try:
-        resp = requests.get(url, headers=headers, timeout=30)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        
-        links = {}
-        
-        # Find all links ending in .xlsx
-        for a in soup.find_all('a', href=True):
-            href = a['href']
-            text = a.get_text().lower().strip()
-            
-            if not href.endswith('.xlsx'):
-                continue
-                
-            href_lower = href.lower()
-            
-            # Identify Sensor FIESP (Clean/Sazonal) - We prefer "com ajuste" (Seasonally Adjusted) likely, or we store both.
-            # Let's target the main ones.
-            if 'sensor' in href_lower and 'com-ajuste' in href_lower:
-                links['sensor'] = href
-            
-            # Identify INA (Levantamento de Conjuntura) - Look for 'lcdessazonalizado' (Levantamento Conjuntura Dessazonalizado)
-            # or 'dessazonalizado' inside a context of 'conjuntura'
-            if 'dessazonalizado' in href_lower and ('lc' in href_lower or 'conjuntura' in href_lower or 'ina' in href_lower):
-                links['ina'] = href
 
-        return links
-    except Exception as e:
-        print(f"❌ Error scraping FIESP: {e}")
-        return {}
+    for attempt in range(max_retries):
+        try:
+            resp = requests.get(url, headers=headers, timeout=90)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, 'html.parser')
+
+            links = {}
+
+            # Find all links ending in .xlsx
+            for a in soup.find_all('a', href=True):
+                href = a['href']
+                text = a.get_text().lower().strip()
+
+                if not href.endswith('.xlsx'):
+                    continue
+
+                href_lower = href.lower()
+
+                # Identify Sensor FIESP (Clean/Sazonal) - We prefer "com ajuste" (Seasonally Adjusted) likely, or we store both.
+                # Let's target the main ones.
+                if 'sensor' in href_lower and 'com-ajuste' in href_lower:
+                    links['sensor'] = href
+
+                # Identify INA (Levantamento de Conjuntura) - Look for 'lcdessazonalizado' (Levantamento Conjuntura Dessazonalizado)
+                # or 'dessazonalizado' inside a context of 'conjuntura'
+                if 'dessazonalizado' in href_lower and ('lc' in href_lower or 'conjuntura' in href_lower or 'ina' in href_lower):
+                    links['ina'] = href
+
+            return links
+        except requests.exceptions.Timeout:
+            print(f"   ⏱️  Timeout on attempt {attempt+1}/{max_retries}")
+            if attempt < max_retries - 1:
+                wait_time = 30 * (2 ** attempt)
+                print(f"   🔄 Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+        except Exception as e:
+            print(f"   ❌ Error on attempt {attempt+1}/{max_retries}: {type(e).__name__}: {e}")
+            if attempt < max_retries - 1:
+                wait_time = 30 * (2 ** attempt)
+                print(f"   🔄 Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+
+    print(f"❌ Failed to scrape FIESP after {max_retries} attempts")
+    return {}
 
 def clean_num(n):
     """Clean numeric values from Excel"""
@@ -121,8 +136,33 @@ def clean_num(n):
 def download_and_parse_sensor(conn, url: str):
     """Download and process Sensor FIESP Excel"""
     print(f"📡 Downloading Sensor: {url}")
+    max_retries = 3
+    resp = None
+
+    for attempt in range(max_retries):
+        try:
+            resp = requests.get(url, timeout=180)
+            resp.raise_for_status()
+            break
+        except requests.exceptions.Timeout:
+            print(f"   ⏱️  Download timeout on attempt {attempt+1}/{max_retries}")
+            if attempt < max_retries - 1:
+                wait_time = 30 * (2 ** attempt)
+                print(f"   🔄 Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                print(f"   ❌ Failed to download Sensor after {max_retries} attempts")
+                return
+        except Exception as e:
+            print(f"   ❌ Download error: {type(e).__name__}: {e}")
+            if attempt < max_retries - 1:
+                wait_time = 30 * (2 ** attempt)
+                print(f"   🔄 Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                return
+
     try:
-        resp = requests.get(url, timeout=60)
         file_path = os.path.join(DATA_DIR, "latest_sensor.xlsx")
         with open(file_path, 'wb') as f:
             f.write(resp.content)
@@ -241,12 +281,37 @@ def parse_pt_date(date_str: str) -> Optional[datetime.date]:
 def download_and_parse_ina(conn, url: str):
     """Download and process INA Excel"""
     print(f"📡 Downloading INA: {url}")
+    max_retries = 3
+    resp = None
+
+    for attempt in range(max_retries):
+        try:
+            resp = requests.get(url, timeout=180)
+            resp.raise_for_status()
+            break
+        except requests.exceptions.Timeout:
+            print(f"   ⏱️  Download timeout on attempt {attempt+1}/{max_retries}")
+            if attempt < max_retries - 1:
+                wait_time = 30 * (2 ** attempt)
+                print(f"   🔄 Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                print(f"   ❌ Failed to download INA after {max_retries} attempts")
+                return
+        except Exception as e:
+            print(f"   ❌ Download error: {type(e).__name__}: {e}")
+            if attempt < max_retries - 1:
+                wait_time = 30 * (2 ** attempt)
+                print(f"   🔄 Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                return
+
     try:
-        resp = requests.get(url, timeout=60)
         file_path = os.path.join(DATA_DIR, "latest_ina.xlsx")
         with open(file_path, 'wb') as f:
             f.write(resp.content)
-            
+
         print("   ✅ INA downloaded. Parsing...")
         
         # Read Excel with header=1 (Row 2 in Excel is header)
