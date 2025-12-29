@@ -6,12 +6,12 @@ Auth: Nenhuma (100% gratuito)
 Features: 5500+ startups YC, batches, funding stages
 """
 import requests
-from shared.geo_helpers import normalize_location
 import psycopg2
-from shared.geo_helpers import normalize_location
 import os
-from shared.geo_helpers import normalize_location
+import json
 from dotenv import load_dotenv
+from shared.org_helpers import get_or_create_organization
+from shared.funding_helpers import normalize_round_type, extract_funding_metadata
 
 load_dotenv()
 
@@ -53,7 +53,7 @@ def collect_yc_companies():
     return companies
 
 def save_to_db(companies):
-    """Salva empresas YC no banco"""
+    """Salva empresas YC no banco com schema unificado"""
     if not companies:
         return 0
     
@@ -69,23 +69,41 @@ def save_to_db(companies):
     saved = 0
     for company in companies:
         try:
-            # Criar ID único
-            company_id = f"yc-{company['batch']}-{company['company_name'].lower().replace(' ', '-')}"
+            # 1. Criar/obter organization_id
+            org_id = get_or_create_organization(
+                cur,
+                company['company_name'],
+                company.get('website'),
+                company.get('location'),
+                'USA',  # YC é majoritariamente USA
+                'yc_companies'
+            )
             
+            # 2. Normalizar round_type (YC é sempre Accelerator)
+            normalized_type = normalize_round_type(f"YC {company['batch']}")
+            
+            # 3. Extrair metadata
+            metadata = extract_funding_metadata('yc_companies', company)
+            
+            # 4. Inserir com schema unificado
             cur.execute("""
                 INSERT INTO sofia.funding_rounds (
-                    company_name, round_type, country, sector, collected_at
-                ) VALUES (%s, %s, %s, %s, NOW())
-                ON CONFLICT DO NOTHING
+                    company_name, organization_id, round_type, 
+                    country, sector, source, metadata, collected_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+                ON CONFLICT (company_name, announced_date, source) DO NOTHING
             """, (
                 company['company_name'],
-                f"YC {company['batch']}",
+                org_id,
+                normalized_type,
                 'USA',
-                company['tags']
+                company.get('tags', '')[:200],  # Limitar tamanho
+                'yc_companies',
+                json.dumps(metadata)
             ))
             saved += 1
         except Exception as e:
-            print(f"⚠️  Erro ao salvar {company['company_name']}: {str(e)[:50]}")
+            print(f"⚠️  Erro ao salvar {company['company_name']}: {str(e)[:100]}")
     
     conn.commit()
     conn.close()

@@ -6,15 +6,14 @@ Auth: Nenhuma (100% gratuito)
 Features: IPOs, funding rounds, Form D (venture capital), Form S-1
 """
 import requests
-from shared.geo_helpers import normalize_location
 import psycopg2
-from shared.geo_helpers import normalize_location
 import os
-from shared.geo_helpers import normalize_location
+import json
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import time
-from shared.geo_helpers import normalize_location
+from shared.org_helpers import get_or_create_organization
+from shared.funding_helpers import normalize_round_type, extract_funding_metadata
 
 load_dotenv()
 
@@ -88,7 +87,7 @@ def collect_sec_edgar():
     return funding_data
 
 def save_to_db(funding_data):
-    """Salva dados de funding no banco"""
+    """Salva dados de funding no banco com schema unificado"""
     if not funding_data:
         return 0
     
@@ -104,23 +103,45 @@ def save_to_db(funding_data):
     saved = 0
     for item in funding_data:
         try:
-            # Criar ID único
-            funding_id = f"sec-{item['cik']}-{item['form_type']}-{item['filing_date']}"
+            # 1. Criar/obter organization_id
+            org_id = get_or_create_organization(
+                cur,
+                item['company_name'],
+                None,  # website (não temos do SEC)
+                None,  # location (não temos específica)
+                'USA',  # country
+                'sec_edgar'  # source
+            )
             
+            # 2. Normalizar round_type
+            normalized_type = normalize_round_type(item['form_type'])
+            
+            # 3. Extrair metadata
+            metadata = extract_funding_metadata('sec_edgar', item)
+            
+            # 4. Inserir com schema unificado
             cur.execute("""
                 INSERT INTO sofia.funding_rounds (
-                    company_name, round_type, announced_date, country, collected_at
-                ) VALUES (%s, %s, %s, %s, NOW())
-                ON CONFLICT DO NOTHING
+                    company_name, organization_id, round_type, 
+                    announced_date, country, source, metadata, collected_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+                ON CONFLICT (company_name, announced_date, source) DO UPDATE SET
+                    organization_id = EXCLUDED.organization_id,
+                    round_type = EXCLUDED.round_type,
+                    metadata = EXCLUDED.metadata,
+                    updated_at = NOW()
             """, (
                 item['company_name'],
-                f"SEC {item['form_type']}",
+                org_id,
+                normalized_type,
                 item['filing_date'],
-                'USA'
+                'USA',
+                'sec_edgar',
+                json.dumps(metadata)
             ))
             saved += 1
         except Exception as e:
-            print(f"⚠️  Erro ao salvar: {str(e)[:50]}")
+            print(f"⚠️  Erro ao salvar {item['company_name']}: {str(e)[:100]}")
     
     conn.commit()
     conn.close()

@@ -29,6 +29,8 @@ export const collectors: Record<string, PythonCollectorConfig> = {
     'electricity-consumption': { name: 'electricity-consumption', description: 'Global Electricity Consumption', script: 'scripts/collect-electricity-consumption.py', schedule: '0 0 4 * *', category: 'economic' },
     'energy-global': { name: 'energy-global', description: 'Global Energy Stats', script: 'scripts/collect-energy-global.py', schedule: '0 0 4 * *', category: 'economic' },
     'fao-agriculture': { name: 'fao-agriculture', description: 'FAO Agriculture Data', script: 'scripts/collect-fao-agriculture.py', schedule: '0 0 3 * *', category: 'economic' },
+    'fiesp-data': { name: 'fiesp-data', description: 'FIESP Industry Indicators (Sensor + INA)', script: 'scripts/collect-fiesp-data.py', schedule: '0 9 * * *', category: 'economic' },
+    'ibge-api': { name: 'ibge-api', description: 'IBGE Brazil Statistics', script: 'scripts/collect-ibge-api.py', schedule: '0 5 * * *', category: 'economic' },
     'ipea-api': { name: 'ipea-api', description: 'IPEA Economic Data', script: 'scripts/collect-ipea-api.py', schedule: '0 0 5 * *', category: 'economic' },
     'mdic-comexstat': { name: 'mdic-comexstat', description: 'MDIC ComexStat Trade', script: 'scripts/collect-mdic-comexstat.py', schedule: '0 9 * * *', category: 'economic' },
     'port-traffic': { name: 'port-traffic', description: 'Global Port Traffic', script: 'scripts/collect-port-traffic.py', schedule: '0 0 2 * *', category: 'economic' },
@@ -71,4 +73,8 @@ export const collectors: Record<string, PythonCollectorConfig> = {
     'cepal-latam': { name: 'cepal-latam', description: 'CEPAL Latin America', script: 'scripts/collect-cepal-latam.py', schedule: '0 0 1 * *', category: 'economic' },
     'brazil-ministries': { name: 'brazil-ministries', description: 'Brazil Ministries Data', script: 'scripts/collect-brazil-ministries.py', schedule: '0 0 1 * *', category: 'other' },
     'world-tourism': { name: 'world-tourism', description: 'World Tourism Stats', script: 'scripts/collect-world-tourism.py', schedule: '0 0 1 * *', category: 'economic' },
+
+    // --- FUNDING & STARTUPS ---
+    'sec-edgar-funding': { name: 'sec-edgar-funding', description: 'SEC Edgar Funding Data', script: 'scripts/collect-sec-edgar-funding.py', schedule: '0 0 2 * *', category: 'economic' },
+    'yc-companies': { name: 'yc-companies', description: 'Y Combinator Companies', script: 'scripts/collect-yc-companies.py', schedule: '0 0 1 * *', category: 'economic' },
 };
