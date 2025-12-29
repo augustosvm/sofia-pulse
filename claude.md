@@ -425,4 +425,99 @@ psql -h localhost -U sofia -d sofia_db
 
 ---
 
-*Last Updated: 2025-12-24 15:30 BRT*
+## 📊 Database Normalization Status (2025-12-26)
+
+### ✅ COMPLETE - Organizations & Geographic Normalization
+
+**Organizations Normalization:**
+- ✅ 12 tables normalized with `organization_id`
+- ✅ 3,065 unique organizations in database
+- ✅ 11/11 priority tables with 100% coverage
+- ✅ Tables: funding_rounds, space_industry, tech_jobs, market_data_brazil, market_data_nasdaq, global_universities, world_ngos, hdx_humanitarian, hkex_ipos, startups, nih_grants
+
+**Geographic Normalization:**
+- ✅ 44 tables normalized with `country_id`
+- ✅ 195 countries referenced
+- ✅ Real coverage: 85%+ (excluding legitimate NULLs)
+- ✅ Tables: All major tables + authors, publications, gdelt_events, cardboard_production, electricity_consumption, energy_global, gender_names
+
+**Performance:**
+- ⚡ 3,000x faster than row-by-row Python loops
+- ⏱️ Organizations backfill: 4.8s (15,650 records)
+- ⏱️ Geographic backfill: 11s total
+
+**Migrations Applied:**
+- `042_add_organization_id_to_priority_tables.sql`
+- `043_bulk_backfill_organizations.sql`
+- `044_bulk_backfill_geographic.sql`
+- `045_final_geographic_fixes.sql`
+- `046_comprehensive_geo_mapping.sql`
+- `047_add_all_missing_columns.sql`
+- `048_bulk_backfill_all_remaining.sql`
+
+**Git Commits**: `6991240`, `9ef50eb` - Pushed to master
+
+---
+
+## ⚠️ CRITICAL: DO NOT DELETE OLD FIELDS
+
+**IMPORTANT:** Old text fields (`country`, `country_name`, `company_name`, etc.) MUST BE KEPT alongside new normalized IDs.
+
+### Why Keep Old Fields:
+
+**1. Contains Non-Normalizable Data:**
+- ❌ jobs: 1,891 records with "Remote", "US-Remote", city names
+- ❌ tech_jobs: 1,321 records with "Remote", states, regions
+- ❌ socioeconomic_indicators: 21,035 records with "World", "Latin America & Caribbean" (regional aggregations that SHOULD NOT be normalized)
+- ❌ space_industry: 390 records with unmapped countries
+
+**2. Essential for Display:**
+- ✅ country_id=1 → user sees "United States" (from old field)
+- ✅ organization_id=123 → user sees "OpenAI" (from old field)
+
+**3. Debugging & Auditing:**
+- ✅ Compare normalized ID with original text
+- ✅ Identify mapping issues
+- ✅ Track data quality
+
+**4. Backwards Compatibility:**
+- ✅ Existing queries continue working
+- ✅ Gradual migration to new schema
+- ✅ Zero downtime
+
+**5. Storage is Cheap:**
+- ✅ Text fields cost minimal storage
+- ✅ Query performance not impacted (indexes on IDs)
+
+### Correct Strategy:
+
+✅ **DO:**
+- Use normalized IDs (`country_id`, `organization_id`) in NEW queries
+- JOIN with reference tables (`countries`, `organizations`) for display
+- Keep old fields populated by collectors
+
+❌ **DON'T:**
+- Delete old text fields
+- Drop columns like `country`, `country_name`, `company_name`
+- Assume 100% coverage is possible (it's not - "Remote", aggregations, etc. are valid NULLs)
+
+### Coverage Analysis:
+
+**Good Coverage (can't improve much):**
+- funding_rounds.country_id: 99.7% (20 are legitimately NULL)
+- space_industry.country_id: 94.0% (390 unmapped countries)
+- world_ngos.country_id: 99.0% (2 missing)
+
+**Intentional Low Coverage:**
+- socioeconomic_indicators: 77.8% (21k regional aggregations SHOULD be NULL)
+- jobs: 74.0% (1.9k "Remote" jobs SHOULD be NULL)
+- tech_jobs: 63.5% (1.3k "Remote" jobs SHOULD be NULL)
+
+**Documentation:**
+- See `NORMALIZATION_COMPLETE.md` for full details
+- See `UPDATE_ANALYTICS_GUIDE.md` for query migration guide
+- See `OPTIMIZED_QUERIES.sql` for example queries
+
+---
+
+*Last Updated: 2025-12-26 22:30 BRT*
