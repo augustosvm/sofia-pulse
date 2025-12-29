@@ -25,6 +25,49 @@ Successfully unified **70+ collectors** into unified CLI. All collectors operati
 **Last Verified**: 2025-12-29 13:00 BRT
 **WhatsApp**: Active on 551151990773 (TIE Especialistas)
 
+## 📊 Status Atual (Dezembro 2024)
+
+### 🎯 Reorganização Completa do Projeto (29/12/2024)
+
+**Estrutura limpa e organizada**:
+- ✅ Raiz com apenas 12 arquivos essenciais (era 200+)
+- ✅ Documentação em `docs/` (104 arquivos)
+- ✅ Scripts legacy em `legacy/` (115 one-time scripts)
+- ✅ Automação em `scripts/automation/` (140+ scripts)
+- ✅ 47 collectors Python configurados (era 43)
+
+### 💰 Unificação de Dados de Funding (29/12/2024)
+
+**Problema**: Dados de funding espalhados, sem padronização
+
+**Solução implementada**:
+- ✅ Migration criada (`add_funding_constraints.sql`)
+- ✅ Helpers criados (`funding_helpers.py` com `normalize_round_type()`)
+- ✅ Collectors atualizados (SEC Edgar, Y Combinator)
+- ✅ Scripts de normalização e deduplicação criados
+- ⏳ **Pendente**: Deploy no servidor (aguardando execução manual)
+
+**Arquivos criados**:
+- `migrations/add_funding_constraints.sql` - Adiciona colunas source, metadata, organization_id
+- `migrations/deduplicate-funding.sql` - Remove duplicatas
+- `scripts/shared/funding_helpers.py` - Funções de normalização
+- `scripts/normalize-existing-funding.py` - Normaliza dados existentes
+- `scripts/automation/unify-funding-data.sh` - Script de deploy
+
+**Schema unificado**:
+```sql
+funding_rounds:
+  - company_name
+  - organization_id (FK para organizations)
+  - round_type (normalizado: IPO, Seed, Series A, Accelerator, etc.)
+  - amount, currency
+  - announced_date
+  - investors
+  - country, sector
+  - source (sec_edgar, yc_companies, crunchbase)
+  - metadata (JSONB com dados específicos da fonte)
+```
+
 | Collector | Records/Run | Status | Notes |
 |:---|:---:|:---|:---|
 | GitHub | 100 | ✅ | Running |

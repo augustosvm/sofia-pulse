@@ -1,0 +1,58 @@
+# ============================================================================
+# Sofia Pulse - Auto-generated Crontab
+# Generated: 2025-12-23T23:38:06.744Z
+# DO NOT EDIT MANUALLY - Run: npx tsx scripts/generate-crontab.ts --install
+# ============================================================================
+
+# Environment
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# 2x/day (0h, 12h) - github, hackernews
+0 */12 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts github >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/github-collector.log 2>&1
+0 */12 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts hackernews >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/hackernews-collector.log 2>&1
+
+# 1x/day - npm
+0 8 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts npm >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/npm-collector.log 2>&1
+
+# 1x/day - pypi
+0 20 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts pypi >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/pypi-collector.log 2>&1
+
+# 1x/day - stackoverflow
+0 9 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts stackoverflow >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/stackoverflow-collector.log 2>&1
+
+# 1x/day - arxiv, openalex, ai-companies
+0 8 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts arxiv >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/arxiv-collector.log 2>&1
+0 8 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts openalex >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/openalex-collector.log 2>&1
+0 8 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts ai-companies >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/ai-companies-collector.log 2>&1
+
+# 4x/day (0h, 6h, 12h, 18h) - himalayas, remoteok
+0 */6 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts himalayas >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/himalayas-collector.log 2>&1
+0 */6 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts remoteok >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/remoteok-collector.log 2>&1
+
+# Custom schedule - arbeitnow
+0 0,8,16 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts arbeitnow >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/arbeitnow-collector.log 2>&1
+
+# 1x/month (1st day) - universities, ngos
+0 8 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts universities >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/universities-collector.log 2>&1
+0 8 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts ngos >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/ngos-collector.log 2>&1
+
+# 1x/day - yc-companies
+0 10 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts yc-companies >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/yc-companies-collector.log 2>&1
+
+# 1x/day - producthunt
+0 11 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts producthunt >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/producthunt-collector.log 2>&1
+
+# 1x/day - vscode-marketplace
+0 14 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts vscode-marketplace >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/vscode-marketplace-collector.log 2>&1
+
+# 1x/day - jetbrains-marketplace
+0 15 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts jetbrains-marketplace >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/jetbrains-marketplace-collector.log 2>&1
+
+# 1x/day - confs-tech
+0 6 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts confs-tech >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/confs-tech-collector.log 2>&1
+
+# ============================================================================
+# Total collectors: 18 (5 tech + 2 papers + 3 jobs + 3 orgs + 2 funding + 2 devtools + 1 conf)
+# Unique schedules: 13
+# ============================================================================

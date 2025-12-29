@@ -1,0 +1,433 @@
+﻿************* Module collect-mdic-comexstat
+scripts\collect-mdic-comexstat.py:27:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:32:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:37:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:85:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:88:0: C0301: Line too long (112/100) (line-too-long)
+scripts\collect-mdic-comexstat.py:101:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:105:0: C0301: Line too long (108/100) (line-too-long)
+scripts\collect-mdic-comexstat.py:123:0: C0301: Line too long (101/100) (line-too-long)
+scripts\collect-mdic-comexstat.py:146:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:148:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:183:0: C0301: Line too long (101/100) (line-too-long)
+scripts\collect-mdic-comexstat.py:197:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:204:31: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:205:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:210:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:301:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:313:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:346:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:351:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:358:0: C0301: Line too long (102/100) (line-too-long)
+scripts\collect-mdic-comexstat.py:359:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-mdic-comexstat.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+scripts\collect-mdic-comexstat.py:1:0: C0103: Module name "collect-mdic-comexstat" doesn't conform to snake_case naming style (invalid-name)
+scripts\collect-mdic-comexstat.py:132:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-mdic-comexstat.py:112:12: R1705: Unnecessary "elif" after "return", remove the leading "el" from "elif" (no-else-return)
+scripts\collect-mdic-comexstat.py:124:12: R1724: Unnecessary "else" after "continue", remove the "else" and de-indent the code inside it (no-else-continue)
+scripts\collect-mdic-comexstat.py:46:0: R0911: Too many return statements (7/6) (too-many-return-statements)
+scripts\collect-mdic-comexstat.py:46:0: R0912: Too many branches (15/12) (too-many-branches)
+scripts\collect-mdic-comexstat.py:46:51: W0613: Unused argument 'months_back' (unused-argument)
+scripts\collect-mdic-comexstat.py:52:4: W0612: Unused variable 'start_date' (unused-variable)
+scripts\collect-mdic-comexstat.py:53:4: W0612: Unused variable 'end_date' (unused-variable)
+scripts\collect-mdic-comexstat.py:172:0: R0914: Too many local variables (22/15) (too-many-locals)
+scripts\collect-mdic-comexstat.py:182:4: C0103: Variable name "STATE_MAP" doesn't conform to snake_case naming style (invalid-name)
+scripts\collect-mdic-comexstat.py:254:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-mdic-comexstat.py:216:12: W0702: No exception type(s) specified (bare-except)
+scripts\collect-mdic-comexstat.py:215:17: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-mdic-comexstat.py:216:20: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-mdic-comexstat.py:218:12: W0702: No exception type(s) specified (bare-except)
+scripts\collect-mdic-comexstat.py:217:17: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-mdic-comexstat.py:218:20: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-mdic-comexstat.py:270:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-mdic-comexstat.py:275:0: R0913: Too many arguments (6/5) (too-many-arguments)
+scripts\collect-mdic-comexstat.py:275:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+scripts\collect-mdic-comexstat.py:287:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-mdic-comexstat.py:291:0: C0116: Missing function or method docstring (missing-function-docstring)
+scripts\collect-mdic-comexstat.py:355:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-mdic-comexstat.py:364:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-mdic-comexstat.py:362:12: C0415: Import outside toplevel (utils.whatsapp_alerts.alert_collector_failed) (import-outside-toplevel)
+scripts\collect-mdic-comexstat.py:7:0: C0411: standard import "typing.List" should be placed before third party imports "requests", "urllib3", "psycopg2" (wrong-import-order)
+scripts\collect-mdic-comexstat.py:8:0: C0411: standard import "datetime.datetime" should be placed before third party imports "requests", "urllib3", "psycopg2" (wrong-import-order)
+scripts\collect-mdic-comexstat.py:9:0: C0411: standard import "sys" should be placed before third party imports "requests", "urllib3", "psycopg2" (wrong-import-order)
+scripts\collect-mdic-comexstat.py:3:0: W0611: Unused import json (unused-import)
+scripts\collect-mdic-comexstat.py:8:0: W0611: Unused timedelta imported from datetime (unused-import)
+************* Module collect-fiesp-data
+scripts\collect-fiesp-data.py:37:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:67:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:76:0: C0301: Line too long (135/100) (line-too-long)
+scripts\collect-fiesp-data.py:97:0: C0301: Line too long (128/100) (line-too-long)
+scripts\collect-fiesp-data.py:102:0: C0301: Line too long (132/100) (line-too-long)
+scripts\collect-fiesp-data.py:104:0: C0301: Line too long (129/100) (line-too-long)
+scripts\collect-fiesp-data.py:130:8: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:169:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:171:55: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:176:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:183:0: W0311: Bad indentation. Found 17 spaces, expected 16 (bad-indentation)
+scripts\collect-fiesp-data.py:184:0: W0311: Bad indentation. Found 17 spaces, expected 16 (bad-indentation)
+scripts\collect-fiesp-data.py:185:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:187:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:189:0: W0311: Bad indentation. Found 13 spaces, expected 12 (bad-indentation)
+scripts\collect-fiesp-data.py:191:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:201:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:204:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:211:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:215:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:222:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:248:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:255:65: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:264:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:269:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:273:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:276:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:316:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:319:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:322:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:330:0: C0301: Line too long (105/100) (line-too-long)
+scripts\collect-fiesp-data.py:338:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:341:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:345:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:348:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:354:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:375:32: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:376:39: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:377:41: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:378:41: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:379:41: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:387:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:390:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:399:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:408:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:412:0: C0301: Line too long (123/100) (line-too-long)
+scripts\collect-fiesp-data.py:415:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:417:0: W0311: Bad indentation. Found 9 spaces, expected 8 (bad-indentation)
+scripts\collect-fiesp-data.py:418:0: C0301: Line too long (113/100) (line-too-long)
+scripts\collect-fiesp-data.py:418:0: W0311: Bad indentation. Found 9 spaces, expected 8 (bad-indentation)
+scripts\collect-fiesp-data.py:419:0: W0311: Bad indentation. Found 9 spaces, expected 8 (bad-indentation)
+scripts\collect-fiesp-data.py:420:0: W0311: Bad indentation. Found 13 spaces, expected 12 (bad-indentation)
+scripts\collect-fiesp-data.py:421:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:430:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:456:0: C0303: Trailing whitespace (trailing-whitespace)
+scripts\collect-fiesp-data.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+scripts\collect-fiesp-data.py:1:0: C0103: Module name "collect-fiesp-data" doesn't conform to snake_case naming style (invalid-name)
+scripts\collect-fiesp-data.py:34:12: W0621: Redefining name 'conn' from outer scope (line 443) (redefined-outer-name)
+scripts\collect-fiesp-data.py:36:4: W0621: Redefining name 'cursor' from outer scope (line 444) (redefined-outer-name)
+scripts\collect-fiesp-data.py:115:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:90:16: W0612: Unused variable 'text' (unused-variable)
+scripts\collect-fiesp-data.py:128:19: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:129:36: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:134:4: W0702: No exception type(s) specified (bare-except)
+scripts\collect-fiesp-data.py:134:12: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:136:0: R0914: Too many local variables (28/15) (too-many-locals)
+scripts\collect-fiesp-data.py:136:30: W0621: Redefining name 'conn' from outer scope (line 443) (redefined-outer-name)
+scripts\collect-fiesp-data.py:202:8: W0621: Redefining name 'cursor' from outer scope (line 444) (redefined-outer-name)
+scripts\collect-fiesp-data.py:156:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:257:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:194:19: E0606: Possibly using variable 'df' before assignment (possibly-used-before-assignment)
+scripts\collect-fiesp-data.py:196:29: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:197:34: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:198:33: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:199:34: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:200:39: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:250:19: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:228:43: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:229:26: W0640: Cell variable row defined in loop (cell-var-from-loop)
+scripts\collect-fiesp-data.py:136:0: R0912: Too many branches (23/12) (too-many-branches)
+scripts\collect-fiesp-data.py:136:0: R0915: Too many statements (77/50) (too-many-statements)
+scripts\collect-fiesp-data.py:250:12: W0612: Unused variable 'e' (unused-variable)
+scripts\collect-fiesp-data.py:281:0: R0914: Too many local variables (25/15) (too-many-locals)
+scripts\collect-fiesp-data.py:281:27: W0621: Redefining name 'conn' from outer scope (line 443) (redefined-outer-name)
+scripts\collect-fiesp-data.py:339:8: W0621: Redefining name 'cursor' from outer scope (line 444) (redefined-outer-name)
+scripts\collect-fiesp-data.py:356:12: W0621: Redefining name 'clean_num' from outer scope (line 126) (redefined-outer-name)
+scripts\collect-fiesp-data.py:301:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:391:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:328:34: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:329:39: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:330:67: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:331:41: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:332:55: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:333:17: R1714: Consider merging these comparisons with 'in' by using 'cl in ('mes', 'mÛs')'. Use a set instead if elements are hashable. (consider-using-in)
+scripts\collect-fiesp-data.py:333:46: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:357:31: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:359:16: W0702: No exception type(s) specified (bare-except)
+scripts\collect-fiesp-data.py:358:21: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:359:24: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:383:19: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:281:0: R0912: Too many branches (19/12) (too-many-branches)
+scripts\collect-fiesp-data.py:281:0: R0915: Too many statements (72/50) (too-many-statements)
+scripts\collect-fiesp-data.py:383:12: W0612: Unused variable 'e' (unused-variable)
+scripts\collect-fiesp-data.py:342:12: W0612: Unused variable 'index' (unused-variable)
+scripts\collect-fiesp-data.py:395:0: C0116: Missing function or method docstring (missing-function-docstring)
+scripts\collect-fiesp-data.py:401:8: W0621: Redefining name 'conn' from outer scope (line 443) (redefined-outer-name)
+scripts\collect-fiesp-data.py:403:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:440:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:448:8: W0702: No exception type(s) specified (bare-except)
+scripts\collect-fiesp-data.py:447:12: W0107: Unnecessary pass statement (unnecessary-pass)
+scripts\collect-fiesp-data.py:448:16: C0321: More than one statement on a single line (multiple-statements)
+scripts\collect-fiesp-data.py:454:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-fiesp-data.py:7:0: C0411: standard import "re" should be placed before third party imports "requests", "psycopg2", "pandas" (wrong-import-order)
+scripts\collect-fiesp-data.py:8:0: C0411: standard import "datetime.datetime" should be placed before third party imports "requests", "psycopg2", "pandas" (wrong-import-order)
+scripts\collect-fiesp-data.py:10:0: C0411: standard import "io.BytesIO" should be placed before third party imports "requests", "psycopg2", "pandas", "bs4.BeautifulSoup" (wrong-import-order)
+scripts\collect-fiesp-data.py:11:0: C0411: standard import "typing.Optional" should be placed before third party imports "requests", "psycopg2", "pandas", "bs4.BeautifulSoup" (wrong-import-order)
+scripts\collect-fiesp-data.py:7:0: W0611: Unused import re (unused-import)
+scripts\collect-fiesp-data.py:10:0: W0611: Unused BytesIO imported from io (unused-import)
+scripts\collect-fiesp-data.py:11:0: W0611: Unused List imported from typing (unused-import)
+scripts\collect-fiesp-data.py:15:0: W0611: Unused normalize_location imported from shared.geo_helpers (unused-import)
+************* Module collect-infojobs-web-scraper
+scripts\collect-infojobs-web-scraper.py:1:0: C0103: Module name "collect-infojobs-web-scraper" doesn't conform to snake_case naming style (invalid-name)
+scripts\collect-infojobs-web-scraper.py:19:0: E0401: Unable to import 'geo_helpers' (import-error)
+scripts\collect-infojobs-web-scraper.py:19:0: C0413: Import "from geo_helpers import normalize_location" should be placed at the top of the module (wrong-import-position)
+scripts\collect-infojobs-web-scraper.py:20:0: E0401: Unable to import 'org_helpers' (import-error)
+scripts\collect-infojobs-web-scraper.py:20:0: C0413: Import "from org_helpers import get_or_create_organization" should be placed at the top of the module (wrong-import-position)
+scripts\collect-infojobs-web-scraper.py:38:0: R0914: Too many local variables (24/15) (too-many-locals)
+scripts\collect-infojobs-web-scraper.py:137:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-infojobs-web-scraper.py:133:23: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-infojobs-web-scraper.py:218:15: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\collect-infojobs-web-scraper.py:229:0: C0116: Missing function or method docstring (missing-function-docstring)
+scripts\collect-infojobs-web-scraper.py:247:10: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+scripts\collect-infojobs-web-scraper.py:10:0: C0411: standard import "os" should be placed before third party imports "requests", "bs4.BeautifulSoup", "psycopg2" (wrong-import-order)
+scripts\collect-infojobs-web-scraper.py:11:0: C0411: standard import "sys" should be placed before third party imports "requests", "bs4.BeautifulSoup", "psycopg2" (wrong-import-order)
+scripts\collect-infojobs-web-scraper.py:12:0: C0411: standard import "re" should be placed before third party imports "requests", "bs4.BeautifulSoup", "psycopg2" (wrong-import-order)
+scripts\collect-infojobs-web-scraper.py:13:0: C0411: standard import "pathlib.Path" should be placed before third party imports "requests", "bs4.BeautifulSoup", "psycopg2" (wrong-import-order)
+scripts\collect-infojobs-web-scraper.py:15:0: C0411: standard import "datetime.datetime" should be placed before third party imports "requests", "bs4.BeautifulSoup", "psycopg2", "dotenv.load_dotenv" (wrong-import-order)
+************* Module shared.geo_helpers
+scripts\shared\geo_helpers.py:41:0: C0301: Line too long (116/100) (line-too-long)
+scripts\shared\geo_helpers.py:54:0: C0301: Line too long (102/100) (line-too-long)
+scripts\shared\geo_helpers.py:55:0: C0301: Line too long (101/100) (line-too-long)
+scripts\shared\geo_helpers.py:57:0: C0301: Line too long (104/100) (line-too-long)
+scripts\shared\geo_helpers.py:61:0: C0301: Line too long (104/100) (line-too-long)
+scripts\shared\geo_helpers.py:104:0: C0301: Line too long (118/100) (line-too-long)
+scripts\shared\geo_helpers.py:129:0: C0301: Line too long (108/100) (line-too-long)
+scripts\shared\geo_helpers.py:131:0: C0301: Line too long (110/100) (line-too-long)
+scripts\shared\geo_helpers.py:134:0: C0301: Line too long (104/100) (line-too-long)
+scripts\shared\geo_helpers.py:135:0: C0301: Line too long (102/100) (line-too-long)
+scripts\shared\geo_helpers.py:144:0: C0301: Line too long (105/100) (line-too-long)
+scripts\shared\geo_helpers.py:153:0: C0301: Line too long (102/100) (line-too-long)
+scripts\shared\geo_helpers.py:163:0: C0301: Line too long (111/100) (line-too-long)
+scripts\shared\geo_helpers.py:165:0: C0301: Line too long (107/100) (line-too-long)
+scripts\shared\geo_helpers.py:166:0: C0301: Line too long (103/100) (line-too-long)
+scripts\shared\geo_helpers.py:168:0: C0301: Line too long (105/100) (line-too-long)
+scripts\shared\geo_helpers.py:185:0: C0301: Line too long (121/100) (line-too-long)
+scripts\shared\geo_helpers.py:196:0: C0301: Line too long (101/100) (line-too-long)
+scripts\shared\geo_helpers.py:204:0: C0301: Line too long (101/100) (line-too-long)
+scripts\shared\geo_helpers.py:206:0: C0301: Line too long (101/100) (line-too-long)
+scripts\shared\geo_helpers.py:208:0: C0301: Line too long (108/100) (line-too-long)
+scripts\shared\geo_helpers.py:210:0: C0301: Line too long (105/100) (line-too-long)
+scripts\shared\geo_helpers.py:213:0: C0301: Line too long (107/100) (line-too-long)
+scripts\shared\geo_helpers.py:217:0: C0301: Line too long (117/100) (line-too-long)
+scripts\shared\geo_helpers.py:222:0: C0301: Line too long (111/100) (line-too-long)
+scripts\shared\geo_helpers.py:223:0: C0301: Line too long (107/100) (line-too-long)
+scripts\shared\geo_helpers.py:226:0: C0301: Line too long (102/100) (line-too-long)
+scripts\shared\geo_helpers.py:227:0: C0301: Line too long (103/100) (line-too-long)
+scripts\shared\geo_helpers.py:235:0: C0301: Line too long (113/100) (line-too-long)
+scripts\shared\geo_helpers.py:245:0: C0301: Line too long (103/100) (line-too-long)
+scripts\shared\geo_helpers.py:425:0: C0301: Line too long (104/100) (line-too-long)
+scripts\shared\geo_helpers.py:433:0: C0301: Line too long (123/100) (line-too-long)
+scripts\shared\geo_helpers.py:492:0: C0301: Line too long (136/100) (line-too-long)
+scripts\shared\geo_helpers.py:498:0: C0301: Line too long (140/100) (line-too-long)
+scripts\shared\geo_helpers.py:157:18: W0109: Duplicate key 'uae' in dictionary (duplicate-key)
+scripts\shared\geo_helpers.py:412:0: R0911: Too many return statements (11/6) (too-many-return-statements)
+scripts\shared\geo_helpers.py:412:0: R0912: Too many branches (13/12) (too-many-branches)
+scripts\shared\geo_helpers.py:483:0: R0911: Too many return statements (9/6) (too-many-return-statements)
+scripts\shared\geo_helpers.py:538:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\shared\geo_helpers.py:559:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\shared\geo_helpers.py:586:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\shared\geo_helpers.py:13:0: C0411: standard import "re" should be placed before third party import "psycopg2" (wrong-import-order)
+scripts\shared\geo_helpers.py:12:0: W0611: Unused import psycopg2 (unused-import)
+************* Module shared.org_helpers
+scripts\shared\org_helpers.py:7:0: C0301: Line too long (125/100) (line-too-long)
+scripts\shared\org_helpers.py:68:62: W1401: Anomalous backslash in string: '\s'. String constant might be missing an r prefix. (anomalous-backslash-in-string)
+scripts\shared\org_helpers.py:69:60: W1401: Anomalous backslash in string: '\s'. String constant might be missing an r prefix. (anomalous-backslash-in-string)
+scripts\shared\org_helpers.py:7:0: R0913: Too many arguments (6/5) (too-many-arguments)
+scripts\shared\org_helpers.py:7:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+scripts\shared\org_helpers.py:43:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\shared\org_helpers.py:76:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\shared\org_helpers.py:63:8: W0612: Unused variable 'normalized' (unused-variable)
+scripts\shared\org_helpers.py:173:11: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\shared\org_helpers.py:156:23: W0718: Catching too general exception Exception (broad-exception-caught)
+scripts\shared\org_helpers.py:165:14: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
+
+
+Report
+======
+757 statements analysed.
+
+Statistics by type
+------------------
+
++---------+-------+-----------+-----------+------------+---------+
+|type     |number |old number |difference |%documented |%badname |
++=========+=======+===========+===========+============+=========+
+|module   |5      |NC         |NC         |60.00       |60.00    |
++---------+-------+-----------+-----------+------------+---------+
+|class    |0      |NC         |NC         |0           |0        |
++---------+-------+-----------+-----------+------------+---------+
+|method   |0      |NC         |NC         |0           |0        |
++---------+-------+-----------+-----------+------------+---------+
+|function |29     |NC         |NC         |89.66       |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+
+
+
+External dependencies
+---------------------
+::
+
+    bs4 (collect-fiesp-data,collect-infojobs-web-scraper)
+    dotenv (collect-fiesp-data,collect-infojobs-web-scraper,collect-mdic-comexstat)
+    pandas (collect-fiesp-data)
+    psycopg2 (collect-fiesp-data,collect-infojobs-web-scraper,collect-mdic-comexstat,shared.geo_helpers)
+    requests (collect-fiesp-data,collect-infojobs-web-scraper,collect-mdic-comexstat)
+    shared 
+      \-geo_helpers (collect-fiesp-data,collect-mdic-comexstat)
+    urllib3 (collect-mdic-comexstat)
+    utils 
+      \-whatsapp_alerts (collect-fiesp-data,collect-mdic-comexstat)
+
+
+
+1952 lines have been analyzed
+
+Raw metrics
+-----------
+
++----------+-------+------+---------+-----------+
+|type      |number |%     |previous |difference |
++==========+=======+======+=========+===========+
+|code      |1004   |51.43 |NC       |NC         |
++----------+-------+------+---------+-----------+
+|docstring |499    |25.56 |NC       |NC         |
++----------+-------+------+---------+-----------+
+|comment   |183    |9.38  |NC       |NC         |
++----------+-------+------+---------+-----------+
+|empty     |266    |13.63 |NC       |NC         |
++----------+-------+------+---------+-----------+
+
+
+
+Duplication
+-----------
+
++-------------------------+------+---------+-----------+
+|                         |now   |previous |difference |
++=========================+======+=========+===========+
+|nb duplicated lines      |0     |NC       |NC         |
++-------------------------+------+---------+-----------+
+|percent duplicated lines |0.000 |NC       |NC         |
++-------------------------+------+---------+-----------+
+
+
+
+Messages by category
+--------------------
+
++-----------+-------+---------+-----------+
+|type       |number |previous |difference |
++===========+=======+=========+===========+
+|convention |152    |NC       |NC         |
++-----------+-------+---------+-----------+
+|refactor   |20     |NC       |NC         |
++-----------+-------+---------+-----------+
+|warning    |68     |NC       |NC         |
++-----------+-------+---------+-----------+
+|error      |3      |NC       |NC         |
++-----------+-------+---------+-----------+
+
+
+
+% errors / warnings by module
+-----------------------------
+
++-----------------------------+------+--------+---------+-----------+
+|module                       |error |warning |refactor |convention |
++=============================+======+========+=========+===========+
+|collect-infojobs-web-scraper |66.67 |5.88    |5.00     |5.92       |
++-----------------------------+------+--------+---------+-----------+
+|collect-fiesp-data           |33.33 |55.88   |35.00    |48.68      |
++-----------------------------+------+--------+---------+-----------+
+|collect-mdic-comexstat       |0.00  |19.12   |35.00    |21.71      |
++-----------------------------+------+--------+---------+-----------+
+|shared.org_helpers           |0.00  |11.76   |10.00    |0.66       |
++-----------------------------+------+--------+---------+-----------+
+|shared.geo_helpers           |0.00  |7.35    |15.00    |23.03      |
++-----------------------------+------+--------+---------+-----------+
+
+
+
+Messages
+--------
+
++--------------------------------+------------+
+|message id                      |occurrences |
++================================+============+
+|trailing-whitespace             |57          |
++--------------------------------+------------+
+|line-too-long                   |47          |
++--------------------------------+------------+
+|broad-exception-caught          |26          |
++--------------------------------+------------+
+|multiple-statements             |23          |
++--------------------------------+------------+
+|wrong-import-order              |13          |
++--------------------------------+------------+
+|redefined-outer-name            |8           |
++--------------------------------+------------+
+|unused-variable                 |7           |
++--------------------------------+------------+
+|unused-import                   |7           |
++--------------------------------+------------+
+|bad-indentation                 |7           |
++--------------------------------+------------+
+|bare-except                     |5           |
++--------------------------------+------------+
+|too-many-locals                 |4           |
++--------------------------------+------------+
+|too-many-branches               |4           |
++--------------------------------+------------+
+|invalid-name                    |4           |
++--------------------------------+------------+
+|too-many-return-statements      |3           |
++--------------------------------+------------+
+|missing-function-docstring      |3           |
++--------------------------------+------------+
+|wrong-import-position           |2           |
++--------------------------------+------------+
+|too-many-statements             |2           |
++--------------------------------+------------+
+|too-many-positional-arguments   |2           |
++--------------------------------+------------+
+|too-many-arguments              |2           |
++--------------------------------+------------+
+|missing-module-docstring        |2           |
++--------------------------------+------------+
+|import-error                    |2           |
++--------------------------------+------------+
+|f-string-without-interpolation  |2           |
++--------------------------------+------------+
+|anomalous-backslash-in-string   |2           |
++--------------------------------+------------+
+|unused-argument                 |1           |
++--------------------------------+------------+
+|unnecessary-pass                |1           |
++--------------------------------+------------+
+|possibly-used-before-assignment |1           |
++--------------------------------+------------+
+|no-else-return                  |1           |
++--------------------------------+------------+
+|no-else-continue                |1           |
++--------------------------------+------------+
+|import-outside-toplevel         |1           |
++--------------------------------+------------+
+|duplicate-key                   |1           |
++--------------------------------+------------+
+|consider-using-in               |1           |
++--------------------------------+------------+
+|cell-var-from-loop              |1           |
++--------------------------------+------------+
+
+
+
+
+-----------------------------------
+Your code has been rated at 6.63/10
+

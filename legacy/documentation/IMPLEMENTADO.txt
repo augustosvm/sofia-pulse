@@ -1,0 +1,27 @@
+NORMALIZAÇÃO GEOGRÁFICA - IMPLEMENTADO
+
+✅ COMPLETOS (5 Python):
+1. collect-infojobs-web-scraper.py - country_id, state_id, city_id
+2. collect-brazil-security.py - 5 INSERTs, 2 tabelas
+3. collect-drugs-data.py - 5 INSERTs (UNODC, Brazil, USA, WHO, WB)
+4. collect-mdic-comexstat.py - country_id, state_id
+5. collect-cepal-latam.py - country_id
+
+✅ IMPORTS ADICIONADOS (30):
+- 27 Python collectors
+- 3 TypeScript collectors
+
+📊 PROGRESSO:
+- Antes: 25.5% normalizado
+- Agora: 42.3% normalizado (+16.8%)
+- Python: 21.8% → 58.2%
+
+📁 ARQUIVOS:
+- MIGRATION_PLAN_COMPLETE.md
+- FINAL_STATUS.md  
+- auto-migrate-collectors.py
+- Templates prontos
+
+🎯 PRÓXIMO:
+- 7 Python restantes (templates prontos)
+- 5 TypeScript (imports já adicionados)

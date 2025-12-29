@@ -1,0 +1,3347 @@
+[
+  {
+    "city": "1er-Arrondissement",
+    "country": "Lyon",
+    "state": "Lyon"
+  },
+  {
+    "city": "1er-Arrondissement",
+    "country": "Lyon",
+    "state": null
+  },
+  {
+    "city": "A",
+    "country": null,
+    "state": "SQ"
+  },
+  {
+    "city": "Aachen",
+    "country": "Aachen",
+    "state": null
+  },
+  {
+    "city": "Aachen",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "Aarhus",
+    "country": "Denmark",
+    "state": null
+  },
+  {
+    "city": "Administrativo",
+    "country": null,
+    "state": "TI"
+  },
+  {
+    "city": "Affalterbach",
+    "country": "Affalterbach",
+    "state": null
+  },
+  {
+    "city": "Ahmedabad",
+    "country": "Gujarat",
+    "state": "Gujarat"
+  },
+  {
+    "city": "Ahmedabad",
+    "country": "Gujarat",
+    "state": null
+  },
+  {
+    "city": "Ahrensburg",
+    "country": "Ahrensburg",
+    "state": null
+  },
+  {
+    "city": "Aix-en-Provence",
+    "country": "Bouches-du-Rhône",
+    "state": "Bouches-du-Rhône"
+  },
+  {
+    "city": "Aix-en-Provence",
+    "country": "Bouches-du-Rhône",
+    "state": null
+  },
+  {
+    "city": "Alicante",
+    "country": "Comunidad Valenciana",
+    "state": "Comunidad Valenciana"
+  },
+  {
+    "city": "Alicante",
+    "country": "Comunidad Valenciana",
+    "state": null
+  },
+  {
+    "city": "Alpharetta",
+    "country": "Fulton County",
+    "state": null
+  },
+  {
+    "city": "Altishofen",
+    "country": "Willisau",
+    "state": "Willisau"
+  },
+  {
+    "city": "Altishofen",
+    "country": "Willisau",
+    "state": null
+  },
+  {
+    "city": "Altrincham",
+    "country": "Greater Manchester",
+    "state": null
+  },
+  {
+    "city": "Alvorada - Camargo",
+    "country": null,
+    "state": "RS"
+  },
+  {
+    "city": "Americas",
+    "country": null,
+    "state": "Europe, Israel"
+  },
+  {
+    "city": "Amsterdam or Stockholm or Dublin",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Anjou",
+    "country": "Montréal",
+    "state": "Montréal"
+  },
+  {
+    "city": "Anjou",
+    "country": "Montréal",
+    "state": null
+  },
+  {
+    "city": "Ankara",
+    "country": "TÃ¼rkiye - Remote",
+    "state": null
+  },
+  {
+    "city": "Aracatuba",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Araçatuba",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Aranguren",
+    "country": "Navarra",
+    "state": "Navarra"
+  },
+  {
+    "city": "Aranguren",
+    "country": "Navarra",
+    "state": null
+  },
+  {
+    "city": "Araquari",
+    "country": null,
+    "state": "SC (+1)"
+  },
+  {
+    "city": "Araucaria",
+    "country": null,
+    "state": "PR"
+  },
+  {
+    "city": "Ardwick",
+    "country": "Manchester",
+    "state": "Manchester"
+  },
+  {
+    "city": "Ardwick",
+    "country": "Manchester",
+    "state": null
+  },
+  {
+    "city": "Arnhem",
+    "country": "Gelderland",
+    "state": "Gelderland"
+  },
+  {
+    "city": "Arnhem",
+    "country": "Gelderland",
+    "state": null
+  },
+  {
+    "city": "Artes",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Arujá",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Attnang-Puchheim",
+    "country": "Vöcklabruck",
+    "state": "Vöcklabruck"
+  },
+  {
+    "city": "Attnang-Puchheim",
+    "country": "Vöcklabruck",
+    "state": null
+  },
+  {
+    "city": "Auckland City",
+    "country": "Auckland",
+    "state": "Auckland"
+  },
+  {
+    "city": "Auckland City",
+    "country": "Auckland",
+    "state": null
+  },
+  {
+    "city": "Bad Essen",
+    "country": "Bad Essen",
+    "state": null
+  },
+  {
+    "city": "Bad Homburg",
+    "country": "Bad Homburg",
+    "state": null
+  },
+  {
+    "city": "Bad Kissingen",
+    "country": "Bad Kissingen",
+    "state": null
+  },
+  {
+    "city": "Basel",
+    "country": "Basel-Stadt",
+    "state": "Basel-Stadt"
+  },
+  {
+    "city": "Basel",
+    "country": "Basel-Stadt",
+    "state": null
+  },
+  {
+    "city": "Bavaria",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "Beijing",
+    "country": "China",
+    "state": null
+  },
+  {
+    "city": "Bellach",
+    "country": "Lebern",
+    "state": "Lebern"
+  },
+  {
+    "city": "Bellach",
+    "country": "Lebern",
+    "state": null
+  },
+  {
+    "city": "Bergamo",
+    "country": "Provincia di Bergamo",
+    "state": "Provincia di Bergamo"
+  },
+  {
+    "city": "Bergamo",
+    "country": "Provincia di Bergamo",
+    "state": null
+  },
+  {
+    "city": "Bevendean",
+    "country": "Brighton",
+    "state": "Brighton"
+  },
+  {
+    "city": "Bevendean",
+    "country": "Brighton",
+    "state": null
+  },
+  {
+    "city": "Bilbao",
+    "country": "Vizcaya",
+    "state": "Vizcaya"
+  },
+  {
+    "city": "Bilbao",
+    "country": "Vizcaya",
+    "state": null
+  },
+  {
+    "city": "Binzen",
+    "country": "Binzen",
+    "state": null
+  },
+  {
+    "city": "Bixby",
+    "country": "Tulsa County",
+    "state": null
+  },
+  {
+    "city": "Bloomington",
+    "country": "Hennepin County",
+    "state": "Hennepin County"
+  },
+  {
+    "city": "Bloomington",
+    "country": "Hennepin County",
+    "state": null
+  },
+  {
+    "city": "Blumenau",
+    "country": null,
+    "state": "SC"
+  },
+  {
+    "city": "Bochum",
+    "country": "Bochum",
+    "state": null
+  },
+  {
+    "city": "Bolton Le Sands",
+    "country": "Carnforth",
+    "state": null
+  },
+  {
+    "city": "Bordeaux",
+    "country": "Gironde",
+    "state": "Gironde"
+  },
+  {
+    "city": "Bordeaux",
+    "country": "Gironde",
+    "state": null
+  },
+  {
+    "city": "Bracknell",
+    "country": "Berkshire",
+    "state": "Berkshire"
+  },
+  {
+    "city": "Bracknell",
+    "country": "Berkshire",
+    "state": null
+  },
+  {
+    "city": "Brasilia",
+    "country": "Distrito Federal",
+    "state": null
+  },
+  {
+    "city": "Brasilia",
+    "country": null,
+    "state": "DF"
+  },
+  {
+    "city": "Brasília - Plano Piloto, Brasília",
+    "country": null,
+    "state": "DF"
+  },
+  {
+    "city": "Breda",
+    "country": "Noord-Brabant",
+    "state": null
+  },
+  {
+    "city": "Bremerhaven",
+    "country": "Bremerhaven",
+    "state": null
+  },
+  {
+    "city": "Bridgeport",
+    "country": "Harrison County",
+    "state": null
+  },
+  {
+    "city": "Brigittenau",
+    "country": "Wien",
+    "state": "Wien"
+  },
+  {
+    "city": "Brigittenau",
+    "country": "Wien",
+    "state": null
+  },
+  {
+    "city": "Brignais",
+    "country": "Rhône",
+    "state": "Rhône"
+  },
+  {
+    "city": "Brignais",
+    "country": "Rhône",
+    "state": null
+  },
+  {
+    "city": "Brisbane",
+    "country": "Brisbane Region",
+    "state": "Brisbane Region"
+  },
+  {
+    "city": "Brisbane",
+    "country": "Brisbane Region",
+    "state": null
+  },
+  {
+    "city": "Bubikon",
+    "country": "Hinwil",
+    "state": "Hinwil"
+  },
+  {
+    "city": "Bubikon",
+    "country": "Hinwil",
+    "state": null
+  },
+  {
+    "city": "Burgwedel",
+    "country": "Region Hannover (Kreis)",
+    "state": "Region Hannover (Kreis)"
+  },
+  {
+    "city": "Burgwedel",
+    "country": "Region Hannover (Kreis)",
+    "state": null
+  },
+  {
+    "city": "Burnaby",
+    "country": "Greater Vancouver",
+    "state": "Greater Vancouver"
+  },
+  {
+    "city": "Burnaby",
+    "country": "Greater Vancouver",
+    "state": null
+  },
+  {
+    "city": "C",
+    "country": null,
+    "state": "IN"
+  },
+  {
+    "city": "Cajamar",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "California",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Camacari",
+    "country": null,
+    "state": "BA"
+  },
+  {
+    "city": "Campina Grande",
+    "country": null,
+    "state": "PB"
+  },
+  {
+    "city": "Campo Bom",
+    "country": null,
+    "state": "RS"
+  },
+  {
+    "city": "Canberra Region",
+    "country": "Australian Capital Territory",
+    "state": "Australian Capital Territory"
+  },
+  {
+    "city": "Canberra Region",
+    "country": "Australian Capital Territory",
+    "state": null
+  },
+  {
+    "city": "Canedo",
+    "country": null,
+    "state": "GO"
+  },
+  {
+    "city": "Cape Town City Centre",
+    "country": "Cape Town Region",
+    "state": "Cape Town Region"
+  },
+  {
+    "city": "Cape Town Region",
+    "country": "Western Cape",
+    "state": "Western Cape"
+  },
+  {
+    "city": "Cape Town Region",
+    "country": "Western Cape",
+    "state": null
+  },
+  {
+    "city": "Castrop-Rauxel",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "Caxias",
+    "country": null,
+    "state": "RJ"
+  },
+  {
+    "city": "CBD",
+    "country": "Auckland City",
+    "state": "Auckland City"
+  },
+  {
+    "city": "CBD",
+    "country": "Auckland City",
+    "state": null
+  },
+  {
+    "city": "Central - United States",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Centurion",
+    "country": "Tshwane",
+    "state": "Tshwane"
+  },
+  {
+    "city": "Centurion",
+    "country": "Tshwane",
+    "state": null
+  },
+  {
+    "city": "Chantilly",
+    "country": "Fairfax County",
+    "state": "Fairfax County"
+  },
+  {
+    "city": "Chantilly",
+    "country": "Fairfax County",
+    "state": null
+  },
+  {
+    "city": "Charleston Air Force Base",
+    "country": "Charleston County",
+    "state": "Charleston County"
+  },
+  {
+    "city": "Charleston Air Force Base",
+    "country": "Charleston County",
+    "state": null
+  },
+  {
+    "city": "Cheadle",
+    "country": "Greater Manchester",
+    "state": "Greater Manchester"
+  },
+  {
+    "city": "Cheadle",
+    "country": "Greater Manchester",
+    "state": null
+  },
+  {
+    "city": "Chemnitz",
+    "country": "Chemnitz",
+    "state": null
+  },
+  {
+    "city": "Circular Head",
+    "country": "Burnie-Devonport Region",
+    "state": "Burnie-Devonport Region"
+  },
+  {
+    "city": "Circular Head",
+    "country": "Burnie-Devonport Region",
+    "state": null
+  },
+  {
+    "city": "Congonhas",
+    "country": null,
+    "state": "MG"
+  },
+  {
+    "city": "Conquista",
+    "country": null,
+    "state": "BA"
+  },
+  {
+    "city": "Costa Rica",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Cottbus",
+    "country": "Cottbus",
+    "state": null
+  },
+  {
+    "city": "Cremorne",
+    "country": "Yarra Area",
+    "state": "Yarra Area"
+  },
+  {
+    "city": "Cremorne",
+    "country": "Yarra Area",
+    "state": null
+  },
+  {
+    "city": "Crewe Green",
+    "country": "Crewe",
+    "state": "Crewe"
+  },
+  {
+    "city": "Crewe Green",
+    "country": "Crewe",
+    "state": null
+  },
+  {
+    "city": "Cromvoirt",
+    "country": "Vught",
+    "state": "Vught"
+  },
+  {
+    "city": "Cromvoirt",
+    "country": "Vught",
+    "state": null
+  },
+  {
+    "city": "Dallas",
+    "country": "California",
+    "state": null
+  },
+  {
+    "city": "Dallas",
+    "country": "Texas",
+    "state": "Texas"
+  },
+  {
+    "city": "Dallas",
+    "country": "Texas",
+    "state": null
+  },
+  {
+    "city": "Darmstadt",
+    "country": "Darmstadt",
+    "state": null
+  },
+  {
+    "city": "Dartmouth",
+    "country": "Halifax region",
+    "state": "Halifax region"
+  },
+  {
+    "city": "Dartmouth",
+    "country": "Halifax region",
+    "state": null
+  },
+  {
+    "city": "Deggendorf",
+    "country": "Deggendorf",
+    "state": null
+  },
+  {
+    "city": "Den Haag",
+    "country": "Zuid-Holland",
+    "state": "Zuid-Holland"
+  },
+  {
+    "city": "Den Hoorn",
+    "country": "Midden-Delfland",
+    "state": "Midden-Delfland"
+  },
+  {
+    "city": "Den Hoorn",
+    "country": "Midden-Delfland",
+    "state": null
+  },
+  {
+    "city": "Denmark",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Dessau-Roßlau",
+    "country": "Dessau-Roßlau",
+    "state": null
+  },
+  {
+    "city": "Diadema",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Ditzingen",
+    "country": "Ditzingen",
+    "state": null
+  },
+  {
+    "city": "Douvrin",
+    "country": "Béthune",
+    "state": "Béthune"
+  },
+  {
+    "city": "Douvrin",
+    "country": "Béthune",
+    "state": null
+  },
+  {
+    "city": "Dresden",
+    "country": "Dresden",
+    "state": null
+  },
+  {
+    "city": "Dronten",
+    "country": "Flevoland",
+    "state": "Flevoland"
+  },
+  {
+    "city": "Dronten",
+    "country": "Flevoland",
+    "state": null
+  },
+  {
+    "city": "Duisburg",
+    "country": "Duisburg",
+    "state": null
+  },
+  {
+    "city": "Duisburg",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "Duisburg",
+    "country": "Nordrhein-Westfalen",
+    "state": "Nordrhein-Westfalen"
+  },
+  {
+    "city": "Durban",
+    "country": "eThekwini",
+    "state": "eThekwini"
+  },
+  {
+    "city": "Durban",
+    "country": "eThekwini",
+    "state": null
+  },
+  {
+    "city": "East Brisbane",
+    "country": "Brisbane",
+    "state": "Brisbane"
+  },
+  {
+    "city": "East Brisbane",
+    "country": "Brisbane",
+    "state": null
+  },
+  {
+    "city": "Eberswalde",
+    "country": "Eberswalde",
+    "state": null
+  },
+  {
+    "city": "Edinburgh",
+    "country": "Scotland",
+    "state": "Scotland"
+  },
+  {
+    "city": "Edinburgh Technopole",
+    "country": "Milton Bridge",
+    "state": null
+  },
+  {
+    "city": "Eggenstein-Leopoldshafen",
+    "country": "Karlsruhe (Kreis)",
+    "state": null
+  },
+  {
+    "city": "Eindhoven",
+    "country": "Noord-Brabant",
+    "state": "Noord-Brabant"
+  },
+  {
+    "city": "Eindhoven",
+    "country": "Noord-Brabant",
+    "state": null
+  },
+  {
+    "city": "Eisenstadt",
+    "country": "Burgenland",
+    "state": "Burgenland"
+  },
+  {
+    "city": "Eisenstadt",
+    "country": "Burgenland",
+    "state": null
+  },
+  {
+    "city": "Embu",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Enschede",
+    "country": "Overijssel",
+    "state": "Overijssel"
+  },
+  {
+    "city": "Enschede",
+    "country": "Overijssel",
+    "state": null
+  },
+  {
+    "city": "Erding",
+    "country": "Erding",
+    "state": null
+  },
+  {
+    "city": "Erfurt",
+    "country": "Erfurt",
+    "state": null
+  },
+  {
+    "city": "Erlangen",
+    "country": "Erlangen",
+    "state": null
+  },
+  {
+    "city": "Eschborn",
+    "country": "Main-Taunus-Kreis",
+    "state": "Main-Taunus-Kreis"
+  },
+  {
+    "city": "Esslingen",
+    "country": "Esslingen",
+    "state": null
+  },
+  {
+    "city": "eThekwini",
+    "country": "KwaZulu-Natal",
+    "state": "KwaZulu-Natal"
+  },
+  {
+    "city": "eThekwini",
+    "country": "KwaZulu-Natal",
+    "state": null
+  },
+  {
+    "city": "Etten",
+    "country": "Oude IJsselstreek",
+    "state": "Oude IJsselstreek"
+  },
+  {
+    "city": "Etten",
+    "country": "Oude IJsselstreek",
+    "state": null
+  },
+  {
+    "city": "Europe",
+    "country": null,
+    "state": "Canada, South Africa, Philippines, Jamaica"
+  },
+  {
+    "city": "Exeter",
+    "country": "Devon",
+    "state": "Devon"
+  },
+  {
+    "city": "Exeter",
+    "country": "Devon",
+    "state": null
+  },
+  {
+    "city": "Fairfax",
+    "country": "Fairfax County",
+    "state": "Fairfax County"
+  },
+  {
+    "city": "Fairfax",
+    "country": "Fairfax County",
+    "state": null
+  },
+  {
+    "city": "Finland",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Florida",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Floridsdorf",
+    "country": "Wien",
+    "state": "Wien"
+  },
+  {
+    "city": "Floridsdorf",
+    "country": "Wien",
+    "state": null
+  },
+  {
+    "city": "Föhren",
+    "country": "Föhren",
+    "state": null
+  },
+  {
+    "city": "Fora",
+    "country": null,
+    "state": "MG"
+  },
+  {
+    "city": "Fortaleza - Zone 1, Fortaleza",
+    "country": null,
+    "state": "CE"
+  },
+  {
+    "city": "Fort George G Meade",
+    "country": "Anne Arundel County",
+    "state": "Anne Arundel County"
+  },
+  {
+    "city": "Fort George G Meade",
+    "country": "Anne Arundel County",
+    "state": null
+  },
+  {
+    "city": "Fortitude Valley",
+    "country": "Brisbane",
+    "state": "Brisbane"
+  },
+  {
+    "city": "Fortitude Valley",
+    "country": "Brisbane",
+    "state": null
+  },
+  {
+    "city": "Franca",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Franco da Rocha",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Frankenthal",
+    "country": "Frankenthal",
+    "state": null
+  },
+  {
+    "city": "Frankfurt am Main",
+    "country": "Frankfurt am Main",
+    "state": null
+  },
+  {
+    "city": "Frankfurt am Main",
+    "country": "Hessen",
+    "state": "Hessen"
+  },
+  {
+    "city": "Frankfurt am Main",
+    "country": "Hessen",
+    "state": null
+  },
+  {
+    "city": "Freiburg",
+    "country": "Freiburg",
+    "state": null
+  },
+  {
+    "city": "Freiburg im Breisgau",
+    "country": "Baden-Württemberg",
+    "state": "Baden-Württemberg"
+  },
+  {
+    "city": "Freiburg im Breisgau",
+    "country": "Baden-Württemberg",
+    "state": null
+  },
+  {
+    "city": "Freiburg im Breisgau",
+    "country": "Freiburg im Breisgau",
+    "state": null
+  },
+  {
+    "city": "Freitas",
+    "country": null,
+    "state": "BA"
+  },
+  {
+    "city": "Friedrichshafen",
+    "country": "Friedrichshafen",
+    "state": null
+  },
+  {
+    "city": "Fulda",
+    "country": "Fulda",
+    "state": null
+  },
+  {
+    "city": "Funcional",
+    "country": null,
+    "state": "ER"
+  },
+  {
+    "city": "Garching",
+    "country": "Garching",
+    "state": null
+  },
+  {
+    "city": "Garstedt",
+    "country": "Norderstedt",
+    "state": "Norderstedt"
+  },
+  {
+    "city": "Garstedt",
+    "country": "Norderstedt",
+    "state": null
+  },
+  {
+    "city": "Geeste",
+    "country": "Geeste",
+    "state": null
+  },
+  {
+    "city": "Genova",
+    "country": "Provincia di Genova",
+    "state": "Provincia di Genova"
+  },
+  {
+    "city": "Genova",
+    "country": "Provincia di Genova",
+    "state": null
+  },
+  {
+    "city": "Georgensgmünd",
+    "country": "Georgensgmünd",
+    "state": null
+  },
+  {
+    "city": "Gera",
+    "country": "Gera",
+    "state": null
+  },
+  {
+    "city": "Germersheim",
+    "country": "Germersheim",
+    "state": null
+  },
+  {
+    "city": "Ghaziabad",
+    "country": "Uttar Pradesh",
+    "state": "Uttar Pradesh"
+  },
+  {
+    "city": "Ghaziabad",
+    "country": "Uttar Pradesh",
+    "state": null
+  },
+  {
+    "city": "Gilching",
+    "country": "Gilching",
+    "state": null
+  },
+  {
+    "city": "Glenferrie South",
+    "country": "Boroondara Area",
+    "state": "Boroondara Area"
+  },
+  {
+    "city": "Glenferrie South",
+    "country": "Boroondara Area",
+    "state": null
+  },
+  {
+    "city": "Golden",
+    "country": "CO or San Francisco",
+    "state": null
+  },
+  {
+    "city": "Gräfelfing",
+    "country": "Gräfelfing",
+    "state": null
+  },
+  {
+    "city": "Grande",
+    "country": null,
+    "state": "MS"
+  },
+  {
+    "city": "Grande",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Grasse",
+    "country": "Alpes-Maritimes",
+    "state": "Alpes-Maritimes"
+  },
+  {
+    "city": "Grasse",
+    "country": "Alpes-Maritimes",
+    "state": null
+  },
+  {
+    "city": "Gravatai",
+    "country": null,
+    "state": "RS"
+  },
+  {
+    "city": "Gravataí",
+    "country": null,
+    "state": "RS"
+  },
+  {
+    "city": "Graz",
+    "country": "Steiermark",
+    "state": "Steiermark"
+  },
+  {
+    "city": "Graz",
+    "country": "Steiermark",
+    "state": null
+  },
+  {
+    "city": "Greater Vancouver",
+    "country": "British Columbia",
+    "state": "British Columbia"
+  },
+  {
+    "city": "Greater Vancouver",
+    "country": "British Columbia",
+    "state": null
+  },
+  {
+    "city": "Greenwich",
+    "country": "CT",
+    "state": "CT"
+  },
+  {
+    "city": "Grossa",
+    "country": null,
+    "state": "PR"
+  },
+  {
+    "city": "Gumpoldskirchen",
+    "country": "Mödling",
+    "state": "Mödling"
+  },
+  {
+    "city": "Gumpoldskirchen",
+    "country": "Mödling",
+    "state": null
+  },
+  {
+    "city": "Günzburg",
+    "country": "Günzburg",
+    "state": null
+  },
+  {
+    "city": "Gütersloh",
+    "country": "Gütersloh",
+    "state": null
+  },
+  {
+    "city": "Haarlem",
+    "country": "Noord-Holland",
+    "state": "Noord-Holland"
+  },
+  {
+    "city": "Hagenberg im Mühlkreis",
+    "country": "Freistadt",
+    "state": "Freistadt"
+  },
+  {
+    "city": "Hagenberg im Mühlkreis",
+    "country": "Freistadt",
+    "state": null
+  },
+  {
+    "city": "Hallbergmoos",
+    "country": "Hallbergmoos",
+    "state": null
+  },
+  {
+    "city": "Halle (Saale)",
+    "country": "Halle (Saale)",
+    "state": null
+  },
+  {
+    "city": "Hanover",
+    "country": "Hanover",
+    "state": null
+  },
+  {
+    "city": "Hart bei Graz",
+    "country": "Graz-Umgebung",
+    "state": "Graz-Umgebung"
+  },
+  {
+    "city": "Hart bei Graz",
+    "country": "Graz-Umgebung",
+    "state": null
+  },
+  {
+    "city": "Haute-Garonne",
+    "country": "Occitanie",
+    "state": null
+  },
+  {
+    "city": "Hawaii",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Heilbronn",
+    "country": "Heilbronn",
+    "state": null
+  },
+  {
+    "city": "Heredia",
+    "country": "Costa Rica",
+    "state": null
+  },
+  {
+    "city": "Herne",
+    "country": "Herne",
+    "state": null
+  },
+  {
+    "city": "Herzliya",
+    "country": "Israel",
+    "state": null
+  },
+  {
+    "city": "Hicksville",
+    "country": "Nassau County",
+    "state": "Nassau County"
+  },
+  {
+    "city": "Hicksville",
+    "country": "Nassau County",
+    "state": null
+  },
+  {
+    "city": "Höchst",
+    "country": "Frankfurt am Main",
+    "state": "Frankfurt am Main"
+  },
+  {
+    "city": "Höchst",
+    "country": "Frankfurt am Main",
+    "state": null
+  },
+  {
+    "city": "Hortolândia",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Hude",
+    "country": "Hude",
+    "state": null
+  },
+  {
+    "city": "Huissen",
+    "country": "Lingewaard",
+    "state": "Lingewaard"
+  },
+  {
+    "city": "Huissen",
+    "country": "Lingewaard",
+    "state": null
+  },
+  {
+    "city": "Hulme",
+    "country": "Manchester",
+    "state": "Manchester"
+  },
+  {
+    "city": "Hulme",
+    "country": "Manchester",
+    "state": null
+  },
+  {
+    "city": "IE-Dublin",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "iLembe",
+    "country": "KwaZulu-Natal",
+    "state": "KwaZulu-Natal"
+  },
+  {
+    "city": "iLembe",
+    "country": "KwaZulu-Natal",
+    "state": null
+  },
+  {
+    "city": "Illinois",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Immenhausen",
+    "country": "Immenhausen",
+    "state": null
+  },
+  {
+    "city": "Informática",
+    "country": null,
+    "state": "TO"
+  },
+  {
+    "city": "Ipojuca",
+    "country": null,
+    "state": "PE"
+  },
+  {
+    "city": "Ipswich",
+    "country": "Suffolk",
+    "state": null
+  },
+  {
+    "city": "Iracemapolis",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Itapecerica da Serra",
+    "country": null,
+    "state": "SP (+1)"
+  },
+  {
+    "city": "Itatiba",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Ittigen",
+    "country": "Bern-Mittelland",
+    "state": "Bern-Mittelland"
+  },
+  {
+    "city": "Ittigen",
+    "country": "Bern-Mittelland",
+    "state": null
+  },
+  {
+    "city": "Itu",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Jacareí - Parque Meia Lua",
+    "country": null,
+    "state": "Jacareí - SP (+1)"
+  },
+  {
+    "city": "Jamnagar",
+    "country": "Gujarat",
+    "state": "Gujarat"
+  },
+  {
+    "city": "Jamnagar",
+    "country": "Gujarat",
+    "state": null
+  },
+  {
+    "city": "Jaraguá do Sul",
+    "country": null,
+    "state": "SC"
+  },
+  {
+    "city": "Jersey",
+    "country": "Channel Islands",
+    "state": "Channel Islands"
+  },
+  {
+    "city": "Jersey",
+    "country": "Channel Islands",
+    "state": null
+  },
+  {
+    "city": "Jersey City",
+    "country": "NJ",
+    "state": "NJ"
+  },
+  {
+    "city": "Jose",
+    "country": null,
+    "state": "SC"
+  },
+  {
+    "city": "Jundiai",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Kamp-Lintfort",
+    "country": "Kamp-Lintfort",
+    "state": null
+  },
+  {
+    "city": "Karlsruhe",
+    "country": "Karlsruhe",
+    "state": null
+  },
+  {
+    "city": "Karlstein am Main",
+    "country": "Karlstein am Main",
+    "state": null
+  },
+  {
+    "city": "Kiefersfelden",
+    "country": "Kiefersfelden",
+    "state": null
+  },
+  {
+    "city": "Kiel",
+    "country": "Kiel",
+    "state": null
+  },
+  {
+    "city": "Kinloch",
+    "country": "Saint Louis County",
+    "state": null
+  },
+  {
+    "city": "Kitchener",
+    "country": "Waterloo region",
+    "state": "Waterloo region"
+  },
+  {
+    "city": "Kitchener",
+    "country": "Waterloo region",
+    "state": null
+  },
+  {
+    "city": "Klagenfurt",
+    "country": "Kärnten",
+    "state": "Kärnten"
+  },
+  {
+    "city": "Klagenfurt",
+    "country": "Kärnten",
+    "state": null
+  },
+  {
+    "city": "Knoxville",
+    "country": "Knox County",
+    "state": null
+  },
+  {
+    "city": "Koblenz",
+    "country": "Rheinland-Pfalz",
+    "state": "Rheinland-Pfalz"
+  },
+  {
+    "city": "Koblenz",
+    "country": "Rheinland-Pfalz",
+    "state": null
+  },
+  {
+    "city": "Koningslust",
+    "country": "Peel en Maas",
+    "state": "Peel en Maas"
+  },
+  {
+    "city": "Koningslust",
+    "country": "Peel en Maas",
+    "state": null
+  },
+  {
+    "city": "Kramsach",
+    "country": "Kufstein",
+    "state": null
+  },
+  {
+    "city": "Kriens",
+    "country": "Luzern-Land",
+    "state": "Luzern-Land"
+  },
+  {
+    "city": "Kriens",
+    "country": "Luzern-Land",
+    "state": null
+  },
+  {
+    "city": "L",
+    "country": null,
+    "state": "PR"
+  },
+  {
+    "city": "Laatzen",
+    "country": "Laatzen",
+    "state": null
+  },
+  {
+    "city": "Lages",
+    "country": null,
+    "state": "SC"
+  },
+  {
+    "city": "La-Madeleine",
+    "country": "Lille",
+    "state": "Lille"
+  },
+  {
+    "city": "La-Madeleine",
+    "country": "Lille",
+    "state": null
+  },
+  {
+    "city": "Langenselbold",
+    "country": "Langenselbold",
+    "state": null
+  },
+  {
+    "city": "La Spezia",
+    "country": "Provincia della Spezia",
+    "state": "Provincia della Spezia"
+  },
+  {
+    "city": "La Spezia",
+    "country": "Provincia della Spezia",
+    "state": null
+  },
+  {
+    "city": "Le Bar-sur-Loup",
+    "country": "Grasse",
+    "state": "Grasse"
+  },
+  {
+    "city": "Le Bar-sur-Loup",
+    "country": "Grasse",
+    "state": null
+  },
+  {
+    "city": "Lecco",
+    "country": "Provincia di Lecco",
+    "state": "Provincia di Lecco"
+  },
+  {
+    "city": "Lecco",
+    "country": "Provincia di Lecco",
+    "state": null
+  },
+  {
+    "city": "Leeds",
+    "country": "West Yorkshire",
+    "state": null
+  },
+  {
+    "city": "Leonberg",
+    "country": "Leonberg",
+    "state": null
+  },
+  {
+    "city": "Leonding",
+    "country": "Linz-Land",
+    "state": "Linz-Land"
+  },
+  {
+    "city": "Leonding",
+    "country": "Linz-Land",
+    "state": null
+  },
+  {
+    "city": "Leverkusen",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "Lexington Park",
+    "country": "St. Mary's County",
+    "state": "St. Mary's County"
+  },
+  {
+    "city": "Lexington Park",
+    "country": "St. Mary's County",
+    "state": null
+  },
+  {
+    "city": "Lille-Nord",
+    "country": "Lille",
+    "state": "Lille"
+  },
+  {
+    "city": "Lille-Nord",
+    "country": "Lille",
+    "state": null
+  },
+  {
+    "city": "Lincolnton",
+    "country": "Lincoln County",
+    "state": "Lincoln County"
+  },
+  {
+    "city": "Lincolnton",
+    "country": "Lincoln County",
+    "state": null
+  },
+  {
+    "city": "Lindau",
+    "country": "Lindau",
+    "state": null
+  },
+  {
+    "city": "Linden",
+    "country": "Linden",
+    "state": null
+  },
+  {
+    "city": "Lindlar",
+    "country": "Lindlar",
+    "state": null
+  },
+  {
+    "city": "Livonia",
+    "country": "Wayne County",
+    "state": "Wayne County"
+  },
+  {
+    "city": "Livonia",
+    "country": "Wayne County",
+    "state": null
+  },
+  {
+    "city": "Lockbourne",
+    "country": "OH",
+    "state": "OH"
+  },
+  {
+    "city": "Łódź",
+    "country": "łódzkie",
+    "state": "łódzkie"
+  },
+  {
+    "city": "Łódź",
+    "country": "łódzkie",
+    "state": null
+  },
+  {
+    "city": "Londrina",
+    "country": null,
+    "state": "PR"
+  },
+  {
+    "city": "Luxembourg",
+    "country": "Luxembourg",
+    "state": null
+  },
+  {
+    "city": "Luxembourg",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Luzern",
+    "country": "Luzern-Stadt",
+    "state": "Luzern-Stadt"
+  },
+  {
+    "city": "Luzern",
+    "country": "Luzern-Stadt",
+    "state": null
+  },
+  {
+    "city": "Maceio",
+    "country": null,
+    "state": "AL"
+  },
+  {
+    "city": "Magdeburg",
+    "country": "Magdeburg",
+    "state": null
+  },
+  {
+    "city": "Mainz",
+    "country": "Rheinland-Pfalz",
+    "state": null
+  },
+  {
+    "city": "Manchester",
+    "country": "Greater Manchester",
+    "state": "Greater Manchester"
+  },
+  {
+    "city": "Manchester",
+    "country": "Greater Manchester",
+    "state": null
+  },
+  {
+    "city": "Manlleu",
+    "country": "Barcelona",
+    "state": "Barcelona"
+  },
+  {
+    "city": "Mansfield",
+    "country": "Brisbane",
+    "state": "Brisbane"
+  },
+  {
+    "city": "Mansfield",
+    "country": "Brisbane",
+    "state": null
+  },
+  {
+    "city": "Manvers",
+    "country": "Rotherham",
+    "state": null
+  },
+  {
+    "city": "Marcoussis",
+    "country": "Les Ulis",
+    "state": "Les Ulis"
+  },
+  {
+    "city": "Marcoussis",
+    "country": "Les Ulis",
+    "state": null
+  },
+  {
+    "city": "Marilia",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Maringa",
+    "country": null,
+    "state": "PR"
+  },
+  {
+    "city": "Marseille",
+    "country": "Bouches-du-Rhône",
+    "state": "Bouches-du-Rhône"
+  },
+  {
+    "city": "Marseille",
+    "country": "Bouches-du-Rhône",
+    "state": null
+  },
+  {
+    "city": "Massa",
+    "country": "Provincia di Massa-Carrara",
+    "state": "Provincia di Massa-Carrara"
+  },
+  {
+    "city": "Massa",
+    "country": "Provincia di Massa-Carrara",
+    "state": null
+  },
+  {
+    "city": "Melbourne CBD",
+    "country": "Melbourne",
+    "state": "Melbourne"
+  },
+  {
+    "city": "Melbourne CBD",
+    "country": "Melbourne",
+    "state": null
+  },
+  {
+    "city": "Memmingen",
+    "country": "Memmingen",
+    "state": null
+  },
+  {
+    "city": "Midrand",
+    "country": "North Johannesburg",
+    "state": "North Johannesburg"
+  },
+  {
+    "city": "Midrand",
+    "country": "North Johannesburg",
+    "state": null
+  },
+  {
+    "city": "Mikołów",
+    "country": "śląskie",
+    "state": "śląskie"
+  },
+  {
+    "city": "Mikołów",
+    "country": "śląskie",
+    "state": null
+  },
+  {
+    "city": "Milano",
+    "country": "Provincia di Milano",
+    "state": null
+  },
+  {
+    "city": "Mildura",
+    "country": "Mildura Region",
+    "state": "Mildura Region"
+  },
+  {
+    "city": "Mildura",
+    "country": "Mildura Region",
+    "state": null
+  },
+  {
+    "city": "Minas",
+    "country": null,
+    "state": "MG"
+  },
+  {
+    "city": "Minden",
+    "country": "Minden",
+    "state": null
+  },
+  {
+    "city": "Mississauga",
+    "country": "Peel region",
+    "state": "Peel region"
+  },
+  {
+    "city": "Mississauga",
+    "country": "Peel region",
+    "state": null
+  },
+  {
+    "city": "Monterrey",
+    "country": "Nuevo León",
+    "state": "Nuevo León"
+  },
+  {
+    "city": "Monterrey",
+    "country": "Nuevo León",
+    "state": null
+  },
+  {
+    "city": "Montesquieu-Volvestre",
+    "country": "Muret",
+    "state": "Muret"
+  },
+  {
+    "city": "Montesquieu-Volvestre",
+    "country": "Muret",
+    "state": null
+  },
+  {
+    "city": "Montréal",
+    "country": "Canada",
+    "state": null
+  },
+  {
+    "city": "Montréal North",
+    "country": "Montréal",
+    "state": "Montréal"
+  },
+  {
+    "city": "Montréal North",
+    "country": "Montréal",
+    "state": null
+  },
+  {
+    "city": "Monza",
+    "country": "Provincia di Monza e Brianza",
+    "state": "Provincia di Monza e Brianza"
+  },
+  {
+    "city": "Monza",
+    "country": "Provincia di Monza e Brianza",
+    "state": null
+  },
+  {
+    "city": "Moorgate",
+    "country": "Lancaster",
+    "state": "Lancaster"
+  },
+  {
+    "city": "Mor",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Morga",
+    "country": "Vizcaya",
+    "state": "Vizcaya"
+  },
+  {
+    "city": "Morga",
+    "country": "Vizcaya",
+    "state": null
+  },
+  {
+    "city": "Mortara",
+    "country": "Provincia di Pavia",
+    "state": null
+  },
+  {
+    "city": "Mötzingen",
+    "country": "Mötzingen",
+    "state": null
+  },
+  {
+    "city": "Mülheim",
+    "country": "Mülheim",
+    "state": null
+  },
+  {
+    "city": "München",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "München",
+    "country": "München (Kreis)",
+    "state": "München (Kreis)"
+  },
+  {
+    "city": "München",
+    "country": "München (Kreis)",
+    "state": null
+  },
+  {
+    "city": "München-Flughafen",
+    "country": "München-Flughafen",
+    "state": null
+  },
+  {
+    "city": "Münster",
+    "country": "Münster",
+    "state": null
+  },
+  {
+    "city": "Nantes",
+    "country": "Loire-Atlantique",
+    "state": "Loire-Atlantique"
+  },
+  {
+    "city": "Nantes",
+    "country": "Loire-Atlantique",
+    "state": null
+  },
+  {
+    "city": "Nelson",
+    "country": "South Island",
+    "state": "South Island"
+  },
+  {
+    "city": "Nelson",
+    "country": "South Island",
+    "state": null
+  },
+  {
+    "city": "Neuenhagen",
+    "country": "Neuenhagen",
+    "state": null
+  },
+  {
+    "city": "Neuilly-sur-Seine",
+    "country": "Nanterre",
+    "state": "Nanterre"
+  },
+  {
+    "city": "Neuilly-sur-Seine",
+    "country": "Nanterre",
+    "state": null
+  },
+  {
+    "city": "Neulehe",
+    "country": "Neulehe",
+    "state": null
+  },
+  {
+    "city": "Neuss",
+    "country": "Neuss",
+    "state": null
+  },
+  {
+    "city": "Niddatal",
+    "country": "Niddatal",
+    "state": null
+  },
+  {
+    "city": "Norderstedt",
+    "country": "Norderstedt",
+    "state": null
+  },
+  {
+    "city": "Northeast - United States",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Northgate",
+    "country": "Port Adelaide Area",
+    "state": "Port Adelaide Area"
+  },
+  {
+    "city": "Northgate",
+    "country": "Port Adelaide Area",
+    "state": null
+  },
+  {
+    "city": "Novara",
+    "country": "Provincia di Novara",
+    "state": "Provincia di Novara"
+  },
+  {
+    "city": "Novara",
+    "country": "Provincia di Novara",
+    "state": null
+  },
+  {
+    "city": "Novi",
+    "country": "Oakland County",
+    "state": "Oakland County"
+  },
+  {
+    "city": "Novi",
+    "country": "Oakland County",
+    "state": null
+  },
+  {
+    "city": "Nowy Tomyśl",
+    "country": "wielkopolskie",
+    "state": "wielkopolskie"
+  },
+  {
+    "city": "Nowy Tomyśl",
+    "country": "wielkopolskie",
+    "state": null
+  },
+  {
+    "city": "NY",
+    "country": "Remote",
+    "state": "SF, Chicago, Remote"
+  },
+  {
+    "city": "NY",
+    "country": "Remote",
+    "state": "SF, Remote"
+  },
+  {
+    "city": "NY",
+    "country": "Remote",
+    "state": null
+  },
+  {
+    "city": "NY",
+    "country": "Remote-US",
+    "state": null
+  },
+  {
+    "city": "O",
+    "country": null,
+    "state": "MA"
+  },
+  {
+    "city": "O",
+    "country": null,
+    "state": "PL"
+  },
+  {
+    "city": "Oberhausen",
+    "country": "Oberhausen",
+    "state": null
+  },
+  {
+    "city": "Offenbach",
+    "country": "Offenbach",
+    "state": null
+  },
+  {
+    "city": "Oklahoma City",
+    "country": "Oklahoma County",
+    "state": "Oklahoma County"
+  },
+  {
+    "city": "Oldenburg",
+    "country": "Oldenburg",
+    "state": null
+  },
+  {
+    "city": "Oosterhout",
+    "country": "Nijmegen",
+    "state": "Nijmegen"
+  },
+  {
+    "city": "Oosterhout",
+    "country": "Nijmegen",
+    "state": null
+  },
+  {
+    "city": "Opfikon",
+    "country": "Bülach",
+    "state": "Bülach"
+  },
+  {
+    "city": "Opfikon",
+    "country": "Bülach",
+    "state": null
+  },
+  {
+    "city": "Orléans",
+    "country": "Loiret",
+    "state": "Loiret"
+  },
+  {
+    "city": "Orléans",
+    "country": "Loiret",
+    "state": null
+  },
+  {
+    "city": "Osnabrück",
+    "country": "Osnabrück",
+    "state": null
+  },
+  {
+    "city": "Ottawa",
+    "country": "Canada",
+    "state": null
+  },
+  {
+    "city": "Ottawa",
+    "country": "Ottawa region",
+    "state": "Ottawa region"
+  },
+  {
+    "city": "Ottawa",
+    "country": "Ottawa region",
+    "state": null
+  },
+  {
+    "city": "Otterstadt",
+    "country": "Otterstadt",
+    "state": null
+  },
+  {
+    "city": "Ourinhos",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Oxford",
+    "country": "Oxfordshire",
+    "state": null
+  },
+  {
+    "city": "Paderborn",
+    "country": "Paderborn",
+    "state": null
+  },
+  {
+    "city": "Palhoça",
+    "country": "Santa Catarina",
+    "state": null
+  },
+  {
+    "city": "Pamplona",
+    "country": "Navarra",
+    "state": "Navarra"
+  },
+  {
+    "city": "Pamplona",
+    "country": "Navarra",
+    "state": null
+  },
+  {
+    "city": "Papendrecht",
+    "country": "Zuid-Holland",
+    "state": "Zuid-Holland"
+  },
+  {
+    "city": "Parkstone",
+    "country": "Poole",
+    "state": null
+  },
+  {
+    "city": "Parsippany",
+    "country": "Morris County",
+    "state": "Morris County"
+  },
+  {
+    "city": "Parsippany",
+    "country": "Morris County",
+    "state": null
+  },
+  {
+    "city": "Passau",
+    "country": "Passau",
+    "state": null
+  },
+  {
+    "city": "Paulista",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Penapolis",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Penrose",
+    "country": "Auckland City",
+    "state": "Auckland City"
+  },
+  {
+    "city": "Penrose",
+    "country": "Auckland City",
+    "state": null
+  },
+  {
+    "city": "Perth CBD",
+    "country": "Perth",
+    "state": "Perth"
+  },
+  {
+    "city": "Perth CBD",
+    "country": "Perth",
+    "state": null
+  },
+  {
+    "city": "Petrolina",
+    "country": null,
+    "state": "PE"
+  },
+  {
+    "city": "Pforzheim",
+    "country": "Pforzheim",
+    "state": null
+  },
+  {
+    "city": "Pickering",
+    "country": "Durham region",
+    "state": "Durham region"
+  },
+  {
+    "city": "Pickering",
+    "country": "Durham region",
+    "state": null
+  },
+  {
+    "city": "Pindamonhangaba",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Pinhais",
+    "country": null,
+    "state": "PR"
+  },
+  {
+    "city": "Pinneberg",
+    "country": "Pinneberg",
+    "state": null
+  },
+  {
+    "city": "Piracaia",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Piracicaba",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Pires",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Plano",
+    "country": "Texas; United States",
+    "state": null
+  },
+  {
+    "city": "Pleno",
+    "country": null,
+    "state": "RE"
+  },
+  {
+    "city": "Pleno",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Pont-Rousseau",
+    "country": "Rezé",
+    "state": "Rezé"
+  },
+  {
+    "city": "Pont-Rousseau",
+    "country": "Rezé",
+    "state": null
+  },
+  {
+    "city": "Porto San Giorgio",
+    "country": "Provincia di Fermo",
+    "state": "Provincia di Fermo"
+  },
+  {
+    "city": "Porto San Giorgio",
+    "country": "Provincia di Fermo",
+    "state": null
+  },
+  {
+    "city": "Potsdam",
+    "country": "Potsdam",
+    "state": null
+  },
+  {
+    "city": "Poznań",
+    "country": "wielkopolskie",
+    "state": "wielkopolskie"
+  },
+  {
+    "city": "Poznań",
+    "country": "wielkopolskie",
+    "state": null
+  },
+  {
+    "city": "Propriá",
+    "country": null,
+    "state": "SE"
+  },
+  {
+    "city": "Providence",
+    "country": "Providence County",
+    "state": null
+  },
+  {
+    "city": "Provincia di Bologna",
+    "country": "Emilia-Romagna",
+    "state": "Emilia-Romagna"
+  },
+  {
+    "city": "Provincia di Bologna",
+    "country": "Emilia-Romagna",
+    "state": null
+  },
+  {
+    "city": "Provincia di Firenze",
+    "country": "Toscana",
+    "state": "Toscana"
+  },
+  {
+    "city": "Provincia di Firenze",
+    "country": "Toscana",
+    "state": null
+  },
+  {
+    "city": "Provincia di Milano",
+    "country": "Lombardia",
+    "state": "Lombardia"
+  },
+  {
+    "city": "Provincia di Milano",
+    "country": "Lombardia",
+    "state": null
+  },
+  {
+    "city": "Provincia di Pesaro e Urbino",
+    "country": "Marche",
+    "state": null
+  },
+  {
+    "city": "Provincia di Pisa",
+    "country": "Toscana",
+    "state": "Toscana"
+  },
+  {
+    "city": "Provincia di Pisa",
+    "country": "Toscana",
+    "state": null
+  },
+  {
+    "city": "Provincia di Roma",
+    "country": "Lazio",
+    "state": "Lazio"
+  },
+  {
+    "city": "Provincia di Roma",
+    "country": "Lazio",
+    "state": null
+  },
+  {
+    "city": "Provincia di Udine",
+    "country": "Friuli-Venezia Giulia",
+    "state": "Friuli-Venezia Giulia"
+  },
+  {
+    "city": "Provincia di Udine",
+    "country": "Friuli-Venezia Giulia",
+    "state": null
+  },
+  {
+    "city": "Queensland",
+    "country": "Australia",
+    "state": null
+  },
+  {
+    "city": "Raigmore",
+    "country": "Inverness",
+    "state": null
+  },
+  {
+    "city": "Rastatt",
+    "country": "Rastatt",
+    "state": null
+  },
+  {
+    "city": "Ravensburg",
+    "country": "Ravensburg",
+    "state": null
+  },
+  {
+    "city": "Redonda",
+    "country": null,
+    "state": "RJ"
+  },
+  {
+    "city": "Refrontolo",
+    "country": "Provincia di Treviso",
+    "state": "Provincia di Treviso"
+  },
+  {
+    "city": "Refrontolo",
+    "country": "Provincia di Treviso",
+    "state": null
+  },
+  {
+    "city": "Regina",
+    "country": "Regina region",
+    "state": "Regina region"
+  },
+  {
+    "city": "Regina",
+    "country": "Regina region",
+    "state": null
+  },
+  {
+    "city": "Rellingen",
+    "country": "Pinneberg (Kreis)",
+    "state": "Pinneberg (Kreis)"
+  },
+  {
+    "city": "Rellingen",
+    "country": "Pinneberg (Kreis)",
+    "state": null
+  },
+  {
+    "city": "Renens",
+    "country": "Ouest Lausannois",
+    "state": "Ouest Lausannois"
+  },
+  {
+    "city": "Renens",
+    "country": "Ouest Lausannois",
+    "state": null
+  },
+  {
+    "city": "Renningen",
+    "country": "Renningen",
+    "state": null
+  },
+  {
+    "city": "Rheinbach",
+    "country": "Rhein-Sieg-Kreis",
+    "state": "Rhein-Sieg-Kreis"
+  },
+  {
+    "city": "Rheinbach",
+    "country": "Rhein-Sieg-Kreis",
+    "state": null
+  },
+  {
+    "city": "Richmond Hill",
+    "country": "York region",
+    "state": "York region"
+  },
+  {
+    "city": "Richmond Hill",
+    "country": "York region",
+    "state": null
+  },
+  {
+    "city": "Ridgefield",
+    "country": "Fairfield County",
+    "state": "Fairfield County"
+  },
+  {
+    "city": "Ridgefield",
+    "country": "Fairfield County",
+    "state": null
+  },
+  {
+    "city": "Rio Grande - Carreiros, Rio Grande",
+    "country": null,
+    "state": "RS"
+  },
+  {
+    "city": "Rivervale",
+    "country": "Belmont Area",
+    "state": "Belmont Area"
+  },
+  {
+    "city": "Rivervale",
+    "country": "Belmont Area",
+    "state": null
+  },
+  {
+    "city": "Robertson",
+    "country": "Saint Louis County",
+    "state": "Saint Louis County"
+  },
+  {
+    "city": "Robertson",
+    "country": "Saint Louis County",
+    "state": null
+  },
+  {
+    "city": "Rockaway",
+    "country": "NJ",
+    "state": "NJ"
+  },
+  {
+    "city": "Ronchi dei Legionari",
+    "country": "Provincia di Gorizia",
+    "state": "Provincia di Gorizia"
+  },
+  {
+    "city": "Ronchi dei Legionari",
+    "country": "Provincia di Gorizia",
+    "state": null
+  },
+  {
+    "city": "Rostock",
+    "country": "Rostock",
+    "state": null
+  },
+  {
+    "city": "Rothenburg",
+    "country": "Hochdorf",
+    "state": "Hochdorf"
+  },
+  {
+    "city": "Rothenburg",
+    "country": "Hochdorf",
+    "state": null
+  },
+  {
+    "city": "Rottendorf",
+    "country": "Rottendorf",
+    "state": null
+  },
+  {
+    "city": "Roubaix",
+    "country": "Lille",
+    "state": "Lille"
+  },
+  {
+    "city": "Roubaix",
+    "country": "Lille",
+    "state": null
+  },
+  {
+    "city": "S",
+    "country": null,
+    "state": "SE"
+  },
+  {
+    "city": "Saarbrücken",
+    "country": "Saarbrücken",
+    "state": null
+  },
+  {
+    "city": "Sachsen bei Ansbach",
+    "country": "Sachsen bei Ansbach",
+    "state": null
+  },
+  {
+    "city": "Saint John",
+    "country": "Saint John region",
+    "state": null
+  },
+  {
+    "city": "Salò",
+    "country": "Provincia di Brescia",
+    "state": "Provincia di Brescia"
+  },
+  {
+    "city": "Salò",
+    "country": "Provincia di Brescia",
+    "state": null
+  },
+  {
+    "city": "Salzgitter",
+    "country": "Salzgitter",
+    "state": null
+  },
+  {
+    "city": "San Antonio",
+    "country": "TX",
+    "state": "TX"
+  },
+  {
+    "city": "San Pedro Garza García",
+    "country": "Nuevo León",
+    "state": "Nuevo León"
+  },
+  {
+    "city": "San Pedro Garza García",
+    "country": "Nuevo León",
+    "state": null
+  },
+  {
+    "city": "Santa",
+    "country": null,
+    "state": "MG"
+  },
+  {
+    "city": "Sant Adrià de Besòs",
+    "country": "Barcelona",
+    "state": "Barcelona"
+  },
+  {
+    "city": "Santa Luzia de Caratinga, Caratinga",
+    "country": null,
+    "state": "MG"
+  },
+  {
+    "city": "Santos",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "São Francisco do Sul",
+    "country": null,
+    "state": "SC"
+  },
+  {
+    "city": "São José",
+    "country": null,
+    "state": "SC"
+  },
+  {
+    "city": "Sapucai",
+    "country": null,
+    "state": "MG"
+  },
+  {
+    "city": "Saskatoon",
+    "country": "Saskatchewan",
+    "state": "Saskatchewan"
+  },
+  {
+    "city": "Saskatoon",
+    "country": "Saskatchewan",
+    "state": null
+  },
+  {
+    "city": "Saugus",
+    "country": "Los Angeles County",
+    "state": "Los Angeles County"
+  },
+  {
+    "city": "Saugus",
+    "country": "Los Angeles County",
+    "state": null
+  },
+  {
+    "city": "Savage",
+    "country": "Anne Arundel County",
+    "state": "Anne Arundel County"
+  },
+  {
+    "city": "Savage",
+    "country": "Anne Arundel County",
+    "state": null
+  },
+  {
+    "city": "Schenkon",
+    "country": "Sursee",
+    "state": "Sursee"
+  },
+  {
+    "city": "Schenkon",
+    "country": "Sursee",
+    "state": null
+  },
+  {
+    "city": "Schweinfurt",
+    "country": "Schweinfurt",
+    "state": null
+  },
+  {
+    "city": "Schwerin",
+    "country": "Schwerin",
+    "state": null
+  },
+  {
+    "city": "Scottsdale",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "SEA",
+    "country": "SF",
+    "state": null
+  },
+  {
+    "city": "Seattle, NYC",
+    "country": "SF",
+    "state": "SF"
+  },
+  {
+    "city": "Sergipe",
+    "country": "Nordeste",
+    "state": "Nordeste"
+  },
+  {
+    "city": "Sergipe",
+    "country": "Nordeste",
+    "state": null
+  },
+  {
+    "city": "Serra",
+    "country": null,
+    "state": "ES"
+  },
+  {
+    "city": "Serra",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "SFO",
+    "country": "NYC",
+    "state": "SEA, CHI, NYC"
+  },
+  {
+    "city": "SF or NY",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Sigmaringen",
+    "country": "Sigmaringen",
+    "state": null
+  },
+  {
+    "city": "Silverwater",
+    "country": "Auburn Area",
+    "state": "Auburn Area"
+  },
+  {
+    "city": "Silverwater",
+    "country": "Auburn Area",
+    "state": null
+  },
+  {
+    "city": "Solingen",
+    "country": "Solingen",
+    "state": null
+  },
+  {
+    "city": "Somerset West",
+    "country": "Cape Town Region",
+    "state": "Cape Town Region"
+  },
+  {
+    "city": "Sorriso",
+    "country": null,
+    "state": "MT"
+  },
+  {
+    "city": "Southampton",
+    "country": "Hampshire",
+    "state": null
+  },
+  {
+    "city": "South San Francisco",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Spokane",
+    "country": "WA",
+    "state": null
+  },
+  {
+    "city": "Stafford",
+    "country": "Staffordshire",
+    "state": null
+  },
+  {
+    "city": "Stanford",
+    "country": "Santa Clara County",
+    "state": "Santa Clara County"
+  },
+  {
+    "city": "Stanford",
+    "country": "Santa Clara County",
+    "state": null
+  },
+  {
+    "city": "Stans",
+    "country": "Nidwalden",
+    "state": "Nidwalden"
+  },
+  {
+    "city": "Stans",
+    "country": "Nidwalden",
+    "state": null
+  },
+  {
+    "city": "Stevenage",
+    "country": "Hertfordshire",
+    "state": "Hertfordshire"
+  },
+  {
+    "city": "Stevenage",
+    "country": "Hertfordshire",
+    "state": null
+  },
+  {
+    "city": "Stewartby",
+    "country": "Bedford",
+    "state": null
+  },
+  {
+    "city": "Stockton-On-Tees",
+    "country": "County Durham",
+    "state": null
+  },
+  {
+    "city": "Stralsund",
+    "country": "Stralsund",
+    "state": null
+  },
+  {
+    "city": "Stramproy",
+    "country": "Weert",
+    "state": "Weert"
+  },
+  {
+    "city": "Stramproy",
+    "country": "Weert",
+    "state": null
+  },
+  {
+    "city": "Sumare",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Surrey Research Park",
+    "country": "Guildford",
+    "state": "Guildford"
+  },
+  {
+    "city": "Surrey Research Park",
+    "country": "Guildford",
+    "state": null
+  },
+  {
+    "city": "Süßen",
+    "country": "Süßen",
+    "state": null
+  },
+  {
+    "city": "Suzano",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Swansea",
+    "country": "Wales",
+    "state": null
+  },
+  {
+    "city": "Swifterbant",
+    "country": "Dronten",
+    "state": "Dronten"
+  },
+  {
+    "city": "Swifterbant",
+    "country": "Dronten",
+    "state": null
+  },
+  {
+    "city": "T",
+    "country": null,
+    "state": "IN"
+  },
+  {
+    "city": "Talence",
+    "country": "Bordeaux",
+    "state": null
+  },
+  {
+    "city": "Taranto",
+    "country": "Provincia di Taranto",
+    "state": "Provincia di Taranto"
+  },
+  {
+    "city": "Taranto",
+    "country": "Provincia di Taranto",
+    "state": null
+  },
+  {
+    "city": "Taunusstein",
+    "country": "Rheingau-Taunus-Kreis",
+    "state": "Rheingau-Taunus-Kreis"
+  },
+  {
+    "city": "Taunusstein",
+    "country": "Rheingau-Taunus-Kreis",
+    "state": null
+  },
+  {
+    "city": "Taylor",
+    "country": "Wayne County",
+    "state": null
+  },
+  {
+    "city": "Tczew",
+    "country": "pomorskie",
+    "state": "pomorskie"
+  },
+  {
+    "city": "Tczew",
+    "country": "pomorskie",
+    "state": null
+  },
+  {
+    "city": "Teutonia",
+    "country": null,
+    "state": "RS"
+  },
+  {
+    "city": "Thale",
+    "country": "Thale",
+    "state": null
+  },
+  {
+    "city": "Thiruvananthapuram",
+    "country": "Kerala",
+    "state": "Kerala"
+  },
+  {
+    "city": "Thiruvananthapuram",
+    "country": "Kerala",
+    "state": null
+  },
+  {
+    "city": "Thorndon",
+    "country": "Wellington",
+    "state": "Wellington"
+  },
+  {
+    "city": "Thorndon",
+    "country": "Wellington",
+    "state": null
+  },
+  {
+    "city": "Tiete",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Tijuana",
+    "country": "Baja California",
+    "state": "Baja California"
+  },
+  {
+    "city": "Tijuana",
+    "country": "Baja California",
+    "state": null
+  },
+  {
+    "city": "Tocantins",
+    "country": null,
+    "state": "MG (+1)"
+  },
+  {
+    "city": "Torrance",
+    "country": "Los Angeles County",
+    "state": null
+  },
+  {
+    "city": "Traun",
+    "country": "Linz-Land",
+    "state": "Linz-Land"
+  },
+  {
+    "city": "Traun",
+    "country": "Linz-Land",
+    "state": null
+  },
+  {
+    "city": "Treviso",
+    "country": "Provincia di Treviso",
+    "state": "Provincia di Treviso"
+  },
+  {
+    "city": "Treviso",
+    "country": "Provincia di Treviso",
+    "state": null
+  },
+  {
+    "city": "Trezzano sul Naviglio",
+    "country": "Provincia di Milano",
+    "state": "Provincia di Milano"
+  },
+  {
+    "city": "Trezzano sul Naviglio",
+    "country": "Provincia di Milano",
+    "state": null
+  },
+  {
+    "city": "Trieste",
+    "country": "Provincia di Trieste",
+    "state": "Provincia di Trieste"
+  },
+  {
+    "city": "Trieste",
+    "country": "Provincia di Trieste",
+    "state": null
+  },
+  {
+    "city": "Trivandrum",
+    "country": "Thiruvananthapuram",
+    "state": "Thiruvananthapuram"
+  },
+  {
+    "city": "Trivandrum",
+    "country": "Thiruvananthapuram",
+    "state": null
+  },
+  {
+    "city": "Tübingen",
+    "country": "Tübingen",
+    "state": null
+  },
+  {
+    "city": "Uberlândia",
+    "country": null,
+    "state": "MG"
+  },
+  {
+    "city": "Uberlândia",
+    "country": null,
+    "state": "MG (+1)"
+  },
+  {
+    "city": "Uedem",
+    "country": "Uedem",
+    "state": null
+  },
+  {
+    "city": "Uehlfeld",
+    "country": "Uehlfeld",
+    "state": null
+  },
+  {
+    "city": "Ulm",
+    "country": "Ulm",
+    "state": null
+  },
+  {
+    "city": "Unionville",
+    "country": "York region",
+    "state": "York region"
+  },
+  {
+    "city": "Unionville",
+    "country": "York region",
+    "state": null
+  },
+  {
+    "city": "United Stated",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "Unterschleißheim",
+    "country": "Unterschleißheim",
+    "state": null
+  },
+  {
+    "city": "US-Chicago or US-Seattle",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "US National",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "US-rem",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "US-SEA",
+    "country": "US-SF",
+    "state": null
+  },
+  {
+    "city": "US-SEA or US",
+    "country": "US-SEA or US-SF",
+    "state": "SF"
+  },
+  {
+    "city": "US-SEA, US",
+    "country": "US-SF",
+    "state": "SF"
+  },
+  {
+    "city": "US-SF-HQ",
+    "country": "NYC",
+    "state": "NYC"
+  },
+  {
+    "city": "US-SF-HQ",
+    "country": "United States",
+    "state": null
+  },
+  {
+    "city": "US-SSF",
+    "country": "US-NYC",
+    "state": "US-NYC"
+  },
+  {
+    "city": "US-SSF",
+    "country": "US-NYC",
+    "state": null
+  },
+  {
+    "city": "Várzea Grande",
+    "country": null,
+    "state": "MT (+1)"
+  },
+  {
+    "city": "Veenendaal",
+    "country": "Provincie Utrecht",
+    "state": "Provincie Utrecht"
+  },
+  {
+    "city": "Veenendaal",
+    "country": "Provincie Utrecht",
+    "state": null
+  },
+  {
+    "city": "Veitshöchheim",
+    "country": "Veitshöchheim",
+    "state": null
+  },
+  {
+    "city": "Verden",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "Verl",
+    "country": "Gütersloh (Kreis)",
+    "state": null
+  },
+  {
+    "city": "Verona",
+    "country": "Provincia di Verona",
+    "state": "Provincia di Verona"
+  },
+  {
+    "city": "Verona",
+    "country": "Provincia di Verona",
+    "state": null
+  },
+  {
+    "city": "Viamao",
+    "country": null,
+    "state": "RS"
+  },
+  {
+    "city": "Vigevano",
+    "country": "Provincia di Pavia",
+    "state": "Provincia di Pavia"
+  },
+  {
+    "city": "Vigevano",
+    "country": "Provincia di Pavia",
+    "state": null
+  },
+  {
+    "city": "Vila Velha",
+    "country": null,
+    "state": "ES"
+  },
+  {
+    "city": "Vila Velha",
+    "country": null,
+    "state": "ES (+1)"
+  },
+  {
+    "city": "Villingen-Schwenningen",
+    "country": "Villingen-Schwenningen",
+    "state": null
+  },
+  {
+    "city": "Vimercate",
+    "country": "Provincia di Monza e Brianza",
+    "state": "Provincia di Monza e Brianza"
+  },
+  {
+    "city": "Vimercate",
+    "country": "Provincia di Monza e Brianza",
+    "state": null
+  },
+  {
+    "city": "Vinhedo",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Viterbo",
+    "country": null,
+    "state": "SP"
+  },
+  {
+    "city": "Wairarapa",
+    "country": "North Island",
+    "state": "North Island"
+  },
+  {
+    "city": "Warwickshire",
+    "country": "West Midlands",
+    "state": null
+  },
+  {
+    "city": "Waterloo",
+    "country": "Waterloo region",
+    "state": "Waterloo region"
+  },
+  {
+    "city": "Waterloo",
+    "country": "Waterloo region",
+    "state": null
+  },
+  {
+    "city": "Wellston",
+    "country": "Saint Louis County",
+    "state": "Saint Louis County"
+  },
+  {
+    "city": "Wellston",
+    "country": "Saint Louis County",
+    "state": null
+  },
+  {
+    "city": "Wels",
+    "country": "Oberösterreich",
+    "state": "Oberösterreich"
+  },
+  {
+    "city": "Wels",
+    "country": "Oberösterreich",
+    "state": null
+  },
+  {
+    "city": "West Malling",
+    "country": "Kent",
+    "state": null
+  },
+  {
+    "city": "Wil",
+    "country": "Kanton St.Gallen",
+    "state": "Kanton St.Gallen"
+  },
+  {
+    "city": "Wil",
+    "country": "Kanton St.Gallen",
+    "state": null
+  },
+  {
+    "city": "Wildflecken",
+    "country": "Wildflecken",
+    "state": null
+  },
+  {
+    "city": "Winnipeg region",
+    "country": "Manitoba",
+    "state": "Manitoba"
+  },
+  {
+    "city": "Winnipeg region",
+    "country": "Manitoba",
+    "state": null
+  },
+  {
+    "city": "Wolfenbüttel",
+    "country": "Wolfenbüttel",
+    "state": null
+  },
+  {
+    "city": "Woodbridge",
+    "country": "York region",
+    "state": "York region"
+  },
+  {
+    "city": "Woodbridge",
+    "country": "York region",
+    "state": null
+  },
+  {
+    "city": "Worthing",
+    "country": "West Sussex",
+    "state": null
+  },
+  {
+    "city": "Wuppertal",
+    "country": "Germany",
+    "state": null
+  },
+  {
+    "city": "Wuppertal",
+    "country": "Wuppertal",
+    "state": null
+  },
+  {
+    "city": "Zeitlarn",
+    "country": "Zeitlarn",
+    "state": null
+  },
+  {
+    "city": "Zuidschermer",
+    "country": "Schermer",
+    "state": "Schermer"
+  },
+  {
+    "city": "Zuidschermer",
+    "country": "Schermer",
+    "state": null
+  },
+  {
+    "city": "Żywiec",
+    "country": "śląskie",
+    "state": "śląskie"
+  },
+  {
+    "city": "Żywiec",
+    "country": "śląskie",
+    "state": null
+  }
+]
