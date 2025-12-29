@@ -671,14 +671,16 @@ psql -h localhost -U sofia -d sofia_db
 
 ### 📝 Tools Created
 
-**Validation Scripts:**
-- `scripts/validate-referential-integrity.py` - Check FK integrity
-- `scripts/audit-normalization-coverage.py` - Coverage audit
-- `scripts/run-cleanup-duplicates.py` - Cleanup duplicates
-- `scripts/run-fix-orphaned-cities.py` - Fix orphaned FKs
+**Validation Scripts** (em `.workspace/scripts/`):
+- `validate-referential-integrity.py` - Check FK integrity
+- `audit-normalization-coverage.py` - Coverage audit
+- `run-cleanup-duplicates.py` - Cleanup duplicates
+- `run-fix-orphaned-cities.py` - Fix orphaned FKs
 
-**Reports:**
+**Reports** (em `.workspace/reports/`):
 - `DATA_QUALITY_REPORT.md` - Complete analysis with details
+
+**Nota**: Scripts de auditoria e relatórios temporários ficam em `.workspace/` para não serem analisados pelo SonarCloud.
 
 ---
 
