@@ -47,8 +47,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=augustosvm_sofia-pulse
-            -Dsonar.organization=augustosvm
+            -Dsonar.projectKey=ti-especialistas_sofia-pulse
+            -Dsonar.organization=ti-especialistas
             -Dsonar.python.version=3.10
       
       - name: Check Quality Gate
