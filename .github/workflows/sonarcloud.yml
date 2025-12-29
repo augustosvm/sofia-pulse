@@ -1,0 +1,59 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint
+      
+      - name: Generate Pylint report
+        run: |
+          pylint \
+            scripts/collect-*.py \
+            scripts/shared/*.py \
+            scripts/utils/sofia_whatsapp_integration.py \
+            --output-format=json \
+            --exit-zero \
+            > pylint-report.json || true
+        continue-on-error: true
+      
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=augustosvm_sofia-pulse
+            -Dsonar.organization=augustosvm
+            -Dsonar.python.version=3.10
+      
+      - name: Check Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
