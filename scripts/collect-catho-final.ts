@@ -20,10 +20,93 @@ const DB_CONFIG = {
   database: process.env.POSTGRES_DB || 'sofia_db',
 };
 
+// ========== PARSE HELPERS (from collect-catho-stealth.ts) ==========
+
+function parseSalaryBRL(text: string): { min: number | null; max: number | null; period: string | null } {
+  let min: number | null = null;
+  let max: number | null = null;
+  let period: string | null = null;
+
+  if (!text) return { min, max, period };
+
+  // Detectar período
+  if (/mês|mensal|\/mês/i.test(text)) period = 'monthly';
+  else if (/ano|anual|\/ano/i.test(text)) period = 'yearly';
+  else if (/hora|\/h/i.test(text)) period = 'hourly';
+
+  // Extrair números (ex: "R$ 5.000 - R$ 8.000" ou "até R$ 10.000")
+  const numbers = text.match(/R?\$?\s*([\d.]+)/gi) || [];
+  const parsed = numbers.map(n => parseFloat(n.replace(/[^\d]/g, '')));
+
+  if (parsed.length >= 2) {
+    min = Math.min(...parsed);
+    max = Math.max(...parsed);
+  } else if (parsed.length === 1) {
+    min = parsed[0];
+  }
+
+  return { min, max, period };
+}
+
+function detectRemoteType(text: string): string | null {
+  const textLower = text.toLowerCase();
+  if (/remoto|remote|home office|trabalho remoto/i.test(textLower)) return 'remote';
+  if (/híbrido|hybrid/i.test(textLower)) return 'hybrid';
+  return null;
+}
+
+function detectSeniority(title: string): string {
+  const titleLower = title.toLowerCase();
+  if (/sênior|senior|sr\.|pleno sênior/i.test(titleLower)) return 'senior';
+  if (/júnior|junior|jr\.|trainee|estágio/i.test(titleLower)) return 'entry';
+  if (/pleno|mid|intermediário/i.test(titleLower)) return 'mid';
+  if (/staff|principal|arquiteto/i.test(titleLower)) return 'principal';
+  return 'mid';
+}
+
+function extractSkills(text: string): string[] {
+  const skills: string[] = [];
+  const textLower = text.toLowerCase();
+
+  const commonSkills = [
+    'Python', 'Java', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'Angular', 'Vue',
+    'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'SQL', 'PostgreSQL', 'MongoDB', 'MySQL',
+    'Git', 'CI/CD', 'Scrum', 'Agile', 'REST API', 'GraphQL', 'Redis', 'Kafka',
+    'TensorFlow', 'PyTorch', 'Pandas', 'NumPy', 'Scikit-learn',
+    'Spring', 'Django', 'Flask', 'FastAPI', 'Express',
+    'HTML', 'CSS', 'Sass', 'Tailwind', 'Bootstrap',
+  ];
+
+  for (const skill of commonSkills) {
+    if (textLower.includes(skill.toLowerCase())) {
+      skills.push(skill);
+    }
+  }
+
+  return [...new Set(skills)];
+}
+
+function detectSector(title: string): string {
+  const titleLower = title.toLowerCase();
+
+  if (/\b(ai|machine learning|ml|data scien|deep learning)/i.test(titleLower)) return 'AI & ML';
+  if (/\b(security|segurança|infosec|cyber)/i.test(titleLower)) return 'Security';
+  if (/\b(devops|cloud|sre|infrastructure)/i.test(titleLower)) return 'DevOps & Cloud';
+  if (/\b(gerente|manager|líder|coordenador|cto|cio|director)/i.test(titleLower)) return 'Leadership';
+  if (/\b(backend|back-end)/i.test(titleLower)) return 'Backend';
+  if (/\b(frontend|front-end)/i.test(titleLower)) return 'Frontend';
+  if (/\b(mobile|ios|android|react native|flutter)/i.test(titleLower)) return 'Mobile';
+  if (/\b(data engineer|dados|etl|pipeline)/i.test(titleLower)) return 'Data Engineering';
+  if (/\b(qa|quality|test|tester)/i.test(titleLower)) return 'QA & Testing';
+  if (/\b(product|product manager|pm)/i.test(titleLower)) return 'Product';
+
+  return 'Other Tech';
+}
+
 async function scrapeCatho(keywords: string[]) {
   const browser = await puppeteer.launch({
     headless: 'new',
-    executablePath: '/usr/bin/chromium-browser',
+    // Use bundled Chromium (auto-detected by puppeteer)
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   });
 
@@ -56,8 +139,10 @@ async function scrapeCatho(keywords: string[]) {
           let parent: any = link.parentElement;
           let company = '';
           let location = '';
+          let salary = '';
+          let description = '';
 
-          // Walk up to find company/location
+          // Walk up to find company/location/salary/description
           for (let j = 0; j < 5; j++) {
             if (!parent) break;
 
@@ -69,6 +154,24 @@ async function scrapeCatho(keywords: string[]) {
               location = locMatch[0];
             }
 
+            // Look for company name (often in a specific class/tag)
+            const companyEl = parent.querySelector('.company-name, [data-testid="company-name"], .job-company');
+            if (companyEl && !company) {
+              company = companyEl.textContent?.trim() || '';
+            }
+
+            // Look for salary
+            const salaryEl = parent.querySelector('.salary, [data-testid="salary"], .job-salary');
+            if (salaryEl && !salary) {
+              salary = salaryEl.textContent?.trim() || '';
+            }
+
+            // Look for description
+            const descEl = parent.querySelector('.job-description, .description-preview, .description');
+            if (descEl && !description) {
+              description = descEl.textContent?.trim() || '';
+            }
+
             parent = parent.parentElement;
           }
 
@@ -77,7 +180,9 @@ async function scrapeCatho(keywords: string[]) {
               url: href.startsWith('http') ? href : `https://www.catho.com.br${href}`,
               title,
               location: location || 'Brasil',
-              company: 'Catho', // Will extract later if needed
+              company: company || 'Unknown',
+              salary: salary || '',
+              description: description || '',
             });
           }
         });
@@ -155,18 +260,44 @@ async function main() {
       'catho'
     );
 
+    // ========== PARSE USING HELPERS ==========
+    const { min: salaryMin, max: salaryMax, period: salaryPeriod } = parseSalaryBRL(job.salary);
+    const remoteType = detectRemoteType(job.title + ' ' + job.description);
+    const seniority = detectSeniority(job.title);
+    const skills = extractSkills(job.title + ' ' + job.description);
+    const sector = detectSector(job.title);
+
     await pool.query(
-      `INSERT INTO sofia.jobs (job_id, title, company, location, city, state, country, country_id, state_id, city_id, url, platform, organization_id, collected_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+      `INSERT INTO sofia.jobs (
+         job_id, title, company, location, city, state, country, country_id, state_id, city_id,
+         url, platform, organization_id,
+         description, salary_min, salary_max, salary_currency, salary_period,
+         remote_type, seniority_level, employment_type, skills_required, sector,
+         collected_at
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())
        ON CONFLICT (job_id) DO UPDATE SET
          title = EXCLUDED.title,
          location = EXCLUDED.location,
+         description = EXCLUDED.description,
+         salary_min = EXCLUDED.salary_min,
+         salary_max = EXCLUDED.salary_max,
+         salary_period = EXCLUDED.salary_period,
+         remote_type = EXCLUDED.remote_type,
+         seniority_level = EXCLUDED.seniority_level,
+         skills_required = EXCLUDED.skills_required,
+         sector = EXCLUDED.sector,
          organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
          country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
          state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
          city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
          collected_at = NOW()`,
-      [jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId, job.url, 'catho', organizationId]
+      [
+        jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId,
+        job.url, 'catho', organizationId,
+        job.description, salaryMin, salaryMax, 'BRL', salaryPeriod,
+        remoteType, seniority, 'full-time', skills, sector
+      ]
     );
   }
 

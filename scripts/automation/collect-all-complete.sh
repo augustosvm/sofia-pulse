@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# Sofia Pulse - COMPLETE Collection (ALL 55 Collectors)
+# Sofia Pulse - COMPLETE Collection (ALL 56 Collectors)
 ################################################################################
 #
 # Runs ALL collectors with:
@@ -45,7 +45,7 @@ run_collector() {
 
     TOTAL_COLLECTORS=$((TOTAL_COLLECTORS + 1))
     echo ""
-    echo "▶️  [$TOTAL_COLLECTORS/55] $name..."
+    echo "▶️  [$TOTAL_COLLECTORS/56] $name..."
 
     # Run collector and capture output + errors
     if output=$($cmd 2>&1 | tee -a "$log_file"); then
@@ -270,6 +270,17 @@ run_collector "World Bank Gender Focus" "python3 scripts/collect-world-bank-gend
 run_collector "Base dos Dados Brazil" "python3 scripts/collect-basedosdados.py"
 run_collector "Hong Kong IPOs" "npx tsx scripts/collect-hkex-ipos.ts"
 run_collector "Cardboard Production" "npx tsx scripts/collect-cardboard-production.ts"
+
+################################################################################
+# JOBS DATA
+################################################################################
+
+echo ""
+echo "🎯 [JOBS] Collecting Job Listings..."
+echo "──────────────────────────────────────────────────────────────────"
+echo ""
+
+run_collector "Catho Brazil Jobs" "npx tsx scripts/collect-catho-final.ts"
 
 ################################################################################
 # SUMMARY & DETAILED WHATSAPP ALERT
