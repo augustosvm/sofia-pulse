@@ -81,7 +81,7 @@ def fetch_comexstat_data(ncm_code: str, flow: str, months_back: int = 12) -> Lis
     for attempt in range(max_retries):
         try:
             # Use POST data with longer timeout
-            response = requests.post(base_url, json=payload, timeout=180, verify=False)
+            response = requests.post(base_url, json=payload, timeout=180)
             
             if response.status_code == 429:
                 backoff = retry_delay * (2 ** attempt)  # Exponential backoff

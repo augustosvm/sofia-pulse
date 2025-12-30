@@ -1,8 +1,6 @@
 import requests
 import json
-import urllib3
 
-urllib3.disable_warnings()
 
 url = "https://api-comexstat.mdic.gov.br/general"
 
@@ -26,7 +24,7 @@ payload = {
 
 print(f"Testing POST to {url} with details=['country', 'state']")
 try:
-    resp = requests.post(url, json=payload, verify=False, timeout=30)
+    resp = requests.post(url, json=payload, timeout=30)
     print(f"Status: {resp.status_code}")
     if resp.status_code == 200:
         data = resp.json()
