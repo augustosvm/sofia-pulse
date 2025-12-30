@@ -111,8 +111,21 @@ export const remoteokJobs: JobsCollectorConfig = {
       // Extract tags as skills
       const skills = job.tags || [];
 
-      // Posted date (epoch timestamp)
-      const postedDate = job.date ? new Date(job.date * 1000).toISOString() : undefined;
+      // Posted date (epoch timestamp) - validate before converting
+      let postedDate: string | undefined = undefined;
+      if (job.date) {
+        try {
+          const timestamp = Number(job.date);
+          if (!isNaN(timestamp) && timestamp > 0) {
+            const date = new Date(timestamp * 1000);
+            if (date.getTime() > 0 && date.getFullYear() >= 2000 && date.getFullYear() <= 2100) {
+              postedDate = date.toISOString();
+            }
+          }
+        } catch (e) {
+          // Skip invalid dates
+        }
+      }
 
       jobs.push({
         job_id: job.id || `remoteok-${job.slug}`,
@@ -168,8 +181,23 @@ export const arbeitnowJobs: JobsCollectorConfig = {
       // Extract tags as skills
       const skills = job.tags || [];
 
-      // Posted date
-      const postedDate = job.created_at || undefined;
+      // Posted date - convert Unix timestamp to ISO string
+      let postedDate: string | undefined = undefined;
+      if (job.created_at) {
+        try {
+          const timestamp = Number(job.created_at);
+          if (!isNaN(timestamp) && timestamp > 0) {
+            // Arbeitnow usa Unix timestamp em segundos
+            const date = new Date(timestamp * 1000);
+            // Validate date is reasonable (between 2000-2100)
+            if (date.getTime() > 0 && date.getFullYear() >= 2000 && date.getFullYear() <= 2100) {
+              postedDate = date.toISOString();
+            }
+          }
+        } catch (e) {
+          // Skip invalid dates
+        }
+      }
 
       jobs.push({
         job_id: job.slug || `arbeitnow-${Date.now()}`,
