@@ -24,16 +24,16 @@ COMMENT ON COLUMN sofia.jobs.organization_id IS 'Foreign key to sofia.organizati
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION sofia.get_or_create_organization(
-    p_company_name VARCHAR,
-    p_company_url VARCHAR DEFAULT NULL,
-    p_location VARCHAR DEFAULT NULL,
-    p_country VARCHAR DEFAULT NULL,
-    p_source VARCHAR DEFAULT 'jobs-collector'
+    p_company_name VARCHAR(500),
+    p_company_url VARCHAR(500) DEFAULT NULL,
+    p_location VARCHAR(500) DEFAULT NULL,
+    p_country VARCHAR(100) DEFAULT NULL,
+    p_source VARCHAR(100) DEFAULT 'jobs-collector'
 ) RETURNS INTEGER AS $$
 DECLARE
     v_org_id INTEGER;
-    v_unique_org_id VARCHAR;
-    v_normalized_name VARCHAR;
+    v_unique_org_id VARCHAR(100);
+    v_normalized_name VARCHAR(500);
 BEGIN
     -- Skip if company name is empty, null, or generic
     IF p_company_name IS NULL OR
