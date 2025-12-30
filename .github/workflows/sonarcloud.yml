@@ -55,42 +55,42 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
 
-  quick-checks:
-    name: Quick Linting (Non-blocking)
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      
-      - name: Install linters
-        run: |
-          python -m pip install --upgrade pip
-          pip install black flake8 isort
-      
-      - name: Check Black formatting
-        run: |
-          echo "Checking code formatting with Black..."
-          black scripts/ --check --line-length 120 --exclude '/(\.git|\.venv|venv|node_modules|__pycache__|\.workspace|legacy|migrations)/'
-        continue-on-error: true
-      
-      - name: Check import order
-        run: |
-          echo "Checking import order with isort..."
-          isort scripts/ --check --profile black --skip .workspace --skip legacy --skip migrations
-        continue-on-error: true
-      
-      - name: Flake8 linting
-        run: |
-          echo "Running Flake8..."
-          flake8 scripts/ \
-            --max-line-length=120 \
-            --exclude=.workspace,legacy,migrations,__pycache__,.git,venv \
-            --statistics \
-            --count
-        continue-on-error: true
+  # quick-checks:
+  #   name: Quick Linting (Non-blocking)
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.10'
+  #
+  #     - name: Install linters
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install black flake8 isort
+  #
+  #     - name: Check Black formatting
+  #       run: |
+  #         echo "Checking code formatting with Black..."
+  #         black scripts/ --check --line-length 120 --exclude '/(\.git|\.venv|venv|node_modules|__pycache__|\.workspace|legacy|migrations)/'
+  #       continue-on-error: true
+  #
+  #     - name: Check import order
+  #       run: |
+  #         echo "Checking import order with isort..."
+  #         isort scripts/ --check --profile black --skip .workspace --skip legacy --skip migrations
+  #       continue-on-error: true
+  #
+  #     - name: Flake8 linting
+  #       run: |
+  #         echo "Running Flake8..."
+  #         flake8 scripts/ \
+  #           --max-line-length=120 \
+  #           --exclude=.workspace,legacy,migrations,__pycache__,.git,venv \
+  #           --statistics \
+  #           --count
+  #       continue-on-error: true
