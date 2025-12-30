@@ -43,15 +43,10 @@ jobs:
         continue-on-error: true
       
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=ti-especialistas_sofia-pulse
-            -Dsonar.organization=ti-especialistas
-            -Dsonar.python.version=3.10
+          SONAR_HOST_URL: https://sonarcloud.io
       
       - name: Check Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@master
