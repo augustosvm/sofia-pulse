@@ -9,60 +9,47 @@ Documentação: https://apisidra.ibge.gov.br/home/ajuda
 
 import os
 import sys
+from datetime import datetime
+from typing import Dict, List
+
 import psycopg2
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # IBGE Agregados (indicators)
 # Ref: https://servicodados.ibge.gov.br/api/docs/agregados?versao=3
 IBGE_INDICATORS = {
-    '1737': {
-        'name': 'PIB - Produto Interno Bruto',
-        'category': 'economy',
-        'frequency': 'trimestral',
-        'unit': 'R$ milhões'
+    "1737": {
+        "name": "PIB - Produto Interno Bruto",
+        "category": "economy",
+        "frequency": "trimestral",
+        "unit": "R$ milhões",
     },
-    '6381': {
-        'name': 'IPCA - Inflação (mensal)',
-        'category': 'inflation',
-        'frequency': 'mensal',
-        'unit': '%'
+    "6381": {"name": "IPCA - Inflação (mensal)", "category": "inflation", "frequency": "mensal", "unit": "%"},
+    "6784": {
+        "name": "PNAD Contínua - Taxa de desemprego",
+        "category": "employment",
+        "frequency": "trimestral",
+        "unit": "%",
     },
-    '6784': {
-        'name': 'PNAD Contínua - Taxa de desemprego',
-        'category': 'employment',
-        'frequency': 'trimestral',
-        'unit': '%'
-    },
-    '6385': {
-        'name': 'PIM-PF - Produção Industrial',
-        'category': 'production',
-        'frequency': 'mensal',
-        'unit': 'índice'
-    },
-    '6786': {
-        'name': 'PNAD Contínua - Rendimento médio',
-        'category': 'income',
-        'frequency': 'trimestral',
-        'unit': 'R$'
-    },
-    '8419': {
-        'name': 'Pesquisa Pulso Empresa - Impacto COVID',
-        'category': 'business',
-        'frequency': 'quinzenal',
-        'unit': '%'
+    "6385": {"name": "PIM-PF - Produção Industrial", "category": "production", "frequency": "mensal", "unit": "índice"},
+    "6786": {"name": "PNAD Contínua - Rendimento médio", "category": "income", "frequency": "trimestral", "unit": "R$"},
+    "8419": {
+        "name": "Pesquisa Pulso Empresa - Impacto COVID",
+        "category": "business",
+        "frequency": "quinzenal",
+        "unit": "%",
     },
 }
+
 
 def fetch_ibge_sidra(table_code: str, indicator_info: Dict) -> List[Dict]:
     """Fetch data from IBGE SIDRA API
@@ -84,10 +71,7 @@ def fetch_ibge_sidra(table_code: str, indicator_info: Dict) -> List[Dict]:
     url = f"{base_url}/t/{table_code}/n1/all/p/last%2012/v/all"
 
     try:
-        headers = {
-            'Accept': 'application/json',
-            'User-Agent': 'Sofia-Pulse-Collector/1.0'
-        }
+        headers = {"Accept": "application/json", "User-Agent": "Sofia-Pulse-Collector/1.0"}
         response = requests.get(url, headers=headers, timeout=60)
         response.raise_for_status()
         data = response.json()
@@ -112,12 +96,13 @@ def fetch_ibge_sidra(table_code: str, indicator_info: Dict) -> List[Dict]:
                 print(f"   ✅ Table {table_code}: {len(data)-1} records fetched (6 periods)")
                 return data
             return []
-        except Exception as alt_e:
+        except Exception:
             print(f"   ❌ HTTP Error for table {table_code}: {e}")
             return []
     except Exception as e:
         print(f"   ❌ Error fetching table {table_code}: {e}")
         return []
+
 
 def parse_ibge_sidra_data(table_code: str, indicator_info: Dict, raw_data: List[Dict]) -> List[Dict]:
     """Parse IBGE SIDRA API response into structured records
@@ -137,7 +122,7 @@ def parse_ibge_sidra_data(table_code: str, indicator_info: Dict, raw_data: List[
         headers = raw_data[0]
 
         # Find key columns
-        header_keys = list(headers.keys()) if isinstance(headers, dict) else []
+        list(headers.keys()) if isinstance(headers, dict) else []
 
         # Data rows start from index 1
         for row in raw_data[1:]:
@@ -145,49 +130,52 @@ def parse_ibge_sidra_data(table_code: str, indicator_info: Dict, raw_data: List[
                 continue
 
             # Get value (usually in 'V' key)
-            value = row.get('V', '')
-            if not value or value in ['...', '-', 'X', '']:
+            value = row.get("V", "")
+            if not value or value in ["...", "-", "X", ""]:
                 continue
 
             try:
-                value_float = float(value.replace(',', '.'))
+                value_float = float(value.replace(",", "."))
             except ValueError:
                 continue
 
             # Get period (usually in 'D2C' or similar key for trimestre/mes)
-            period = row.get('D2C', row.get('D3C', row.get('D4C', '')))
+            period = row.get("D2C", row.get("D3C", row.get("D4C", "")))
             if not period:
                 # Try to find any key with period-like value
                 for key in row.keys():
-                    if key.startswith('D') and 'C' in key:
-                        period = row.get(key, '')
+                    if key.startswith("D") and "C" in key:
+                        period = row.get(key, "")
                         if period:
                             break
 
             # Get territorial info
-            territorial_code = row.get('D1C', '1')  # 1 = Brasil
-            territorial_name = row.get('D1N', 'Brasil')
+            territorial_code = row.get("D1C", "1")  # 1 = Brasil
+            territorial_name = row.get("D1N", "Brasil")
 
             # Get variable name
-            variable_name = row.get('D3N', row.get('D2N', indicator_info['name']))
+            variable_name = row.get("D3N", row.get("D2N", indicator_info["name"]))
 
-            records.append({
-                'agregado_id': table_code,
-                'indicator_name': indicator_info['name'],
-                'category': indicator_info['category'],
-                'unit': indicator_info['unit'],
-                'frequency': indicator_info['frequency'],
-                'localidade_id': territorial_code,
-                'localidade_nome': territorial_name,
-                'period': period,
-                'value': value_float,
-                'variable_name': variable_name
-            })
+            records.append(
+                {
+                    "agregado_id": table_code,
+                    "indicator_name": indicator_info["name"],
+                    "category": indicator_info["category"],
+                    "unit": indicator_info["unit"],
+                    "frequency": indicator_info["frequency"],
+                    "localidade_id": territorial_code,
+                    "localidade_nome": territorial_name,
+                    "period": period,
+                    "value": value_float,
+                    "variable_name": variable_name,
+                }
+            )
 
     except Exception as e:
         print(f"   ⚠️  Error parsing data: {e}")
 
     return records
+
 
 def save_to_database(conn, records: List[Dict]) -> int:
     """Save IBGE data to PostgreSQL"""
@@ -198,7 +186,8 @@ def save_to_database(conn, records: List[Dict]) -> int:
     cursor = conn.cursor()
 
     # Create table if not exists
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.ibge_indicators (
             id SERIAL PRIMARY KEY,
             agregado_id VARCHAR(20) NOT NULL,
@@ -213,41 +202,49 @@ def save_to_database(conn, records: List[Dict]) -> int:
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(agregado_id, localidade_id, period)
         )
-    """)
+    """
+    )
 
     # Create index
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_ibge_agregado_period
         ON sofia.ibge_indicators(agregado_id, period DESC)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_ibge_category
         ON sofia.ibge_indicators(category, period DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
     for record in records:
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.ibge_indicators
                 (agregado_id, indicator_name, category, unit, frequency,
                  localidade_id, localidade_nome, period, value)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (agregado_id, localidade_id, period)
                 DO UPDATE SET value = EXCLUDED.value
-            """, (
-                record['agregado_id'],
-                record['indicator_name'],
-                record['category'],
-                record['unit'],
-                record['frequency'],
-                record['localidade_id'],
-                record['localidade_nome'],
-                record['period'],
-                record['value']
-            ))
+            """,
+                (
+                    record["agregado_id"],
+                    record["indicator_name"],
+                    record["category"],
+                    record["unit"],
+                    record["frequency"],
+                    record["localidade_id"],
+                    record["localidade_nome"],
+                    record["period"],
+                    record["value"],
+                ),
+            )
 
             inserted += 1
 
@@ -260,10 +257,11 @@ def save_to_database(conn, records: List[Dict]) -> int:
 
     return inserted
 
+
 def main():
-    print("="*80)
+    print("=" * 80)
     print("📊 IBGE SIDRA API - Instituto Brasileiro de Geografia e Estatística")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📡 Source: https://apisidra.ibge.gov.br/")
@@ -304,9 +302,9 @@ def main():
 
     conn.close()
 
-    print("="*80)
+    print("=" * 80)
     print("✅ IBGE API COLLECTION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"📊 Total indicators: {len(IBGE_INDICATORS)}")
     print(f"💾 Total records: {total_records}")
@@ -316,5 +314,6 @@ def main():
         print(f"  • {info['name']} ({info['frequency']})")
     print("")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

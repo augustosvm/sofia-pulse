@@ -36,16 +36,16 @@ Usage:
 
 import os
 import re
-import sys
-from typing import List, Dict, Optional, Tuple
-from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
 import psycopg2
-from psycopg2.extras import RealDictCursor, execute_values
 import requests
 from dotenv import load_dotenv
+from psycopg2.extras import RealDictCursor
 
 # Load environment variables
 load_dotenv()
+
 
 class EntityResolver:
     """
@@ -56,15 +56,15 @@ class EntityResolver:
     def __init__(self):
         """Initialize database connection and Mastra client."""
         self.conn = psycopg2.connect(
-            host=os.getenv('POSTGRES_HOST', 'localhost'),
-            user=os.getenv('POSTGRES_USER', 'sofia'),
-            password=os.getenv('POSTGRES_PASSWORD'),
-            database=os.getenv('POSTGRES_DB', 'sofia_db')
+            host=os.getenv("POSTGRES_HOST", "localhost"),
+            user=os.getenv("POSTGRES_USER", "sofia"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+            database=os.getenv("POSTGRES_DB", "sofia_db"),
         )
         self.cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
         # Mastra endpoint for embeddings
-        self.mastra_endpoint = os.getenv('MASTRA_ENDPOINT', 'http://localhost:3000/api/embed')
+        self.mastra_endpoint = os.getenv("MASTRA_ENDPOINT", "http://localhost:3000/api/embed")
 
         print("✅ EntityResolver initialized")
         print(f"   Database: {os.getenv('POSTGRES_DB', 'sofia_db')}")
@@ -90,20 +90,20 @@ class EntityResolver:
         normalized = name.lower()
 
         # Remove accents and special characters
-        normalized = re.sub(r'[àáâãäå]', 'a', normalized)
-        normalized = re.sub(r'[èéêë]', 'e', normalized)
-        normalized = re.sub(r'[ìíîï]', 'i', normalized)
-        normalized = re.sub(r'[òóôõö]', 'o', normalized)
-        normalized = re.sub(r'[ùúûü]', 'u', normalized)
-        normalized = re.sub(r'[ýÿ]', 'y', normalized)
-        normalized = re.sub(r'[ñ]', 'n', normalized)
-        normalized = re.sub(r'[ç]', 'c', normalized)
+        normalized = re.sub(r"[àáâãäå]", "a", normalized)
+        normalized = re.sub(r"[èéêë]", "e", normalized)
+        normalized = re.sub(r"[ìíîï]", "i", normalized)
+        normalized = re.sub(r"[òóôõö]", "o", normalized)
+        normalized = re.sub(r"[ùúûü]", "u", normalized)
+        normalized = re.sub(r"[ýÿ]", "y", normalized)
+        normalized = re.sub(r"[ñ]", "n", normalized)
+        normalized = re.sub(r"[ç]", "c", normalized)
 
         # Remove special characters except spaces
-        normalized = re.sub(r'[^a-z0-9\s]', ' ', normalized)
+        normalized = re.sub(r"[^a-z0-9\s]", " ", normalized)
 
         # Normalize whitespace
-        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        normalized = re.sub(r"\s+", " ", normalized).strip()
 
         return normalized
 
@@ -164,15 +164,11 @@ class EntityResolver:
             # Truncate to 512 chars for embedding
             truncated = text[:512]
 
-            response = requests.post(
-                self.mastra_endpoint,
-                json={'text': truncated},
-                timeout=5
-            )
+            response = requests.post(self.mastra_endpoint, json={"text": truncated}, timeout=5)
 
             if response.status_code == 200:
                 data = response.json()
-                return data.get('embedding')
+                return data.get("embedding")
             else:
                 print(f"⚠️ Mastra error: {response.status_code}")
                 return None
@@ -188,7 +184,7 @@ class EntityResolver:
         source: str,
         description: Optional[str] = None,
         aliases: Optional[List[str]] = None,
-        metadata: Optional[Dict] = None
+        metadata: Optional[Dict] = None,
     ) -> str:
         """
         Find existing canonical entity or create new one.
@@ -208,7 +204,8 @@ class EntityResolver:
         metadata = metadata or {}
 
         # Use PostgreSQL function
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT sofia.find_or_create_entity(
                 %s::TEXT,
                 %s::sofia.entity_type,
@@ -217,12 +214,14 @@ class EntityResolver:
                 %s::TEXT[],
                 %s::JSONB
             ) as entity_id
-        """, (name, entity_type, source, description, aliases, metadata))
+        """,
+            (name, entity_type, source, description, aliases, metadata),
+        )
 
         result = self.cur.fetchone()
         self.conn.commit()
 
-        return str(result['entity_id'])
+        return str(result["entity_id"])
 
     def link_entity_to_source(
         self,
@@ -231,10 +230,10 @@ class EntityResolver:
         source_table: str,
         source_id: str,
         source_pk: Optional[int] = None,
-        match_method: str = 'exact',
+        match_method: str = "exact",
         match_confidence: float = 1.0,
         source_name_raw: Optional[str] = None,
-        source_data: Optional[Dict] = None
+        source_data: Optional[Dict] = None,
     ) -> int:
         """
         Link canonical entity to source record.
@@ -255,7 +254,8 @@ class EntityResolver:
         """
         source_data = source_data or {}
 
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT sofia.link_entity_to_source(
                 %s::UUID,
                 %s::TEXT,
@@ -267,29 +267,27 @@ class EntityResolver:
                 %s::TEXT,
                 %s::JSONB
             ) as mapping_id
-        """, (
-            entity_id,
-            source_name,
-            source_table,
-            source_id,
-            source_pk,
-            match_method,
-            match_confidence,
-            source_name_raw,
-            source_data
-        ))
+        """,
+            (
+                entity_id,
+                source_name,
+                source_table,
+                source_id,
+                source_pk,
+                match_method,
+                match_confidence,
+                source_name_raw,
+                source_data,
+            ),
+        )
 
         result = self.cur.fetchone()
         self.conn.commit()
 
-        return result['mapping_id']
+        return result["mapping_id"]
 
     def find_similar_entities(
-        self,
-        text: str,
-        entity_type: Optional[str] = None,
-        limit: int = 10,
-        min_similarity: float = 0.7
+        self, text: str, entity_type: Optional[str] = None, limit: int = 10, min_similarity: float = 0.7
     ) -> List[Dict]:
         """
         Find canonical entities similar to given text using embeddings.
@@ -309,16 +307,19 @@ class EntityResolver:
             return []
 
         # Convert to PostgreSQL array format
-        embedding_str = '[' + ','.join(map(str, embedding)) + ']'
+        embedding_str = "[" + ",".join(map(str, embedding)) + "]"
 
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT * FROM sofia.find_similar_entities(
                 %s::vector(384),
                 %s::sofia.entity_type,
                 %s::INTEGER,
                 %s::FLOAT
             )
-        """, (embedding_str, entity_type, limit, min_similarity))
+        """,
+            (embedding_str, entity_type, limit, min_similarity),
+        )
 
         return [dict(row) for row in self.cur.fetchall()]
 
@@ -332,17 +333,20 @@ class EntityResolver:
 
         Creates entities of type 'repository' and links to github_trending table.
         """
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("EXTRACTING GITHUB REPOS AS CANONICAL ENTITIES")
-        print("="*80)
+        print("=" * 80)
 
         # Fetch GitHub repos
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT id, source_id, name, full_name, description, language, stars, topics, data
             FROM sofia.github_trending
             ORDER BY stars DESC
             LIMIT %s
-        """, (limit,))
+        """,
+            (limit,),
+        )
 
         repos = self.cur.fetchall()
         print(f"Found {len(repos)} GitHub repos")
@@ -353,30 +357,30 @@ class EntityResolver:
         for repo in repos:
             # Create canonical entity
             entity_id = self.find_or_create_entity(
-                name=repo['full_name'] or repo['name'],
-                entity_type='repository',
-                source='github',
-                description=repo.get('description'),
-                aliases=[repo['name']] if repo['name'] != repo['full_name'] else [],
+                name=repo["full_name"] or repo["name"],
+                entity_type="repository",
+                source="github",
+                description=repo.get("description"),
+                aliases=[repo["name"]] if repo["name"] != repo["full_name"] else [],
                 metadata={
-                    'language': repo.get('language'),
-                    'stars': repo.get('stars'),
-                    'topics': repo.get('topics', [])
-                }
+                    "language": repo.get("language"),
+                    "stars": repo.get("stars"),
+                    "topics": repo.get("topics", []),
+                },
             )
             created += 1
 
             # Link to source
             mapping_id = self.link_entity_to_source(
                 entity_id=entity_id,
-                source_name='github',
-                source_table='github_trending',
-                source_id=repo['source_id'],
-                source_pk=repo['id'],
-                match_method='exact',
+                source_name="github",
+                source_table="github_trending",
+                source_id=repo["source_id"],
+                source_pk=repo["id"],
+                match_method="exact",
                 match_confidence=1.0,
-                source_name_raw=repo['full_name'],
-                source_data=repo.get('data', {})
+                source_name_raw=repo["full_name"],
+                source_data=repo.get("data", {}),
             )
             linked += 1
 
@@ -393,17 +397,20 @@ class EntityResolver:
 
         Creates entities of type 'paper' and links to arxiv_ai_papers table.
         """
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("EXTRACTING ARXIV PAPERS AS CANONICAL ENTITIES")
-        print("="*80)
+        print("=" * 80)
 
         # Fetch ArXiv papers
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT id, arxiv_id, title, authors, abstract, categories, published
             FROM sofia.arxiv_ai_papers
             ORDER BY published DESC
             LIMIT %s
-        """, (limit,))
+        """,
+            (limit,),
+        )
 
         papers = self.cur.fetchall()
         print(f"Found {len(papers)} ArXiv papers")
@@ -414,30 +421,30 @@ class EntityResolver:
         for paper in papers:
             # Create canonical entity for paper
             entity_id = self.find_or_create_entity(
-                name=paper['title'],
-                entity_type='paper',
-                source='arxiv',
-                description=paper.get('abstract', '')[:500],  # Truncate abstract
-                aliases=[paper['arxiv_id']],
+                name=paper["title"],
+                entity_type="paper",
+                source="arxiv",
+                description=paper.get("abstract", "")[:500],  # Truncate abstract
+                aliases=[paper["arxiv_id"]],
                 metadata={
-                    'arxiv_id': paper['arxiv_id'],
-                    'authors': paper.get('authors', []),
-                    'categories': paper.get('categories', []),
-                    'published': str(paper.get('published', ''))
-                }
+                    "arxiv_id": paper["arxiv_id"],
+                    "authors": paper.get("authors", []),
+                    "categories": paper.get("categories", []),
+                    "published": str(paper.get("published", "")),
+                },
             )
             created += 1
 
             # Link to source
             mapping_id = self.link_entity_to_source(
                 entity_id=entity_id,
-                source_name='arxiv',
-                source_table='arxiv_ai_papers',
-                source_id=paper['arxiv_id'],
-                source_pk=paper['id'],
-                match_method='exact',
+                source_name="arxiv",
+                source_table="arxiv_ai_papers",
+                source_id=paper["arxiv_id"],
+                source_pk=paper["id"],
+                match_method="exact",
                 match_confidence=1.0,
-                source_name_raw=paper['title']
+                source_name_raw=paper["title"],
             )
             linked += 1
 
@@ -454,17 +461,20 @@ class EntityResolver:
 
         Creates entities of type 'organization' and links to world_ngos table.
         """
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("EXTRACTING NGOS AS CANONICAL ENTITIES")
-        print("="*80)
+        print("=" * 80)
 
         # Fetch NGOs
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT id, name, sector, country, budget_usd, employees, founded, website
             FROM sofia.world_ngos
             ORDER BY budget_usd DESC NULLS LAST
             LIMIT %s
-        """, (limit,))
+        """,
+            (limit,),
+        )
 
         ngos = self.cur.fetchall()
         print(f"Found {len(ngos)} NGOs")
@@ -475,31 +485,31 @@ class EntityResolver:
         for ngo in ngos:
             # Create canonical entity
             entity_id = self.find_or_create_entity(
-                name=ngo['name'],
-                entity_type='organization',
-                source='world_ngos',
+                name=ngo["name"],
+                entity_type="organization",
+                source="world_ngos",
                 description=f"{ngo.get('sector', 'Unknown')} organization in {ngo.get('country', 'Unknown')}",
                 metadata={
-                    'sector': ngo.get('sector'),
-                    'country': ngo.get('country'),
-                    'budget_usd': ngo.get('budget_usd'),
-                    'employees': ngo.get('employees'),
-                    'founded': ngo.get('founded'),
-                    'website': ngo.get('website')
-                }
+                    "sector": ngo.get("sector"),
+                    "country": ngo.get("country"),
+                    "budget_usd": ngo.get("budget_usd"),
+                    "employees": ngo.get("employees"),
+                    "founded": ngo.get("founded"),
+                    "website": ngo.get("website"),
+                },
             )
             created += 1
 
             # Link to source
             mapping_id = self.link_entity_to_source(
                 entity_id=entity_id,
-                source_name='world_ngos',
-                source_table='world_ngos',
-                source_id=str(ngo['id']),
-                source_pk=ngo['id'],
-                match_method='exact',
+                source_name="world_ngos",
+                source_table="world_ngos",
+                source_id=str(ngo["id"]),
+                source_pk=ngo["id"],
+                match_method="exact",
                 match_confidence=1.0,
-                source_name_raw=ngo['name']
+                source_name_raw=ngo["name"],
             )
             linked += 1
 
@@ -512,9 +522,9 @@ class EntityResolver:
 
     def extract_all_sources(self):
         """Extract entities from all available sources."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("🚀 EXTRACTING ENTITIES FROM ALL SOURCES")
-        print("="*80)
+        print("=" * 80)
 
         # GitHub
         try:
@@ -534,9 +544,9 @@ class EntityResolver:
         except Exception as e:
             print(f"⚠️ NGO extraction failed: {e}")
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("✅ ALL ENTITY EXTRACTION COMPLETE")
-        print("="*80)
+        print("=" * 80)
 
     def generate_embeddings_for_entities(self, batch_size: int = 50):
         """
@@ -544,17 +554,19 @@ class EntityResolver:
 
         Uses Mastra to generate embeddings for name + description.
         """
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("GENERATING EMBEDDINGS FOR CANONICAL ENTITIES")
-        print("="*80)
+        print("=" * 80)
 
         # Count entities without embeddings
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT COUNT(*) as total
             FROM sofia.canonical_entities
             WHERE name_embedding IS NULL
-        """)
-        total = self.cur.fetchone()['total']
+        """
+        )
+        total = self.cur.fetchone()["total"]
         print(f"Found {total} entities without embeddings")
 
         if total == 0:
@@ -565,39 +577,45 @@ class EntityResolver:
         processed = 0
 
         for offset in range(0, total, batch_size):
-            self.cur.execute("""
+            self.cur.execute(
+                """
                 SELECT entity_id, canonical_name, description
                 FROM sofia.canonical_entities
                 WHERE name_embedding IS NULL
                 ORDER BY created_at DESC
                 LIMIT %s OFFSET %s
-            """, (batch_size, offset))
+            """,
+                (batch_size, offset),
+            )
 
             entities = self.cur.fetchall()
 
             for entity in entities:
                 # Generate embedding for name
-                name_embedding = self.generate_embedding(entity['canonical_name'])
+                name_embedding = self.generate_embedding(entity["canonical_name"])
 
                 # Generate embedding for description (if exists)
                 desc_embedding = None
-                if entity.get('description'):
-                    desc_embedding = self.generate_embedding(entity['description'])
+                if entity.get("description"):
+                    desc_embedding = self.generate_embedding(entity["description"])
 
                 # Update entity
                 if name_embedding:
-                    embedding_str = '[' + ','.join(map(str, name_embedding)) + ']'
+                    embedding_str = "[" + ",".join(map(str, name_embedding)) + "]"
                     desc_embedding_str = None
                     if desc_embedding:
-                        desc_embedding_str = '[' + ','.join(map(str, desc_embedding)) + ']'
+                        desc_embedding_str = "[" + ",".join(map(str, desc_embedding)) + "]"
 
-                    self.cur.execute("""
+                    self.cur.execute(
+                        """
                         UPDATE sofia.canonical_entities
                         SET name_embedding = %s::vector(384),
                             description_embedding = %s::vector(384),
                             updated_at = NOW()
                         WHERE entity_id = %s
-                    """, (embedding_str, desc_embedding_str, entity['entity_id']))
+                    """,
+                        (embedding_str, desc_embedding_str, entity["entity_id"]),
+                    )
 
                     processed += 1
 
@@ -617,17 +635,18 @@ class EntityResolver:
 # CLI
 # ============================================================================
 
+
 def main():
     """CLI for entity extraction."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Sofia Entity Resolver')
-    parser.add_argument('--extract-github', action='store_true', help='Extract GitHub repos')
-    parser.add_argument('--extract-arxiv', action='store_true', help='Extract ArXiv papers')
-    parser.add_argument('--extract-ngos', action='store_true', help='Extract NGOs')
-    parser.add_argument('--extract-all', action='store_true', help='Extract from all sources')
-    parser.add_argument('--generate-embeddings', action='store_true', help='Generate embeddings')
-    parser.add_argument('--limit', type=int, default=1000, help='Limit per source')
+    parser = argparse.ArgumentParser(description="Sofia Entity Resolver")
+    parser.add_argument("--extract-github", action="store_true", help="Extract GitHub repos")
+    parser.add_argument("--extract-arxiv", action="store_true", help="Extract ArXiv papers")
+    parser.add_argument("--extract-ngos", action="store_true", help="Extract NGOs")
+    parser.add_argument("--extract-all", action="store_true", help="Extract from all sources")
+    parser.add_argument("--generate-embeddings", action="store_true", help="Generate embeddings")
+    parser.add_argument("--limit", type=int, default=1000, help="Limit per source")
 
     args = parser.parse_args()
 
@@ -649,13 +668,14 @@ def main():
         if args.generate_embeddings:
             resolver.generate_embeddings_for_entities()
 
-        if not any([args.extract_github, args.extract_arxiv, args.extract_ngos,
-                   args.extract_all, args.generate_embeddings]):
+        if not any(
+            [args.extract_github, args.extract_arxiv, args.extract_ngos, args.extract_all, args.generate_embeddings]
+        ):
             parser.print_help()
 
     finally:
         resolver.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

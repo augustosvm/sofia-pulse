@@ -11,82 +11,103 @@ Portal: https://oig.cepal.org/ (Gender Observatory)
 
 import os
 import sys
+from datetime import datetime
+from typing import Dict, List
+
 import psycopg2
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # CEPAL indicators (via World Bank API for Latin America)
 CEPAL_INDICATORS = {
     # Economic
-    'NY.GDP.MKTP.CD': 'GDP (current US$)',
-    'NY.GDP.MKTP.KD.ZG': 'GDP growth (annual %)',
-    'NY.GDP.PCAP.CD': 'GDP per capita (current US$)',
-    'FP.CPI.TOTL.ZG': 'Inflation, consumer prices (annual %)',
-    'BN.CAB.XOKA.CD': 'Current account balance',
-
+    "NY.GDP.MKTP.CD": "GDP (current US$)",
+    "NY.GDP.MKTP.KD.ZG": "GDP growth (annual %)",
+    "NY.GDP.PCAP.CD": "GDP per capita (current US$)",
+    "FP.CPI.TOTL.ZG": "Inflation, consumer prices (annual %)",
+    "BN.CAB.XOKA.CD": "Current account balance",
     # Poverty and inequality
-    'SI.POV.DDAY': 'Poverty headcount ratio at $2.15/day (%)',
-    'SI.POV.NAHC': 'Poverty headcount ratio at national poverty lines (%)',
-    'SI.POV.GINI': 'Gini index',
-    'SI.DST.10TH.10': 'Income share held by highest 10%',
-    'SI.DST.FRST.10': 'Income share held by lowest 10%',
-
+    "SI.POV.DDAY": "Poverty headcount ratio at $2.15/day (%)",
+    "SI.POV.NAHC": "Poverty headcount ratio at national poverty lines (%)",
+    "SI.POV.GINI": "Gini index",
+    "SI.DST.10TH.10": "Income share held by highest 10%",
+    "SI.DST.FRST.10": "Income share held by lowest 10%",
     # Gender (OIG indicators)
-    'SL.TLF.CACT.FE.ZS': 'Labor force participation, female (%)',
-    'SG.GEN.PARL.ZS': 'Women in parliament (%)',
-    'SE.ENR.TERT.FM.ZS': 'School enrollment tertiary, gender parity',
-
+    "SL.TLF.CACT.FE.ZS": "Labor force participation, female (%)",
+    "SG.GEN.PARL.ZS": "Women in parliament (%)",
+    "SE.ENR.TERT.FM.ZS": "School enrollment tertiary, gender parity",
     # Social
-    'SP.DYN.LE00.IN': 'Life expectancy at birth',
-    'SH.DYN.MORT': 'Mortality rate, under-5',
-    'SE.ADT.LITR.ZS': 'Literacy rate, adult total',
-    'SL.UEM.TOTL.ZS': 'Unemployment, total (%)',
-
+    "SP.DYN.LE00.IN": "Life expectancy at birth",
+    "SH.DYN.MORT": "Mortality rate, under-5",
+    "SE.ADT.LITR.ZS": "Literacy rate, adult total",
+    "SL.UEM.TOTL.ZS": "Unemployment, total (%)",
     # Environment
-    'EN.ATM.CO2E.PC': 'CO2 emissions (metric tons per capita)',
-    'EG.USE.PCAP.KG.OE': 'Energy use (kg of oil equivalent per capita)',
+    "EN.ATM.CO2E.PC": "CO2 emissions (metric tons per capita)",
+    "EG.USE.PCAP.KG.OE": "Energy use (kg of oil equivalent per capita)",
 }
 
 # Latin America and Caribbean countries
 LAC_COUNTRIES = [
-    'ARG', 'BOL', 'BRA', 'CHL', 'COL', 'CRI', 'CUB', 'DOM', 'ECU', 'SLV',
-    'GTM', 'HTI', 'HND', 'MEX', 'NIC', 'PAN', 'PRY', 'PER', 'URY', 'VEN',
-    'JAM', 'TTO', 'BHS', 'BRB', 'GUY', 'SUR', 'BLZ'
+    "ARG",
+    "BOL",
+    "BRA",
+    "CHL",
+    "COL",
+    "CRI",
+    "CUB",
+    "DOM",
+    "ECU",
+    "SLV",
+    "GTM",
+    "HTI",
+    "HND",
+    "MEX",
+    "NIC",
+    "PAN",
+    "PRY",
+    "PER",
+    "URY",
+    "VEN",
+    "JAM",
+    "TTO",
+    "BHS",
+    "BRB",
+    "GUY",
+    "SUR",
+    "BLZ",
 ]
 
 # Femicide data (hardcoded from CEPAL OIG reports - updated annually)
 # Source: https://oig.cepal.org/en/indicators/femicide-or-feminicide
 FEMICIDE_DATA = [
     # Country, Year, Femicides, Rate per 100k women
-    ('ARG', 2022, 252, 1.1),
-    ('BOL', 2022, 113, 1.9),
-    ('BRA', 2022, 1437, 1.3),
-    ('CHL', 2022, 43, 0.4),
-    ('COL', 2022, 614, 2.3),
-    ('CRI', 2022, 17, 0.7),
-    ('CUB', 2022, 18, 0.3),
-    ('DOM', 2022, 117, 2.1),
-    ('ECU', 2022, 332, 3.6),
-    ('SLV', 2022, 52, 1.5),
-    ('GTM', 2022, 235, 2.6),
-    ('HND', 2022, 316, 6.0),
-    ('MEX', 2022, 968, 1.4),
-    ('NIC', 2022, 58, 1.7),
-    ('PAN', 2022, 18, 0.8),
-    ('PRY', 2022, 45, 1.2),
-    ('PER', 2022, 137, 0.8),
-    ('URY', 2022, 26, 1.4),
-    ('VEN', 2022, None, None),  # No official data
+    ("ARG", 2022, 252, 1.1),
+    ("BOL", 2022, 113, 1.9),
+    ("BRA", 2022, 1437, 1.3),
+    ("CHL", 2022, 43, 0.4),
+    ("COL", 2022, 614, 2.3),
+    ("CRI", 2022, 17, 0.7),
+    ("CUB", 2022, 18, 0.3),
+    ("DOM", 2022, 117, 2.1),
+    ("ECU", 2022, 332, 3.6),
+    ("SLV", 2022, 52, 1.5),
+    ("GTM", 2022, 235, 2.6),
+    ("HND", 2022, 316, 6.0),
+    ("MEX", 2022, 968, 1.4),
+    ("NIC", 2022, 58, 1.7),
+    ("PAN", 2022, 18, 0.8),
+    ("PRY", 2022, 45, 1.2),
+    ("PER", 2022, 137, 0.8),
+    ("URY", 2022, 26, 1.4),
+    ("VEN", 2022, None, None),  # No official data
 ]
 
 
@@ -94,15 +115,10 @@ def fetch_cepal_data(indicator_code: str) -> List[Dict]:
     """Fetch CEPAL region data via World Bank API"""
 
     base_url = "https://api.worldbank.org/v2"
-    country_str = ';'.join(LAC_COUNTRIES)
+    country_str = ";".join(LAC_COUNTRIES)
 
     url = f"{base_url}/country/{country_str}/indicator/{indicator_code}"
-    params = {
-        'format': 'json',
-        'per_page': 1500,
-        'date': '2015:2024',
-        'source': 2
-    }
+    params = {"format": "json", "per_page": 1500, "date": "2015:2024", "source": 2}
 
     try:
         response = requests.get(url, params=params, timeout=60)
@@ -126,7 +142,8 @@ def save_indicators_to_database(conn, records: List[Dict], indicator_code: str, 
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.cepal_latam_data (
             country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
@@ -140,39 +157,45 @@ def save_indicators_to_database(conn, records: List[Dict], indicator_code: str, 
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(indicator_code, country_code, year)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_cepal_indicator_year
         ON sofia.cepal_latam_data(indicator_code, year DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
     for record in records:
-        if record.get('value') is None:
+        if record.get("value") is None:
             continue
 
         try:
             # Normalize country
-            location = normalize_location(conn, {'country': record.get('country_name') or record.get('country_code')})
-            country_id = location['country_id']
+            location = normalize_location(conn, {"country": record.get("country_name") or record.get("country_code")})
+            country_id = location["country_id"]
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.cepal_latam_data
                 (indicator_code, indicator_name, country_code, country_name, year, value, country_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (indicator_code, country_code, year)
                 DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
-            """, (
-                indicator_code,
-                indicator_name,
-                record.get('countryiso3code', record.get('country', {}).get('id')),
-                record.get('country', {}).get('value'),
-                int(record.get('date')) if record.get('date') else None,
-                float(record.get('value')),
-                country_id
-            ))
+            """,
+                (
+                    indicator_code,
+                    indicator_name,
+                    record.get("countryiso3code", record.get("country", {}).get("id")),
+                    record.get("country", {}).get("value"),
+                    int(record.get("date")) if record.get("date") else None,
+                    float(record.get("value")),
+                    country_id,
+                ),
+            )
             inserted += 1
         except:
             continue
@@ -187,7 +210,8 @@ def save_femicide_data(conn) -> int:
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.cepal_femicide (
             country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
@@ -199,12 +223,15 @@ def save_femicide_data(conn) -> int:
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(country_code, year)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_femicide_country_year
         ON sofia.cepal_femicide(country_code, year DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
@@ -213,14 +240,17 @@ def save_femicide_data(conn) -> int:
             continue
 
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.cepal_femicide
                 (country_code, year, femicide_count, rate_per_100k)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (country_code, year)
                 DO UPDATE SET femicide_count = EXCLUDED.femicide_count,
                               rate_per_100k = EXCLUDED.rate_per_100k
-            """, (country, year, count, rate))
+            """,
+                (country, year, count, rate),
+            )
             inserted += 1
         except:
             continue
@@ -231,9 +261,9 @@ def save_femicide_data(conn) -> int:
 
 
 def main():
-    print("="*80)
+    print("=" * 80)
     print("📊 CEPAL/ECLAC - Latin America & Caribbean Data")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📡 Sources:")
@@ -279,9 +309,9 @@ def main():
 
     conn.close()
 
-    print("="*80)
+    print("=" * 80)
     print("✅ CEPAL/ECLAC COLLECTION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print(f"💾 Total records: {total_records}")
     print("")
     print("💡 Key data included:")
@@ -292,5 +322,5 @@ def main():
     print("  • Social development")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

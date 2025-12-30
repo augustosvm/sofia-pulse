@@ -1,8 +1,10 @@
 import os
+
 import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 def check_runs():
     print(f"🔧 Env Check:")
@@ -13,20 +15,22 @@ def check_runs():
 
     try:
         conn = psycopg2.connect(
-            host=os.getenv('POSTGRES_HOST'),
-            port=os.getenv('POSTGRES_PORT'),
-            user=os.getenv('POSTGRES_USER'),
-            password=os.getenv('POSTGRES_PASSWORD'),
-            database=os.getenv('POSTGRES_DB')
+            host=os.getenv("POSTGRES_HOST"),
+            port=os.getenv("POSTGRES_PORT"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+            database=os.getenv("POSTGRES_DB"),
         )
         cursor = conn.cursor()
-        
+
         print("🔍 Inspecting 'sofia.collector_runs' schema...")
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT column_name, data_type 
             FROM information_schema.columns 
             WHERE table_schema = 'sofia' AND table_name = 'collector_runs';
-        """)
+        """
+        )
         columns = cursor.fetchall()
         print(f"   Columns found: {len(columns)}")
         for col in columns:
@@ -38,11 +42,12 @@ def check_runs():
         rows = cursor.fetchall()
         for row in rows:
             print(row)
-            
+
         conn.close()
 
     except Exception as e:
         print(f"❌ Database error: {e}")
+
 
 if __name__ == "__main__":
     check_runs()

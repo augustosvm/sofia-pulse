@@ -8,45 +8,42 @@ Organizations: OCHA, UNHCR, MSF, WFP
 """
 
 import os
-from shared.geo_helpers import normalize_location
 import sys
-from shared.geo_helpers import normalize_location
-import psycopg2
-from shared.geo_helpers import normalize_location
-import requests
-from shared.geo_helpers import normalize_location
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Dict, List
+
+import psycopg2
+import requests
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # HDX Organizations to search
 HDX_ORGANIZATIONS = [
-    'unhcr',           # UN Refugee Agency
-    'ocha',            # Office for Coordination of Humanitarian Affairs
-    'wfp',             # World Food Programme
-    'msf',             # Médecins Sans Frontières
-    'unicef',          # UNICEF
-    'icrc',            # International Committee of Red Cross
-    'iom',             # International Organization for Migration
+    "unhcr",  # UN Refugee Agency
+    "ocha",  # Office for Coordination of Humanitarian Affairs
+    "wfp",  # World Food Programme
+    "msf",  # Médecins Sans Frontières
+    "unicef",  # UNICEF
+    "icrc",  # International Committee of Red Cross
+    "iom",  # International Organization for Migration
 ]
 
 # Key dataset tags to search
 HDX_TAGS = [
-    'refugees',
-    'internally-displaced-persons',
-    'humanitarian-needs-overview',
-    'food-security',
-    'conflict',
-    'migration',
-    'health',
+    "refugees",
+    "internally-displaced-persons",
+    "humanitarian-needs-overview",
+    "food-security",
+    "conflict",
+    "migration",
+    "health",
 ]
 
 
@@ -58,36 +55,22 @@ def fetch_hdx_datasets(organization: str = None, tag: str = None, limit: int = 5
     # Search for datasets
     if organization:
         url = f"{base_url}/package_search"
-        params = {
-            'fq': f'organization:{organization}',
-            'rows': limit,
-            'sort': 'metadata_modified desc'
-        }
+        params = {"fq": f"organization:{organization}", "rows": limit, "sort": "metadata_modified desc"}
     elif tag:
         url = f"{base_url}/package_search"
-        params = {
-            'fq': f'tags:{tag}',
-            'rows': limit,
-            'sort': 'metadata_modified desc'
-        }
+        params = {"fq": f"tags:{tag}", "rows": limit, "sort": "metadata_modified desc"}
     else:
         url = f"{base_url}/package_search"
-        params = {
-            'rows': limit,
-            'sort': 'metadata_modified desc'
-        }
+        params = {"rows": limit, "sort": "metadata_modified desc"}
 
     try:
-        headers = {
-            'Accept': 'application/json',
-            'User-Agent': 'Sofia-Pulse-Collector/1.0'
-        }
+        headers = {"Accept": "application/json", "User-Agent": "Sofia-Pulse-Collector/1.0"}
         response = requests.get(url, params=params, headers=headers, timeout=60)
         response.raise_for_status()
         data = response.json()
 
-        if data.get('success') and data.get('result', {}).get('results'):
-            return data['result']['results']
+        if data.get("success") and data.get("result", {}).get("results"):
+            return data["result"]["results"]
         return []
 
     except Exception as e:
@@ -103,7 +86,8 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.hdx_humanitarian_data (
             country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
@@ -124,32 +108,38 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(dataset_id)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_hdx_organization
         ON sofia.hdx_humanitarian_data(organization)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_hdx_date
         ON sofia.hdx_humanitarian_data(date_modified DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
     for dataset in datasets:
         try:
             # Extract tags
-            tags = [t.get('name', '') for t in dataset.get('tags', [])]
+            tags = [t.get("name", "") for t in dataset.get("tags", [])]
 
             # Extract country codes
             countries = []
-            for group in dataset.get('groups', []):
-                if group.get('name'):
-                    countries.append(group.get('name').upper()[:3])
+            for group in dataset.get("groups", []):
+                if group.get("name"):
+                    countries.append(group.get("name").upper()[:3])
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.hdx_humanitarian_data (dataset_id, dataset_name, title, organization, source, tags, country_codes,
                  date_created, date_modified, num_resources, total_downloads, methodology, notes, url, country_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -158,24 +148,26 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
                     date_modified = EXCLUDED.date_modified,
                     num_resources = EXCLUDED.num_resources,
                     total_downloads = EXCLUDED.total_downloads
-            """, (
-                dataset.get('id', '', country_id = EXCLUDED.country_id),
-                dataset.get('name', ''),
-                dataset.get('title', ''),
-                dataset.get('organization', {}).get('name', source),
-                source,
-                tags,
-                countries,
-                dataset.get('metadata_created'),
-                dataset.get('metadata_modified'),
-                len(dataset.get('resources', [])),
-                dataset.get('total_res_downloads', 0),
-                dataset.get('methodology', ''),
-                dataset.get('notes', '')[:500] if dataset.get('notes') else '',
-                f"https://data.humdata.org/dataset/{dataset.get('name', '')}"
-            ))
+            """,
+                (
+                    dataset.get("id", "", country_id=EXCLUDED.country_id),
+                    dataset.get("name", ""),
+                    dataset.get("title", ""),
+                    dataset.get("organization", {}).get("name", source),
+                    source,
+                    tags,
+                    countries,
+                    dataset.get("metadata_created"),
+                    dataset.get("metadata_modified"),
+                    len(dataset.get("resources", [])),
+                    dataset.get("total_res_downloads", 0),
+                    dataset.get("methodology", ""),
+                    dataset.get("notes", "")[:500] if dataset.get("notes") else "",
+                    f"https://data.humdata.org/dataset/{dataset.get('name', '')}",
+                ),
+            )
             inserted += 1
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -184,9 +176,9 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
 
 
 def main():
-    print("="*80)
+    print("=" * 80)
     print("📊 HDX - Humanitarian Data Exchange")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📡 Source: https://data.humdata.org/")
@@ -238,9 +230,9 @@ def main():
     conn.close()
 
     print("")
-    print("="*80)
+    print("=" * 80)
     print("✅ HDX HUMANITARIAN COLLECTION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print(f"💾 Total dataset records: {total_records}")
     print("")
     print("💡 Organizations covered:")
@@ -251,5 +243,5 @@ def main():
     print("  • ICRC (Red Cross)")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

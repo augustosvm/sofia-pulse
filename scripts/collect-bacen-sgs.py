@@ -7,66 +7,38 @@ API: https://api.bcb.gov.br/dados/serie/bcdata.sgs.{codigo}/dados?formato=json
 
 import os
 import sys
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
 import psycopg2
 import requests
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # BACEN SGS Series
 # Ref: https://www3.bcb.gov.br/sgspub/localizarseries/localizarSeries.do?method=prepararTelaLocalizarSeries
 BACEN_SERIES = {
-    '432': {
-        'name': 'Selic - Taxa de juros',
-        'unit': '%',
-        'frequency': 'daily',
-        'category': 'monetary_policy'
+    "432": {"name": "Selic - Taxa de juros", "unit": "%", "frequency": "daily", "category": "monetary_policy"},
+    "433": {"name": "IPCA - Inflação", "unit": "%", "frequency": "monthly", "category": "inflation"},
+    "1": {
+        "name": "Dólar - Taxa de câmbio (comercial)",
+        "unit": "BRL/USD",
+        "frequency": "daily",
+        "category": "exchange_rate",
     },
-    '433': {
-        'name': 'IPCA - Inflação',
-        'unit': '%',
-        'frequency': 'monthly',
-        'category': 'inflation'
-    },
-    '1': {
-        'name': 'Dólar - Taxa de câmbio (comercial)',
-        'unit': 'BRL/USD',
-        'frequency': 'daily',
-        'category': 'exchange_rate'
-    },
-    '4189': {
-        'name': 'PIB mensal',
-        'unit': 'R$ milhões',
-        'frequency': 'monthly',
-        'category': 'gdp'
-    },
-    '11': {
-        'name': 'IGP-M - Inflação geral',
-        'unit': '%',
-        'frequency': 'monthly',
-        'category': 'inflation'
-    },
-    '4390': {
-        'name': 'Taxa de desemprego',
-        'unit': '%',
-        'frequency': 'monthly',
-        'category': 'employment'
-    },
-    '13522': {
-        'name': 'Reservas internacionais',
-        'unit': 'US$ milhões',
-        'frequency': 'daily',
-        'category': 'reserves'
-    },
+    "4189": {"name": "PIB mensal", "unit": "R$ milhões", "frequency": "monthly", "category": "gdp"},
+    "11": {"name": "IGP-M - Inflação geral", "unit": "%", "frequency": "monthly", "category": "inflation"},
+    "4390": {"name": "Taxa de desemprego", "unit": "%", "frequency": "monthly", "category": "employment"},
+    "13522": {"name": "Reservas internacionais", "unit": "US$ milhões", "frequency": "daily", "category": "reserves"},
 }
+
 
 def fetch_bacen_series(series_code: str, days_back: int = 365) -> List[Dict[str, Any]]:
     """Fetch data from BACEN SGS API"""
@@ -76,8 +48,8 @@ def fetch_bacen_series(series_code: str, days_back: int = 365) -> List[Dict[str,
     start_date = end_date - timedelta(days=days_back)
 
     # Format dates as DD/MM/YYYY
-    start_str = start_date.strftime('%d/%m/%Y')
-    end_str = end_date.strftime('%d/%m/%Y')
+    start_str = start_date.strftime("%d/%m/%Y")
+    end_str = end_date.strftime("%d/%m/%Y")
 
     url = f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.{series_code}/dados?formato=json&dataInicial={start_str}&dataFinal={end_str}"
 
@@ -96,6 +68,7 @@ def fetch_bacen_series(series_code: str, days_back: int = 365) -> List[Dict[str,
         print(f"   ❌ Error fetching series {series_code}: {e}")
         return []
 
+
 def save_to_database(conn, series_code: str, series_info: Dict, data: List[Dict]):
     """Save BACEN data to PostgreSQL"""
 
@@ -105,7 +78,8 @@ def save_to_database(conn, series_code: str, series_info: Dict, data: List[Dict]
     cursor = conn.cursor()
 
     # Create table if not exists
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.bacen_sgs_series (
             id SERIAL PRIMARY KEY,
             series_code VARCHAR(10) NOT NULL,
@@ -118,40 +92,46 @@ def save_to_database(conn, series_code: str, series_info: Dict, data: List[Dict]
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(series_code, date)
         )
-    """)
+    """
+    )
 
     # Create index
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_bacen_series_code_date
         ON sofia.bacen_sgs_series(series_code, date DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
     for record in data:
         try:
             # Parse date (DD/MM/YYYY)
-            date_str = record['data']
-            date_obj = datetime.strptime(date_str, '%d/%m/%Y').date()
+            date_str = record["data"]
+            date_obj = datetime.strptime(date_str, "%d/%m/%Y").date()
 
             # Parse value
-            value = float(record['valor'])
+            value = float(record["valor"])
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.bacen_sgs_series
                 (series_code, series_name, category, unit, frequency, date, value)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (series_code, date)
                 DO UPDATE SET value = EXCLUDED.value
-            """, (
-                series_code,
-                series_info['name'],
-                series_info['category'],
-                series_info['unit'],
-                series_info['frequency'],
-                date_obj,
-                value
-            ))
+            """,
+                (
+                    series_code,
+                    series_info["name"],
+                    series_info["category"],
+                    series_info["unit"],
+                    series_info["frequency"],
+                    date_obj,
+                    value,
+                ),
+            )
 
             inserted += 1
 
@@ -164,10 +144,11 @@ def save_to_database(conn, series_code: str, series_info: Dict, data: List[Dict]
 
     return inserted
 
+
 def main():
-    print("="*80)
+    print("=" * 80)
     print("📊 BACEN SGS API - Banco Central do Brasil")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📡 Source: https://api.bcb.gov.br/dados/serie/")
@@ -203,9 +184,9 @@ def main():
 
     conn.close()
 
-    print("="*80)
+    print("=" * 80)
     print("✅ BACEN SGS COLLECTION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"📊 Total series: {len(BACEN_SERIES)}")
     print(f"💾 Total records: {total_records}")
@@ -220,5 +201,6 @@ def main():
     print("  • Analyze inflation (IPCA) vs tech salary adjustments")
     print("")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

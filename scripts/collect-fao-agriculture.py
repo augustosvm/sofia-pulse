@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from shared.geo_helpers import normalize_location
 
 """
 FAO (Food and Agriculture Organization) Data Collector
@@ -10,71 +9,81 @@ API: https://www.fao.org/faostat/en/#data
 
 import os
 import sys
+from datetime import datetime
+from typing import Dict, List
+
 import psycopg2
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # FAO indicators (via World Bank API which aggregates FAO data)
 FAO_INDICATORS = {
     # Food production
-    'AG.PRD.FOOD.XD': 'Food production index (2014-2016 = 100)',
-    'AG.PRD.CROP.XD': 'Crop production index (2014-2016 = 100)',
-    'AG.PRD.LVSK.XD': 'Livestock production index (2014-2016 = 100)',
-
+    "AG.PRD.FOOD.XD": "Food production index (2014-2016 = 100)",
+    "AG.PRD.CROP.XD": "Crop production index (2014-2016 = 100)",
+    "AG.PRD.LVSK.XD": "Livestock production index (2014-2016 = 100)",
     # Land use
-    'AG.LND.AGRI.ZS': 'Agricultural land (% of land area)',
-    'AG.LND.ARBL.ZS': 'Arable land (% of land area)',
-    'AG.LND.FRST.ZS': 'Forest area (% of land area)',
-
+    "AG.LND.AGRI.ZS": "Agricultural land (% of land area)",
+    "AG.LND.ARBL.ZS": "Arable land (% of land area)",
+    "AG.LND.FRST.ZS": "Forest area (% of land area)",
     # Food security
-    'SN.ITK.DEFC.ZS': 'Prevalence of undernourishment (%)',
-    'SN.ITK.SVFI.ZS': 'Prevalence of severe food insecurity (%)',
-
+    "SN.ITK.DEFC.ZS": "Prevalence of undernourishment (%)",
+    "SN.ITK.SVFI.ZS": "Prevalence of severe food insecurity (%)",
     # Agricultural inputs
-    'AG.CON.FERT.ZS': 'Fertilizer consumption (kg per hectare)',
-    'AG.LND.IRIG.AG.ZS': 'Agricultural irrigated land (%)',
-
+    "AG.CON.FERT.ZS": "Fertilizer consumption (kg per hectare)",
+    "AG.LND.IRIG.AG.ZS": "Agricultural irrigated land (%)",
     # Agricultural trade
-    'TM.VAL.FOOD.ZS.UN': 'Food imports (% of merchandise imports)',
-    'TX.VAL.FOOD.ZS.UN': 'Food exports (% of merchandise exports)',
-
+    "TM.VAL.FOOD.ZS.UN": "Food imports (% of merchandise imports)",
+    "TX.VAL.FOOD.ZS.UN": "Food exports (% of merchandise exports)",
     # Rural development
-    'SP.RUR.TOTL.ZS': 'Rural population (% of total)',
-    'NV.AGR.TOTL.ZS': 'Agriculture, value added (% of GDP)',
-    'SL.AGR.EMPL.ZS': 'Employment in agriculture (%)',
-
+    "SP.RUR.TOTL.ZS": "Rural population (% of total)",
+    "NV.AGR.TOTL.ZS": "Agriculture, value added (% of GDP)",
+    "SL.AGR.EMPL.ZS": "Employment in agriculture (%)",
     # Water
-    'ER.H2O.FWAG.ZS': 'Freshwater withdrawal for agriculture (%)',
-    'AG.LND.PRCP.MM': 'Average precipitation (mm per year)',
+    "ER.H2O.FWAG.ZS": "Freshwater withdrawal for agriculture (%)",
+    "AG.LND.PRCP.MM": "Average precipitation (mm per year)",
 }
 
-COUNTRIES = ['BRA', 'USA', 'CHN', 'IND', 'ARG', 'FRA', 'DEU', 'AUS', 'CAN', 'IDN',
-             'RUS', 'UKR', 'THA', 'VNM', 'MEX', 'NGA', 'PAK', 'TUR', 'POL', 'ESP']
+COUNTRIES = [
+    "BRA",
+    "USA",
+    "CHN",
+    "IND",
+    "ARG",
+    "FRA",
+    "DEU",
+    "AUS",
+    "CAN",
+    "IDN",
+    "RUS",
+    "UKR",
+    "THA",
+    "VNM",
+    "MEX",
+    "NGA",
+    "PAK",
+    "TUR",
+    "POL",
+    "ESP",
+]
 
 
 def fetch_fao_data(indicator_code: str) -> List[Dict]:
     """Fetch FAO data via World Bank API"""
 
     base_url = "https://api.worldbank.org/v2"
-    country_str = ';'.join(COUNTRIES)
+    country_str = ";".join(COUNTRIES)
 
     url = f"{base_url}/country/{country_str}/indicator/{indicator_code}"
-    params = {
-        'format': 'json',
-        'per_page': 1000,
-        'date': '2010:2024',
-        'source': 2
-    }
+    params = {"format": "json", "per_page": 1000, "date": "2010:2024", "source": 2}
 
     try:
         response = requests.get(url, params=params, timeout=60)
@@ -98,7 +107,8 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_n
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.fao_agriculture_data (
             id SERIAL PRIMARY KEY,
             indicator_code VARCHAR(50) NOT NULL,
@@ -111,34 +121,40 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_n
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(indicator_code, country_code, year)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_fao_indicator_year
         ON sofia.fao_agriculture_data(indicator_code, year DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
     for record in records:
-        if record.get('value') is None:
+        if record.get("value") is None:
             continue
 
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.fao_agriculture_data
                 (indicator_code, indicator_name, country_code, country_name, year, value)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (indicator_code, country_code, year)
                 DO UPDATE SET value = EXCLUDED.value
-            """, (
-                indicator_code,
-                indicator_name,
-                record.get('countryiso3code', record.get('country', {}).get('id')),
-                record.get('country', {}).get('value'),
-                int(record.get('date')) if record.get('date') else None,
-                float(record.get('value'))
-            ))
+            """,
+                (
+                    indicator_code,
+                    indicator_name,
+                    record.get("countryiso3code", record.get("country", {}).get("id")),
+                    record.get("country", {}).get("value"),
+                    int(record.get("date")) if record.get("date") else None,
+                    float(record.get("value")),
+                ),
+            )
             inserted += 1
         except:
             continue
@@ -149,9 +165,9 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_n
 
 
 def main():
-    print("="*80)
+    print("=" * 80)
     print("📊 FAO - Food and Agriculture Organization")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📡 Source: https://www.fao.org/faostat/")
@@ -187,9 +203,9 @@ def main():
 
     conn.close()
 
-    print("="*80)
+    print("=" * 80)
     print("✅ FAO AGRICULTURE COLLECTION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print(f"💾 Total records: {total_records}")
     print("")
     print("💡 Topics covered:")
@@ -200,5 +216,5 @@ def main():
     print("  • Rural development")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

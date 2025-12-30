@@ -6,18 +6,19 @@ Migrates company names to normalized organizations table
 
 import os
 import sys
-import psycopg2
 from datetime import datetime
+
+import psycopg2
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.shared.org_helpers import get_or_create_organization
 
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', '91.98.158.19'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'user': os.getenv('DB_USER', 'sofia'),
-    'password': os.getenv('DB_PASSWORD', 'sofia123strong'),
-    'database': os.getenv('DB_NAME', 'sofia_db')
+    "host": os.getenv("DB_HOST", "91.98.158.19"),
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "user": os.getenv("DB_USER", "sofia"),
+    "password": os.getenv("DB_PASSWORD", "sofia123strong"),
+    "database": os.getenv("DB_NAME", "sofia_db"),
 }
 
 
@@ -29,14 +30,16 @@ def backfill_funding_rounds(conn):
     cur = conn.cursor()
 
     # Get funding rounds without organization_id
-    cur.execute("""
+    cur.execute(
+        """
         SELECT id, company_name, country, city
         FROM sofia.funding_rounds
         WHERE organization_id IS NULL
         AND company_name IS NOT NULL
         AND company_name != ''
         ORDER BY id
-    """)
+    """
+    )
 
     rows = cur.fetchall()
     print(f"Encontrados {len(rows)} funding rounds sem organization_id")
@@ -54,16 +57,19 @@ def backfill_funding_rounds(conn):
                 None,  # company_url
                 location,  # location
                 country,  # country
-                'funding_rounds'  # source
+                "funding_rounds",  # source
             )
 
             if org_id:
                 # Update funding_round with organization_id
-                cur.execute("""
+                cur.execute(
+                    """
                     UPDATE sofia.funding_rounds
                     SET organization_id = %s
                     WHERE id = %s
-                """, (org_id, funding_id))
+                """,
+                    (org_id, funding_id),
+                )
 
                 updated += 1
 
@@ -78,11 +84,13 @@ def backfill_funding_rounds(conn):
     conn.commit()
 
     # Stats
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(DISTINCT organization_id)
         FROM sofia.funding_rounds
         WHERE organization_id IS NOT NULL
-    """)
+    """
+    )
     unique_orgs = cur.fetchone()[0]
 
     print(f"✅ Atualizados: {updated}/{len(rows)}")
@@ -98,14 +106,16 @@ def backfill_space_industry(conn):
     cur = conn.cursor()
 
     # Get space industry records without organization_id
-    cur.execute("""
+    cur.execute(
+        """
         SELECT id, company, country
         FROM sofia.space_industry
         WHERE organization_id IS NULL
         AND company IS NOT NULL
         AND company != ''
         ORDER BY id
-    """)
+    """
+    )
 
     rows = cur.fetchall()
     print(f"Encontrados {len(rows)} registros sem organization_id")
@@ -121,15 +131,18 @@ def backfill_space_industry(conn):
                 None,  # company_url
                 None,  # location
                 country,  # country
-                'space_industry'  # source
+                "space_industry",  # source
             )
 
             if org_id:
-                cur.execute("""
+                cur.execute(
+                    """
                     UPDATE sofia.space_industry
                     SET organization_id = %s
                     WHERE id = %s
-                """, (org_id, space_id))
+                """,
+                    (org_id, space_id),
+                )
 
                 updated += 1
 
@@ -144,11 +157,13 @@ def backfill_space_industry(conn):
     conn.commit()
 
     # Stats
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(DISTINCT organization_id)
         FROM sofia.space_industry
         WHERE organization_id IS NOT NULL
-    """)
+    """
+    )
     unique_orgs = cur.fetchone()[0]
 
     print(f"✅ Atualizados: {updated}/{len(rows)}")
@@ -164,14 +179,16 @@ def backfill_tech_jobs(conn):
     cur = conn.cursor()
 
     # Get tech jobs without organization_id
-    cur.execute("""
+    cur.execute(
+        """
         SELECT id, company, company_url
         FROM sofia.tech_jobs
         WHERE organization_id IS NULL
         AND company IS NOT NULL
         AND company != ''
         ORDER BY id
-    """)
+    """
+    )
 
     rows = cur.fetchall()
     print(f"Encontrados {len(rows)} jobs sem organization_id")
@@ -187,15 +204,18 @@ def backfill_tech_jobs(conn):
                 company_url,  # company_url
                 None,  # location
                 None,  # country
-                'tech_jobs'  # source
+                "tech_jobs",  # source
             )
 
             if org_id:
-                cur.execute("""
+                cur.execute(
+                    """
                     UPDATE sofia.tech_jobs
                     SET organization_id = %s
                     WHERE id = %s
-                """, (org_id, job_id))
+                """,
+                    (org_id, job_id),
+                )
 
                 updated += 1
 
@@ -210,11 +230,13 @@ def backfill_tech_jobs(conn):
     conn.commit()
 
     # Stats
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(DISTINCT organization_id)
         FROM sofia.tech_jobs
         WHERE organization_id IS NOT NULL
-    """)
+    """
+    )
     unique_orgs = cur.fetchone()[0]
 
     print(f"✅ Atualizados: {updated}/{len(rows)}")
@@ -231,32 +253,32 @@ def show_coverage_stats(conn):
 
     cur = conn.cursor()
 
-    tables = [
-        ('funding_rounds', 'company_name'),
-        ('space_industry', 'company'),
-        ('tech_jobs', 'company')
-    ]
+    tables = [("funding_rounds", "company_name"), ("space_industry", "company"), ("tech_jobs", "company")]
 
     for table, company_col in tables:
-        cur.execute(f"""
+        cur.execute(
+            f"""
             SELECT
                 COUNT(*) as total,
                 COUNT(organization_id) as with_org_id,
                 COUNT({company_col}) as with_company,
                 ROUND(100.0 * COUNT(organization_id) / NULLIF(COUNT({company_col}), 0), 1) as pct
             FROM sofia.{table}
-        """)
+        """
+        )
         total, with_org, with_company, pct = cur.fetchone()
 
         status = "✅" if pct >= 95 else "⚠️" if pct >= 80 else "❌"
         print(f"{status} {table:20} {with_org:>6}/{with_company:<6} = {pct:>5}%")
 
     # Total unique organizations created
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(DISTINCT id)
         FROM sofia.organizations
         WHERE metadata->>'source' IN ('funding_rounds', 'space_industry', 'tech_jobs')
-    """)
+    """
+    )
     new_orgs = cur.fetchone()[0]
 
     print()
@@ -279,7 +301,7 @@ def main():
         # Run migration first
         print("\n📝 Executando migration 042...")
         cur = conn.cursor()
-        with open('migrations/042_add_organization_id_to_priority_tables.sql', 'r') as f:
+        with open("migrations/042_add_organization_id_to_priority_tables.sql", "r") as f:
             migration_sql = f.read()
             cur.execute(migration_sql)
             conn.commit()
@@ -319,8 +341,9 @@ def main():
     except Exception as e:
         print(f"❌ Erro: {e}")
         import traceback
+
         traceback.print_exc()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

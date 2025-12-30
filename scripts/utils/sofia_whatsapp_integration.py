@@ -5,21 +5,22 @@ Sends technical alerts to WhatsApp with Sofia's AI analysis
 """
 
 import os
-import sys
-import requests
 from datetime import datetime
-from typing import Optional, Dict, Any
 from pathlib import Path
+from typing import Any, Dict, Optional
+
+import requests
 
 # Load .env file
 try:
     from dotenv import load_dotenv
+
     # Find .env file - look in project root
     current_dir = Path(__file__).resolve()
     # Go up from scripts/utils/ to project root
     project_root = current_dir.parent.parent.parent
-    env_path = project_root / '.env'
-    
+    env_path = project_root / ".env"
+
     if env_path.exists():
         load_dotenv(env_path)
         print(f"[DEBUG] Loaded .env from: {env_path}")
@@ -31,27 +32,30 @@ except ImportError:
     print("   Falling back to environment variables only")
 
 # Configuration - use WHATSAPP_SENDER (TIE number) as primary
-_whatsapp_raw = os.getenv('WHATSAPP_SENDER') or os.getenv('WHATSAPP_NUMBER', '')
+_whatsapp_raw = os.getenv("WHATSAPP_SENDER") or os.getenv("WHATSAPP_NUMBER", "")
 # Fallback to production number if placeholder detected (for local dev environments)
-PLACEHOLDERS = ['YOUR_WHATSAPP_NUMBER', 'YOUR_BUSINESS_NUMBER', 'your_whatsapp_number_here', '']
-WHATSAPP_NUMBER = '551151990773' if _whatsapp_raw in PLACEHOLDERS else _whatsapp_raw
+PLACEHOLDERS = ["YOUR_WHATSAPP_NUMBER", "YOUR_BUSINESS_NUMBER", "your_whatsapp_number_here", ""]
+WHATSAPP_NUMBER = "551151990773" if _whatsapp_raw in PLACEHOLDERS else _whatsapp_raw
 
 # Receiver (destination) - can be different from sender
-_whatsapp_receiver = os.getenv('WHATSAPP_RECEIVER', '')
-WHATSAPP_RECEIVER = WHATSAPP_NUMBER if not _whatsapp_receiver or _whatsapp_receiver in PLACEHOLDERS else _whatsapp_receiver
+_whatsapp_receiver = os.getenv("WHATSAPP_RECEIVER", "")
+WHATSAPP_RECEIVER = (
+    WHATSAPP_NUMBER if not _whatsapp_receiver or _whatsapp_receiver in PLACEHOLDERS else _whatsapp_receiver
+)
 
-_sofia_api = os.getenv('SOFIA_API_URL', '')
-SOFIA_API_URL = 'http://91.98.158.19:8001/api/v2/chat' if not _sofia_api else _sofia_api
+_sofia_api = os.getenv("SOFIA_API_URL", "")
+SOFIA_API_URL = "http://91.98.158.19:8001/api/v2/chat" if not _sofia_api else _sofia_api
 
-_whatsapp_api = os.getenv('WHATSAPP_API_URL', '')
-WHATSAPP_API_URL = 'http://91.98.158.19:3001/send' if _whatsapp_api in ['your_api_url_here', ''] else _whatsapp_api
+_whatsapp_api = os.getenv("WHATSAPP_API_URL", "")
+WHATSAPP_API_URL = "http://91.98.158.19:3001/send" if _whatsapp_api in ["your_api_url_here", ""] else _whatsapp_api
 
-_enabled = os.getenv('WHATSAPP_ENABLED') or os.getenv('ALERT_WHATSAPP_ENABLED', 'true')
-WHATSAPP_ENABLED = _enabled.lower() == 'true'
+_enabled = os.getenv("WHATSAPP_ENABLED") or os.getenv("ALERT_WHATSAPP_ENABLED", "true")
+WHATSAPP_ENABLED = _enabled.lower() == "true"
 
 print(f"[DEBUG] WhatsApp Sender: {WHATSAPP_NUMBER}")
 print(f"[DEBUG] WhatsApp Receiver: {WHATSAPP_RECEIVER}")
 print(f"[DEBUG] WhatsApp Enabled: {WHATSAPP_ENABLED}")
+
 
 class SofiaWhatsAppIntegration:
     """Integrates Sofia API intelligence with WhatsApp alerts"""
@@ -78,30 +82,22 @@ class SofiaWhatsAppIntegration:
             Sofia's response text or None if failed
         """
         try:
-            payload = {
-                'query': query,
-                'user_id': 'sistema-alertas',
-                'channel': 'whatsapp'
-            }
+            payload = {"query": query, "user_id": "sistema-alertas", "channel": "whatsapp"}
 
             # Add context if provided
             if context:
-                payload['context'] = context
+                payload["context"] = context
 
             print(f"[DEBUG] Enviando para Sofia API: {self.api_url}")
             print(f"[DEBUG] Payload: query={query[:100]}..., user_id=sistema-alertas")
 
-            response = requests.post(
-                self.api_url,
-                json=payload,
-                timeout=30  # Allow time for AI processing
-            )
+            response = requests.post(self.api_url, json=payload, timeout=30)  # Allow time for AI processing
 
             print(f"[DEBUG] Sofia API status: {response.status_code}")
 
             if response.status_code == 200:
                 data = response.json()
-                sofia_response = data.get('response', None)
+                sofia_response = data.get("response", None)
 
                 print(f"[DEBUG] Sofia retornou resposta: {sofia_response is not None}")
                 if sofia_response:
@@ -124,6 +120,7 @@ class SofiaWhatsAppIntegration:
         except Exception as e:
             print(f"❌ Error querying Sofia: {e}")
             import traceback
+
             traceback.print_exc()
             return None
 
@@ -141,16 +138,16 @@ class SofiaWhatsAppIntegration:
             print("⚠️  WhatsApp disabled (set WHATSAPP_ENABLED=true)")
             return False
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("[WHATSAPP DEBUG] Iniciando envio de mensagem")
-        print("="*60)
+        print("=" * 60)
 
         try:
             payload = {
-                'query': message,
-                'user_id': 'sofia-pulse',
-                'channel': 'whatsapp',
-                'phone': self.whatsapp_receiver
+                "query": message,
+                "user_id": "sofia-pulse",
+                "channel": "whatsapp",
+                "phone": self.whatsapp_receiver,
             }
 
             print(f"[WHATSAPP DEBUG] Configuração:")
@@ -167,11 +164,7 @@ class SofiaWhatsAppIntegration:
 
             print(f"\n[WHATSAPP DEBUG] Enviando POST para {self.api_url}...")
 
-            response = requests.post(
-                self.api_url,
-                json=payload,
-                timeout=10
-            )
+            response = requests.post(self.api_url, json=payload, timeout=10)
 
             print(f"[WHATSAPP DEBUG] Resposta recebida:")
             print(f"  • Status code: {response.status_code}")
@@ -182,17 +175,19 @@ class SofiaWhatsAppIntegration:
                     data = response.json()
                     print(f"[WHATSAPP DEBUG] Response JSON:")
                     print(f"  • Keys: {list(data.keys())}")
-                    print(f"  • Response field: {data.get('response', 'N/A')[:100] if data.get('response') else 'VAZIO'}")
+                    print(
+                        f"  • Response field: {data.get('response', 'N/A')[:100] if data.get('response') else 'VAZIO'}"
+                    )
                 except:
                     print(f"[WHATSAPP DEBUG] Response body (não é JSON): {response.text[:200]}")
 
                 print(f"\n✅ WhatsApp sent to {self.whatsapp_number}")
-                print("="*60 + "\n")
+                print("=" * 60 + "\n")
                 return True
             else:
                 print(f"\n❌ WhatsApp failed: HTTP {response.status_code}")
                 print(f"[WHATSAPP DEBUG] Error body: {response.text[:500]}")
-                print("="*60 + "\n")
+                print("=" * 60 + "\n")
                 return False
 
         except Exception as e:
@@ -217,15 +212,12 @@ class SofiaWhatsAppIntegration:
             print("⚠️  WhatsApp disabled (set WHATSAPP_ENABLED=true)")
             return False
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("[WHATSAPP DIRECT] Sending via Baileys API")
-        print("="*60)
+        print("=" * 60)
 
         try:
-            payload = {
-                'to': self.whatsapp_receiver,  # Receiver (destination)
-                'message': message
-            }
+            payload = {"to": self.whatsapp_receiver, "message": message}  # Receiver (destination)
 
             print(f"[WHATSAPP DIRECT] Configuration:")
             print(f"  • API URL: {self.whatsapp_api_url}")
@@ -235,38 +227,30 @@ class SofiaWhatsAppIntegration:
 
             print(f"\n[WHATSAPP DIRECT] Enviando POST...")
 
-            response = requests.post(
-                self.whatsapp_api_url,
-                json=payload,
-                timeout=10
-            )
+            response = requests.post(self.whatsapp_api_url, json=payload, timeout=10)
 
             print(f"[WHATSAPP DIRECT] Resposta:")
             print(f"  • Status code: {response.status_code}")
 
             if response.status_code == 200:
                 print(f"\n✅ WhatsApp sent directly to {self.whatsapp_number}")
-                print("="*60 + "\n")
+                print("=" * 60 + "\n")
                 return True
             else:
                 print(f"\n❌ WhatsApp direct send failed: HTTP {response.status_code}")
                 print(f"[WHATSAPP DIRECT] Error: {response.text[:500]}")
-                print("="*60 + "\n")
+                print("=" * 60 + "\n")
                 return False
 
         except Exception as e:
             print(f"\n❌ WhatsApp direct send error: {e}")
             import traceback
+
             traceback.print_exc()
-            print("="*60 + "\n")
+            print("=" * 60 + "\n")
             return False
 
-    def alert_with_analysis(
-        self,
-        title: str,
-        error_details: Dict[str, Any],
-        ask_sofia: bool = True
-    ) -> bool:
+    def alert_with_analysis(self, title: str, error_details: Dict[str, Any], ask_sofia: bool = True) -> bool:
         """
         Send alert with Sofia's technical analysis
 
@@ -290,10 +274,7 @@ class SofiaWhatsAppIntegration:
             )
         """
         # Build context for Sofia
-        context_text = "\n".join([
-            f"- {key}: {value}"
-            for key, value in error_details.items()
-        ])
+        context_text = "\n".join([f"- {key}: {value}" for key, value in error_details.items()])
 
         # Ask Sofia for analysis if enabled
         sofia_analysis = None
@@ -317,26 +298,12 @@ Por favor, forneça:
             sofia_analysis = self.ask_sofia(query, context=error_details)
 
         # Build final WhatsApp message
-        message_parts = [
-            f"🚨 *{title}*",
-            "",
-            "*Detalhes:*",
-            context_text,
-            ""
-        ]
+        message_parts = [f"🚨 *{title}*", "", "*Detalhes:*", context_text, ""]
 
         if sofia_analysis:
-            message_parts.extend([
-                "---",
-                "*Análise da Sofia:*",
-                sofia_analysis,
-                ""
-            ])
+            message_parts.extend(["---", "*Análise da Sofia:*", sofia_analysis, ""])
 
-        message_parts.extend([
-            "---",
-            f"_Sofia Pulse - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_"
-        ])
+        message_parts.extend(["---", f"_Sofia Pulse - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_"])
 
         final_message = "\n".join(message_parts)
 
@@ -344,11 +311,7 @@ Por favor, forneça:
         return self.send_whatsapp_direct(final_message)
 
     def alert_api_error(
-        self,
-        api_name: str,
-        status_code: int,
-        error_message: str,
-        endpoint: Optional[str] = None
+        self, api_name: str, status_code: int, error_message: str, endpoint: Optional[str] = None
     ) -> bool:
         """
         Quick helper: Send API error alert with Sofia analysis
@@ -362,27 +325,18 @@ Por favor, forneça:
             )
         """
         details = {
-            'API': api_name,
-            'Status': status_code,
-            'Erro': error_message,
-            'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            "API": api_name,
+            "Status": status_code,
+            "Erro": error_message,
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
         if endpoint:
-            details['Endpoint'] = endpoint
+            details["Endpoint"] = endpoint
 
-        return self.alert_with_analysis(
-            title=f"Erro na {api_name}",
-            error_details=details,
-            ask_sofia=True
-        )
+        return self.alert_with_analysis(title=f"Erro na {api_name}", error_details=details, ask_sofia=True)
 
-    def alert_collector_failed(
-        self,
-        collector_name: str,
-        error: str,
-        suggestions: bool = True
-    ) -> bool:
+    def alert_collector_failed(self, collector_name: str, error: str, suggestions: bool = True) -> bool:
         """
         Quick helper: Send collector failure alert
 
@@ -393,23 +347,14 @@ Por favor, forneça:
             )
         """
         details = {
-            'Collector': collector_name,
-            'Erro': error,
-            'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            "Collector": collector_name,
+            "Erro": error,
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-        return self.alert_with_analysis(
-            title="Collector Falhou",
-            error_details=details,
-            ask_sofia=suggestions
-        )
+        return self.alert_with_analysis(title="Collector Falhou", error_details=details, ask_sofia=suggestions)
 
-    def alert_data_anomaly(
-        self,
-        table_name: str,
-        anomaly_type: str,
-        details: str
-    ) -> bool:
+    def alert_data_anomaly(self, table_name: str, anomaly_type: str, details: str) -> bool:
         """
         Quick helper: Send data anomaly alert
 
@@ -421,17 +366,13 @@ Por favor, forneça:
             )
         """
         error_details = {
-            'Tabela': table_name,
-            'Tipo': anomaly_type,
-            'Detalhes': details,
-            'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            "Tabela": table_name,
+            "Tipo": anomaly_type,
+            "Detalhes": details,
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-        return self.alert_with_analysis(
-            title="Anomalia nos Dados",
-            error_details=error_details,
-            ask_sofia=True
-        )
+        return self.alert_with_analysis(title="Anomalia nos Dados", error_details=error_details, ask_sofia=True)
 
     def test_integration(self) -> bool:
         """Test the full integration"""
@@ -457,10 +398,7 @@ Por favor, forneça:
         # Test 2: Send test alert with analysis
         print("2️⃣  Sending test alert with Sofia analysis...")
         success = self.alert_api_error(
-            api_name="Test API",
-            status_code=200,
-            error_message="Test integration successful",
-            endpoint="/test"
+            api_name="Test API", status_code=200, error_message="Test integration successful", endpoint="/test"
         )
 
         if success:
@@ -486,24 +424,28 @@ Por favor, forneça:
 # Convenience functions for direct use
 _integration = SofiaWhatsAppIntegration()
 
+
 def alert_api_error(api_name: str, status_code: int, error_message: str, endpoint: str = None):
     """Quick function: Alert API error with Sofia analysis"""
     return _integration.alert_api_error(api_name, status_code, error_message, endpoint)
+
 
 def alert_collector_failed(collector_name: str, error: str):
     """Quick function: Alert collector failure with Sofia suggestions"""
     return _integration.alert_collector_failed(collector_name, error)
 
+
 def alert_data_anomaly(table_name: str, anomaly_type: str, details: str):
     """Quick function: Alert data anomaly with Sofia analysis"""
     return _integration.alert_data_anomaly(table_name, anomaly_type, details)
+
 
 def ask_sofia(query: str, context: Dict[str, Any] = None) -> Optional[str]:
     """Quick function: Ask Sofia a question"""
     return _integration.ask_sofia(query, context)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run integration test
     integration = SofiaWhatsAppIntegration()
     integration.test_integration()

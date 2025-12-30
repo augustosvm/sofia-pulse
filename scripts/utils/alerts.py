@@ -14,28 +14,33 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import WhatsApp alerts (primary channel)
 try:
+    from scripts.utils.whatsapp_alerts import alert_api_rate_limit as wa_api_rate_limit
+    from scripts.utils.whatsapp_alerts import (
+        alert_collector_failed as wa_collector_failed,
+    )
+    from scripts.utils.whatsapp_alerts import alert_data_anomaly as wa_data_anomaly
     from scripts.utils.whatsapp_alerts import (
         send_whatsapp_alert,
-        alert_collector_failed as wa_collector_failed,
-        alert_data_anomaly as wa_data_anomaly,
-        alert_api_rate_limit as wa_api_rate_limit,
     )
+
     WHATSAPP_AVAILABLE = True
 except ImportError:
     WHATSAPP_AVAILABLE = False
     print("⚠️  WhatsApp alerts not available")
 
-import requests
 from datetime import datetime
 
+import requests
+
 # Telegram configuration (backup channel)
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
 # Email configuration (backup channel)
-ALERT_EMAIL = os.getenv('ALERT_EMAIL', 'augustosvm@gmail.com')
+ALERT_EMAIL = os.getenv("ALERT_EMAIL", "augustosvm@gmail.com")
 
-def send_telegram_alert(message, level='WARNING'):
+
+def send_telegram_alert(message, level="WARNING"):
     """
     Send alert via Telegram
 
@@ -47,11 +52,7 @@ def send_telegram_alert(message, level='WARNING'):
         print("⚠️  Telegram not configured, skipping alert")
         return False
 
-    emoji = {
-        'INFO': 'ℹ️',
-        'WARNING': '⚠️',
-        'CRITICAL': '🚨'
-    }.get(level, '📢')
+    emoji = {"INFO": "ℹ️", "WARNING": "⚠️", "CRITICAL": "🚨"}.get(level, "📢")
 
     formatted_message = f"""
 {emoji} **SOFIA PULSE ALERT**
@@ -64,11 +65,7 @@ def send_telegram_alert(message, level='WARNING'):
 
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {
-            'chat_id': TELEGRAM_CHAT_ID,
-            'text': formatted_message,
-            'parse_mode': 'Markdown'
-        }
+        payload = {"chat_id": TELEGRAM_CHAT_ID, "text": formatted_message, "parse_mode": "Markdown"}
         response = requests.post(url, json=payload, timeout=10)
         return response.status_code == 200
     except Exception as e:
@@ -76,7 +73,7 @@ def send_telegram_alert(message, level='WARNING'):
         return False
 
 
-def send_alert(message, level='WARNING', channels=['whatsapp', 'telegram']):
+def send_alert(message, level="WARNING", channels=["whatsapp", "telegram"]):
     """
     Send alert via multiple channels
 
@@ -93,12 +90,12 @@ def send_alert(message, level='WARNING', channels=['whatsapp', 'telegram']):
     success = False
 
     # Try WhatsApp first (primary channel)
-    if 'whatsapp' in channels and WHATSAPP_AVAILABLE:
+    if "whatsapp" in channels and WHATSAPP_AVAILABLE:
         if send_whatsapp_alert(message, level):
             success = True
 
     # Fallback to Telegram
-    if 'telegram' in channels:
+    if "telegram" in channels:
         if send_telegram_alert(message, level):
             success = True
 
@@ -106,6 +103,7 @@ def send_alert(message, level='WARNING', channels=['whatsapp', 'telegram']):
     # Could use send-email-mega.py logic here
 
     return success
+
 
 def alert_collector_failed(collector_name, error):
     """
@@ -125,7 +123,8 @@ def alert_collector_failed(collector_name, error):
 
 Please check logs at /var/log/sofia/collectors/{collector_name}.log
 """
-    send_alert(message, level='CRITICAL', channels=['telegram'])
+    send_alert(message, level="CRITICAL", channels=["telegram"])
+
 
 def alert_data_anomaly(table_name, anomaly_type, details):
     """
@@ -145,7 +144,8 @@ def alert_data_anomaly(table_name, anomaly_type, details):
 **Type**: {anomaly_type}
 **Details**: {details}
 """
-    send_alert(message, level='WARNING', channels=['telegram'])
+    send_alert(message, level="WARNING", channels=["telegram"])
+
 
 def alert_api_rate_limit(api_name, reset_time=None):
     """
@@ -166,4 +166,4 @@ def alert_api_rate_limit(api_name, reset_time=None):
 
 Collector will retry automatically.
 """
-    send_alert(message, level='INFO', channels=['telegram'])
+    send_alert(message, level="INFO", channels=["telegram"])

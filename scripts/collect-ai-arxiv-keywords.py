@@ -11,13 +11,13 @@ Storage: sofia.ai_arxiv_keywords table
 import os
 import sys
 import time
-import requests
 import xml.etree.ElementTree as ET
-import psycopg2
-from psycopg2.extras import execute_batch
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
+
+import psycopg2
 from dotenv import load_dotenv
+from psycopg2.extras import execute_batch
 
 # Add parent to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,71 +27,64 @@ from scripts.utils.retry import safe_request
 
 load_dotenv()
 
-logger = setup_logger('ai-arxiv-collector')
+logger = setup_logger("ai-arxiv-collector")
 
 # Database configuration
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'user': os.getenv('DB_USER', 'sofia'),
-    'password': os.getenv('DB_PASSWORD'),
-    'database': os.getenv('DB_NAME', 'sofia_db'),
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "user": os.getenv("DB_USER", "sofia"),
+    "password": os.getenv("DB_PASSWORD"),
+    "database": os.getenv("DB_NAME", "sofia_db"),
 }
 
 # Keywords to search by technology
 # Format: (keyword, tech_key, category)
 ARXIV_KEYWORDS = [
     # LLMs
-    ('llama language model', 'llama-3', 'llm'),
-    ('deepseek', 'deepseek', 'llm'),
-    ('mistral llm', 'mistral', 'llm'),
-    ('phi-3', 'phi-4', 'llm'),
-    ('gemma model', 'gemma', 'llm'),
-    ('qwen', 'qwen', 'llm'),
-    ('GPT-4', 'gpt-4', 'llm'),
-    ('claude', 'claude', 'llm'),
-    ('gemini', 'gemini', 'llm'),
-
+    ("llama language model", "llama-3", "llm"),
+    ("deepseek", "deepseek", "llm"),
+    ("mistral llm", "mistral", "llm"),
+    ("phi-3", "phi-4", "llm"),
+    ("gemma model", "gemma", "llm"),
+    ("qwen", "qwen", "llm"),
+    ("GPT-4", "gpt-4", "llm"),
+    ("claude", "claude", "llm"),
+    ("gemini", "gemini", "llm"),
     # Agent Frameworks
-    ('langgraph', 'langgraph', 'agents'),
-    ('langchain', 'langchain', 'agents'),
-    ('autogen agent', 'autogen', 'agents'),
-    ('multi-agent', 'agents', 'agents'),
-
+    ("langgraph", "langgraph", "agents"),
+    ("langchain", "langchain", "agents"),
+    ("autogen agent", "autogen", "agents"),
+    ("multi-agent", "agents", "agents"),
     # Inference
-    ('vllm', 'vllm', 'inference'),
-    ('quantization llm', 'gptq', 'inference'),
-    ('gguf', 'gguf', 'inference'),
-
+    ("vllm", "vllm", "inference"),
+    ("quantization llm", "gptq", "inference"),
+    ("gguf", "gguf", "inference"),
     # RAG
-    ('graphrag', 'graphrag', 'rag'),
-    ('retrieval augmented generation', 'llamaindex', 'rag'),
-    ('RAG', 'rag-island', 'rag'),
-    ('ColBERT', 'colbert', 'rag'),
-    ('vector database', 'chromadb', 'rag'),
-
+    ("graphrag", "graphrag", "rag"),
+    ("retrieval augmented generation", "llamaindex", "rag"),
+    ("RAG", "rag-island", "rag"),
+    ("ColBERT", "colbert", "rag"),
+    ("vector database", "chromadb", "rag"),
     # Multimodal
-    ('llava', 'llava', 'multimodal'),
-    ('vision language model', 'qwen-vl', 'multimodal'),
-    ('CLIP', 'clip', 'multimodal'),
-
+    ("llava", "llava", "multimodal"),
+    ("vision language model", "qwen-vl", "multimodal"),
+    ("CLIP", "clip", "multimodal"),
     # Audio
-    ('whisper speech', 'whisper', 'audio'),
-    ('text-to-speech', 'xtts', 'audio'),
-    ('voice cloning', 'openvoice', 'audio'),
-
+    ("whisper speech", "whisper", "audio"),
+    ("text-to-speech", "xtts", "audio"),
+    ("voice cloning", "openvoice", "audio"),
     # Image Generation
-    ('stable diffusion', 'stable-diffusion', 'image-gen'),
-    ('FLUX diffusion', 'flux', 'image-gen'),
-
+    ("stable diffusion", "stable-diffusion", "image-gen"),
+    ("FLUX diffusion", "flux", "image-gen"),
     # Safety
-    ('guardrails llm', 'guardrails', 'safety'),
-    ('RLHF', 'rlhf', 'safety'),
-
+    ("guardrails llm", "guardrails", "safety"),
+    ("RLHF", "rlhf", "safety"),
     # Fine-tuning
-    ('LoRA', 'peft', 'framework'),
-    ('QLoRA', 'peft', 'framework'),
+    ("LoRA", "peft", "framework"),
+    ("QLoRA", "peft", "framework"),
 ]
+
 
 def search_arxiv(keyword: str, year: int, month: int) -> Dict[str, Any]:
     """
@@ -107,19 +100,19 @@ def search_arxiv(keyword: str, year: int, month: int) -> Dict[str, Any]:
         end_date = datetime(year, month + 1, 1)
 
     # Format dates for ArXiv API (YYYYMMDD)
-    start_str = start_date.strftime('%Y%m%d')
-    end_str = end_date.strftime('%Y%m%d')
+    start_str = start_date.strftime("%Y%m%d")
+    end_str = end_date.strftime("%Y%m%d")
 
     # Build query
     # Search in title, abstract, and keywords
     # Category: cs.AI, cs.CL, cs.LG (AI, Computation and Language, Machine Learning)
-    query = f'(ti:{keyword} OR abs:{keyword}) AND submittedDate:[{start_str}0000 TO {end_str}2359]'
+    query = f"(ti:{keyword} OR abs:{keyword}) AND submittedDate:[{start_str}0000 TO {end_str}2359]"
 
-    url = 'http://export.arxiv.org/api/query'
+    url = "http://export.arxiv.org/api/query"
     params = {
-        'search_query': query,
-        'max_results': 100,
-        'sortBy': 'relevance',
+        "search_query": query,
+        "max_results": 100,
+        "sortBy": "relevance",
     }
 
     try:
@@ -128,9 +121,9 @@ def search_arxiv(keyword: str, year: int, month: int) -> Dict[str, Any]:
         if response and response.status_code == 200:
             # Parse XML response
             root = ET.fromstring(response.content)
-            ns = {'atom': 'http://www.w3.org/2005/Atom'}
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
 
-            entries = root.findall('atom:entry', ns)
+            entries = root.findall("atom:entry", ns)
             paper_count = len(entries)
 
             # Extract paper IDs and titles
@@ -138,29 +131,30 @@ def search_arxiv(keyword: str, year: int, month: int) -> Dict[str, Any]:
             paper_titles = []
 
             for entry in entries[:10]:  # Top 10 papers
-                id_elem = entry.find('atom:id', ns)
-                title_elem = entry.find('atom:title', ns)
+                id_elem = entry.find("atom:id", ns)
+                title_elem = entry.find("atom:title", ns)
 
                 if id_elem is not None:
-                    paper_id = id_elem.text.split('/')[-1]  # Extract arXiv ID
+                    paper_id = id_elem.text.split("/")[-1]  # Extract arXiv ID
                     paper_ids.append(paper_id)
 
                 if title_elem is not None:
-                    title = title_elem.text.replace('\n', ' ').strip()
+                    title = title_elem.text.replace("\n", " ").strip()
                     paper_titles.append(title)
 
             return {
-                'paper_count': paper_count,
-                'paper_ids': paper_ids,
-                'paper_titles': paper_titles,
+                "paper_count": paper_count,
+                "paper_ids": paper_ids,
+                "paper_titles": paper_titles,
             }
         else:
             logger.warning(f"ArXiv API returned status {response.status_code if response else 'None'}")
-            return {'paper_count': 0, 'paper_ids': [], 'paper_titles': []}
+            return {"paper_count": 0, "paper_ids": [], "paper_titles": []}
 
     except Exception as e:
         logger.error(f"Failed to search ArXiv for '{keyword}': {e}")
-        return {'paper_count': 0, 'paper_ids': [], 'paper_titles': []}
+        return {"paper_count": 0, "paper_ids": [], "paper_titles": []}
+
 
 def insert_to_db(records: List[Dict[str, Any]]) -> int:
     """Insert keyword stats into database"""
@@ -189,14 +183,14 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
 
         batch_data = [
             (
-                r['keyword'],
-                r['tech_key'],
-                r['category'],
-                r['paper_count'],
-                r['year'],
-                r['month'],
-                r['paper_ids'],
-                r['paper_titles'],
+                r["keyword"],
+                r["tech_key"],
+                r["category"],
+                r["paper_count"],
+                r["year"],
+                r["month"],
+                r["paper_ids"],
+                r["paper_titles"],
             )
             for r in records
         ]
@@ -215,6 +209,7 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
     finally:
         if conn:
             conn.close()
+
 
 def main():
     print("=" * 80)
@@ -244,19 +239,21 @@ def main():
 
                 result = search_arxiv(keyword, year, month)
 
-                if result['paper_count'] > 0:
-                    all_records.append({
-                        'keyword': keyword,
-                        'tech_key': tech_key,
-                        'category': category,
-                        'paper_count': result['paper_count'],
-                        'year': year,
-                        'month': month,
-                        'paper_ids': result['paper_ids'],
-                        'paper_titles': result['paper_titles'],
-                    })
+                if result["paper_count"] > 0:
+                    all_records.append(
+                        {
+                            "keyword": keyword,
+                            "tech_key": tech_key,
+                            "category": category,
+                            "paper_count": result["paper_count"],
+                            "year": year,
+                            "month": month,
+                            "paper_ids": result["paper_ids"],
+                            "paper_titles": result["paper_titles"],
+                        }
+                    )
 
-                    total_papers += result['paper_count']
+                    total_papers += result["paper_count"]
                     logger.info(f"      ✅ Found {result['paper_count']} papers")
                 else:
                     logger.info(f"      ⚠️  No papers found")
@@ -266,7 +263,7 @@ def main():
 
         # Insert to database
         if all_records:
-            inserted = insert_to_db(all_records)
+            insert_to_db(all_records)
 
         # Summary
         print("\n" + "=" * 80)
@@ -280,10 +277,10 @@ def main():
             # Aggregate by keyword
             keyword_totals = {}
             for record in all_records:
-                kw = record['keyword']
+                kw = record["keyword"]
                 if kw not in keyword_totals:
                     keyword_totals[kw] = 0
-                keyword_totals[kw] += record['paper_count']
+                keyword_totals[kw] += record["paper_count"]
 
             print("\n📈 TOP 10 KEYWORDS BY TOTAL PAPERS (12 months):")
             sorted_keywords = sorted(keyword_totals.items(), key=lambda x: x[1], reverse=True)[:10]
@@ -298,5 +295,6 @@ def main():
         logger.error(f"❌ Fatal error: {e}")
         return 1
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

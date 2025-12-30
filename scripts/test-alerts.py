@@ -4,21 +4,22 @@ Sofia Pulse - Test Alert System
 Tests all alert types to verify configuration
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scripts.utils.whatsapp_alerts import (
-    test_whatsapp_alert,
+    ALERT_ENABLED,
+    SOFIA_API_ENDPOINT,
+    WHATSAPP_NUMBER,
+    alert_api_rate_limit,
     alert_collector_failed,
     alert_data_anomaly,
-    alert_api_rate_limit,
-    WHATSAPP_NUMBER,
-    SOFIA_API_ENDPOINT,
-    ALERT_ENABLED
+    test_whatsapp_alert,
 )
+
 
 def main():
     print("════════════════════════════════════════════════════════════════")
@@ -59,7 +60,7 @@ def main():
     print("════════════════════════════════════════════════════════════════")
     print("")
 
-    alert_collector_failed('test-collector', 'HTTP 403 - Rate limited')
+    alert_collector_failed("test-collector", "HTTP 403 - Rate limited")
 
     print("")
     input("Press ENTER to continue...")
@@ -70,7 +71,7 @@ def main():
     print("════════════════════════════════════════════════════════════════")
     print("")
 
-    alert_data_anomaly('test_table', 'ZERO_ROWS', 'Expected 100+ rows, got 0')
+    alert_data_anomaly("test_table", "ZERO_ROWS", "Expected 100+ rows, got 0")
 
     print("")
     input("Press ENTER to continue...")
@@ -81,7 +82,7 @@ def main():
     print("════════════════════════════════════════════════════════════════")
     print("")
 
-    alert_api_rate_limit('GitHub API', '2025-11-22 12:00:00')
+    alert_api_rate_limit("GitHub API", "2025-11-22 12:00:00")
 
     print("")
     print("════════════════════════════════════════════════════════════════")
@@ -99,5 +100,6 @@ def main():
 
     return 0
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

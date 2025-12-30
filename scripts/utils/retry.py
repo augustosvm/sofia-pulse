@@ -4,10 +4,12 @@ Sofia Pulse - Retry Logic with Exponential Backoff
 Protection against API failures and rate limits
 """
 
-import time
 import random
-import requests
+import time
 from functools import wraps
+
+import requests
+
 
 def retry_with_backoff(max_retries=5, base_delay=2, max_delay=32, jitter=True):
     """
@@ -24,21 +26,24 @@ def retry_with_backoff(max_retries=5, base_delay=2, max_delay=32, jitter=True):
         def fetch_data():
             return requests.get(url)
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             for attempt in range(max_retries):
                 try:
                     return func(*args, **kwargs)
-                except (requests.exceptions.RequestException,
-                        requests.exceptions.Timeout,
-                        requests.exceptions.ConnectionError) as e:
+                except (
+                    requests.exceptions.RequestException,
+                    requests.exceptions.Timeout,
+                    requests.exceptions.ConnectionError,
+                ) as e:
 
                     if attempt == max_retries - 1:
                         raise  # Last attempt failed, re-raise
 
                     # Calculate backoff delay
-                    delay = min(base_delay * (2 ** attempt), max_delay)
+                    delay = min(base_delay * (2**attempt), max_delay)
 
                     # Add jitter (random 0-100% of delay)
                     if jitter:
@@ -50,8 +55,11 @@ def retry_with_backoff(max_retries=5, base_delay=2, max_delay=32, jitter=True):
                     time.sleep(delay)
 
             return None  # Should never reach here
+
         return wrapper
+
     return decorator
+
 
 def safe_request(url, headers=None, timeout=15, max_retries=5):
     """
@@ -67,9 +75,7 @@ def safe_request(url, headers=None, timeout=15, max_retries=5):
         Response object or None if all retries failed
     """
     if headers is None:
-        headers = {
-            'User-Agent': 'SofiaPulse/1.0 (Tech Intelligence; +https://github.com/augustosvm/sofia-pulse)'
-        }
+        headers = {"User-Agent": "SofiaPulse/1.0 (Tech Intelligence; +https://github.com/augustosvm/sofia-pulse)"}
 
     for attempt in range(max_retries):
         try:
@@ -80,7 +86,7 @@ def safe_request(url, headers=None, timeout=15, max_retries=5):
 
             # Check for rate limiting
             if response.status_code == 429:
-                retry_after = int(response.headers.get('Retry-After', 60))
+                retry_after = int(response.headers.get("Retry-After", 60))
                 print(f"⚠️  Rate limited. Waiting {retry_after}s...")
                 time.sleep(retry_after)
                 continue
@@ -106,7 +112,7 @@ def safe_request(url, headers=None, timeout=15, max_retries=5):
 
         # Calculate backoff
         if attempt < max_retries - 1:
-            delay = min(2 ** attempt, 32)
+            delay = min(2**attempt, 32)
             delay = delay * (0.5 + random.random() * 0.5)  # Jitter
             print(f"   Retrying in {delay:.1f}s...")
             time.sleep(delay)

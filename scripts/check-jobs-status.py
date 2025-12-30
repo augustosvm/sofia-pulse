@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """Verificar status das coletas de vagas"""
-import psycopg2
 import os
-from dotenv import load_dotenv
 from datetime import datetime
+
+import psycopg2
+from dotenv import load_dotenv
 
 load_dotenv()
 
 conn = psycopg2.connect(
-    host=os.getenv('POSTGRES_HOST'),
-    port=os.getenv('POSTGRES_PORT', '5432'),
-    user=os.getenv('POSTGRES_USER'),
-    password=os.getenv('POSTGRES_PASSWORD'),
-    database=os.getenv('POSTGRES_DB')
+    host=os.getenv("POSTGRES_HOST"),
+    port=os.getenv("POSTGRES_PORT", "5432"),
+    user=os.getenv("POSTGRES_USER"),
+    password=os.getenv("POSTGRES_PASSWORD"),
+    database=os.getenv("POSTGRES_DB"),
 )
 
 cur = conn.cursor()
@@ -35,12 +36,14 @@ if last:
 
 # Por plataforma
 print(f"\n📱 POR PLATAFORMA:")
-cur.execute("""
+cur.execute(
+    """
     SELECT platform, COUNT(*), MAX(collected_at), MIN(collected_at)
     FROM sofia.jobs 
     GROUP BY platform 
     ORDER BY MAX(collected_at) DESC NULLS LAST
-""")
+"""
+)
 
 for platform, count, last_col, first_col in cur.fetchall():
     if last_col:
@@ -52,13 +55,15 @@ for platform, count, last_col, first_col in cur.fetchall():
 
 # Vagas recentes (últimos 30 dias)
 print(f"\n📅 VAGAS DOS ÚLTIMOS 30 DIAS:")
-cur.execute("""
+cur.execute(
+    """
     SELECT platform, COUNT(*) 
     FROM sofia.jobs 
     WHERE collected_at >= NOW() - INTERVAL '30 days'
     GROUP BY platform
     ORDER BY COUNT(*) DESC
-""")
+"""
+)
 recent = cur.fetchall()
 if recent:
     for platform, count in recent:

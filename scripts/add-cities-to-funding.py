@@ -2,55 +2,62 @@
 """
 Adiciona coluna city à tabela funding_rounds e tenta extrair cidades
 """
-import psycopg2
 import os
+
+import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
 
 conn = psycopg2.connect(
-    host=os.getenv('POSTGRES_HOST'),
-    port=os.getenv('POSTGRES_PORT', '5432'),
-    user=os.getenv('POSTGRES_USER'),
-    password=os.getenv('POSTGRES_PASSWORD'),
-    database=os.getenv('POSTGRES_DB')
+    host=os.getenv("POSTGRES_HOST"),
+    port=os.getenv("POSTGRES_PORT", "5432"),
+    user=os.getenv("POSTGRES_USER"),
+    password=os.getenv("POSTGRES_PASSWORD"),
+    database=os.getenv("POSTGRES_DB"),
 )
 cur = conn.cursor()
 
 # 1. Adicionar coluna city se não existir
 print("1. Adicionando coluna city...")
-cur.execute("""
+cur.execute(
+    """
     ALTER TABLE sofia.funding_rounds 
     ADD COLUMN IF NOT EXISTS city VARCHAR(255)
-""")
+"""
+)
 conn.commit()
 print("✅ Coluna city adicionada")
 
 # 2. Mapear empresas conhecidas para cidades
 print("\n2. Mapeando empresas para cidades...")
 city_mappings = {
-    'AMAZON COM INC': 'Seattle',
-    'Alphabet Inc.': 'Mountain View',
-    'Meta Platforms, Inc.': 'Menlo Park',
-    'NVIDIA CORP': 'Santa Clara',
-    'MICROSOFT CORP': 'Redmond',
-    'Airbnb, Inc.': 'San Francisco'
+    "AMAZON COM INC": "Seattle",
+    "Alphabet Inc.": "Mountain View",
+    "Meta Platforms, Inc.": "Menlo Park",
+    "NVIDIA CORP": "Santa Clara",
+    "MICROSOFT CORP": "Redmond",
+    "Airbnb, Inc.": "San Francisco",
 }
 
 updated = 0
 for company, city in city_mappings.items():
-    cur.execute("""
+    cur.execute(
+        """
         UPDATE sofia.funding_rounds 
         SET city = %s 
         WHERE company_name = %s AND city IS NULL
-    """, (city, company))
+    """,
+        (city, company),
+    )
     updated += cur.rowcount
 
 conn.commit()
 print(f"✅ {updated} registros atualizados com cidades")
 
 # 3. Verificar resultado
-cur.execute("""
+cur.execute(
+    """
     SELECT 
         city, 
         country, 
@@ -61,7 +68,8 @@ cur.execute("""
     GROUP BY city, country
     ORDER BY count DESC
     LIMIT 10
-""")
+"""
+)
 
 print("\n3. Cidades com funding:")
 for row in cur.fetchall():

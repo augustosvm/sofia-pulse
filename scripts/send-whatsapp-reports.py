@@ -4,9 +4,9 @@ Sofia Pulse - Send Reports via WhatsApp
 Sends summary + key insights to WhatsApp after analytics complete
 """
 
+import glob
 import os
 import sys
-import glob
 from datetime import datetime
 
 # Add parent directory to path
@@ -14,18 +14,20 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scripts.utils.whatsapp_alerts import send_whatsapp_alert
 
+
 def read_report_summary(report_path, max_lines=30):
     """Read first N lines of report for summary"""
     try:
-        with open(report_path, 'r', encoding='utf-8') as f:
+        with open(report_path, "r", encoding="utf-8") as f:
             lines = f.readlines()[:max_lines]
-            return ''.join(lines)
+            return "".join(lines)
     except Exception as e:
         return f"Error reading {report_path}: {e}"
 
+
 def send_mega_summary():
     """Send MEGA Analysis summary via WhatsApp"""
-    mega_report = 'analytics/mega-analysis-latest.txt'
+    mega_report = "analytics/mega-analysis-latest.txt"
 
     if os.path.exists(mega_report):
         summary = read_report_summary(mega_report, max_lines=50)
@@ -37,16 +39,17 @@ def send_mega_summary():
 _Relatório completo no email_
 _Total: 23 reports + CSVs_
 """
-        if send_whatsapp_alert(message, level='INFO'):
+        if send_whatsapp_alert(message, level="INFO"):
             print("✅ MEGA Analysis summary sent to WhatsApp")
         else:
             print("❌ Failed to send MEGA Analysis summary")
     else:
         print("⚠️  MEGA Analysis not found")
 
+
 def send_top10_trends():
     """Send Top 10 Tech Trends via WhatsApp"""
-    top10_report = 'analytics/top10-latest.txt'
+    top10_report = "analytics/top10-latest.txt"
 
     if os.path.exists(top10_report):
         summary = read_report_summary(top10_report, max_lines=40)
@@ -57,16 +60,17 @@ def send_top10_trends():
 ---
 _Relatório completo no email_
 """
-        if send_whatsapp_alert(message, level='INFO'):
+        if send_whatsapp_alert(message, level="INFO"):
             print("✅ Top 10 Trends sent to WhatsApp")
         else:
             print("❌ Failed to send Top 10 Trends")
     else:
         print("⚠️  Top 10 Trends not found")
 
+
 def send_playbook_summary():
     """Send NLG Playbook (Gemini) via WhatsApp"""
-    playbook_report = 'analytics/playbook-latest.txt'
+    playbook_report = "analytics/playbook-latest.txt"
 
     if os.path.exists(playbook_report):
         # Gemini playbook is narrative, send first part
@@ -79,18 +83,19 @@ def send_playbook_summary():
 _Playbook completo no email_
 _Narrativas prontas para publicação_
 """
-        if send_whatsapp_alert(message, level='INFO'):
-             print("✅ Gemini Playbook sent to WhatsApp")
+        if send_whatsapp_alert(message, level="INFO"):
+            print("✅ Gemini Playbook sent to WhatsApp")
         else:
-             print("❌ Failed to send Gemini Playbook")
+            print("❌ Failed to send Gemini Playbook")
     else:
         print("⚠️  Gemini Playbook not found (GEMINI_API_KEY configured?)")
+
 
 def send_intelligence_summary():
     """Send Intelligence Reports summary via WhatsApp"""
 
     # Career Trends
-    career_report = 'analytics/career-trends-latest.txt'
+    career_report = "analytics/career-trends-latest.txt"
     if os.path.exists(career_report):
         summary = read_report_summary(career_report, max_lines=30)
         message = f"""*🎓 CAREER TRENDS PREDICTOR*
@@ -100,13 +105,13 @@ def send_intelligence_summary():
 ---
 _Relatório completo no email_
 """
-        if send_whatsapp_alert(message, level='INFO'):
+        if send_whatsapp_alert(message, level="INFO"):
             print("✅ Career Trends sent to WhatsApp")
         else:
             print("❌ Failed to send Career Trends")
 
     # Capital Flow
-    capital_report = 'analytics/capital-flow-latest.txt'
+    capital_report = "analytics/capital-flow-latest.txt"
     if os.path.exists(capital_report):
         summary = read_report_summary(capital_report, max_lines=30)
         message = f"""*💰 CAPITAL FLOW PREDICTOR*
@@ -116,16 +121,17 @@ _Relatório completo no email_
 ---
 _Relatório completo no email_
 """
-        if send_whatsapp_alert(message, level='INFO'):
+        if send_whatsapp_alert(message, level="INFO"):
             print("✅ Capital Flow sent to WhatsApp")
         else:
             print("❌ Failed to send Capital Flow")
+
 
 def send_socioeconomic_summary():
     """Send Socioeconomic Intelligence summary via WhatsApp"""
 
     # Best Cities for Tech Talent
-    talent_report = 'analytics/best-cities-tech-talent-latest.txt'
+    talent_report = "analytics/best-cities-tech-talent-latest.txt"
     if os.path.exists(talent_report):
         summary = read_report_summary(talent_report, max_lines=30)
         message = f"""*💼 BEST CITIES FOR TECH TALENT*
@@ -136,13 +142,13 @@ def send_socioeconomic_summary():
 _Relatório completo no email_
 _Metodologia: INSEAD Global Talent Index_
 """
-        if send_whatsapp_alert(message, level='INFO'):
+        if send_whatsapp_alert(message, level="INFO"):
             print("✅ Tech Talent Cities sent to WhatsApp")
         else:
             print("❌ Failed to send Tech Talent Cities")
 
     # Innovation Hubs
-    innovation_report = 'analytics/innovation-hubs-latest.txt'
+    innovation_report = "analytics/innovation-hubs-latest.txt"
     if os.path.exists(innovation_report):
         summary = read_report_summary(innovation_report, max_lines=30)
         message = f"""*🔬 INNOVATION HUBS RANKING*
@@ -153,17 +159,18 @@ _Metodologia: INSEAD Global Talent Index_
 _Relatório completo no email_
 _Metodologia: WIPO Global Innovation Index_
 """
-        if send_whatsapp_alert(message, level='INFO'):
+        if send_whatsapp_alert(message, level="INFO"):
             print("✅ Innovation Hubs sent to WhatsApp")
         else:
             print("❌ Failed to send Innovation Hubs")
+
 
 def send_completion_summary():
     """Send final completion summary with all artifacts"""
 
     # Count reports
-    reports = glob.glob('analytics/*-latest.txt')
-    csvs = glob.glob('data/exports/*.csv')
+    reports = glob.glob("analytics/*-latest.txt")
+    csvs = glob.glob("data/exports/*.csv")
 
     message = f"""*✅ SOFIA PULSE - ANALYTICS COMPLETE*
 
@@ -209,10 +216,11 @@ _Sofia Pulse Intelligence System_
 _Próxima execução: 22:00 UTC / 19:00 BRT_
 """
 
-    if send_whatsapp_alert(message, level='INFO'):
+    if send_whatsapp_alert(message, level="INFO"):
         print("✅ Completion summary sent to WhatsApp")
     else:
         print("❌ Failed to send Completion summary")
+
 
 def main():
     """Send all report summaries via WhatsApp"""
@@ -267,5 +275,6 @@ def main():
     print("Full reports sent via email to: augustosvm@gmail.com")
     print("")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

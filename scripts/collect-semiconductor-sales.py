@@ -5,27 +5,27 @@ Collects global semiconductor sales data from WSTS (World Semiconductor Trade St
 """
 
 import os
-import sys
-import requests
-import psycopg2
-from psycopg2.extras import execute_batch
-from datetime import datetime
-from typing import List, Dict, Any
-import json
 import re
+import sys
+from typing import Any, Dict, List
+
+import psycopg2
+import requests
 from dotenv import load_dotenv
+from psycopg2.extras import execute_batch
 
 # Load environment variables
 load_dotenv()
 
 # Database configuration
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'user': os.getenv('DB_USER', 'sofia'),
-    'password': os.getenv('DB_PASSWORD', 'sofia123strong'),
-    'database': os.getenv('DB_NAME', 'sofia_db'),
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "user": os.getenv("DB_USER", "sofia"),
+    "password": os.getenv("DB_PASSWORD", "sofia123strong"),
+    "database": os.getenv("DB_NAME", "sofia_db"),
 }
+
 
 def fetch_sia_press_releases() -> List[Dict[str, Any]]:
     """
@@ -50,9 +50,9 @@ def fetch_sia_press_releases() -> List[Dict[str, Any]]:
         # Example: "Global semiconductor sales of $167.7 billion in Q1 2025"
 
         patterns = [
-            r'semiconductor sales of \$?([\d.]+)\s*billion',
-            r'sales of \$?([\d.]+)B',
-            r'\$?([\d.]+)\s*billion.*(?:Q\d|quarter|month)',
+            r"semiconductor sales of \$?([\d.]+)\s*billion",
+            r"sales of \$?([\d.]+)B",
+            r"\$?([\d.]+)\s*billion.*(?:Q\d|quarter|month)",
         ]
 
         for pattern in patterns:
@@ -61,13 +61,15 @@ def fetch_sia_press_releases() -> List[Dict[str, Any]]:
                 for match in matches[:3]:  # Take top 3 matches
                     try:
                         sales_billions = float(match)
-                        records.append({
-                            'region': 'Global',
-                            'year': 2025,
-                            'quarter': 'Q1 2025',  # Would parse from context
-                            'sales_billions': sales_billions,
-                            'source': 'SIA Press Release',
-                        })
+                        records.append(
+                            {
+                                "region": "Global",
+                                "year": 2025,
+                                "quarter": "Q1 2025",  # Would parse from context
+                                "sales_billions": sales_billions,
+                                "source": "SIA Press Release",
+                            }
+                        )
                     except ValueError:
                         continue
 
@@ -79,9 +81,11 @@ def fetch_sia_press_releases() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"❌ Error fetching SIA data: {e}")
         import traceback
+
         traceback.print_exc()
 
     return records
+
 
 def fetch_manual_data() -> List[Dict[str, Any]]:
     """
@@ -94,44 +98,44 @@ def fetch_manual_data() -> List[Dict[str, Any]]:
     # Latest official data from SIA (as of search results)
     manual_records = [
         {
-            'region': 'Global',
-            'year': 2025,
-            'quarter': 'Q1',
-            'month': None,
-            'sales_billions': 167.7,
-            'yoy_growth': 18.8,
-            'source': 'SIA Official',
-            'notes': 'Q1 2025 vs Q1 2024'
+            "region": "Global",
+            "year": 2025,
+            "quarter": "Q1",
+            "month": None,
+            "sales_billions": 167.7,
+            "yoy_growth": 18.8,
+            "source": "SIA Official",
+            "notes": "Q1 2025 vs Q1 2024",
         },
         {
-            'region': 'Global',
-            'year': 2025,
-            'quarter': 'Q1',
-            'month': 'March',
-            'sales_billions': 55.9,
-            'yoy_growth': None,
-            'source': 'SIA Official',
-            'notes': 'March 2025'
+            "region": "Global",
+            "year": 2025,
+            "quarter": "Q1",
+            "month": "March",
+            "sales_billions": 55.9,
+            "yoy_growth": None,
+            "source": "SIA Official",
+            "notes": "March 2025",
         },
         {
-            'region': 'Global',
-            'year': 2024,
-            'quarter': 'Q3',
-            'month': None,
-            'sales_billions': 208.4,
-            'qoq_growth': 15.8,
-            'source': 'SIA Official',
-            'notes': 'Q3 2024 vs Q2 2024'
+            "region": "Global",
+            "year": 2024,
+            "quarter": "Q3",
+            "month": None,
+            "sales_billions": 208.4,
+            "qoq_growth": 15.8,
+            "source": "SIA Official",
+            "notes": "Q3 2024 vs Q2 2024",
         },
         {
-            'region': 'Global',
-            'year': 2024,
-            'quarter': 'Q3',
-            'month': 'September',
-            'sales_billions': 69.5,
-            'yoy_growth': 25.1,
-            'source': 'SIA Official',
-            'notes': 'September 2024'
+            "region": "Global",
+            "year": 2024,
+            "quarter": "Q3",
+            "month": "September",
+            "sales_billions": 69.5,
+            "yoy_growth": 25.1,
+            "source": "SIA Official",
+            "notes": "September 2024",
         },
     ]
 
@@ -140,6 +144,7 @@ def fetch_manual_data() -> List[Dict[str, Any]]:
 
     print(f"✅ Loaded {len(manual_records)} official records")
     return manual_records
+
 
 def safe_float(value, max_value=999999999.99):
     """Safely convert to float"""
@@ -153,6 +158,7 @@ def safe_float(value, max_value=999999999.99):
     except (ValueError, TypeError):
         return None
 
+
 def safe_int(value):
     """Safely convert to int"""
     if value is None:
@@ -161,6 +167,7 @@ def safe_int(value):
         return int(value)
     except (ValueError, TypeError):
         return None
+
 
 def insert_to_db(records: List[Dict[str, Any]]) -> int:
     """Insert semiconductor sales data to PostgreSQL"""
@@ -191,17 +198,19 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
 
         batch_data = []
         for record in records:
-            batch_data.append((
-                record.get('region', 'Global'),
-                safe_int(record.get('year')),
-                record.get('quarter') or '',  # Convert None to empty string
-                record.get('month') or '',    # Convert None to empty string
-                safe_float(record.get('sales_billions')),
-                safe_float(record.get('yoy_growth')),
-                safe_float(record.get('qoq_growth')),
-                record.get('source', 'Unknown'),
-                record.get('notes'),
-            ))
+            batch_data.append(
+                (
+                    record.get("region", "Global"),
+                    safe_int(record.get("year")),
+                    record.get("quarter") or "",  # Convert None to empty string
+                    record.get("month") or "",  # Convert None to empty string
+                    safe_float(record.get("sales_billions")),
+                    safe_float(record.get("yoy_growth")),
+                    safe_float(record.get("qoq_growth")),
+                    record.get("source", "Unknown"),
+                    record.get("notes"),
+                )
+            )
 
         execute_batch(cur, insert_query, batch_data, page_size=100)
         conn.commit()
@@ -214,11 +223,13 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
         if conn:
             conn.rollback()
         import traceback
+
         traceback.print_exc()
         return 0
     finally:
         if conn:
             conn.close()
+
 
 def main():
     print("=" * 80)
@@ -257,5 +268,6 @@ def main():
     print("💡 INFO: Data sourced from SIA official reports")
     print("   Updated manually from: https://www.semiconductors.org/")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

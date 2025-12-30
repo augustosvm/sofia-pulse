@@ -1,0 +1,58 @@
+# ============================================================================
+# Sofia Pulse - Auto-generated Crontab
+# Generated: 2025-12-23T23:44:41.921Z
+# DO NOT EDIT MANUALLY - Run: npx tsx scripts/generate-crontab.ts --install
+# ============================================================================
+
+# Environment
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# 2x/day (0h, 12h) - github, hackernews
+0 */12 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh github >> /home/ubuntu/sofia-pulse/logs/github-collector.log 2>&1
+0 */12 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh hackernews >> /home/ubuntu/sofia-pulse/logs/hackernews-collector.log 2>&1
+
+# 1x/day - npm
+0 8 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh npm >> /home/ubuntu/sofia-pulse/logs/npm-collector.log 2>&1
+
+# 1x/day - pypi
+0 20 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh pypi >> /home/ubuntu/sofia-pulse/logs/pypi-collector.log 2>&1
+
+# 1x/day - stackoverflow
+0 9 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh stackoverflow >> /home/ubuntu/sofia-pulse/logs/stackoverflow-collector.log 2>&1
+
+# 1x/day - arxiv, openalex, ai-companies
+0 8 * * 1 cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh arxiv >> /home/ubuntu/sofia-pulse/logs/arxiv-collector.log 2>&1
+0 8 * * 1 cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh openalex >> /home/ubuntu/sofia-pulse/logs/openalex-collector.log 2>&1
+0 8 * * 1 cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh ai-companies >> /home/ubuntu/sofia-pulse/logs/ai-companies-collector.log 2>&1
+
+# 4x/day (0h, 6h, 12h, 18h) - himalayas, remoteok
+0 */6 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh himalayas >> /home/ubuntu/sofia-pulse/logs/himalayas-collector.log 2>&1
+0 */6 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh remoteok >> /home/ubuntu/sofia-pulse/logs/remoteok-collector.log 2>&1
+
+# Custom schedule - arbeitnow
+0 0,8,16 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh arbeitnow >> /home/ubuntu/sofia-pulse/logs/arbeitnow-collector.log 2>&1
+
+# 1x/month (1st day) - universities, ngos
+0 8 1 * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh universities >> /home/ubuntu/sofia-pulse/logs/universities-collector.log 2>&1
+0 8 1 * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh ngos >> /home/ubuntu/sofia-pulse/logs/ngos-collector.log 2>&1
+
+# 1x/day - yc-companies
+0 10 * * 1 cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh yc-companies >> /home/ubuntu/sofia-pulse/logs/yc-companies-collector.log 2>&1
+
+# 1x/day - producthunt
+0 11 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh producthunt >> /home/ubuntu/sofia-pulse/logs/producthunt-collector.log 2>&1
+
+# 1x/day - vscode-marketplace
+0 14 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh vscode-marketplace >> /home/ubuntu/sofia-pulse/logs/vscode-marketplace-collector.log 2>&1
+
+# 1x/day - jetbrains-marketplace
+0 15 * * * cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh jetbrains-marketplace >> /home/ubuntu/sofia-pulse/logs/jetbrains-marketplace-collector.log 2>&1
+
+# 1x/day - confs-tech
+0 6 * * 1 cd /home/ubuntu/sofia-pulse && bash /home/ubuntu/sofia-pulse/run-single-collector.sh confs-tech >> /home/ubuntu/sofia-pulse/logs/confs-tech-collector.log 2>&1
+
+# ============================================================================
+# Total collectors: 18 (5 tech + 2 papers + 3 jobs + 3 orgs + 2 funding + 2 devtools + 1 conf)
+# Unique schedules: 13
+# ============================================================================

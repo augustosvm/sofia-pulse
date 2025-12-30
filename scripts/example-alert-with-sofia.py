@@ -3,19 +3,20 @@
 Sofia Pulse - Exemplos de Uso da Integração WhatsApp + Sofia API
 """
 
-import sys
 import os
+import sys
 
 # Add utils to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'utils'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "utils"))
 
 from sofia_whatsapp_integration import (
     SofiaWhatsAppIntegration,
     alert_api_error,
     alert_collector_failed,
     alert_data_anomaly,
-    ask_sofia
+    ask_sofia,
 )
+
 
 def example_1_api_error():
     """Exemplo 1: Alerta de erro em API externa"""
@@ -28,7 +29,7 @@ def example_1_api_error():
         api_name="Bressan API",
         status_code=500,
         error_message="Internal Server Error - Database connection failed",
-        endpoint="/api/v1/transactions"
+        endpoint="/api/v1/transactions",
     )
 
     print("\n✅ Alerta enviado com análise da Sofia!")
@@ -44,7 +45,7 @@ def example_2_collector_failed():
     # Simular falha no collector do GitHub
     alert_collector_failed(
         collector_name="collect-github-trending",
-        error="HTTP 403 - API rate limit exceeded. Reset time: 2025-11-22 15:30:00 UTC"
+        error="HTTP 403 - API rate limit exceeded. Reset time: 2025-11-22 15:30:00 UTC",
     )
 
     print("\n✅ Alerta enviado com sugestões da Sofia!")
@@ -60,7 +61,7 @@ def example_3_data_anomaly():
     alert_data_anomaly(
         table_name="funding_rounds",
         anomaly_type="Queda abrupta de registros",
-        details="Esperado: ~50 registros/dia. Recebido: 3 registros. Possível problema na API."
+        details="Esperado: ~50 registros/dia. Recebido: 3 registros. Possível problema na API.",
     )
 
     print("\n✅ Alerta enviado com análise da Sofia!")
@@ -78,14 +79,14 @@ def example_4_custom_alert():
     integration.alert_with_analysis(
         title="Sistema de Backup Falhou",
         error_details={
-            'Sistema': 'Backup PostgreSQL',
-            'Erro': 'Disk full - Cannot write backup file',
-            'Espaço Disponível': '0 MB',
-            'Espaço Necessário': '2.5 GB',
-            'Último Backup': '2025-11-20 22:00:00',
-            'Criticidade': 'ALTA'
+            "Sistema": "Backup PostgreSQL",
+            "Erro": "Disk full - Cannot write backup file",
+            "Espaço Disponível": "0 MB",
+            "Espaço Necessário": "2.5 GB",
+            "Último Backup": "2025-11-20 22:00:00",
+            "Criticidade": "ALTA",
         },
-        ask_sofia=True  # Pede análise da Sofia
+        ask_sofia=True,  # Pede análise da Sofia
     )
 
     print("\n✅ Alerta customizado enviado!")
@@ -128,26 +129,25 @@ def example_6_integration_monitoring():
     print("=" * 60 + "\n")
 
     import requests
-    from datetime import datetime
 
     # Lista de APIs para monitorar
     apis_to_monitor = [
-        {'name': 'GitHub API', 'url': 'https://api.github.com/rate_limit'},
-        {'name': 'HackerNews API', 'url': 'https://hacker-news.firebaseio.com/v0/maxitem.json'},
+        {"name": "GitHub API", "url": "https://api.github.com/rate_limit"},
+        {"name": "HackerNews API", "url": "https://hacker-news.firebaseio.com/v0/maxitem.json"},
         # Adicione suas APIs aqui
     ]
 
     for api in apis_to_monitor:
         try:
-            response = requests.get(api['url'], timeout=10)
+            response = requests.get(api["url"], timeout=10)
 
             if response.status_code != 200:
                 # Erro detectado - enviar alerta com análise da Sofia
                 alert_api_error(
-                    api_name=api['name'],
+                    api_name=api["name"],
                     status_code=response.status_code,
                     error_message=f"API returned non-200 status",
-                    endpoint=api['url']
+                    endpoint=api["url"],
                 )
                 print(f"❌ {api['name']}: HTTP {response.status_code} - Alerta enviado")
             else:
@@ -156,10 +156,7 @@ def example_6_integration_monitoring():
         except requests.exceptions.RequestException as e:
             # Erro de conexão - enviar alerta
             alert_api_error(
-                api_name=api['name'],
-                status_code=0,
-                error_message=f"Connection error: {str(e)}",
-                endpoint=api['url']
+                api_name=api["name"], status_code=0, error_message=f"Connection error: {str(e)}", endpoint=api["url"]
             )
             print(f"❌ {api['name']}: Connection error - Alerta enviado")
 
@@ -185,15 +182,15 @@ def menu():
     choice = input("Opção: ").strip()
 
     examples = {
-        '1': example_1_api_error,
-        '2': example_2_collector_failed,
-        '3': example_3_data_anomaly,
-        '4': example_4_custom_alert,
-        '5': example_5_ask_sofia_only,
-        '6': example_6_integration_monitoring
+        "1": example_1_api_error,
+        "2": example_2_collector_failed,
+        "3": example_3_data_anomaly,
+        "4": example_4_custom_alert,
+        "5": example_5_ask_sofia_only,
+        "6": example_6_integration_monitoring,
     }
 
-    if choice == '0':
+    if choice == "0":
         print("\n👋 Até logo!")
         return False
 
@@ -206,7 +203,7 @@ def menu():
         return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Verificar configuração
     print("\n🔍 Verificando configuração...")
     print(f"   WHATSAPP_NUMBER: {os.getenv('WHATSAPP_NUMBER', 'NOT SET')}")

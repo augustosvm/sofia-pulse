@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from shared.geo_helpers import normalize_location
 
 """
 World Security Data Collector
@@ -13,62 +12,61 @@ Fontes Oficiais:
 
 import os
 import sys
+from datetime import datetime
+from typing import Dict, List
+
 import psycopg2
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # Top countries by region for security data
 COUNTRIES = {
     # Americas - Top 10
-    'americas': [
-        ('USA', 'United States'),
-        ('CAN', 'Canada'),
-        ('MEX', 'Mexico'),
-        ('BRA', 'Brazil'),
-        ('ARG', 'Argentina'),
-        ('COL', 'Colombia'),
-        ('CHL', 'Chile'),
-        ('PER', 'Peru'),
-        ('VEN', 'Venezuela'),
-        ('ECU', 'Ecuador'),
+    "americas": [
+        ("USA", "United States"),
+        ("CAN", "Canada"),
+        ("MEX", "Mexico"),
+        ("BRA", "Brazil"),
+        ("ARG", "Argentina"),
+        ("COL", "Colombia"),
+        ("CHL", "Chile"),
+        ("PER", "Peru"),
+        ("VEN", "Venezuela"),
+        ("ECU", "Ecuador"),
     ],
-
     # Europe - Top 10
-    'europe': [
-        ('DEU', 'Germany'),
-        ('GBR', 'United Kingdom'),
-        ('FRA', 'France'),
-        ('ITA', 'Italy'),
-        ('ESP', 'Spain'),
-        ('POL', 'Poland'),
-        ('NLD', 'Netherlands'),
-        ('BEL', 'Belgium'),
-        ('SWE', 'Sweden'),
-        ('PRT', 'Portugal'),
+    "europe": [
+        ("DEU", "Germany"),
+        ("GBR", "United Kingdom"),
+        ("FRA", "France"),
+        ("ITA", "Italy"),
+        ("ESP", "Spain"),
+        ("POL", "Poland"),
+        ("NLD", "Netherlands"),
+        ("BEL", "Belgium"),
+        ("SWE", "Sweden"),
+        ("PRT", "Portugal"),
     ],
-
     # Asia - Top 10
-    'asia': [
-        ('CHN', 'China'),
-        ('JPN', 'Japan'),
-        ('IND', 'India'),
-        ('KOR', 'South Korea'),
-        ('IDN', 'Indonesia'),
-        ('THA', 'Thailand'),
-        ('VNM', 'Vietnam'),
-        ('MYS', 'Malaysia'),
-        ('SGP', 'Singapore'),
-        ('PHL', 'Philippines'),
+    "asia": [
+        ("CHN", "China"),
+        ("JPN", "Japan"),
+        ("IND", "India"),
+        ("KOR", "South Korea"),
+        ("IDN", "Indonesia"),
+        ("THA", "Thailand"),
+        ("VNM", "Vietnam"),
+        ("MYS", "Malaysia"),
+        ("SGP", "Singapore"),
+        ("PHL", "Philippines"),
     ],
 }
 
@@ -77,95 +75,85 @@ SECURITY_INDICATORS = {
     # ===========================================
     # HOMICIDES & VIOLENCE
     # ===========================================
-    'VC.IHR.PSRC.P5': {
-        'name': 'Intentional homicides (per 100,000 people)',
-        'category': 'homicide',
-        'description': 'Number of unlawful homicides purposely inflicted'
+    "VC.IHR.PSRC.P5": {
+        "name": "Intentional homicides (per 100,000 people)",
+        "category": "homicide",
+        "description": "Number of unlawful homicides purposely inflicted",
     },
-    'VC.IHR.PSRC.FE.P5': {
-        'name': 'Intentional homicides, female (per 100,000 female)',
-        'category': 'homicide',
-        'description': 'Female homicide rate'
+    "VC.IHR.PSRC.FE.P5": {
+        "name": "Intentional homicides, female (per 100,000 female)",
+        "category": "homicide",
+        "description": "Female homicide rate",
     },
-    'VC.IHR.PSRC.MA.P5': {
-        'name': 'Intentional homicides, male (per 100,000 male)',
-        'category': 'homicide',
-        'description': 'Male homicide rate'
+    "VC.IHR.PSRC.MA.P5": {
+        "name": "Intentional homicides, male (per 100,000 male)",
+        "category": "homicide",
+        "description": "Male homicide rate",
     },
-
     # ===========================================
     # SAFETY PERCEPTION
     # ===========================================
     # Note: Limited availability, using proxy indicators
-
     # ===========================================
     # PRISON & JUSTICE
     # ===========================================
-    'VC.PRS.RDEN': {
-        'name': 'Prison population rate (per 100,000)',
-        'category': 'justice',
-        'description': 'Incarceration rate'
+    "VC.PRS.RDEN": {
+        "name": "Prison population rate (per 100,000)",
+        "category": "justice",
+        "description": "Incarceration rate",
     },
-
     # ===========================================
     # MORTALITY (Violence-related)
     # ===========================================
-    'SH.DTH.INJR.ZS': {
-        'name': 'Mortality from injuries (% of total)',
-        'category': 'mortality',
-        'description': 'Deaths from injuries including violence'
+    "SH.DTH.INJR.ZS": {
+        "name": "Mortality from injuries (% of total)",
+        "category": "mortality",
+        "description": "Deaths from injuries including violence",
     },
-    'SH.STA.TRAF.P5': {
-        'name': 'Mortality from road traffic (per 100,000)',
-        'category': 'accidents',
-        'description': 'Road traffic death rate'
+    "SH.STA.TRAF.P5": {
+        "name": "Mortality from road traffic (per 100,000)",
+        "category": "accidents",
+        "description": "Road traffic death rate",
     },
-
     # ===========================================
     # MILITARY & CONFLICT
     # ===========================================
-    'MS.MIL.XPND.GD.ZS': {
-        'name': 'Military expenditure (% of GDP)',
-        'category': 'military',
-        'description': 'Defense spending as % of GDP'
+    "MS.MIL.XPND.GD.ZS": {
+        "name": "Military expenditure (% of GDP)",
+        "category": "military",
+        "description": "Defense spending as % of GDP",
     },
-    'MS.MIL.TOTL.P1': {
-        'name': 'Armed forces personnel, total',
-        'category': 'military',
-        'description': 'Total military personnel'
+    "MS.MIL.TOTL.P1": {
+        "name": "Armed forces personnel, total",
+        "category": "military",
+        "description": "Total military personnel",
     },
-
     # ===========================================
     # REFUGEES & DISPLACEMENT
     # ===========================================
-    'SM.POP.REFG': {
-        'name': 'Refugee population by country of origin',
-        'category': 'displacement',
-        'description': 'Refugees originating from country'
+    "SM.POP.REFG": {
+        "name": "Refugee population by country of origin",
+        "category": "displacement",
+        "description": "Refugees originating from country",
     },
-    'SM.POP.REFG.OR': {
-        'name': 'Refugee population by country of asylum',
-        'category': 'displacement',
-        'description': 'Refugees hosted by country'
+    "SM.POP.REFG.OR": {
+        "name": "Refugee population by country of asylum",
+        "category": "displacement",
+        "description": "Refugees hosted by country",
     },
-
     # ===========================================
     # GOVERNANCE & RULE OF LAW
     # ===========================================
-    'CC.EST': {
-        'name': 'Control of Corruption: Estimate',
-        'category': 'governance',
-        'description': 'Corruption perception index'
+    "CC.EST": {
+        "name": "Control of Corruption: Estimate",
+        "category": "governance",
+        "description": "Corruption perception index",
     },
-    'RL.EST': {
-        'name': 'Rule of Law: Estimate',
-        'category': 'governance',
-        'description': 'Rule of law index'
-    },
-    'PV.EST': {
-        'name': 'Political Stability: Estimate',
-        'category': 'governance',
-        'description': 'Political stability and absence of violence'
+    "RL.EST": {"name": "Rule of Law: Estimate", "category": "governance", "description": "Rule of law index"},
+    "PV.EST": {
+        "name": "Political Stability: Estimate",
+        "category": "governance",
+        "description": "Political stability and absence of violence",
     },
 }
 
@@ -174,15 +162,10 @@ def fetch_security_data(indicator_code: str, countries: List[str]) -> List[Dict]
     """Fetch security data from World Bank API"""
 
     base_url = "https://api.worldbank.org/v2"
-    country_str = ';'.join(countries)
+    country_str = ";".join(countries)
 
     url = f"{base_url}/country/{country_str}/indicator/{indicator_code}"
-    params = {
-        'format': 'json',
-        'per_page': 2000,
-        'date': '2010:2024',
-        'source': 2
-    }
+    params = {"format": "json", "per_page": 2000, "date": "2010:2024", "source": 2}
 
     try:
         response = requests.get(url, params=params, timeout=60)
@@ -206,7 +189,8 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_i
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.world_security_data (
             id SERIAL PRIMARY KEY,
             indicator_code VARCHAR(50) NOT NULL,
@@ -221,49 +205,59 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_i
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(indicator_code, country_code, year)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_world_security_region
         ON sofia.world_security_data(region, country_code)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_world_security_indicator
         ON sofia.world_security_data(indicator_code, year DESC)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_world_security_category
         ON sofia.world_security_data(category)
-    """)
+    """
+    )
 
     inserted = 0
 
     for record in records:
-        value = record.get('value')
+        value = record.get("value")
         if value is None:
             continue
 
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.world_security_data
                 (indicator_code, indicator_name, category, region, country_code, country_name, year, value)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (indicator_code, country_code, year)
                 DO UPDATE SET value = EXCLUDED.value, region = EXCLUDED.region
-            """, (
-                indicator_code,
-                indicator_info.get('name', ''),
-                indicator_info.get('category', 'other'),
-                region,
-                record.get('countryiso3code', record.get('country', {}).get('id')),
-                record.get('country', {}).get('value'),
-                int(record.get('date')) if record.get('date') else None,
-                float(value)
-            ))
+            """,
+                (
+                    indicator_code,
+                    indicator_info.get("name", ""),
+                    indicator_info.get("category", "other"),
+                    region,
+                    record.get("countryiso3code", record.get("country", {}).get("id")),
+                    record.get("country", {}).get("value"),
+                    int(record.get("date")) if record.get("date") else None,
+                    float(value),
+                ),
+            )
             inserted += 1
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -310,7 +304,7 @@ def main():
         # Group indicators by category
         categories = {}
         for code, info in SECURITY_INDICATORS.items():
-            cat = info['category']
+            cat = info["category"]
             if cat not in categories:
                 categories[cat] = []
             categories[cat].append((code, info))
@@ -363,5 +357,5 @@ def main():
     print("Table created: sofia.world_security_data")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

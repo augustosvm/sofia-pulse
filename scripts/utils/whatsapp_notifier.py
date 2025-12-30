@@ -2,14 +2,15 @@
 """WhatsApp Notifier - Send alerts and reports"""
 
 import os
+
 import requests
-from typing import Optional
+
 
 class WhatsAppNotifier:
     def __init__(self):
-        self.whatsapp_number = os.getenv('WHATSAPP_NUMBER', '5527988024062')
-        self.whatsapp_api_url = os.getenv('WHATSAPP_API_URL', 'http://localhost:3001/send')
-        self.enabled = os.getenv('WHATSAPP_ENABLED', 'true').lower() == 'true'
+        self.whatsapp_number = os.getenv("WHATSAPP_NUMBER", "5527988024062")
+        self.whatsapp_api_url = os.getenv("WHATSAPP_API_URL", "http://localhost:3001/send")
+        self.enabled = os.getenv("WHATSAPP_ENABLED", "true").lower() == "true"
 
     def send(self, message: str) -> bool:
         """Send WhatsApp message"""
@@ -18,9 +19,7 @@ class WhatsAppNotifier:
 
         try:
             response = requests.post(
-                self.whatsapp_api_url,
-                json={'to': self.whatsapp_number, 'message': message},
-                timeout=10
+                self.whatsapp_api_url, json={"to": self.whatsapp_number, "message": message}, timeout=10
             )
             return response.status_code == 200
         except:
@@ -73,7 +72,7 @@ Check logs!"""
     def send_report(self, report_path: str, max_chars: int = 4000):
         """Send analysis report via WhatsApp (truncated if needed)"""
         try:
-            with open(report_path, 'r', encoding='utf-8') as f:
+            with open(report_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Truncate if too long

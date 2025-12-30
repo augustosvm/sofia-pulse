@@ -1,46 +1,48 @@
 #!/usr/bin/env python3
 """Análise de cobertura expandida com TODAS as áreas tech"""
-import psycopg2, os
+import os
+
+import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
 c = psycopg2.connect(
-    host=os.getenv('POSTGRES_HOST'),
-    port=os.getenv('POSTGRES_PORT', '5432'),
-    user=os.getenv('POSTGRES_USER'),
-    password=os.getenv('POSTGRES_PASSWORD'),
-    database=os.getenv('POSTGRES_DB')
+    host=os.getenv("POSTGRES_HOST"),
+    port=os.getenv("POSTGRES_PORT", "5432"),
+    user=os.getenv("POSTGRES_USER"),
+    password=os.getenv("POSTGRES_PASSWORD"),
+    database=os.getenv("POSTGRES_DB"),
 )
 cur = c.cursor()
 
 # Áreas expandidas
 areas = {
-    'Gestão/Liderança': ['cto', 'engineering manager', 'tech lead', 'vp engineering', 'director'],
-    'Arquitetura': ['architect', 'solutions architect', 'software architect', 'cloud architect'],
-    'QA/Testes': ['qa', 'quality assurance', 'test engineer', 'sdet', 'automation test'],
-    'Frontend': ['frontend', 'react', 'vue', 'angular', 'javascript'],
-    'Backend': ['backend', 'java', 'python', 'node', 'api', 'microservices'],
-    'Full Stack': ['full stack', 'fullstack'],
-    'Mobile': ['mobile', 'android', 'ios', 'swift', 'kotlin', 'flutter'],
-    'Data Science': ['data scientist', 'data analyst', 'data engineer', 'big data'],
-    'AI/ML': ['ai', 'machine learning', 'ml engineer', 'artificial intelligence'],
-    'LLM/RAG': ['llm', 'large language model', 'rag', 'gpt', 'openai'],
-    'DevOps/SRE': ['devops', 'sre', 'kubernetes', 'docker', 'terraform'],
-    'Cloud': ['aws', 'azure', 'gcp', 'cloud engineer'],
-    'Segurança': ['security', 'cybersecurity', 'infosec', 'penetration'],
-    'DBA': ['dba', 'database admin', 'postgresql', 'mysql'],
-    'Redes': ['network', 'cisco', 'routing', 'network admin'],
-    'Blockchain': ['blockchain', 'web3', 'solidity', 'smart contract'],
-    'IoT/Embedded': ['iot', 'embedded', 'firmware'],
-    'Gaming': ['game developer', 'unity', 'unreal'],
-    'Fintech': ['fintech', 'payment', 'stripe', 'paypal'],
+    "Gestão/Liderança": ["cto", "engineering manager", "tech lead", "vp engineering", "director"],
+    "Arquitetura": ["architect", "solutions architect", "software architect", "cloud architect"],
+    "QA/Testes": ["qa", "quality assurance", "test engineer", "sdet", "automation test"],
+    "Frontend": ["frontend", "react", "vue", "angular", "javascript"],
+    "Backend": ["backend", "java", "python", "node", "api", "microservices"],
+    "Full Stack": ["full stack", "fullstack"],
+    "Mobile": ["mobile", "android", "ios", "swift", "kotlin", "flutter"],
+    "Data Science": ["data scientist", "data analyst", "data engineer", "big data"],
+    "AI/ML": ["ai", "machine learning", "ml engineer", "artificial intelligence"],
+    "LLM/RAG": ["llm", "large language model", "rag", "gpt", "openai"],
+    "DevOps/SRE": ["devops", "sre", "kubernetes", "docker", "terraform"],
+    "Cloud": ["aws", "azure", "gcp", "cloud engineer"],
+    "Segurança": ["security", "cybersecurity", "infosec", "penetration"],
+    "DBA": ["dba", "database admin", "postgresql", "mysql"],
+    "Redes": ["network", "cisco", "routing", "network admin"],
+    "Blockchain": ["blockchain", "web3", "solidity", "smart contract"],
+    "IoT/Embedded": ["iot", "embedded", "firmware"],
+    "Gaming": ["game developer", "unity", "unreal"],
+    "Fintech": ["fintech", "payment", "stripe", "paypal"],
 }
 
 print("=" * 80)
 print("📊 ANÁLISE EXPANDIDA DE COBERTURA - SOFIA PULSE")
 print("=" * 80)
 
-cur.execute('SELECT COUNT(*) FROM sofia.jobs')
+cur.execute("SELECT COUNT(*) FROM sofia.jobs")
 total = cur.fetchone()[0]
 print(f"\n🔍 Analisando {total} vagas totais\n")
 
@@ -48,8 +50,10 @@ results = {}
 for area, keywords in areas.items():
     conditions = []
     for kw in keywords:
-        conditions.append(f"(LOWER(title) LIKE '%{kw.lower()}%' OR LOWER(COALESCE(description, '')) LIKE '%{kw.lower()}%')")
-    
+        conditions.append(
+            f"(LOWER(title) LIKE '%{kw.lower()}%' OR LOWER(COALESCE(description, '')) LIKE '%{kw.lower()}%')"
+        )
+
     query = f"SELECT COUNT(*) FROM sofia.jobs WHERE {' OR '.join(conditions)}"
     cur.execute(query)
     count = cur.fetchone()[0]

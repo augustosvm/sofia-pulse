@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from shared.geo_helpers import normalize_location
 
 """
 UNICEF Data Collector
@@ -10,70 +9,81 @@ API: https://data.unicef.org/open-data/
 
 import os
 import sys
+from datetime import datetime
+from typing import Dict, List
+
 import psycopg2
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # UNICEF Indicators (via World Bank API which includes UNICEF data)
 UNICEF_INDICATORS = {
     # Child mortality
-    'SH.DYN.MORT': 'Mortality rate, under-5 (per 1,000)',
-    'SH.DYN.NMRT': 'Mortality rate, neonatal (per 1,000)',
-    'SP.DYN.IMRT.IN': 'Mortality rate, infant (per 1,000)',
-
+    "SH.DYN.MORT": "Mortality rate, under-5 (per 1,000)",
+    "SH.DYN.NMRT": "Mortality rate, neonatal (per 1,000)",
+    "SP.DYN.IMRT.IN": "Mortality rate, infant (per 1,000)",
     # Child health
-    'SH.IMM.MEAS': 'Immunization, measles (% children 12-23 months)',
-    'SH.IMM.IDPT': 'Immunization, DPT (% children 12-23 months)',
-    'SH.STA.STNT.ZS': 'Prevalence of stunting, children under 5 (%)',
-    'SH.STA.WAST.ZS': 'Prevalence of wasting, children under 5 (%)',
-    'SH.STA.MALN.ZS': 'Prevalence of underweight, children under 5 (%)',
-
+    "SH.IMM.MEAS": "Immunization, measles (% children 12-23 months)",
+    "SH.IMM.IDPT": "Immunization, DPT (% children 12-23 months)",
+    "SH.STA.STNT.ZS": "Prevalence of stunting, children under 5 (%)",
+    "SH.STA.WAST.ZS": "Prevalence of wasting, children under 5 (%)",
+    "SH.STA.MALN.ZS": "Prevalence of underweight, children under 5 (%)",
     # Education
-    'SE.PRM.NENR': 'Primary school enrollment, net (%)',
-    'SE.SEC.NENR': 'Secondary school enrollment, net (%)',
-    'SE.PRM.CMPT.ZS': 'Primary completion rate (%)',
-    'SE.SEC.CMPT.LO.ZS': 'Lower secondary completion rate (%)',
-    'SE.ADT.1524.LT.ZS': 'Youth literacy rate (15-24)',
-
+    "SE.PRM.NENR": "Primary school enrollment, net (%)",
+    "SE.SEC.NENR": "Secondary school enrollment, net (%)",
+    "SE.PRM.CMPT.ZS": "Primary completion rate (%)",
+    "SE.SEC.CMPT.LO.ZS": "Lower secondary completion rate (%)",
+    "SE.ADT.1524.LT.ZS": "Youth literacy rate (15-24)",
     # Child protection
-    'SP.M18.2024.FE.ZS': 'Women married before age 18 (%)',
-    'SH.STA.BRTC.ZS': 'Births attended by skilled health staff (%)',
-
+    "SP.M18.2024.FE.ZS": "Women married before age 18 (%)",
+    "SH.STA.BRTC.ZS": "Births attended by skilled health staff (%)",
     # Water and sanitation
-    'SH.H2O.SMDW.ZS': 'Access to safely managed drinking water (%)',
-    'SH.STA.SMSS.ZS': 'Access to safely managed sanitation (%)',
-
+    "SH.H2O.SMDW.ZS": "Access to safely managed drinking water (%)",
+    "SH.STA.SMSS.ZS": "Access to safely managed sanitation (%)",
     # Birth registration
-    'SP.REG.BRTH.ZS': 'Completeness of birth registration (%)',
+    "SP.REG.BRTH.ZS": "Completeness of birth registration (%)",
 }
 
-COUNTRIES = ['BRA', 'USA', 'CHN', 'IND', 'NGA', 'PAK', 'IDN', 'BGD', 'ETH', 'COD',
-             'MEX', 'PHL', 'EGY', 'VNM', 'TUR', 'IRN', 'THA', 'ZAF', 'COL', 'ARG']
+COUNTRIES = [
+    "BRA",
+    "USA",
+    "CHN",
+    "IND",
+    "NGA",
+    "PAK",
+    "IDN",
+    "BGD",
+    "ETH",
+    "COD",
+    "MEX",
+    "PHL",
+    "EGY",
+    "VNM",
+    "TUR",
+    "IRN",
+    "THA",
+    "ZAF",
+    "COL",
+    "ARG",
+]
 
 
 def fetch_unicef_data(indicator_code: str) -> List[Dict]:
     """Fetch UNICEF data via World Bank API"""
 
     base_url = "https://api.worldbank.org/v2"
-    country_str = ';'.join(COUNTRIES)
+    country_str = ";".join(COUNTRIES)
 
     url = f"{base_url}/country/{country_str}/indicator/{indicator_code}"
-    params = {
-        'format': 'json',
-        'per_page': 1000,
-        'date': '2010:2024',
-        'source': 2
-    }
+    params = {"format": "json", "per_page": 1000, "date": "2010:2024", "source": 2}
 
     try:
         response = requests.get(url, params=params, timeout=60)
@@ -97,7 +107,8 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_n
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.unicef_children_data (
             id SERIAL PRIMARY KEY,
             indicator_code VARCHAR(50) NOT NULL,
@@ -110,34 +121,40 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_n
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(indicator_code, country_code, year)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_unicef_indicator_year
         ON sofia.unicef_children_data(indicator_code, year DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
     for record in records:
-        if record.get('value') is None:
+        if record.get("value") is None:
             continue
 
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sofia.unicef_children_data
                 (indicator_code, indicator_name, country_code, country_name, year, value)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (indicator_code, country_code, year)
                 DO UPDATE SET value = EXCLUDED.value
-            """, (
-                indicator_code,
-                indicator_name,
-                record.get('countryiso3code', record.get('country', {}).get('id')),
-                record.get('country', {}).get('value'),
-                int(record.get('date')) if record.get('date') else None,
-                float(record.get('value'))
-            ))
+            """,
+                (
+                    indicator_code,
+                    indicator_name,
+                    record.get("countryiso3code", record.get("country", {}).get("id")),
+                    record.get("country", {}).get("value"),
+                    int(record.get("date")) if record.get("date") else None,
+                    float(record.get("value")),
+                ),
+            )
             inserted += 1
         except:
             continue
@@ -148,9 +165,9 @@ def save_to_database(conn, records: List[Dict], indicator_code: str, indicator_n
 
 
 def main():
-    print("="*80)
+    print("=" * 80)
     print("📊 UNICEF - Children's Data (via World Bank)")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📡 Source: https://data.unicef.org/")
@@ -186,9 +203,9 @@ def main():
 
     conn.close()
 
-    print("="*80)
+    print("=" * 80)
     print("✅ UNICEF COLLECTION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print(f"💾 Total records: {total_records}")
     print("")
     print("💡 Topics covered:")
@@ -199,5 +216,5 @@ def main():
     print("  • Water and sanitation")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

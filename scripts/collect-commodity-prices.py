@@ -6,42 +6,42 @@ Collects current prices for major commodities (oil, gold, copper, wheat, etc.)
 
 import os
 import sys
-import requests
+from typing import Any, Dict, List
+
 import psycopg2
-from psycopg2.extras import execute_batch
-from datetime import datetime
-from typing import List, Dict, Any
-import json
+import requests
 from dotenv import load_dotenv
+from psycopg2.extras import execute_batch
 
 # Load environment variables
 load_dotenv()
 
 # Database configuration
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'user': os.getenv('DB_USER', 'sofia'),
-    'password': os.getenv('DB_PASSWORD', 'sofia123strong'),
-    'database': os.getenv('DB_NAME', 'sofia_db'),
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "user": os.getenv("DB_USER", "sofia"),
+    "password": os.getenv("DB_PASSWORD", "sofia123strong"),
+    "database": os.getenv("DB_NAME", "sofia_db"),
 }
 
 # API Ninjas - FREE (get key at https://api-ninjas.com/api/commodityprice)
-API_NINJAS_KEY = os.getenv('API_NINJAS_KEY', '')
+API_NINJAS_KEY = os.getenv("API_NINJAS_KEY", "")
 
 # Free tier commodities - most commodities require premium plan
 # Only platinum is confirmed to work on free tier
 FREE_TIER_COMMODITIES = [
-    'platinum',
+    "platinum",
 ]
 
 # Premium commodities (require paid plan) - used for fallback data
 PREMIUM_COMMODITIES = [
-    'crude_oil_wti',
-    'crude_oil_brent',
-    'gold',
-    'copper',
+    "crude_oil_wti",
+    "crude_oil_brent",
+    "gold",
+    "copper",
 ]
+
 
 def fetch_api_ninjas() -> List[Dict[str, Any]]:
     """Fetch commodity prices from API Ninjas (free tier only)"""
@@ -56,18 +56,20 @@ def fetch_api_ninjas() -> List[Dict[str, Any]]:
     for commodity in FREE_TIER_COMMODITIES:
         try:
             url = f"https://api.api-ninjas.com/v1/commodityprice?name={commodity}"
-            headers = {'X-Api-Key': API_NINJAS_KEY}
+            headers = {"X-Api-Key": API_NINJAS_KEY}
 
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 data = response.json()
-                if data and 'price' in data:
-                    records.append({
-                        'commodity': data.get('name', commodity),
-                        'price': float(data['price']),
-                        'unit': data.get('unit', 'USD'),
-                        'source': 'API Ninjas',
-                    })
+                if data and "price" in data:
+                    records.append(
+                        {
+                            "commodity": data.get("name", commodity),
+                            "price": float(data["price"]),
+                            "unit": data.get("unit", "USD"),
+                            "source": "API Ninjas",
+                        }
+                    )
                     print(f"   ✅ {commodity}: ${data['price']}")
             else:
                 print(f"   ⚠️  {commodity}: HTTP {response.status_code}")
@@ -83,6 +85,7 @@ def fetch_api_ninjas() -> List[Dict[str, Any]]:
 
     return records
 
+
 def fetch_fallback_prices() -> List[Dict[str, Any]]:
     """Fallback: Return placeholder data for premium commodities"""
 
@@ -93,10 +96,10 @@ def fetch_fallback_prices() -> List[Dict[str, Any]]:
         # Placeholder data for premium commodities (approximate Q4 2024 prices)
         # These require API Ninjas premium plan or alternative data source
         fallback_commodities = {
-            'crude_oil_wti': {'price': 76.20, 'unit': 'USD/barrel', 'note': 'Q4 2024 avg'},
-            'crude_oil_brent': {'price': 79.80, 'unit': 'USD/barrel', 'note': 'Q4 2024 avg'},
-            'gold': {'price': 2068.00, 'unit': 'USD/oz', 'note': 'Q4 2024 avg'},
-            'copper': {'price': 4.15, 'unit': 'USD/lb', 'note': 'Q4 2024 avg'},
+            "crude_oil_wti": {"price": 76.20, "unit": "USD/barrel", "note": "Q4 2024 avg"},
+            "crude_oil_brent": {"price": 79.80, "unit": "USD/barrel", "note": "Q4 2024 avg"},
+            "gold": {"price": 2068.00, "unit": "USD/oz", "note": "Q4 2024 avg"},
+            "copper": {"price": 4.15, "unit": "USD/lb", "note": "Q4 2024 avg"},
         }
 
         print("⚠️  Using placeholder data (Q4 2024 averages)")
@@ -104,18 +107,21 @@ def fetch_fallback_prices() -> List[Dict[str, Any]]:
         print("   📝 Or use alternative APIs: commodities-api.com, alphavantage.co")
 
         for name, data in fallback_commodities.items():
-            records.append({
-                'commodity': name,
-                'price': data['price'],
-                'unit': data['unit'],
-                'source': 'Placeholder (Q4 2024)',
-            })
+            records.append(
+                {
+                    "commodity": name,
+                    "price": data["price"],
+                    "unit": data["unit"],
+                    "source": "Placeholder (Q4 2024)",
+                }
+            )
             print(f"   📊 {name}: ${data['price']} {data['unit']} ({data['note']})")
 
     except Exception as e:
         print(f"❌ Fallback failed: {e}")
 
     return records
+
 
 def safe_float(value, max_value=999999999.99):
     """Safely convert to float, handling None"""
@@ -128,6 +134,7 @@ def safe_float(value, max_value=999999999.99):
         return float_val
     except (ValueError, TypeError):
         return None
+
 
 def insert_to_db(records: List[Dict[str, Any]]) -> int:
     """Insert commodity prices to PostgreSQL"""
@@ -155,12 +162,14 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
 
         batch_data = []
         for record in records:
-            batch_data.append((
-                record.get('commodity'),
-                safe_float(record.get('price')),
-                record.get('unit', 'USD'),
-                record.get('source', 'Unknown'),
-            ))
+            batch_data.append(
+                (
+                    record.get("commodity"),
+                    safe_float(record.get("price")),
+                    record.get("unit", "USD"),
+                    record.get("source", "Unknown"),
+                )
+            )
 
         execute_batch(cur, insert_query, batch_data, page_size=100)
         conn.commit()
@@ -173,11 +182,13 @@ def insert_to_db(records: List[Dict[str, Any]]) -> int:
         if conn:
             conn.rollback()
         import traceback
+
         traceback.print_exc()
         return 0
     finally:
         if conn:
             conn.close()
+
 
 def main():
     print("=" * 80)
@@ -199,14 +210,14 @@ def main():
 
     # Add API records first (priority)
     for record in api_records:
-        commodity = record['commodity']
+        commodity = record["commodity"]
         if commodity not in seen_commodities:
             all_records.append(record)
             seen_commodities.add(commodity)
 
     # Add fallback only for missing commodities
     for record in fallback_records:
-        commodity = record['commodity']
+        commodity = record["commodity"]
         if commodity not in seen_commodities:
             all_records.append(record)
             seen_commodities.add(commodity)
@@ -240,5 +251,6 @@ def main():
     print("   Free alternative: Alpha Vantage (commodities section)")
     print("   Get key at: https://www.alphavantage.co/support/#api-key")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

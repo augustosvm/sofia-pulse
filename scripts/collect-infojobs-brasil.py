@@ -5,81 +5,110 @@ URL: https://developer.infojobs.net/
 Auth: OAuth2 (requer registro)
 Features: Busca de vagas tech no Brasil
 """
-import requests
-import psycopg2
 import os
 import sys
 from pathlib import Path
+
+import psycopg2
+import requests
 from dotenv import load_dotenv
 
 # Import geo helpers
-sys.path.insert(0, str(Path(__file__).parent / 'shared'))
+sys.path.insert(0, str(Path(__file__).parent / "shared"))
 from geo_helpers import normalize_location
 
 load_dotenv()
 
 # InfoJobs API (Brasil)
-INFOJOBS_CLIENT_ID = os.getenv('INFOJOBS_CLIENT_ID', '')
-INFOJOBS_CLIENT_SECRET = os.getenv('INFOJOBS_CLIENT_SECRET', '')
+INFOJOBS_CLIENT_ID = os.getenv("INFOJOBS_CLIENT_ID", "")
+INFOJOBS_CLIENT_SECRET = os.getenv("INFOJOBS_CLIENT_SECRET", "")
 INFOJOBS_API_URL = "https://api.infojobs.com.br/api/2/offer"
 
 # Keywords tech focadas em Brasil
 KEYWORDS = [
-    "desenvolvedor", "programador", "software engineer",
-    "data scientist", "devops", "frontend", "backend",
-    "full stack", "mobile", "qa", "tech lead"
+    "desenvolvedor",
+    "programador",
+    "software engineer",
+    "data scientist",
+    "devops",
+    "frontend",
+    "backend",
+    "full stack",
+    "mobile",
+    "qa",
+    "tech lead",
 ]
+
 
 def get_access_token():
     """Obtém token OAuth2 do InfoJobs"""
     if not INFOJOBS_CLIENT_ID or not INFOJOBS_CLIENT_SECRET:
         print("⚠️  INFOJOBS_CLIENT_ID e INFOJOBS_CLIENT_SECRET não configurados")
         return None
-    
+
     auth_url = "https://www.infojobs.com.br/oauth/authorize"
     token_url = "https://api.infojobs.com.br/oauth/user-authorize/authorize"
-    
+
     # Nota: OAuth2 requer fluxo de autorização completo
     # Por enquanto, retornar None e usar scraping alternativo
     return None
 
+
 def collect_infojobs():
     """Coleta vagas do InfoJobs Brasil"""
     jobs = []
-    
+
     # Tentar endpoint público sem auth (se existir)
     for keyword in KEYWORDS:
         try:
             # Endpoint público de busca (sem auth)
             params = {
-                'q': keyword,
-                'province': 'brasil',
-                'category': 'informatica-telecomunicaciones',
-                'maxResults': 50
+                "q": keyword,
+                "province": "brasil",
+                "category": "informatica-telecomunicaciones",
+                "maxResults": 50,
             }
-            
+
             # Tentar sem autenticação primeiro
             response = requests.get(INFOJOBS_API_URL, params=params, timeout=15)
-            
+
             if response.status_code == 200:
                 data = response.json()
-                job_list = data.get('offers', data.get('items', []))
-                
+                job_list = data.get("offers", data.get("items", []))
+
                 for job in job_list:
-                    jobs.append({
-                        'job_id': f"infojobs-{job.get('id')}",
-                        'title': job.get('title'),
-                        'company': job.get('author', {}).get('name') if isinstance(job.get('author'), dict) else job.get('company'),
-                        'location': job.get('province', {}).get('value') if isinstance(job.get('province'), dict) else job.get('location', 'Brasil'),
-                        'description': job.get('description', '')[:1000],
-                        'url': job.get('link'),
-                        'platform': 'infojobs',
-                        'posted_date': job.get('updated'),
-                        'salary_min': job.get('salaryMin', {}).get('value') if isinstance(job.get('salaryMin'), dict) else None,
-                        'salary_max': job.get('salaryMax', {}).get('value') if isinstance(job.get('salaryMax'), dict) else None,
-                        'search_keyword': keyword
-                    })
-                
+                    jobs.append(
+                        {
+                            "job_id": f"infojobs-{job.get('id')}",
+                            "title": job.get("title"),
+                            "company": (
+                                job.get("author", {}).get("name")
+                                if isinstance(job.get("author"), dict)
+                                else job.get("company")
+                            ),
+                            "location": (
+                                job.get("province", {}).get("value")
+                                if isinstance(job.get("province"), dict)
+                                else job.get("location", "Brasil")
+                            ),
+                            "description": job.get("description", "")[:1000],
+                            "url": job.get("link"),
+                            "platform": "infojobs",
+                            "posted_date": job.get("updated"),
+                            "salary_min": (
+                                job.get("salaryMin", {}).get("value")
+                                if isinstance(job.get("salaryMin"), dict)
+                                else None
+                            ),
+                            "salary_max": (
+                                job.get("salaryMax", {}).get("value")
+                                if isinstance(job.get("salaryMax"), dict)
+                                else None
+                            ),
+                            "search_keyword": keyword,
+                        }
+                    )
+
                 print(f"✅ InfoJobs: {len(job_list)} vagas para '{keyword}'")
             elif response.status_code == 401:
                 print(f"⚠️  InfoJobs: Requer autenticação OAuth2")
@@ -87,41 +116,40 @@ def collect_infojobs():
                 break
             else:
                 print(f"⚠️  InfoJobs: {response.status_code} para '{keyword}'")
-                
+
         except Exception as e:
             print(f"❌ InfoJobs erro para '{keyword}': {str(e)[:50]}")
-    
+
     return jobs
+
 
 def save_to_db(jobs):
     """Salva vagas no banco"""
     if not jobs:
         return 0
-    
+
     conn = psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST'),
-        port=os.getenv('POSTGRES_PORT', '5432'),
-        user=os.getenv('POSTGRES_USER'),
-        password=os.getenv('POSTGRES_PASSWORD'),
-        database=os.getenv('POSTGRES_DB')
+        host=os.getenv("POSTGRES_HOST"),
+        port=os.getenv("POSTGRES_PORT", "5432"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        database=os.getenv("POSTGRES_DB"),
     )
     cur = conn.cursor()
-    
+
     saved = 0
     for job in jobs:
         try:
             # Parse location (InfoJobs Brasil)
-            location_str = job.get('location', 'Brasil')
-            parts = location_str.split(',') if location_str else []
+            location_str = job.get("location", "Brasil")
+            parts = location_str.split(",") if location_str else []
             city = parts[0].strip() if len(parts) > 0 else None
-            
+
             # Normalize geographic data (Brasil)
-            geo = normalize_location(conn, {
-                'country': 'Brazil',
-                'city': city
-            })
-            
-            cur.execute("""
+            geo = normalize_location(conn, {"country": "Brazil", "city": city})
+
+            cur.execute(
+                """
                 INSERT INTO sofia.jobs (
                     job_id, title, company, location, city, country, country_id, city_id,
                     description, url, platform, posted_date, salary_min, salary_max,
@@ -131,20 +159,33 @@ def save_to_db(jobs):
                     title = EXCLUDED.title,
                     description = EXCLUDED.description,
                     collected_at = NOW()
-            """, (
-                job['job_id'], job['title'], job['company'], job['location'],
-                city, 'Brazil', geo['country_id'], geo['city_id'],
-                job['description'], job['url'], job['platform'], 
-                job['posted_date'], job['salary_min'], job['salary_max'],
-                job['search_keyword']
-            ))
+            """,
+                (
+                    job["job_id"],
+                    job["title"],
+                    job["company"],
+                    job["location"],
+                    city,
+                    "Brazil",
+                    geo["country_id"],
+                    geo["city_id"],
+                    job["description"],
+                    job["url"],
+                    job["platform"],
+                    job["posted_date"],
+                    job["salary_min"],
+                    job["salary_max"],
+                    job["search_keyword"],
+                ),
+            )
             saved += 1
         except Exception as e:
             print(f"⚠️  Erro ao salvar: {str(e)[:50]}")
-    
+
     conn.commit()
     conn.close()
     return saved
+
 
 if __name__ == "__main__":
     print("=" * 70)
@@ -155,14 +196,14 @@ if __name__ == "__main__":
     print("   2. Crie uma aplicação")
     print("   3. Adicione INFOJOBS_CLIENT_ID e INFOJOBS_CLIENT_SECRET no .env")
     print("=" * 70)
-    
+
     jobs = collect_infojobs()
-    
+
     if jobs:
         print(f"\n💾 Salvando {len(jobs)} vagas...")
         saved = save_to_db(jobs)
         print(f"\n✅ Total salvo: {saved} vagas")
     else:
         print("\n⚠️  Nenhuma vaga coletada. Configure OAuth2 primeiro.")
-    
+
     print("=" * 70)

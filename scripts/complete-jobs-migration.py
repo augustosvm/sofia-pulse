@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Complete migration - add ALL missing columns"""
-import psycopg2
 import os
+
+import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +12,7 @@ conn = psycopg2.connect(
     port=os.getenv("POSTGRES_PORT", "5432"),
     user=os.getenv("POSTGRES_USER"),
     password=os.getenv("POSTGRES_PASSWORD"),
-    database=os.getenv("POSTGRES_DB")
+    database=os.getenv("POSTGRES_DB"),
 )
 
 cur = conn.cursor()

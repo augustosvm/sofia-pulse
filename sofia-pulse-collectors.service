@@ -1,0 +1,14 @@
+[Unit]
+Description=Sofia Pulse Data Collectors
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/sofia-pulse
+ExecStart=/home/ubuntu/sofia-pulse/run-collectors.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -9,8 +9,8 @@ This package contains shared helper functions used across collectors:
 """
 
 __all__ = [
-    'geo_helpers',
-    'geo_id_helpers',
-    'org_helpers',
-    'collector_reporter',
+    "geo_helpers",
+    "geo_id_helpers",
+    "org_helpers",
+    "collector_reporter",
 ]

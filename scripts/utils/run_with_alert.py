@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 """Wrapper to run collectors/analytics with WhatsApp alerts on failure"""
 
-import sys
-import subprocess
 import os
+import subprocess
+import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 try:
     from whatsapp_notifier import WhatsAppNotifier
+
     whatsapp = WhatsAppNotifier()
 except:
     whatsapp = None
 
+
 def run_command(cmd: list, name: str):
     """Run command and alert on failure"""
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=600
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
 
         if result.returncode != 0:
             error = result.stderr or result.stdout or "Unknown error"
@@ -43,7 +40,8 @@ def run_command(cmd: list, name: str):
         print(f"❌ {name} error: {e}", file=sys.stderr)
         return False
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: run_with_alert.py <name> <command> [args...]")
         sys.exit(1)

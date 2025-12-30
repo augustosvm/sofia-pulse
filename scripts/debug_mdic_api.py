@@ -1,6 +1,4 @@
 import requests
-import json
-
 
 url = "https://api-comexstat.mdic.gov.br/general"
 
@@ -8,18 +6,10 @@ url = "https://api-comexstat.mdic.gov.br/general"
 payload = {
     "flow": "export",
     "monthDetail": True,
-    "period": {
-        "from": "2024-01",
-        "to": "2024-02"
-    },
-    "filters": [
-        {
-            "filter": "ncm",
-            "values": ["85171300"] # Smartphone (High volume)
-        }
-    ],
+    "period": {"from": "2024-01", "to": "2024-02"},
+    "filters": [{"filter": "ncm", "values": ["85171300"]}],  # Smartphone (High volume)
     "details": ["country", "state"],
-    "metrics": ["metricFOB", "metricKG"]
+    "metrics": ["metricFOB", "metricKG"],
 }
 
 print(f"Testing POST to {url} with details=['country', 'state']")
@@ -29,13 +19,13 @@ try:
     if resp.status_code == 200:
         data = resp.json()
         print("Success!")
-        if 'data' in data and 'list' in data['data']:
-            items = data['data']['list']
+        if "data" in data and "list" in data["data"]:
+            items = data["data"]["list"]
             print(f"TOTAL RECORDS: {len(items)}")
             if len(items) > 0:
-                countries = set(i.get('country') for i in items)
-                months = set(i.get('monthNumber') for i in items)
-                states = set(i.get('state') for i in items)
+                countries = set(i.get("country") for i in items)
+                months = set(i.get("monthNumber") for i in items)
+                states = set(i.get("state") for i in items)
                 print(f"Unique Countries ({len(countries)}): {list(countries)[:5]}")
                 print(f"Unique Months: {months}")
                 print(f"Unique States: {len(states)}")

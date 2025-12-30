@@ -8,22 +8,20 @@ Centraliza INSERTs para tabelas consolidadas:
 """
 
 import json
-from typing import Optional, Dict, Any, List
 from datetime import datetime
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from typing import Any, Dict, List, Optional
 
 
 class ConsolidatedTablesHelper:
     """Helper para gerenciar INSERTs em tabelas consolidadas"""
-    
+
     def __init__(self, conn):
         """
         Args:
             conn: Conexão psycopg2
         """
         self.conn = conn
-    
+
     def insert_tech_trend(
         self,
         source: str,
@@ -39,10 +37,10 @@ class ConsolidatedTablesHelper:
         growth_rate: Optional[float] = None,
         period_start: Optional[datetime] = None,
         period_end: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Insert/Update tech trend"""
-        
+
         query = """
         INSERT INTO sofia.tech_trends (
             source, name, category, trend_type,
@@ -60,16 +58,29 @@ class ConsolidatedTablesHelper:
             metadata = EXCLUDED.metadata,
             collected_at = NOW()
         """
-        
+
         with self.conn.cursor() as cur:
-            cur.execute(query, (
-                source, name, category, trend_type,
-                score, rank, stars, forks, views, mentions, growth_rate,
-                period_start, period_end,
-                json.dumps(metadata) if metadata else None
-            ))
+            cur.execute(
+                query,
+                (
+                    source,
+                    name,
+                    category,
+                    trend_type,
+                    score,
+                    rank,
+                    stars,
+                    forks,
+                    views,
+                    mentions,
+                    growth_rate,
+                    period_start,
+                    period_end,
+                    json.dumps(metadata) if metadata else None,
+                ),
+            )
         self.conn.commit()
-    
+
     def insert_community_post(
         self,
         source: str,
@@ -84,10 +95,10 @@ class ConsolidatedTablesHelper:
         category: Optional[str] = None,
         tags: Optional[List[str]] = None,
         posted_at: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Insert/Update community post"""
-        
+
         query = """
         INSERT INTO sofia.community_posts (
             source, external_id, title, url, content,
@@ -102,18 +113,28 @@ class ConsolidatedTablesHelper:
             metadata = EXCLUDED.metadata,
             collected_at = NOW()
         """
-        
+
         with self.conn.cursor() as cur:
-            cur.execute(query, (
-                source, external_id, title, url, content,
-                author, score, comments_count, upvotes,
-                category,
-                json.dumps(tags) if tags else None,
-                posted_at,
-                json.dumps(metadata) if metadata else None
-            ))
+            cur.execute(
+                query,
+                (
+                    source,
+                    external_id,
+                    title,
+                    url,
+                    content,
+                    author,
+                    score,
+                    comments_count,
+                    upvotes,
+                    category,
+                    json.dumps(tags) if tags else None,
+                    posted_at,
+                    json.dumps(metadata) if metadata else None,
+                ),
+            )
         self.conn.commit()
-    
+
     def insert_patent(
         self,
         source: str,
@@ -129,10 +150,10 @@ class ConsolidatedTablesHelper:
         filing_date: Optional[datetime] = None,
         publication_date: Optional[datetime] = None,
         grant_date: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Insert/Update patent"""
-        
+
         query = """
         INSERT INTO sofia.patents (
             source, patent_number, title, abstract,
@@ -148,28 +169,39 @@ class ConsolidatedTablesHelper:
             metadata = EXCLUDED.metadata,
             collected_at = NOW()
         """
-        
+
         with self.conn.cursor() as cur:
-            cur.execute(query, (
-                source, patent_number, title, abstract,
-                applicant, inventor,
-                ipc_classification, technology_field,
-                country_id, applicant_country,
-                filing_date, publication_date, grant_date,
-                json.dumps(metadata) if metadata else None
-            ))
+            cur.execute(
+                query,
+                (
+                    source,
+                    patent_number,
+                    title,
+                    abstract,
+                    applicant,
+                    inventor,
+                    ipc_classification,
+                    technology_field,
+                    country_id,
+                    applicant_country,
+                    filing_date,
+                    publication_date,
+                    grant_date,
+                    json.dumps(metadata) if metadata else None,
+                ),
+            )
         self.conn.commit()
-    
+
     def batch_insert_tech_trends(self, trends: List[Dict[str, Any]]):
         """Batch insert tech trends"""
         for trend in trends:
             self.insert_tech_trend(**trend)
-    
+
     def batch_insert_community_posts(self, posts: List[Dict[str, Any]]):
         """Batch insert community posts"""
         for post in posts:
             self.insert_community_post(**post)
-    
+
     def batch_insert_patents(self, patents: List[Dict[str, Any]]):
         """Batch insert patents"""
         for patent in patents:

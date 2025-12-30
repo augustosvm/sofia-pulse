@@ -6,18 +6,19 @@ Processes in small batches with frequent commits
 
 import os
 import sys
-import psycopg2
 from datetime import datetime
+
+import psycopg2
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.shared.org_helpers import get_or_create_organization
 
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', '91.98.158.19'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'user': os.getenv('DB_USER', 'sofia'),
-    'password': os.getenv('DB_PASSWORD', 'sofia123strong'),
-    'database': os.getenv('DB_NAME', 'sofia_db')
+    "host": os.getenv("DB_HOST", "91.98.158.19"),
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "user": os.getenv("DB_USER", "sofia"),
+    "password": os.getenv("DB_PASSWORD", "sofia123strong"),
+    "database": os.getenv("DB_NAME", "sofia_db"),
 }
 
 BATCH_SIZE = 50  # Process 50 records at a time
@@ -32,13 +33,15 @@ def backfill_table(conn, table_name, company_col, extra_cols=None):
     cur = conn.cursor()
 
     # Count total to process
-    cur.execute(f"""
+    cur.execute(
+        f"""
         SELECT COUNT(*)
         FROM sofia.{table_name}
         WHERE organization_id IS NULL
         AND {company_col} IS NOT NULL
         AND {company_col} != ''
-    """)
+    """
+    )
     total = cur.fetchone()[0]
 
     if total == 0:
@@ -49,7 +52,7 @@ def backfill_table(conn, table_name, company_col, extra_cols=None):
     print(f"   Encontrados {total:,} registros sem organization_id")
 
     # Build SELECT query
-    select_cols = ['id', company_col]
+    select_cols = ["id", company_col]
     if extra_cols:
         select_cols.extend(extra_cols)
 
@@ -59,7 +62,8 @@ def backfill_table(conn, table_name, company_col, extra_cols=None):
 
     while offset < total:
         # Get batch
-        cur.execute(f"""
+        cur.execute(
+            f"""
             SELECT {', '.join(select_cols)}
             FROM sofia.{table_name}
             WHERE organization_id IS NULL
@@ -67,7 +71,8 @@ def backfill_table(conn, table_name, company_col, extra_cols=None):
             AND {company_col} != ''
             ORDER BY id
             LIMIT {BATCH_SIZE} OFFSET {offset}
-        """)
+        """
+        )
 
         batch = cur.fetchall()
 
@@ -81,16 +86,16 @@ def backfill_table(conn, table_name, company_col, extra_cols=None):
             country = None
 
             if extra_cols:
-                if 'company_url' in extra_cols:
-                    idx = select_cols.index('company_url')
+                if "company_url" in extra_cols:
+                    idx = select_cols.index("company_url")
                     company_url = row[idx] if idx < len(row) else None
 
-                if 'country' in extra_cols:
-                    idx = select_cols.index('country')
+                if "country" in extra_cols:
+                    idx = select_cols.index("country")
                     country = row[idx] if idx < len(row) else None
 
-                if 'city' in extra_cols:
-                    idx = select_cols.index('city')
+                if "city" in extra_cols:
+                    idx = select_cols.index("city")
                     city = row[idx] if idx < len(row) else None
                     if city and country:
                         location = f"{city}, {country}"
@@ -99,21 +104,17 @@ def backfill_table(conn, table_name, company_col, extra_cols=None):
 
             try:
                 # Get or create organization
-                org_id = get_or_create_organization(
-                    cur,
-                    company_name,
-                    company_url,
-                    location,
-                    country,
-                    table_name
-                )
+                org_id = get_or_create_organization(cur, company_name, company_url, location, country, table_name)
 
                 if org_id:
-                    cur.execute(f"""
+                    cur.execute(
+                        f"""
                         UPDATE sofia.{table_name}
                         SET organization_id = %s
                         WHERE id = %s
-                    """, (org_id, record_id))
+                    """,
+                        (org_id, record_id),
+                    )
                     updated += 1
 
                     # Commit frequently
@@ -130,17 +131,19 @@ def backfill_table(conn, table_name, company_col, extra_cols=None):
         # Progress update
         progress = min(offset, total)
         pct = (progress / total) * 100
-        print(f"   Progresso: {progress:,}/{total:,} ({pct:.1f}%) | Atualizados: {updated:,}", end='\r')
+        print(f"   Progresso: {progress:,}/{total:,} ({pct:.1f}%) | Atualizados: {updated:,}", end="\r")
 
     # Final commit
     conn.commit()
 
     # Stats
-    cur.execute(f"""
+    cur.execute(
+        f"""
         SELECT COUNT(DISTINCT organization_id)
         FROM sofia.{table_name}
         WHERE organization_id IS NOT NULL
-    """)
+    """
+    )
     unique_orgs = cur.fetchone()[0]
 
     print()  # New line after progress
@@ -168,7 +171,7 @@ def main():
         print("\n📝 Executando migration 042...")
         cur = conn.cursor()
         try:
-            with open('migrations/042_add_organization_id_to_priority_tables.sql', 'r') as f:
+            with open("migrations/042_add_organization_id_to_priority_tables.sql", "r") as f:
                 migration_sql = f.read()
                 cur.execute(migration_sql)
                 conn.commit()
@@ -179,9 +182,9 @@ def main():
         cur.close()
 
         # Backfill tables
-        backfill_table(conn, 'funding_rounds', 'company_name', ['country', 'city'])
-        backfill_table(conn, 'space_industry', 'company', ['country'])
-        backfill_table(conn, 'tech_jobs', 'company', ['company_url'])
+        backfill_table(conn, "funding_rounds", "company_name", ["country", "city"])
+        backfill_table(conn, "space_industry", "company", ["country"])
+        backfill_table(conn, "tech_jobs", "company", ["company_url"])
 
         # Final stats
         print("\n" + "=" * 80)
@@ -190,13 +193,15 @@ def main():
 
         cur = conn.cursor()
 
-        for table in ['funding_rounds', 'space_industry', 'tech_jobs']:
-            cur.execute(f"""
+        for table in ["funding_rounds", "space_industry", "tech_jobs"]:
+            cur.execute(
+                f"""
                 SELECT
                     COUNT(*) as total,
                     COUNT(organization_id) as with_org
                 FROM sofia.{table}
-            """)
+            """
+            )
             total, with_org = cur.fetchone()
             pct = (with_org / total * 100) if total else 0
             status = "✅" if pct >= 95 else "⚠️" if pct >= 80 else "❌"
@@ -217,8 +222,9 @@ def main():
     except Exception as e:
         print(f"\n❌ Erro: {e}")
         import traceback
+
         traceback.print_exc()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

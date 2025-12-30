@@ -24,19 +24,19 @@ Usage:
 """
 
 import os
+import signal
+import subprocess
 import sys
 import time
-import json
-import signal
-from typing import Dict, List, Optional, Callable
-from datetime import datetime, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Dict, List, Optional
+
 import psycopg2
-from psycopg2.extras import RealDictCursor
-from dotenv import load_dotenv
 import requests
-import subprocess
+from dotenv import load_dotenv
+from psycopg2.extras import RealDictCursor
 
 # Load environment variables
 load_dotenv()
@@ -44,35 +44,39 @@ load_dotenv()
 
 class Priority(Enum):
     """Task priority levels."""
-    CRITICAL = 1    # Must run immediately
-    HIGH = 2        # Run ASAP
-    NORMAL = 3      # Normal priority
-    LOW = 4         # Can wait
+
+    CRITICAL = 1  # Must run immediately
+    HIGH = 2  # Run ASAP
+    NORMAL = 3  # Normal priority
+    LOW = 4  # Can wait
 
 
 class CollectorStatus(Enum):
     """Collector health status."""
-    HEALTHY = 'healthy'
-    DEGRADED = 'degraded'       # Some failures but recoverable
-    FAILING = 'failing'          # Repeated failures
-    CIRCUIT_OPEN = 'circuit_open'  # Circuit breaker open
-    PAUSED = 'paused'            # Manually paused
-    DISABLED = 'disabled'        # Disabled due to dependency failure
+
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"  # Some failures but recoverable
+    FAILING = "failing"  # Repeated failures
+    CIRCUIT_OPEN = "circuit_open"  # Circuit breaker open
+    PAUSED = "paused"  # Manually paused
+    DISABLED = "disabled"  # Disabled due to dependency failure
 
 
 @dataclass
 class RetryPolicy:
     """Retry configuration for a collector."""
+
     max_attempts: int = 3
-    initial_delay_sec: int = 30         # 30 seconds
-    max_delay_sec: int = 300            # 5 minutes (was 3600)
-    backoff_multiplier: float = 2.0     # Exponential backoff
-    retry_on_errors: List[str] = field(default_factory=lambda: ['timeout', 'connection', 'rate_limit'])
+    initial_delay_sec: int = 30  # 30 seconds
+    max_delay_sec: int = 300  # 5 minutes (was 3600)
+    backoff_multiplier: float = 2.0  # Exponential backoff
+    retry_on_errors: List[str] = field(default_factory=lambda: ["timeout", "connection", "rate_limit"])
 
 
 @dataclass
 class FallbackPolicy:
     """Fallback configuration."""
+
     enabled: bool = True
     use_cached_data: bool = True
     cache_max_age_hours: int = 24
@@ -83,14 +87,16 @@ class FallbackPolicy:
 @dataclass
 class CircuitBreakerConfig:
     """Circuit breaker configuration."""
-    failure_threshold: int = 5          # Open after N failures
-    recovery_timeout_sec: int = 300     # 5 minutes
-    half_open_max_calls: int = 1        # Test with 1 call
+
+    failure_threshold: int = 5  # Open after N failures
+    recovery_timeout_sec: int = 300  # 5 minutes
+    half_open_max_calls: int = 1  # Test with 1 call
 
 
 @dataclass
 class CollectorTask:
     """Represents a scheduled collector task."""
+
     collector_name: str
     script_path: str
     priority: Priority = Priority.NORMAL
@@ -115,10 +121,10 @@ class IntelligentScheduler:
     def __init__(self):
         """Initialize scheduler."""
         self.conn = psycopg2.connect(
-            host=os.getenv('POSTGRES_HOST', 'localhost'),
-            user=os.getenv('POSTGRES_USER', 'sofia'),
-            password=os.getenv('POSTGRES_PASSWORD'),
-            database=os.getenv('POSTGRES_DB', 'sofia_db')
+            host=os.getenv("POSTGRES_HOST", "localhost"),
+            user=os.getenv("POSTGRES_USER", "sofia"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+            database=os.getenv("POSTGRES_DB", "sofia_db"),
         )
         self.cur = self.conn.cursor(cursor_factory=RealDictCursor)
 
@@ -132,9 +138,9 @@ class IntelligentScheduler:
         self.running = False
 
         # WhatsApp alerts
-        self.whatsapp_enabled = os.getenv('ALERT_WHATSAPP_ENABLED', 'false').lower() == 'true'
-        self.whatsapp_number = os.getenv('WHATSAPP_NUMBER')
-        self.sofia_endpoint = os.getenv('SOFIA_API_ENDPOINT', 'http://localhost:8001/api/v2/chat')
+        self.whatsapp_enabled = os.getenv("ALERT_WHATSAPP_ENABLED", "false").lower() == "true"
+        self.whatsapp_number = os.getenv("WHATSAPP_NUMBER")
+        self.sofia_endpoint = os.getenv("SOFIA_API_ENDPOINT", "http://localhost:8001/api/v2/chat")
 
         print("✅ IntelligentScheduler initialized")
         print(f"   Database: {os.getenv('POSTGRES_DB', 'sofia_db')}")
@@ -148,12 +154,12 @@ class IntelligentScheduler:
         self,
         collector_name: str,
         script_path: str,
-        priority: str = 'normal',
+        priority: str = "normal",
         retry_max: int = 3,
         retry_delay_sec: int = 60,
         fallback_enabled: bool = True,
         dependencies: Optional[List[str]] = None,
-        schedule_cron: Optional[str] = None
+        schedule_cron: Optional[str] = None,
     ):
         """
         Register a collector with the scheduler.
@@ -169,25 +175,20 @@ class IntelligentScheduler:
           schedule_cron: Cron expression (optional)
         """
         priority_enum = {
-            'critical': Priority.CRITICAL,
-            'high': Priority.HIGH,
-            'normal': Priority.NORMAL,
-            'low': Priority.LOW
+            "critical": Priority.CRITICAL,
+            "high": Priority.HIGH,
+            "normal": Priority.NORMAL,
+            "low": Priority.LOW,
         }.get(priority.lower(), Priority.NORMAL)
 
         task = CollectorTask(
             collector_name=collector_name,
             script_path=script_path,
             priority=priority_enum,
-            retry_policy=RetryPolicy(
-                max_attempts=retry_max,
-                initial_delay_sec=retry_delay_sec
-            ),
-            fallback_policy=FallbackPolicy(
-                enabled=fallback_enabled
-            ),
+            retry_policy=RetryPolicy(max_attempts=retry_max, initial_delay_sec=retry_delay_sec),
+            fallback_policy=FallbackPolicy(enabled=fallback_enabled),
             dependencies=dependencies or [],
-            schedule_cron=schedule_cron
+            schedule_cron=schedule_cron,
         )
 
         self.tasks[collector_name] = task
@@ -195,167 +196,122 @@ class IntelligentScheduler:
 
     def register_all_collectors(self):
         """Register all Sofia Pulse collectors with recommended configs."""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("REGISTERING ALL COLLECTORS")
-        print("="*80)
+        print("=" * 80)
 
         # CRITICAL: Real-time data sources
         self.register_collector(
-            'github',
-            'npx tsx scripts/collect.ts github',
-            priority='critical',
+            "github",
+            "npx tsx scripts/collect.ts github",
+            priority="critical",
             retry_max=5,
-            retry_delay_sec=300  # 5 min
+            retry_delay_sec=300,  # 5 min
         )
 
         self.register_collector(
-            'hackernews',
-            'npx tsx scripts/collect.ts hackernews',
-            priority='critical',
-            retry_max=5,
-            retry_delay_sec=300
+            "hackernews", "npx tsx scripts/collect.ts hackernews", priority="critical", retry_max=5, retry_delay_sec=300
         )
 
         self.register_collector(
-            'reddit',
-            'npx tsx scripts/collect.ts reddit',
-            priority='high',
-            retry_max=3,
-            retry_delay_sec=600
+            "reddit", "npx tsx scripts/collect.ts reddit", priority="high", retry_max=3, retry_delay_sec=600
         )
 
         self.register_collector(
-            'npm',
-            'npx tsx scripts/collect.ts npm',
-            priority='normal',
+            "npm", "npx tsx scripts/collect.ts npm", priority="normal", retry_max=2, retry_delay_sec=3600
+        )
+
+        self.register_collector(
+            "pypi", "npx tsx scripts/collect.ts pypi", priority="normal", retry_max=2, retry_delay_sec=3600
+        )
+
+        self.register_collector(
+            "stackoverflow",
+            "npx tsx scripts/collect.ts stackoverflow",
+            priority="normal",
             retry_max=2,
-            retry_delay_sec=3600
-        )
-
-        self.register_collector(
-            'pypi',
-            'npx tsx scripts/collect.ts pypi',
-            priority='normal',
-            retry_max=2,
-            retry_delay_sec=3600
-        )
-
-        self.register_collector(
-            'stackoverflow',
-            'npx tsx scripts/collect.ts stackoverflow',
-            priority='normal',
-            retry_max=2,
-            retry_delay_sec=3600
+            retry_delay_sec=3600,
         )
 
         # HIGH: Daily economic indicators
         self.register_collector(
-            'world_bank',
-            'scripts/collect-women-world-bank.py',
-            priority='high',
+            "world_bank",
+            "scripts/collect-women-world-bank.py",
+            priority="high",
             retry_max=3,
             retry_delay_sec=600,  # 10 min
-            fallback_enabled=True
+            fallback_enabled=True,
         )
 
         self.register_collector(
-            'fred',
-            'scripts/collect-women-fred.py',
-            priority='high',
-            retry_max=3,
-            retry_delay_sec=600
+            "fred", "scripts/collect-women-fred.py", priority="high", retry_max=3, retry_delay_sec=600
         )
 
         # NORMAL: Static/slow-changing data
         self.register_collector(
-            'eurostat',
-            'scripts/collect-women-eurostat.py',
-            priority='normal',
+            "eurostat",
+            "scripts/collect-women-eurostat.py",
+            priority="normal",
             retry_max=2,
-            retry_delay_sec=1800  # 30 min
+            retry_delay_sec=1800,  # 30 min
         )
 
         self.register_collector(
-            'ilo',
-            'scripts/collect-women-ilo.py',
-            priority='normal',
-            retry_max=2,
-            retry_delay_sec=1800
+            "ilo", "scripts/collect-women-ilo.py", priority="normal", retry_max=2, retry_delay_sec=1800
         )
 
         # Dependencies: Brazil security depends on IBGE data
-        self.register_collector(
-            'brazil_ibge',
-            'scripts/collect-women-brazil.py',
-            priority='normal',
-            retry_max=2
-        )
+        self.register_collector("brazil_ibge", "scripts/collect-women-brazil.py", priority="normal", retry_max=2)
 
         self.register_collector(
-            'brazil_security',
-            'scripts/collect-security-brazil.py',
-            priority='normal',
+            "brazil_security",
+            "scripts/collect-security-brazil.py",
+            priority="normal",
             retry_max=2,
-            dependencies=['brazil_ibge']  # Depends on IBGE
+            dependencies=["brazil_ibge"],  # Depends on IBGE
         )
 
         # BRAZIL: Data Collectors
         self.register_collector(
-            'mdic-regional',
-            'scripts/collect-mdic-comexstat.py',
-            priority='normal',
-            retry_max=3,
-            retry_delay_sec=300
+            "mdic-regional", "scripts/collect-mdic-comexstat.py", priority="normal", retry_max=3, retry_delay_sec=300
         )
 
         self.register_collector(
-            'fiesp-data',
-            'scripts/collect-fiesp-data.py',
-            priority='normal',
-            retry_max=3,
-            retry_delay_sec=3600
+            "fiesp-data", "scripts/collect-fiesp-data.py", priority="normal", retry_max=3, retry_delay_sec=3600
         )
 
         # UNIFIED: Organizations
         self.register_collector(
-            'ai-companies',
-            'npx tsx scripts/collect.ts ai-companies',
-            priority='high',
+            "ai-companies",
+            "npx tsx scripts/collect.ts ai-companies",
+            priority="high",
             retry_max=2,
-            retry_delay_sec=3600
-        )
-        
-        self.register_collector(
-            'universities',
-            'npx tsx scripts/collect.ts universities',
-            priority='normal',
-            retry_max=1,
-            retry_delay_sec=3600
+            retry_delay_sec=3600,
         )
 
         self.register_collector(
-            'ngos',
-            'npx tsx scripts/collect.ts ngos',
-            priority='normal',
+            "universities",
+            "npx tsx scripts/collect.ts universities",
+            priority="normal",
             retry_max=1,
-            retry_delay_sec=3600
+            retry_delay_sec=3600,
+        )
+
+        self.register_collector(
+            "ngos", "npx tsx scripts/collect.ts ngos", priority="normal", retry_max=1, retry_delay_sec=3600
         )
 
         # UNIFIED: Funding
         self.register_collector(
-            'yc-companies',
-            'npx tsx scripts/collect.ts yc-companies',
-            priority='normal',
+            "yc-companies",
+            "npx tsx scripts/collect.ts yc-companies",
+            priority="normal",
             retry_max=2,
-            retry_delay_sec=3600
+            retry_delay_sec=3600,
         )
 
         self.register_collector(
-            'producthunt',
-            'npx tsx scripts/collect.ts producthunt',
-            priority='high',
-            retry_max=3,
-            retry_delay_sec=900
+            "producthunt", "npx tsx scripts/collect.ts producthunt", priority="high", retry_max=3, retry_delay_sec=900
         )
 
         print(f"\n✅ Registered {len(self.tasks)} collectors")
@@ -382,28 +338,21 @@ class IntelligentScheduler:
 
         try:
             # Determine command based on file extension
-            if task.script_path.endswith('.ts'):
-                cmd = ['npx.cmd', 'tsx', task.script_path] if os.name == 'nt' else ['npx', 'tsx', task.script_path]
-            elif task.script_path.endswith('.py'):
+            if task.script_path.endswith(".ts"):
+                cmd = ["npx.cmd", "tsx", task.script_path] if os.name == "nt" else ["npx", "tsx", task.script_path]
+            elif task.script_path.endswith(".py"):
                 cmd = [sys.executable, task.script_path]
             else:
                 cmd = task.script_path.split()
 
             # Execute script
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=3600  # 1 hour timeout
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)  # 1 hour timeout
 
             success = result.returncode == 0
 
             # Complete run
             self.complete_collector_run(
-                run_id,
-                'success' if success else 'failed',
-                result.stdout if success else result.stderr
+                run_id, "success" if success else "failed", result.stdout if success else result.stderr
             )
 
             if success:
@@ -420,14 +369,14 @@ class IntelligentScheduler:
 
         except subprocess.TimeoutExpired:
             print(f"⏰ TIMEOUT: {task.collector_name}")
-            self.complete_collector_run(run_id, 'timeout', 'Execution timeout (>1h)')
+            self.complete_collector_run(run_id, "timeout", "Execution timeout (>1h)")
             task.consecutive_failures += 1
             return False
 
         except Exception as e:
             print(f"💥 EXCEPTION: {task.collector_name}")
             print(f"   Error: {str(e)}")
-            self.complete_collector_run(run_id, 'failed', str(e))
+            self.complete_collector_run(run_id, "failed", str(e))
             task.consecutive_failures += 1
             return False
 
@@ -452,10 +401,7 @@ class IntelligentScheduler:
                 return True
 
             # Exponential backoff
-            delay = min(
-                delay * task.retry_policy.backoff_multiplier,
-                task.retry_policy.max_delay_sec
-            )
+            delay = min(delay * task.retry_policy.backoff_multiplier, task.retry_policy.max_delay_sec)
 
         print(f"❌ All retries exhausted for {task.collector_name}")
         return False
@@ -476,7 +422,8 @@ class IntelligentScheduler:
         print(f"\n🔄 FALLBACK: {task.collector_name}")
 
         # Check for recent successful run
-        self.cur.execute("""
+        self.cur.execute(
+            """
             SELECT completed_at, records_processed
             FROM sofia.collector_runs
             WHERE collector_name = %s
@@ -484,7 +431,9 @@ class IntelligentScheduler:
               AND completed_at >= NOW() - INTERVAL '%s hours'
             ORDER BY completed_at DESC
             LIMIT 1
-        """, (task.collector_name, task.fallback_policy.cache_max_age_hours))
+        """,
+            (task.collector_name, task.fallback_policy.cache_max_age_hours),
+        )
 
         result = self.cur.fetchone()
 
@@ -492,14 +441,10 @@ class IntelligentScheduler:
             print(f"✅ Using cached data from {result['completed_at']}")
             print(f"   Records: {result['records_processed']}")
             if task.fallback_policy.notify_on_fallback:
-                self.send_alert(
-                    f"⚠️ {task.collector_name} failed. Using cached data from {result['completed_at']}"
-                )
+                self.send_alert(f"⚠️ {task.collector_name} failed. Using cached data from {result['completed_at']}")
         else:
             print(f"⚠️ No recent cached data available")
-            self.send_alert(
-                f"❌ {task.collector_name} failed with no fallback data available!"
-            )
+            self.send_alert(f"❌ {task.collector_name} failed with no fallback data available!")
 
     def check_circuit_breaker(self, task: CollectorTask) -> bool:
         """
@@ -575,23 +520,20 @@ class IntelligentScheduler:
     def run_once(self, max_runtime_minutes: int = 60):
         """
         Run all pending tasks once.
-        
+
         Args:
             max_runtime_minutes: Maximum runtime in minutes (default: 60)
         """
         start_time = datetime.now()
         max_runtime = timedelta(minutes=max_runtime_minutes)
-        
-        print("\n" + "="*80)
+
+        print("\n" + "=" * 80)
         print("🚀 RUNNING SCHEDULED TASKS")
         print(f"   Max Runtime: {max_runtime_minutes} minutes")
-        print("="*80)
+        print("=" * 80)
 
         # Sort tasks by priority
-        tasks = sorted(
-            self.tasks.values(),
-            key=lambda t: (t.priority.value, t.next_run or datetime.min)
-        )
+        tasks = sorted(self.tasks.values(), key=lambda t: (t.priority.value, t.next_run or datetime.min))
 
         for task in tasks:
             # Check if we've exceeded max runtime
@@ -599,7 +541,7 @@ class IntelligentScheduler:
             if elapsed > max_runtime:
                 print(f"\n⏰ Max runtime ({max_runtime_minutes}min) exceeded. Stopping.")
                 break
-                
+
             # Check circuit breaker
             if not self.check_circuit_breaker(task):
                 continue
@@ -619,10 +561,10 @@ class IntelligentScheduler:
                 # Handle fallback
                 self.handle_fallback(task)
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("✅ SCHEDULED RUN COMPLETE")
         print(f"   Runtime: {(datetime.now() - start_time).total_seconds():.1f}s")
-        print("="*80)
+        print("=" * 80)
 
     def run(self, interval_sec: int = 300):
         """
@@ -641,13 +583,13 @@ class IntelligentScheduler:
 
         signal.signal(signal.SIGINT, signal_handler)
 
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("🚀 INTELLIGENT SCHEDULER STARTED")
-        print("="*80)
+        print("=" * 80)
         print(f"   Interval: {interval_sec}s")
         print(f"   Tasks: {len(self.tasks)}")
         print("   Press Ctrl+C to stop")
-        print("="*80)
+        print("=" * 80)
 
         while self.running:
             self.run_once()
@@ -660,23 +602,29 @@ class IntelligentScheduler:
 
     def start_collector_run(self, collector_name: str) -> int:
         """Start tracking a collector run."""
-        self.cur.execute("""
+        self.cur.execute(
+            """
             INSERT INTO sofia.collector_runs (collector_name, started_at, status)
             VALUES (%s, NOW(), 'running')
             RETURNING id
-        """, (collector_name,))
+        """,
+            (collector_name,),
+        )
         self.conn.commit()
-        return self.cur.fetchone()['id']
+        return self.cur.fetchone()["id"]
 
     def complete_collector_run(self, run_id: int, status: str, error_message: Optional[str] = None):
         """Complete a collector run."""
-        self.cur.execute("""
+        self.cur.execute(
+            """
             UPDATE sofia.collector_runs
             SET status = %s,
                 completed_at = NOW(),
                 error_message = %s
             WHERE id = %s
-        """, (status, error_message, run_id))
+        """,
+            (status, error_message, run_id),
+        )
         self.conn.commit()
 
     def send_alert(self, message: str):
@@ -686,10 +634,7 @@ class IntelligentScheduler:
             return
 
         try:
-            payload = {
-                'message': message,
-                'whatsapp_number': self.whatsapp_number
-            }
+            payload = {"message": message, "whatsapp_number": self.whatsapp_number}
             response = requests.post(self.sofia_endpoint, json=payload, timeout=10)
             if response.status_code == 200:
                 print(f"📱 WhatsApp alert sent: {message}")
@@ -709,15 +654,16 @@ class IntelligentScheduler:
 # CLI
 # ============================================================================
 
+
 def main():
     """CLI for intelligent scheduler."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Sofia Intelligent Scheduler')
-    parser.add_argument('--register-all', action='store_true', help='Register all collectors')
-    parser.add_argument('--run-once', action='store_true', help='Run all tasks once and exit')
-    parser.add_argument('--run', action='store_true', help='Run scheduler loop')
-    parser.add_argument('--interval', type=int, default=300, help='Interval between runs (seconds)')
+    parser = argparse.ArgumentParser(description="Sofia Intelligent Scheduler")
+    parser.add_argument("--register-all", action="store_true", help="Register all collectors")
+    parser.add_argument("--run-once", action="store_true", help="Run all tasks once and exit")
+    parser.add_argument("--run", action="store_true", help="Run scheduler loop")
+    parser.add_argument("--interval", type=int, default=300, help="Interval between runs (seconds)")
 
     args = parser.parse_args()
 
@@ -740,5 +686,5 @@ def main():
         scheduler.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

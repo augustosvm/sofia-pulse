@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Add ALL possible missing columns at once"""
-import psycopg2, os
+import os
+
+import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
 c = psycopg2.connect(
-    host=os.getenv('POSTGRES_HOST'),
-    port=os.getenv('POSTGRES_PORT', '5432'),
-    user=os.getenv('POSTGRES_USER'),
-    password=os.getenv('POSTGRES_PASSWORD'),
-    database=os.getenv('POSTGRES_DB')
+    host=os.getenv("POSTGRES_HOST"),
+    port=os.getenv("POSTGRES_PORT", "5432"),
+    user=os.getenv("POSTGRES_USER"),
+    password=os.getenv("POSTGRES_PASSWORD"),
+    database=os.getenv("POSTGRES_DB"),
 )
 cur = c.cursor()
 
@@ -39,7 +41,7 @@ print("Adicionando TODAS as colunas possíveis...")
 for sql in all_possible_columns:
     try:
         cur.execute(sql)
-        col_name = sql.split('EXISTS ')[1].split(' ')[0]
+        col_name = sql.split("EXISTS ")[1].split(" ")[0]
         print(f"✅ {col_name}")
     except Exception as e:
         print(f"⚠️  {str(e)[:50]}")

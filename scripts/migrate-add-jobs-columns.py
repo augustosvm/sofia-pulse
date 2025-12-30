@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Migration: Add extra columns to sofia.jobs table"""
-import psycopg2
 import os
+
+import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +12,7 @@ conn = psycopg2.connect(
     port=os.getenv("POSTGRES_PORT", "5432"),
     user=os.getenv("POSTGRES_USER"),
     password=os.getenv("POSTGRES_PASSWORD"),
-    database=os.getenv("POSTGRES_DB")
+    database=os.getenv("POSTGRES_DB"),
 )
 
 cur = conn.cursor()
@@ -30,7 +31,7 @@ alterations = [
     "ALTER TABLE sofia.jobs ADD COLUMN IF NOT EXISTS application_deadline DATE",
     "ALTER TABLE sofia.jobs ADD COLUMN IF NOT EXISTS collected_at TIMESTAMP DEFAULT NOW()",
     "CREATE INDEX IF NOT EXISTS idx_jobs_platform ON sofia.jobs(platform)",
-    "CREATE INDEX IF NOT EXISTS idx_jobs_collected_at ON sofia.jobs(collected_at)"
+    "CREATE INDEX IF NOT EXISTS idx_jobs_collected_at ON sofia.jobs(collected_at)",
 ]
 
 print("=" * 70)

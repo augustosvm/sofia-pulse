@@ -23,9 +23,10 @@ from typing import Optional
 
 # Eurostat-specific country code mappings
 EUROSTAT_MAPPINGS = {
-    'EL': 'GR',  # Greece
-    'UK': 'GB',  # United Kingdom
+    "EL": "GR",  # Greece
+    "UK": "GB",  # United Kingdom
 }
+
 
 def get_country_id(cursor, country_input: Optional[str]) -> Optional[int]:
     """
@@ -46,29 +47,20 @@ def get_country_id(cursor, country_input: Optional[str]) -> Optional[int]:
 
     # Strategy 1: Try ISO alpha2 (US, BR, GB, etc.)
     if len(country) == 2:
-        cursor.execute(
-            'SELECT id FROM sofia.countries WHERE iso_alpha2 = %s',
-            (country.upper(),)
-        )
+        cursor.execute("SELECT id FROM sofia.countries WHERE iso_alpha2 = %s", (country.upper(),))
         result = cursor.fetchone()
         if result:
             return result[0]
 
     # Strategy 2: Try ISO alpha3 (USA, BRA, GBR, etc.)
     if len(country) == 3:
-        cursor.execute(
-            'SELECT id FROM sofia.countries WHERE iso_alpha3 = %s',
-            (country.upper(),)
-        )
+        cursor.execute("SELECT id FROM sofia.countries WHERE iso_alpha3 = %s", (country.upper(),))
         result = cursor.fetchone()
         if result:
             return result[0]
 
     # Strategy 3: Try common name (case-insensitive)
-    cursor.execute(
-        'SELECT id FROM sofia.countries WHERE LOWER(common_name) = LOWER(%s)',
-        (country,)
-    )
+    cursor.execute("SELECT id FROM sofia.countries WHERE LOWER(common_name) = LOWER(%s)", (country,))
     result = cursor.fetchone()
     if result:
         return result[0]
@@ -76,10 +68,7 @@ def get_country_id(cursor, country_input: Optional[str]) -> Optional[int]:
     # Strategy 4: Try Eurostat-specific codes
     if country.upper() in EUROSTAT_MAPPINGS:
         mapped_code = EUROSTAT_MAPPINGS[country.upper()]
-        cursor.execute(
-            'SELECT id FROM sofia.countries WHERE iso_alpha2 = %s',
-            (mapped_code,)
-        )
+        cursor.execute("SELECT id FROM sofia.countries WHERE iso_alpha2 = %s", (mapped_code,))
         result = cursor.fetchone()
         if result:
             return result[0]
@@ -107,19 +96,13 @@ def get_state_id(cursor, state_name: Optional[str], country_id: Optional[int]) -
 
     # Try by state code (e.g., "CA" for California)
     if len(state) == 2:
-        cursor.execute(
-            'SELECT id FROM sofia.states WHERE code = %s AND country_id = %s',
-            (state.upper(), country_id)
-        )
+        cursor.execute("SELECT id FROM sofia.states WHERE code = %s AND country_id = %s", (state.upper(), country_id))
         result = cursor.fetchone()
         if result:
             return result[0]
 
     # Try by state name (case-insensitive)
-    cursor.execute(
-        'SELECT id FROM sofia.states WHERE LOWER(name) = LOWER(%s) AND country_id = %s',
-        (state, country_id)
-    )
+    cursor.execute("SELECT id FROM sofia.states WHERE LOWER(name) = LOWER(%s) AND country_id = %s", (state, country_id))
     result = cursor.fetchone()
     if result:
         return result[0]
@@ -128,12 +111,7 @@ def get_state_id(cursor, state_name: Optional[str], country_id: Optional[int]) -
     return None
 
 
-def get_city_id(
-    cursor,
-    city_name: Optional[str],
-    state_id: Optional[int],
-    country_id: Optional[int]
-) -> Optional[int]:
+def get_city_id(cursor, city_name: Optional[str], state_id: Optional[int], country_id: Optional[int]) -> Optional[int]:
     """
     Get city ID from normalized cities table.
 
@@ -153,10 +131,7 @@ def get_city_id(
 
     # Try with state_id if available
     if state_id:
-        cursor.execute(
-            'SELECT id FROM sofia.cities WHERE LOWER(name) = LOWER(%s) AND state_id = %s',
-            (city, state_id)
-        )
+        cursor.execute("SELECT id FROM sofia.cities WHERE LOWER(name) = LOWER(%s) AND state_id = %s", (city, state_id))
         result = cursor.fetchone()
         if result:
             return result[0]
@@ -164,18 +139,14 @@ def get_city_id(
     # Try with only country_id
     if country_id:
         cursor.execute(
-            'SELECT id FROM sofia.cities WHERE LOWER(name) = LOWER(%s) AND country_id = %s',
-            (city, country_id)
+            "SELECT id FROM sofia.cities WHERE LOWER(name) = LOWER(%s) AND country_id = %s", (city, country_id)
         )
         result = cursor.fetchone()
         if result:
             return result[0]
 
     # Try without any parent (last resort)
-    cursor.execute(
-        'SELECT id FROM sofia.cities WHERE LOWER(name) = LOWER(%s) LIMIT 1',
-        (city,)
-    )
+    cursor.execute("SELECT id FROM sofia.cities WHERE LOWER(name) = LOWER(%s) LIMIT 1", (city,))
     result = cursor.fetchone()
     if result:
         return result[0]
@@ -200,10 +171,7 @@ def get_religion_id(cursor, religion_name: Optional[str]) -> Optional[int]:
 
     religion = religion_name.strip()
 
-    cursor.execute(
-        'SELECT id FROM sofia.religions WHERE LOWER(name) = LOWER(%s)',
-        (religion,)
-    )
+    cursor.execute("SELECT id FROM sofia.religions WHERE LOWER(name) = LOWER(%s)", (religion,))
     result = cursor.fetchone()
     if result:
         return result[0]
@@ -222,10 +190,12 @@ def get_country_ids_batch(cursor) -> dict:
     """
     country_map = {}
 
-    cursor.execute('''
+    cursor.execute(
+        """
         SELECT iso_alpha2, iso_alpha3, LOWER(common_name) as name_lower, id
         FROM sofia.countries
-    ''')
+    """
+    )
 
     for row in cursor.fetchall():
         iso_alpha2, iso_alpha3, name_lower, country_id = row

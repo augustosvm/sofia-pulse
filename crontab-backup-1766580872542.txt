@@ -1,0 +1,1 @@
+* * * * * echo "Cron test at $(date)" >> /tmp/cron-test.log 2>&1

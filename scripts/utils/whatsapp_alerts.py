@@ -5,29 +5,33 @@ Sends alerts to user's WhatsApp via Sofia API
 """
 
 import os
-import requests
 from datetime import datetime
 from pathlib import Path
 
+import requests
+
+
 # Load .env manually (no python-dotenv dependency)
 def load_env():
-    env_file = Path(__file__).parent.parent.parent / '.env'
+    env_file = Path(__file__).parent.parent.parent / ".env"
     if env_file.exists():
         with open(env_file) as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
                     os.environ[key] = value.strip()
+
 
 load_env()
 
 # Configuration
-WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')
-SOFIA_WPP_ENDPOINT = os.getenv('SOFIA_WPP_ENDPOINT', 'http://localhost:3001/send')
-ALERT_ENABLED = os.getenv('ALERT_WHATSAPP_ENABLED', 'true').lower() == 'true'
+WHATSAPP_NUMBER = os.getenv("WHATSAPP_NUMBER", "YOUR_WHATSAPP_NUMBER")
+SOFIA_WPP_ENDPOINT = os.getenv("SOFIA_WPP_ENDPOINT", "http://localhost:3001/send")
+ALERT_ENABLED = os.getenv("ALERT_WHATSAPP_ENABLED", "true").lower() == "true"
 
-def send_whatsapp_alert(message, level='WARNING'):
+
+def send_whatsapp_alert(message, level="WARNING"):
     """
     Send alert via WhatsApp using sofia-mastra-rag
 
@@ -43,11 +47,7 @@ def send_whatsapp_alert(message, level='WARNING'):
         return False
 
     # Format message with emoji based on level
-    emoji = {
-        'INFO': 'ℹ️',
-        'WARNING': '⚠️',
-        'CRITICAL': '🚨'
-    }.get(level, '📢')
+    emoji = {"INFO": "ℹ️", "WARNING": "⚠️", "CRITICAL": "🚨"}.get(level, "📢")
 
     formatted_message = f"""{emoji} *SOFIA PULSE ALERT*
 
@@ -62,16 +62,9 @@ _Sofia Pulse Intelligence System_
 
     try:
         # Call sofia-wpp directly
-        payload = {
-            'to': WHATSAPP_NUMBER,
-            'message': formatted_message
-        }
+        payload = {"to": WHATSAPP_NUMBER, "message": formatted_message}
 
-        response = requests.post(
-            SOFIA_WPP_ENDPOINT,
-            json=payload,
-            timeout=10
-        )
+        response = requests.post(SOFIA_WPP_ENDPOINT, json=payload, timeout=10)
 
         if response.status_code == 200:
             print(f"✅ WhatsApp alert sent to +{WHATSAPP_NUMBER}")
@@ -92,6 +85,7 @@ _Sofia Pulse Intelligence System_
         print(f"❌ Failed to send WhatsApp alert: {e}")
         return False
 
+
 def alert_collector_failed(collector_name, error):
     """Send alert when collector fails"""
     message = f"""*Collector Failed*
@@ -102,7 +96,8 @@ Error: {error}
 Check logs:
 `/var/log/sofia/collectors/{collector_name}.log`
 """
-    return send_whatsapp_alert(message, level='CRITICAL')
+    return send_whatsapp_alert(message, level="CRITICAL")
+
 
 def alert_data_anomaly(table_name, anomaly_type, details):
     """Send alert when data anomaly detected"""
@@ -114,7 +109,8 @@ Details: {details}
 
 This may require manual investigation.
 """
-    return send_whatsapp_alert(message, level='WARNING')
+    return send_whatsapp_alert(message, level="WARNING")
+
 
 def alert_api_rate_limit(api_name, reset_time=None):
     """Send alert when API rate limit hit"""
@@ -125,7 +121,8 @@ Reset: {reset_time or 'Unknown'}
 
 Collector will retry automatically.
 """
-    return send_whatsapp_alert(message, level='INFO')
+    return send_whatsapp_alert(message, level="INFO")
+
 
 def alert_healthcheck_failed(failed_count, total_count):
     """Send alert when healthcheck fails"""
@@ -136,11 +133,12 @@ Failed collectors: {failed_count}/{total_count}
 Run healthcheck for details:
 `bash healthcheck-collectors.sh`
 """
-    return send_whatsapp_alert(message, level='CRITICAL')
+    return send_whatsapp_alert(message, level="CRITICAL")
+
 
 def alert_sanity_check_failed(issues):
     """Send alert when sanity check fails"""
-    issues_text = '\n'.join([f"• {issue}" for issue in issues[:5]])
+    issues_text = "\n".join([f"• {issue}" for issue in issues[:5]])
     if len(issues) > 5:
         issues_text += f"\n• ...and {len(issues) - 5} more"
 
@@ -153,7 +151,8 @@ Found {len(issues)} issues:
 Run sanity check for details:
 `python3 scripts/sanity-check.py`
 """
-    return send_whatsapp_alert(message, level='WARNING')
+    return send_whatsapp_alert(message, level="WARNING")
+
 
 def test_whatsapp_alert():
     """Test WhatsApp alert system"""
@@ -168,9 +167,10 @@ Configuration:
 
 This is a test message.
 """
-    return send_whatsapp_alert(message, level='INFO')
+    return send_whatsapp_alert(message, level="INFO")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Test alert
     print("Testing WhatsApp alert system...")
     success = test_whatsapp_alert()

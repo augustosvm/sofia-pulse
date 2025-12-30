@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from shared.geo_helpers import normalize_location
 
 """
 Base dos Dados Collector - Brazilian Open Data Platform
@@ -20,14 +19,15 @@ Documentação: https://basedosdados.github.io/sdk/
 
 import os
 import sys
-import psycopg2
 from datetime import datetime
-from typing import List, Dict, Any
+
+import psycopg2
 
 # Check if basedosdados is installed
 try:
     import basedosdados as bd
     import pandas as pd
+
     BD_AVAILABLE = True
 except ImportError:
     BD_AVAILABLE = False
@@ -35,38 +35,37 @@ except ImportError:
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # BigQuery billing project (required for basedosdados)
 # User needs to create a Google Cloud project for billing
-BILLING_PROJECT = os.getenv('GOOGLE_CLOUD_PROJECT', os.getenv('BIGQUERY_PROJECT', ''))
+BILLING_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", os.getenv("BIGQUERY_PROJECT", ""))
 
 # Datasets to collect
 # Format: (dataset_id, table_id, description, category)
 DATASETS = [
     # FIRJAN Indices
-    ('br_firjan_ifdm', 'municipio', 'FIRJAN - Índice de Desenvolvimento Municipal', 'development'),
-    ('br_firjan_ifgf', 'municipio', 'FIRJAN - Índice de Gestão Fiscal', 'fiscal'),
-
+    ("br_firjan_ifdm", "municipio", "FIRJAN - Índice de Desenvolvimento Municipal", "development"),
+    ("br_firjan_ifgf", "municipio", "FIRJAN - Índice de Gestão Fiscal", "fiscal"),
     # IBGE Economic Data
-    ('br_ibge_pib', 'municipio', 'IBGE - PIB Municipal', 'economy'),
-    ('br_ibge_pib', 'uf', 'IBGE - PIB Estadual', 'economy'),
-
+    ("br_ibge_pib", "municipio", "IBGE - PIB Municipal", "economy"),
+    ("br_ibge_pib", "uf", "IBGE - PIB Estadual", "economy"),
     # Other Economic Indicators
-    ('br_ibge_ipca', 'mes_brasil', 'IBGE - IPCA (Inflação)', 'inflation'),
-    ('br_bcb_sgs', 'serie_tempo', 'BACEN - Séries Temporais', 'macro'),
+    ("br_ibge_ipca", "mes_brasil", "IBGE - IPCA (Inflação)", "inflation"),
+    ("br_bcb_sgs", "serie_tempo", "BACEN - Séries Temporais", "macro"),
 ]
 
 
 def check_bigquery_setup():
     """Check if BigQuery is properly configured"""
     if not BILLING_PROJECT:
-        print("""
+        print(
+            """
 ❌ BigQuery billing project not configured!
 
 To use basedosdados, you need:
@@ -76,7 +75,8 @@ To use basedosdados, you need:
    export GOOGLE_CLOUD_PROJECT="your-project-id"
 
 More info: https://basedosdados.github.io/sdk/
-""")
+"""
+        )
         return False
     return True
 
@@ -110,7 +110,8 @@ def save_to_database(conn, df: pd.DataFrame, dataset_id: str, table_id: str, cat
     cursor = conn.cursor()
 
     # Create table for basedosdados data
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.basedosdados_indicators (
             id SERIAL PRIMARY KEY,
             dataset_id VARCHAR(100) NOT NULL,
@@ -126,17 +127,22 @@ def save_to_database(conn, df: pd.DataFrame, dataset_id: str, table_id: str, cat
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(dataset_id, table_id, ano, mes, uf, id_municipio, indicator_name)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_basedosdados_dataset_ano
         ON sofia.basedosdados_indicators(dataset_id, ano DESC)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_basedosdados_category
         ON sofia.basedosdados_indicators(category, ano DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
@@ -144,43 +150,46 @@ def save_to_database(conn, df: pd.DataFrame, dataset_id: str, table_id: str, cat
     for _, row in df.iterrows():
         try:
             # Extract common fields
-            ano = row.get('ano', None)
-            mes = row.get('mes', None)
-            uf = row.get('sigla_uf', row.get('uf', None))
-            id_municipio = row.get('id_municipio', None)
+            ano = row.get("ano", None)
+            mes = row.get("mes", None)
+            uf = row.get("sigla_uf", row.get("uf", None))
+            id_municipio = row.get("id_municipio", None)
 
             # For multi-indicator datasets, iterate through numeric columns
-            for col in df.select_dtypes(include=['float64', 'int64']).columns:
-                if col in ['ano', 'mes', 'id_municipio']:
+            for col in df.select_dtypes(include=["float64", "int64"]).columns:
+                if col in ["ano", "mes", "id_municipio"]:
                     continue
 
                 value = row.get(col)
                 if pd.isna(value):
                     continue
 
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.basedosdados_indicators
                     (dataset_id, table_id, category, ano, mes, uf, id_municipio,
                      indicator_name, indicator_value, raw_data)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (dataset_id, table_id, ano, mes, uf, id_municipio, indicator_name)
                     DO UPDATE SET indicator_value = EXCLUDED.indicator_value
-                """, (
-                    dataset_id,
-                    table_id,
-                    category,
-                    int(ano) if ano else None,
-                    int(mes) if mes else None,
-                    str(uf) if uf else None,
-                    str(id_municipio) if id_municipio else None,
-                    col,
-                    float(value),
-                    '{}'  # Empty JSON for now
-                ))
+                """,
+                    (
+                        dataset_id,
+                        table_id,
+                        category,
+                        int(ano) if ano else None,
+                        int(mes) if mes else None,
+                        str(uf) if uf else None,
+                        str(id_municipio) if id_municipio else None,
+                        col,
+                        float(value),
+                        "{}",  # Empty JSON for now
+                    ),
+                )
 
                 inserted += 1
 
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -190,9 +199,9 @@ def save_to_database(conn, df: pd.DataFrame, dataset_id: str, table_id: str, cat
 
 
 def main():
-    print("="*80)
+    print("=" * 80)
     print("📊 BASE DOS DADOS - Brazilian Open Data Platform")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"📡 Source: https://basedosdados.org/")
@@ -255,9 +264,9 @@ def main():
 
     conn.close()
 
-    print("="*80)
+    print("=" * 80)
     print("✅ BASE DOS DADOS COLLECTION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print("")
     print(f"📊 Total datasets: {len(DATASETS)}")
     print(f"💾 Total records: {total_records}")
@@ -273,5 +282,5 @@ def main():
     print("  • Correlate with tech funding and expansion decisions")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

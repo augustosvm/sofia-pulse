@@ -4,13 +4,14 @@ Sofia Pulse - Test WhatsApp API Connectivity
 Debug script to check sofia-mastra-rag endpoint
 """
 
-import requests
 import json
 import os
 
+import requests
+
 # Configuration
-WHATSAPP_RECIPIENT = os.getenv('WHATSAPP_NUMBER', 'YOUR_WHATSAPP_NUMBER')  # Seu número pessoal
-SOFIA_API_ENDPOINT = os.getenv('SOFIA_API_ENDPOINT', 'http://localhost:8001/api/v2/chat')
+WHATSAPP_RECIPIENT = os.getenv("WHATSAPP_NUMBER", "YOUR_WHATSAPP_NUMBER")  # Seu número pessoal
+SOFIA_API_ENDPOINT = os.getenv("SOFIA_API_ENDPOINT", "http://localhost:8001/api/v2/chat")
 
 print("════════════════════════════════════════════════════════════════")
 print("🧪 SOFIA PULSE - WHATSAPP API TEST")
@@ -27,7 +28,7 @@ print("TEST 1: API Accessibility")
 print("════════════════════════════════════════════════════════════════")
 
 try:
-    response = requests.get(SOFIA_API_ENDPOINT.replace('/api/v2/chat', '/health'), timeout=5)
+    response = requests.get(SOFIA_API_ENDPOINT.replace("/api/v2/chat", "/health"), timeout=5)
     print(f"✅ API is accessible (HTTP {response.status_code})")
 except requests.exceptions.ConnectionError:
     print(f"❌ Cannot connect to {SOFIA_API_ENDPOINT}")
@@ -45,10 +46,10 @@ print("TEST 2: Send Test Message (Current Format)")
 print("════════════════════════════════════════════════════════════════")
 
 payload_v1 = {
-    'query': '🧪 TESTE - Sofia Pulse WhatsApp Integration\n\nSe você recebeu esta mensagem, a integração está funcionando!',
-    'user_id': 'sofia-pulse',
-    'channel': 'whatsapp',
-    'phone': WHATSAPP_RECIPIENT
+    "query": "🧪 TESTE - Sofia Pulse WhatsApp Integration\n\nSe você recebeu esta mensagem, a integração está funcionando!",
+    "user_id": "sofia-pulse",
+    "channel": "whatsapp",
+    "phone": WHATSAPP_RECIPIENT,
 }
 
 print("Payload:")
@@ -56,11 +57,7 @@ print(json.dumps(payload_v1, indent=2))
 print("")
 
 try:
-    response = requests.post(
-        SOFIA_API_ENDPOINT,
-        json=payload_v1,
-        timeout=15
-    )
+    response = requests.post(SOFIA_API_ENDPOINT, json=payload_v1, timeout=15)
 
     print(f"Response Status: {response.status_code}")
     print(f"Response Headers: {dict(response.headers)}")
@@ -91,20 +88,16 @@ print("════════════════════════�
 
 # Format 2: Direct WhatsApp format
 payload_v2 = {
-    'to': WHATSAPP_RECIPIENT,
-    'message': '🧪 TESTE - Format 2\n\nTeste de formato alternativo',
-    'channel': 'whatsapp'
+    "to": WHATSAPP_RECIPIENT,
+    "message": "🧪 TESTE - Format 2\n\nTeste de formato alternativo",
+    "channel": "whatsapp",
 }
 
 print("\nFormat 2 (Direct WhatsApp):")
 print(json.dumps(payload_v2, indent=2))
 
 try:
-    response = requests.post(
-        SOFIA_API_ENDPOINT,
-        json=payload_v2,
-        timeout=15
-    )
+    response = requests.post(SOFIA_API_ENDPOINT, json=payload_v2, timeout=15)
     print(f"Status: {response.status_code}")
     if response.status_code == 200:
         print("✅ Format 2 works!")
@@ -114,20 +107,13 @@ except Exception as e:
     print(f"❌ Error: {e}")
 
 # Format 3: Simplified
-payload_v3 = {
-    'message': '🧪 TESTE - Format 3\n\nTeste simplificado',
-    'phone': WHATSAPP_RECIPIENT
-}
+payload_v3 = {"message": "🧪 TESTE - Format 3\n\nTeste simplificado", "phone": WHATSAPP_RECIPIENT}
 
 print("\nFormat 3 (Simplified):")
 print(json.dumps(payload_v3, indent=2))
 
 try:
-    response = requests.post(
-        SOFIA_API_ENDPOINT,
-        json=payload_v3,
-        timeout=15
-    )
+    response = requests.post(SOFIA_API_ENDPOINT, json=payload_v3, timeout=15)
     print(f"Status: {response.status_code}")
     if response.status_code == 200:
         print("✅ Format 3 works!")

@@ -4,36 +4,43 @@ Sofia Pulse - Collector Template with Full Reliability
 This is a reference implementation showing how to use all reliability features
 """
 
-import sys
 import os
+import sys
 import time
-from datetime import datetime
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Import reliability utilities
-from scripts.utils.logger import setup_logger, log_collector_start, log_collector_finish, log_collector_error
-from scripts.utils.retry import safe_request, retry_with_backoff
-from scripts.utils.alerts import alert_collector_failed, alert_data_anomaly
 
 # Database imports
 import psycopg2
 import psycopg2.extras
 
+from scripts.utils.alerts import alert_collector_failed, alert_data_anomaly
+
+# Import reliability utilities
+from scripts.utils.logger import (
+    log_collector_error,
+    log_collector_finish,
+    log_collector_start,
+    setup_logger,
+)
+from scripts.utils.retry import retry_with_backoff, safe_request
+
 # Collector configuration
 COLLECTOR_NAME = "example-collector"
 MIN_EXPECTED_ROWS = 10  # Alert if less than this
 
+
 def get_db_connection():
     """Get database connection"""
     return psycopg2.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        port=os.getenv('DB_PORT', '5432'),
-        user=os.getenv('DB_USER', 'sofia'),
-        password=os.getenv('DB_PASSWORD', ''),
-        database=os.getenv('DB_NAME', 'sofia')
+        host=os.getenv("DB_HOST", "localhost"),
+        port=os.getenv("DB_PORT", "5432"),
+        user=os.getenv("DB_USER", "sofia"),
+        password=os.getenv("DB_PASSWORD", ""),
+        database=os.getenv("DB_NAME", "sofia"),
     )
+
 
 @retry_with_backoff(max_retries=5)
 def fetch_data_from_api():
@@ -55,6 +62,7 @@ def fetch_data_from_api():
 
     return response.json()
 
+
 def insert_data_safely(data, logger):
     """
     Insert data with transaction safety (guaranteed delivery)
@@ -68,23 +76,28 @@ def insert_data_safely(data, logger):
 
     try:
         # Step 1: Create temporary table
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TEMP TABLE temp_example_data (
                 id SERIAL PRIMARY KEY,
                 name TEXT,
                 value FLOAT,
                 collected_at TIMESTAMP DEFAULT NOW()
             )
-        """)
+        """
+        )
 
         # Step 2: Insert all data into temp table
         logger.info(f"Inserting {len(data)} rows into temp table...")
 
         for item in data:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO temp_example_data (name, value)
                 VALUES (%s, %s)
-            """, (item['name'], item['value']))
+            """,
+                (item["name"], item["value"]),
+            )
 
         # Step 3: Verify data in temp table
         cursor.execute("SELECT COUNT(*) FROM temp_example_data")
@@ -94,7 +107,7 @@ def insert_data_safely(data, logger):
 
         if temp_count == 0:
             logger.warning("Zero rows inserted - skipping commit")
-            alert_data_anomaly('example_data', 'ZERO_ROWS', f'Expected {MIN_EXPECTED_ROWS}+, got 0')
+            alert_data_anomaly("example_data", "ZERO_ROWS", f"Expected {MIN_EXPECTED_ROWS}+, got 0")
             conn.rollback()
             return 0
 
@@ -112,11 +125,7 @@ def insert_data_safely(data, logger):
 
         # Step 5: Sanity check
         if temp_count < MIN_EXPECTED_ROWS:
-            alert_data_anomaly(
-                'example_data',
-                'LOW_VOLUME',
-                f'Expected {MIN_EXPECTED_ROWS}+ rows, got {temp_count}'
-            )
+            alert_data_anomaly("example_data", "LOW_VOLUME", f"Expected {MIN_EXPECTED_ROWS}+ rows, got {temp_count}")
 
         return temp_count
 
@@ -127,6 +136,7 @@ def insert_data_safely(data, logger):
     finally:
         cursor.close()
         conn.close()
+
 
 def main():
     """Main collector function with full error handling"""
@@ -166,5 +176,6 @@ def main():
 
         return 1  # Failure
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

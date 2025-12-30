@@ -1,18 +1,16 @@
 import os
 import sys
 import time
-import requests
-import psycopg2
-import pandas as pd
-import re
 from datetime import datetime
+from typing import Dict, Optional
+
+import pandas as pd
+import psycopg2
+import requests
 from bs4 import BeautifulSoup
-from io import BytesIO
-from typing import Optional, List, Dict
 from dotenv import load_dotenv
 
 # Add scripts directory to path to allow importing utils
-from shared.geo_helpers import normalize_location
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -31,12 +29,14 @@ FIESP_BASE_URL = "https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/"
 DATA_DIR = os.path.join("data", "raw", "fiesp")
 os.makedirs(DATA_DIR, exist_ok=True)
 
+
 def init_db(conn):
     """Initialize database table"""
     cursor = conn.cursor()
-    
+
     # Table for INA (Industrial Activity Indicator)
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.fiesp_ina (
             id SERIAL PRIMARY KEY,
             period DATE NOT NULL,
@@ -49,10 +49,12 @@ def init_db(conn):
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(period)
         )
-    """)
+    """
+    )
 
     # Table for Sensor FIESP (Qualitative)
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.fiesp_sensor (
             id SERIAL PRIMARY KEY,
             period DATE NOT NULL,
@@ -63,11 +65,13 @@ def init_db(conn):
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(period)
         )
-    """)
-    
+    """
+    )
+
     conn.commit()
     cursor.close()
     print("✅ Database tables initialized (sofia.fiesp_ina, sofia.fiesp_sensor)")
+
 
 def get_excel_links(url: str, max_retries: int = 3) -> Dict[str, str]:
     """Scrape FIESP page for latest Excel links for Sensor and INA"""
@@ -80,42 +84,44 @@ def get_excel_links(url: str, max_retries: int = 3) -> Dict[str, str]:
         try:
             resp = requests.get(url, headers=headers, timeout=90)
             resp.raise_for_status()
-            soup = BeautifulSoup(resp.text, 'html.parser')
+            soup = BeautifulSoup(resp.text, "html.parser")
 
             links = {}
 
             # Find all links ending in .xlsx
-            for a in soup.find_all('a', href=True):
-                href = a['href']
-                text = a.get_text().lower().strip()
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                a.get_text().lower().strip()
 
-                if not href.endswith('.xlsx'):
+                if not href.endswith(".xlsx"):
                     continue
 
                 href_lower = href.lower()
 
                 # Identify Sensor FIESP (Clean/Sazonal) - We prefer "com ajuste" (Seasonally Adjusted) likely, or we store both.
                 # Let's target the main ones.
-                if 'sensor' in href_lower and 'com-ajuste' in href_lower:
-                    links['sensor'] = href
+                if "sensor" in href_lower and "com-ajuste" in href_lower:
+                    links["sensor"] = href
 
                 # Identify INA (Levantamento de Conjuntura) - Look for 'lcdessazonalizado' (Levantamento Conjuntura Dessazonalizado)
                 # or 'dessazonalizado' inside a context of 'conjuntura'
-                if 'dessazonalizado' in href_lower and ('lc' in href_lower or 'conjuntura' in href_lower or 'ina' in href_lower):
-                    links['ina'] = href
+                if "dessazonalizado" in href_lower and (
+                    "lc" in href_lower or "conjuntura" in href_lower or "ina" in href_lower
+                ):
+                    links["ina"] = href
 
             return links
         except requests.exceptions.Timeout:
             print(f"   ⏱️  Timeout on attempt {attempt+1}/{max_retries}")
             if attempt < max_retries - 1:
-                wait_time = 30 * (2 ** attempt)
+                wait_time = 30 * (2**attempt)
                 print(f"   🔄 Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
         except Exception as e:
             print(f"   ❌ Error on attempt {attempt+1}/{max_retries}: {type(e).__name__}: {e}")
             if attempt < max_retries - 1:
-                wait_time = 30 * (2 ** attempt)
+                wait_time = 30 * (2**attempt)
                 print(f"   🔄 Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
@@ -123,15 +129,20 @@ def get_excel_links(url: str, max_retries: int = 3) -> Dict[str, str]:
     print(f"❌ Failed to scrape FIESP after {max_retries} attempts")
     return {}
 
+
 def clean_num(n):
     """Clean numeric values from Excel"""
-    if pd.isna(n): return None
-    if isinstance(n, (int, float)): return float(n)
-    try: 
+    if pd.isna(n):
+        return None
+    if isinstance(n, (int, float)):
+        return float(n)
+    try:
         # Handle formatted strings if necessary (e.g. "1.000,00")
-        s = str(n).replace('.', '').replace(',', '.')
+        s = str(n).replace(".", "").replace(",", ".")
         return float(s)
-    except: return None
+    except:
+        return None
+
 
 def download_and_parse_sensor(conn, url: str):
     """Download and process Sensor FIESP Excel"""
@@ -147,7 +158,7 @@ def download_and_parse_sensor(conn, url: str):
         except requests.exceptions.Timeout:
             print(f"   ⏱️  Download timeout on attempt {attempt+1}/{max_retries}")
             if attempt < max_retries - 1:
-                wait_time = 30 * (2 ** attempt)
+                wait_time = 30 * (2**attempt)
                 print(f"   🔄 Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
@@ -156,7 +167,7 @@ def download_and_parse_sensor(conn, url: str):
         except Exception as e:
             print(f"   ❌ Download error: {type(e).__name__}: {e}")
             if attempt < max_retries - 1:
-                wait_time = 30 * (2 ** attempt)
+                wait_time = 30 * (2**attempt)
                 print(f"   🔄 Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
@@ -164,77 +175,84 @@ def download_and_parse_sensor(conn, url: str):
 
     try:
         file_path = os.path.join(DATA_DIR, "latest_sensor.xlsx")
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(resp.content)
-            
+
         # Parse with Pandas
-        # Sensor usually has months in columns or rows. 
+        # Sensor usually has months in columns or rows.
         # Need to inspect structure. Assuming standard time series format.
         # "Leitura": Usually Time Series are in separate sheet or formatted.
         # Read without header first to find the structure
         df_raw = pd.read_excel(file_path, header=None)
-        
+
         # Determine header row
         # Usually looking for 'Leitura' or 'Indicador' or 'Mês'
         header_row_idx = -1
         for idx, row in df_raw.head(15).iterrows():
             row_str = row.astype(str).str.lower().tolist()
-            if any('mercado' in s for s in row_str) and any('vendas' in s for s in row_str):
-                 header_row_idx = idx
-                 break
-        
+            if any("mercado" in s for s in row_str) and any("vendas" in s for s in row_str):
+                header_row_idx = idx
+                break
+
         print(f"   🎯 Detected Header Row: {header_row_idx}")
-        
+
         if header_row_idx != -1:
-             df = pd.read_excel(file_path, header=header_row_idx)
-             # print(f"   📊 Columns: {df.columns.tolist()}")
-        
+            df = pd.read_excel(file_path, header=header_row_idx)
+            # print(f"   📊 Columns: {df.columns.tolist()}")
+
         # Column Mapping
         col_map = {}
         for col in df.columns:
             cl = str(col).lower().strip()
-            if 'data' in cl: col_map['period'] = col
-            elif 'mercado' in cl: col_map['market'] = col
-            elif 'vendas' in cl: col_map['sales'] = col
-            elif 'estoque' in cl: col_map['inventory'] = col
-            elif 'investimento' in cl: col_map['investment'] = col
-            
+            if "data" in cl:
+                col_map["period"] = col
+            elif "mercado" in cl:
+                col_map["market"] = col
+            elif "vendas" in cl:
+                col_map["sales"] = col
+            elif "estoque" in cl:
+                col_map["inventory"] = col
+            elif "investimento" in cl:
+                col_map["investment"] = col
+
         cursor = conn.cursor()
         inserted_count = 0
-        
+
         # Debug Column Map
         print(f"   🔍 Column Map: {col_map}")
 
         for index, row in df.iterrows():
             try:
-                period_raw = row.get(col_map.get('period'))
-                
+                period_raw = row.get(col_map.get("period"))
+
                 # Debug first few rows
                 if index < 5:
                     print(f"   👉 Row {index} Period Raw: {period_raw} (Type: {type(period_raw)})")
-                
+
                 # Date parsing: Usually "nov/25" or datetime object
                 period_date = None
                 if isinstance(period_raw, datetime):
                     period_date = period_raw.date()
                 else:
                     period_date = parse_pt_date(str(period_raw))
-                
+
                 if not period_date:
                     continue
 
                 # Helper to clean numbers
                 def get_val(key):
-                    if key not in col_map: return 0
+                    if key not in col_map:
+                        return 0
                     val = row.get(col_map[key])
                     return clean_num(val)
 
-                market_cond = get_val('market')
-                sales_exp = get_val('sales')
-                inventory = get_val('inventory')
-                invest_int = get_val('investment')
+                market_cond = get_val("market")
+                sales_exp = get_val("sales")
+                inventory = get_val("inventory")
+                invest_int = get_val("investment")
 
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.fiesp_sensor
                     (period, market_conditions, sales_expectations, inventory_levels, investment_intention)
                     VALUES (%s, %s, %s, %s, %s)
@@ -244,39 +262,53 @@ def download_and_parse_sensor(conn, url: str):
                         inventory_levels = EXCLUDED.inventory_levels,
                         investment_intention = EXCLUDED.investment_intention,
                         collected_at = CURRENT_TIMESTAMP
-                """, (period_date, market_cond, sales_exp, inventory, invest_int))
-                
+                """,
+                    (period_date, market_cond, sales_exp, inventory, invest_int),
+                )
+
                 inserted_count += 1
-            except Exception as e:
+            except Exception:
                 # print(f"Error row {index}: {e}")
                 continue
 
         conn.commit()
-        print(f"   ✅ Processed {inserted_count} Sensor records.") 
+        print(f"   ✅ Processed {inserted_count} Sensor records.")
 
     except Exception as e:
         print(f"❌ Error processing Sensor: {e}")
+
 
 def parse_pt_date(date_str: str) -> Optional[datetime.date]:
     """Parse Portuguese date string (e.g. 'jan 2001') to date object"""
     if not isinstance(date_str, str):
         return None
-        
+
     months = {
-        'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
-        'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
+        "jan": 1,
+        "fev": 2,
+        "mar": 3,
+        "abr": 4,
+        "mai": 5,
+        "jun": 6,
+        "jul": 7,
+        "ago": 8,
+        "set": 9,
+        "out": 10,
+        "nov": 11,
+        "dez": 12,
     }
-    
+
     parts = date_str.lower().strip().split()
     if len(parts) != 2:
         return None
-        
+
     month_name, year = parts
-    month_num = months.get(month_name[:3]) # First 3 chars to be safe
-    
+    month_num = months.get(month_name[:3])  # First 3 chars to be safe
+
     if month_num and year.isdigit():
         return datetime(int(year), month_num, 1).date()
     return None
+
 
 def download_and_parse_ina(conn, url: str):
     """Download and process INA Excel"""
@@ -292,7 +324,7 @@ def download_and_parse_ina(conn, url: str):
         except requests.exceptions.Timeout:
             print(f"   ⏱️  Download timeout on attempt {attempt+1}/{max_retries}")
             if attempt < max_retries - 1:
-                wait_time = 30 * (2 ** attempt)
+                wait_time = 30 * (2**attempt)
                 print(f"   🔄 Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
@@ -301,7 +333,7 @@ def download_and_parse_ina(conn, url: str):
         except Exception as e:
             print(f"   ❌ Download error: {type(e).__name__}: {e}")
             if attempt < max_retries - 1:
-                wait_time = 30 * (2 ** attempt)
+                wait_time = 30 * (2**attempt)
                 print(f"   🔄 Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
@@ -309,59 +341,69 @@ def download_and_parse_ina(conn, url: str):
 
     try:
         file_path = os.path.join(DATA_DIR, "latest_ina.xlsx")
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(resp.content)
 
         print("   ✅ INA downloaded. Parsing...")
-        
+
         # Read Excel with header=1 (Row 2 in Excel is header)
         df = pd.read_excel(file_path, header=1)
-        
+
         # Clean columns: Strip whitespace and lower case for matching
         df.columns = [str(c).strip() for c in df.columns]
-        
+
         # Column Mapping (Best guess based on standard FIESP layout)
         # Using containment check for robustness
         col_map = {}
         for col in df.columns:
             cl = col.lower()
-            if 'ina total' in cl: col_map['general_activity_index'] = col
-            elif 'vendas reais' in cl: col_map['real_sales'] = col
-            elif 'horas trabalhadas' in cl and 'produção' in cl: col_map['hours_worked_production'] = col
-            elif 'massa salarial' in cl: col_map['salarium_mass_real'] = col
-            elif 'nuci' in cl or 'utilização' in cl: col_map['capacity_utilization'] = col
-            elif 'mes' == cl or 'mês' == cl: col_map['period'] = col
+            if "ina total" in cl:
+                col_map["general_activity_index"] = col
+            elif "vendas reais" in cl:
+                col_map["real_sales"] = col
+            elif "horas trabalhadas" in cl and "produção" in cl:
+                col_map["hours_worked_production"] = col
+            elif "massa salarial" in cl:
+                col_map["salarium_mass_real"] = col
+            elif "nuci" in cl or "utilização" in cl:
+                col_map["capacity_utilization"] = col
+            elif "mes" == cl or "mês" == cl:
+                col_map["period"] = col
 
-        if 'period' not in col_map:
+        if "period" not in col_map:
             # Fallback: Check if first column is period
-            col_map['period'] = df.columns[0]
-            
+            col_map["period"] = df.columns[0]
+
         cursor = conn.cursor()
         inserted_count = 0
-        
+
         for index, row in df.iterrows():
-            period_raw = row[col_map.get('period')]
+            period_raw = row[col_map.get("period")]
             period_date = parse_pt_date(str(period_raw))
-            
+
             if not period_date:
                 continue
-                
-            val_ina = row.get(col_map.get('general_activity_index'))
-            val_sales = row.get(col_map.get('real_sales'))
-            val_hours = row.get(col_map.get('hours_worked_production'))
-            val_wages = row.get(col_map.get('salarium_mass_real'))
-            val_nuci = row.get(col_map.get('capacity_utilization'))
-            
+
+            val_ina = row.get(col_map.get("general_activity_index"))
+            val_sales = row.get(col_map.get("real_sales"))
+            val_hours = row.get(col_map.get("hours_worked_production"))
+            val_wages = row.get(col_map.get("salarium_mass_real"))
+            val_nuci = row.get(col_map.get("capacity_utilization"))
+
             # Helper to clean numeric
             def clean_num(n):
-                if pd.isna(n): return None
-                try: return float(n)
-                except: return None
+                if pd.isna(n):
+                    return None
+                try:
+                    return float(n)
+                except:
+                    return None
 
             try:
                 # Upsert logic (Update if exists, or Insert)
                 # Using specific constraint conflict handling
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.fiesp_ina (period, general_activity_index, real_sales, hours_worked_production, salarium_mass_real, capacity_utilization)
                     VALUES (%s, %s, %s, %s, %s, %s)
                     ON CONFLICT (period) DO UPDATE SET
@@ -371,32 +413,35 @@ def download_and_parse_ina(conn, url: str):
                         salarium_mass_real = EXCLUDED.salarium_mass_real,
                         capacity_utilization = EXCLUDED.capacity_utilization,
                         collected_at = CURRENT_TIMESTAMP
-                """, (
-                    period_date, 
-                    clean_num(val_ina), 
-                    clean_num(val_sales), 
-                    clean_num(val_hours), 
-                    clean_num(val_wages), 
-                    clean_num(val_nuci)
-                ))
+                """,
+                    (
+                        period_date,
+                        clean_num(val_ina),
+                        clean_num(val_sales),
+                        clean_num(val_hours),
+                        clean_num(val_wages),
+                        clean_num(val_nuci),
+                    ),
+                )
                 inserted_count += 1
-            except Exception as e:
+            except Exception:
                 # print(f"      ❌ Error inserting row {period_raw}: {e}")
                 conn.rollback()
                 continue
-        
+
         conn.commit()
         print(f"   ✅ Processed {inserted_count} INA records.")
-        
+
     except Exception as e:
         print(f"❌ Error processing INA: {e}")
         conn.rollback()
+
 
 def main():
     print("================================================================================")
     print("🏭 FIESP Data Collector")
     print("================================================================================")
-    
+
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         init_db(conn)
@@ -405,36 +450,39 @@ def main():
         return
 
     links = get_excel_links(FIESP_BASE_URL)
-    
+
     # Fallback/Enhancement: Check specific sub-pages if not found on main index
-    if 'ina' not in links:
+    if "ina" not in links:
         print("⚠️ INA not found on main page, checking sub-page...")
-        ina_links = get_excel_links("https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/levantamento-de-conjuntura/")
-        if 'ina' in ina_links:
-            links['ina'] = ina_links['ina']
-            
-    if 'sensor' not in links:
-         print("⚠️ Sensor not found on main page, checking sub-page...")
-         sensor_links = get_excel_links("https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/sensor-fiesp/")
-         if 'sensor' in sensor_links:
-             links['sensor'] = sensor_links['sensor']
-    
+        ina_links = get_excel_links(
+            "https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/levantamento-de-conjuntura/"
+        )
+        if "ina" in ina_links:
+            links["ina"] = ina_links["ina"]
+
+    if "sensor" not in links:
+        print("⚠️ Sensor not found on main page, checking sub-page...")
+        sensor_links = get_excel_links("https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/sensor-fiesp/")
+        if "sensor" in sensor_links:
+            links["sensor"] = sensor_links["sensor"]
+
     if not links:
         print("❌ Still no links found. Debugging HTML content...")
         # (Optional) Dump HTML to file for inspection if needed
     else:
         print(f"🔗 Found links: {links}")
 
-    if 'sensor' in links:
-        download_and_parse_sensor(conn, links['sensor'])
-    
-    if 'ina' in links:
-        download_and_parse_ina(conn, links['ina'])
+    if "sensor" in links:
+        download_and_parse_sensor(conn, links["sensor"])
+
+    if "ina" in links:
+        download_and_parse_ina(conn, links["ina"])
 
     conn.close()
 
+
 if __name__ == "__main__":
-    COLLECTOR_NAME = 'fiesp-data'
+    COLLECTOR_NAME = "fiesp-data"
     try:
         main()
     except Exception as e:
@@ -444,14 +492,15 @@ if __name__ == "__main__":
             cursor = conn.cursor()
             # Assuming sofia.finish_collector_run exists or basic logging
             # For now just alert
+        except:
             pass
-        except: pass
 
         # Send WhatsApp Alert
         try:
             from utils.whatsapp_alerts import alert_collector_failed
+
             alert_collector_failed(COLLECTOR_NAME, str(e))
         except Exception as alert_e:
             print(f"⚠️  Could not send alert: {alert_e}")
-        
+
         sys.exit(1)

@@ -8,12 +8,13 @@ import sys
 from pathlib import Path
 
 # Add utils to path
-sys.path.insert(0, str(Path(__file__).parent / 'utils'))
+sys.path.insert(0, str(Path(__file__).parent / "utils"))
 
 # Load .env
 try:
     from dotenv import load_dotenv
-    env_path = Path(__file__).parent.parent / '.env'
+
+    env_path = Path(__file__).parent.parent / ".env"
     load_dotenv(env_path)
     print(f"✅ Loaded .env from: {env_path}")
 except:
@@ -21,10 +22,11 @@ except:
 
 from sofia_whatsapp_integration import SofiaWhatsAppIntegration
 
+
 def main():
-    print("="*80)
+    print("=" * 80)
     print("🔍 DEBUG WHATSAPP INTEGRATION - VERBOSE MODE")
-    print("="*80)
+    print("=" * 80)
     print()
 
     # Show configuration
@@ -37,9 +39,9 @@ def main():
     # Create integration instance
     integration = SofiaWhatsAppIntegration()
 
-    print("="*80)
+    print("=" * 80)
     print("TEST 1: Ask Sofia (consulta simples)")
-    print("="*80)
+    print("=" * 80)
     print()
 
     query = "Teste de debug WhatsApp. Por favor, responda 'OK' se receber esta mensagem."
@@ -56,9 +58,9 @@ def main():
         print("\n❌ Sofia não respondeu")
         return
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 2: Send WhatsApp (envio direto)")
-    print("="*80)
+    print("=" * 80)
     print()
 
     message = f"""🧪 TESTE DE DEBUG
@@ -83,16 +85,16 @@ Sofia Pulse Debug Mode
     else:
         print("\n❌ Falha ao enviar WhatsApp")
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TEST 3: Alert with Analysis (fluxo completo)")
-    print("="*80)
+    print("=" * 80)
     print()
 
     success = integration.alert_api_error(
         api_name="Test API (Debug)",
         status_code=200,
         error_message="Este é um teste de debug. Sistema funcionando normalmente.",
-        endpoint="/debug/test"
+        endpoint="/debug/test",
     )
 
     if success:
@@ -100,9 +102,9 @@ Sofia Pulse Debug Mode
     else:
         print("\n❌ Falha no alerta completo")
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("🏁 DEBUG COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print()
     print("Próximos passos:")
     print("  1. Verifique os logs acima para identificar onde falha")
@@ -111,5 +113,5 @@ Sofia Pulse Debug Mode
     print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

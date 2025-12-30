@@ -17,96 +17,112 @@ API: https://www.gov.br/mj/pt-br/assuntos/sua-seguranca/seguranca-publica/sinesp
 
 import os
 import sys
+from datetime import datetime
+from typing import Dict, List
+from urllib.parse import urlparse
+
 import psycopg2
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
 from dotenv import load_dotenv
-from urllib.parse import urlparse
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Parse DATABASE_URL if available
-database_url = os.getenv('DATABASE_URL')
+database_url = os.getenv("DATABASE_URL")
 if database_url:
     parsed = urlparse(database_url)
     DB_CONFIG = {
-        'host': parsed.hostname or 'localhost',
-        'port': parsed.port or 5432,
-        'user': parsed.username or 'sofia',
-        'password': parsed.password or '',
-        'database': parsed.path.lstrip('/') if parsed.path else 'sofia_db'
+        "host": parsed.hostname or "localhost",
+        "port": parsed.port or 5432,
+        "user": parsed.username or "sofia",
+        "password": parsed.password or "",
+        "database": parsed.path.lstrip("/") if parsed.path else "sofia_db",
     }
 else:
     # Fallback to individual environment variables
     DB_CONFIG = {
-        'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-        'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-        'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-        'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-        'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+        "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+        "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+        "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+        "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+        "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
     }
 
 # Brazilian States (UF codes)
 BRAZILIAN_STATES = {
-    'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapa', 'AM': 'Amazonas',
-    'BA': 'Bahia', 'CE': 'Ceara', 'DF': 'Distrito Federal', 'ES': 'Espirito Santo',
-    'GO': 'Goias', 'MA': 'Maranhao', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul',
-    'MG': 'Minas Gerais', 'PA': 'Para', 'PB': 'Paraiba', 'PR': 'Parana',
-    'PE': 'Pernambuco', 'PI': 'Piaui', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte',
-    'RS': 'Rio Grande do Sul', 'RO': 'Rondonia', 'RR': 'Roraima', 'SC': 'Santa Catarina',
-    'SP': 'Sao Paulo', 'SE': 'Sergipe', 'TO': 'Tocantins'
+    "AC": "Acre",
+    "AL": "Alagoas",
+    "AP": "Amapa",
+    "AM": "Amazonas",
+    "BA": "Bahia",
+    "CE": "Ceara",
+    "DF": "Distrito Federal",
+    "ES": "Espirito Santo",
+    "GO": "Goias",
+    "MA": "Maranhao",
+    "MT": "Mato Grosso",
+    "MS": "Mato Grosso do Sul",
+    "MG": "Minas Gerais",
+    "PA": "Para",
+    "PB": "Paraiba",
+    "PR": "Parana",
+    "PE": "Pernambuco",
+    "PI": "Piaui",
+    "RJ": "Rio de Janeiro",
+    "RN": "Rio Grande do Norte",
+    "RS": "Rio Grande do Sul",
+    "RO": "Rondonia",
+    "RR": "Roraima",
+    "SC": "Santa Catarina",
+    "SP": "Sao Paulo",
+    "SE": "Sergipe",
+    "TO": "Tocantins",
 }
 
 # Security Indicators from IPEA Atlas da Violencia
 # Source: https://www.ipea.gov.br/atlasviolencia/
 IPEA_VIOLENCE_SERIES = {
     # Homicide rates
-    'ATLAS_HOMICID': {
-        'name': 'Taxa de homicidios por 100 mil habitantes',
-        'category': 'homicide',
-        'description': 'Homicide rate per 100,000 population'
+    "ATLAS_HOMICID": {
+        "name": "Taxa de homicidios por 100 mil habitantes",
+        "category": "homicide",
+        "description": "Homicide rate per 100,000 population",
     },
-    'ATLAS_HOMICID_JOV': {
-        'name': 'Taxa de homicidios de jovens (15-29 anos)',
-        'category': 'homicide',
-        'description': 'Youth homicide rate (ages 15-29)'
+    "ATLAS_HOMICID_JOV": {
+        "name": "Taxa de homicidios de jovens (15-29 anos)",
+        "category": "homicide",
+        "description": "Youth homicide rate (ages 15-29)",
     },
-    'ATLAS_HOMICID_NEG': {
-        'name': 'Taxa de homicidios de negros',
-        'category': 'homicide',
-        'description': 'Black population homicide rate'
+    "ATLAS_HOMICID_NEG": {
+        "name": "Taxa de homicidios de negros",
+        "category": "homicide",
+        "description": "Black population homicide rate",
     },
-    'ATLAS_HOMICID_MUL': {
-        'name': 'Taxa de homicidios de mulheres (feminicidio)',
-        'category': 'femicide',
-        'description': 'Female homicide rate (feminicide proxy)'
+    "ATLAS_HOMICID_MUL": {
+        "name": "Taxa de homicidios de mulheres (feminicidio)",
+        "category": "femicide",
+        "description": "Female homicide rate (feminicide proxy)",
     },
-
     # Violence types
-    'ATLAS_LESOES': {
-        'name': 'Lesoes corporais',
-        'category': 'assault',
-        'description': 'Bodily injuries'
-    },
-    'ATLAS_ESTUPRO': {
-        'name': 'Taxa de estupros por 100 mil habitantes',
-        'category': 'sexual_violence',
-        'description': 'Rape rate per 100,000'
+    "ATLAS_LESOES": {"name": "Lesoes corporais", "category": "assault", "description": "Bodily injuries"},
+    "ATLAS_ESTUPRO": {
+        "name": "Taxa de estupros por 100 mil habitantes",
+        "category": "sexual_violence",
+        "description": "Rape rate per 100,000",
     },
 }
 
 # SINESP/Ministry of Justice Crime Data
 # Public data available via dados.gov.br
 SINESP_CATEGORIES = {
-    'homicidio_doloso': 'Homicidio Doloso',
-    'latrocinio': 'Latrocinio (roubo seguido de morte)',
-    'lesao_corporal_morte': 'Lesao Corporal seguida de Morte',
-    'roubo_veiculo': 'Roubo de Veiculo',
-    'furto_veiculo': 'Furto de Veiculo',
-    'estupro': 'Estupro',
-    'roubo_carga': 'Roubo de Carga',
+    "homicidio_doloso": "Homicidio Doloso",
+    "latrocinio": "Latrocinio (roubo seguido de morte)",
+    "lesao_corporal_morte": "Lesao Corporal seguida de Morte",
+    "roubo_veiculo": "Roubo de Veiculo",
+    "furto_veiculo": "Furto de Veiculo",
+    "estupro": "Estupro",
+    "roubo_carga": "Roubo de Carga",
 }
 
 
@@ -120,7 +136,7 @@ def fetch_ipea_atlas_data() -> List[Dict]:
     records = []
 
     # Get available series related to violence
-    violence_keywords = ['HOMIC', 'VIOLEN', 'MORTES', 'OBITO']
+    violence_keywords = ["HOMIC", "VIOLEN", "MORTES", "OBITO"]
 
     for keyword in violence_keywords:
         url = f"{base_url}/Metadados?$filter=contains(SERCODIGO,'{keyword}')"
@@ -129,21 +145,21 @@ def fetch_ipea_atlas_data() -> List[Dict]:
             response = requests.get(url, timeout=60)
             if response.status_code == 200:
                 data = response.json()
-                if 'value' in data:
-                    for series in data['value'][:5]:  # Limit to first 5 per keyword
-                        series_code = series.get('SERCODIGO', '')
+                if "value" in data:
+                    for series in data["value"][:5]:  # Limit to first 5 per keyword
+                        series_code = series.get("SERCODIGO", "")
                         if series_code:
                             # Fetch actual values
                             values_url = f"{base_url}/ValoresSerie(SERCODIGO='{series_code}')"
                             val_response = requests.get(values_url, timeout=60)
                             if val_response.status_code == 200:
                                 val_data = val_response.json()
-                                if 'value' in val_data:
-                                    for v in val_data['value']:
-                                        v['series_code'] = series_code
-                                        v['series_name'] = series.get('SERNOME', '')
+                                if "value" in val_data:
+                                    for v in val_data["value"]:
+                                        v["series_code"] = series_code
+                                        v["series_name"] = series.get("SERNOME", "")
                                         records.append(v)
-        except Exception as e:
+        except Exception:
             continue
 
     return records
@@ -160,20 +176,16 @@ def fetch_datasus_mortality() -> List[Dict]:
 
     # World Bank mortality indicators for Brazil
     mortality_indicators = {
-        'VC.IHR.PSRC.P5': 'Intentional homicides (per 100,000 people)',
-        'SH.DYN.MORT': 'Mortality rate, under-5 (per 1,000 live births)',
-        'SP.DYN.AMRT.MA': 'Mortality rate, adult, male (per 1,000)',
-        'SP.DYN.AMRT.FE': 'Mortality rate, adult, female (per 1,000)',
+        "VC.IHR.PSRC.P5": "Intentional homicides (per 100,000 people)",
+        "SH.DYN.MORT": "Mortality rate, under-5 (per 1,000 live births)",
+        "SP.DYN.AMRT.MA": "Mortality rate, adult, male (per 1,000)",
+        "SP.DYN.AMRT.FE": "Mortality rate, adult, female (per 1,000)",
     }
 
     for indicator_code, indicator_name in mortality_indicators.items():
         base_url = "https://api.worldbank.org/v2"
         url = f"{base_url}/country/BRA/indicator/{indicator_code}"
-        params = {
-            'format': 'json',
-            'per_page': 100,
-            'date': '2000:2024'
-        }
+        params = {"format": "json", "per_page": 100, "date": "2000:2024"}
 
         try:
             response = requests.get(url, params=params, timeout=60)
@@ -181,10 +193,10 @@ def fetch_datasus_mortality() -> List[Dict]:
                 data = response.json()
                 if len(data) >= 2 and data[1]:
                     for r in data[1]:
-                        r['indicator_code'] = indicator_code
-                        r['indicator_name'] = indicator_name
+                        r["indicator_code"] = indicator_code
+                        r["indicator_name"] = indicator_name
                         records.append(r)
-        except Exception as e:
+        except Exception:
             continue
 
     return records
@@ -200,9 +212,9 @@ def fetch_ibge_crime_data() -> List[Dict]:
 
     # SIDRA tables with crime/security data
     sidra_tables = {
-        '7671': 'Pessoas que sofreram algum tipo de violencia',
-        '7663': 'Percepcao de seguranca no domicilio',
-        '7679': 'Crimes contra a pessoa - PNAD',
+        "7671": "Pessoas que sofreram algum tipo de violencia",
+        "7663": "Percepcao de seguranca no domicilio",
+        "7679": "Crimes contra a pessoa - PNAD",
     }
 
     for table_id, table_name in sidra_tables.items():
@@ -214,10 +226,10 @@ def fetch_ibge_crime_data() -> List[Dict]:
                 data = response.json()
                 if isinstance(data, list) and len(data) > 1:
                     for r in data[1:]:
-                        r['table_id'] = table_id
-                        r['table_name'] = table_name
+                        r["table_id"] = table_id
+                        r["table_name"] = table_name
                         records.append(r)
-        except Exception as e:
+        except Exception:
             continue
 
     return records
@@ -236,45 +248,47 @@ def fetch_state_level_data() -> List[Dict]:
     # These are official statistics published annually
     state_crime_data = [
         # (UF, Homicide Rate per 100k, Robbery Rate, Femicide count)
-        ('AC', 26.5, 156.2, 12),
-        ('AL', 41.8, 312.5, 25),
-        ('AP', 34.2, 245.8, 8),
-        ('AM', 31.7, 425.3, 35),
-        ('BA', 35.2, 478.6, 98),
-        ('CE', 30.8, 512.4, 65),
-        ('DF', 16.2, 892.1, 18),
-        ('ES', 24.8, 345.7, 26),
-        ('GO', 25.1, 523.8, 45),
-        ('MA', 23.4, 198.5, 42),
-        ('MT', 26.8, 425.6, 32),
-        ('MS', 18.5, 356.2, 15),
-        ('MG', 14.2, 425.8, 85),
-        ('PA', 35.8, 312.4, 68),
-        ('PB', 26.4, 245.6, 22),
-        ('PR', 17.5, 456.8, 52),
-        ('PE', 32.5, 523.4, 58),
-        ('PI', 18.6, 178.5, 18),
-        ('RJ', 26.8, 845.2, 95),
-        ('RN', 28.4, 312.5, 18),
-        ('RS', 16.8, 523.4, 65),
-        ('RO', 28.5, 312.8, 15),
-        ('RR', 32.4, 198.5, 8),
-        ('SC', 10.2, 312.5, 28),
-        ('SP', 9.8, 625.4, 145),
-        ('SE', 42.5, 356.8, 15),
-        ('TO', 18.5, 198.4, 12),
+        ("AC", 26.5, 156.2, 12),
+        ("AL", 41.8, 312.5, 25),
+        ("AP", 34.2, 245.8, 8),
+        ("AM", 31.7, 425.3, 35),
+        ("BA", 35.2, 478.6, 98),
+        ("CE", 30.8, 512.4, 65),
+        ("DF", 16.2, 892.1, 18),
+        ("ES", 24.8, 345.7, 26),
+        ("GO", 25.1, 523.8, 45),
+        ("MA", 23.4, 198.5, 42),
+        ("MT", 26.8, 425.6, 32),
+        ("MS", 18.5, 356.2, 15),
+        ("MG", 14.2, 425.8, 85),
+        ("PA", 35.8, 312.4, 68),
+        ("PB", 26.4, 245.6, 22),
+        ("PR", 17.5, 456.8, 52),
+        ("PE", 32.5, 523.4, 58),
+        ("PI", 18.6, 178.5, 18),
+        ("RJ", 26.8, 845.2, 95),
+        ("RN", 28.4, 312.5, 18),
+        ("RS", 16.8, 523.4, 65),
+        ("RO", 28.5, 312.8, 15),
+        ("RR", 32.4, 198.5, 8),
+        ("SC", 10.2, 312.5, 28),
+        ("SP", 9.8, 625.4, 145),
+        ("SE", 42.5, 356.8, 15),
+        ("TO", 18.5, 198.4, 12),
     ]
 
     for uf, homicide_rate, robbery_rate, femicide in state_crime_data:
-        records.append({
-            'uf': uf,
-            'state_name': BRAZILIAN_STATES.get(uf, ''),
-            'year': 2022,
-            'homicide_rate': homicide_rate,
-            'robbery_rate': robbery_rate,
-            'femicide_count': femicide,
-            'source': 'Anuario Brasileiro de Seguranca Publica 2023'
-        })
+        records.append(
+            {
+                "uf": uf,
+                "state_name": BRAZILIAN_STATES.get(uf, ""),
+                "year": 2022,
+                "homicide_rate": homicide_rate,
+                "robbery_rate": robbery_rate,
+                "femicide_count": femicide,
+                "source": "Anuario Brasileiro de Seguranca Publica 2023",
+            }
+        )
 
     return records
 
@@ -289,49 +303,51 @@ def fetch_city_level_data() -> List[Dict]:
     # Source: State Security Secretariats + Anuario FBSP
     city_crime_data = [
         # (City, State, Pop (millions), Homicide Rate, Robbery Rate)
-        ('Sao Paulo', 'SP', 12.4, 7.2, 856.4),
-        ('Rio de Janeiro', 'RJ', 6.8, 18.5, 1245.6),
-        ('Brasilia', 'DF', 3.1, 16.2, 892.1),
-        ('Salvador', 'BA', 2.9, 32.5, 625.4),
-        ('Fortaleza', 'CE', 2.7, 42.5, 812.3),
-        ('Belo Horizonte', 'MG', 2.5, 12.8, 545.6),
-        ('Manaus', 'AM', 2.2, 35.4, 512.3),
-        ('Curitiba', 'PR', 1.9, 14.5, 425.6),
-        ('Recife', 'PE', 1.7, 38.2, 645.8),
-        ('Porto Alegre', 'RS', 1.5, 22.4, 725.4),
-        ('Belem', 'PA', 1.5, 42.8, 456.2),
-        ('Goiania', 'GO', 1.5, 28.5, 612.4),
-        ('Guarulhos', 'SP', 1.4, 12.5, 512.3),
-        ('Campinas', 'SP', 1.2, 8.5, 425.6),
-        ('Sao Luis', 'MA', 1.1, 28.4, 312.5),
-        ('Sao Goncalo', 'RJ', 1.1, 24.5, 856.4),
-        ('Maceio', 'AL', 1.0, 45.2, 425.6),
-        ('Duque de Caxias', 'RJ', 0.95, 32.5, 756.8),
-        ('Natal', 'RN', 0.9, 35.2, 412.5),
-        ('Campo Grande', 'MS', 0.9, 16.5, 312.4),
-        ('Teresina', 'PI', 0.87, 22.4, 198.5),
-        ('Sao Bernardo', 'SP', 0.85, 8.2, 425.6),
-        ('Joao Pessoa', 'PB', 0.82, 32.5, 345.6),
-        ('Osasco', 'SP', 0.7, 9.5, 512.3),
-        ('Ribeirao Preto', 'SP', 0.7, 6.8, 312.4),
-        ('Vitoria', 'ES', 0.36, 28.5, 425.6),
-        ('Florianopolis', 'SC', 0.51, 8.5, 356.4),
-        ('Cuiaba', 'MT', 0.62, 32.5, 512.3),
-        ('Aracaju', 'SE', 0.66, 45.8, 412.5),
-        ('Porto Velho', 'RO', 0.55, 35.2, 356.8),
+        ("Sao Paulo", "SP", 12.4, 7.2, 856.4),
+        ("Rio de Janeiro", "RJ", 6.8, 18.5, 1245.6),
+        ("Brasilia", "DF", 3.1, 16.2, 892.1),
+        ("Salvador", "BA", 2.9, 32.5, 625.4),
+        ("Fortaleza", "CE", 2.7, 42.5, 812.3),
+        ("Belo Horizonte", "MG", 2.5, 12.8, 545.6),
+        ("Manaus", "AM", 2.2, 35.4, 512.3),
+        ("Curitiba", "PR", 1.9, 14.5, 425.6),
+        ("Recife", "PE", 1.7, 38.2, 645.8),
+        ("Porto Alegre", "RS", 1.5, 22.4, 725.4),
+        ("Belem", "PA", 1.5, 42.8, 456.2),
+        ("Goiania", "GO", 1.5, 28.5, 612.4),
+        ("Guarulhos", "SP", 1.4, 12.5, 512.3),
+        ("Campinas", "SP", 1.2, 8.5, 425.6),
+        ("Sao Luis", "MA", 1.1, 28.4, 312.5),
+        ("Sao Goncalo", "RJ", 1.1, 24.5, 856.4),
+        ("Maceio", "AL", 1.0, 45.2, 425.6),
+        ("Duque de Caxias", "RJ", 0.95, 32.5, 756.8),
+        ("Natal", "RN", 0.9, 35.2, 412.5),
+        ("Campo Grande", "MS", 0.9, 16.5, 312.4),
+        ("Teresina", "PI", 0.87, 22.4, 198.5),
+        ("Sao Bernardo", "SP", 0.85, 8.2, 425.6),
+        ("Joao Pessoa", "PB", 0.82, 32.5, 345.6),
+        ("Osasco", "SP", 0.7, 9.5, 512.3),
+        ("Ribeirao Preto", "SP", 0.7, 6.8, 312.4),
+        ("Vitoria", "ES", 0.36, 28.5, 425.6),
+        ("Florianopolis", "SC", 0.51, 8.5, 356.4),
+        ("Cuiaba", "MT", 0.62, 32.5, 512.3),
+        ("Aracaju", "SE", 0.66, 45.8, 412.5),
+        ("Porto Velho", "RO", 0.55, 35.2, 356.8),
     ]
 
     records = []
     for city, state, pop, homicide, robbery in city_crime_data:
-        records.append({
-            'city': city,
-            'state': state,
-            'population_millions': pop,
-            'year': 2022,
-            'homicide_rate': homicide,
-            'robbery_rate': robbery,
-            'source': 'Secretarias Estaduais de Seguranca Publica'
-        })
+        records.append(
+            {
+                "city": city,
+                "state": state,
+                "population_millions": pop,
+                "year": 2022,
+                "homicide_rate": homicide,
+                "robbery_rate": robbery,
+                "source": "Secretarias Estaduais de Seguranca Publica",
+            }
+        )
 
     return records
 
@@ -345,7 +361,8 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
     cursor = conn.cursor()
 
     # Create main security table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.brazil_security_data (
             id SERIAL PRIMARY KEY,
             data_type VARCHAR(50) NOT NULL,
@@ -360,18 +377,22 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(data_type, indicator, region_code, year)
         )
-    """)
+    """
+    )
 
     # Add geographic normalization columns if they don't exist
-    cursor.execute("""
+    cursor.execute(
+        """
         ALTER TABLE sofia.brazil_security_data
         ADD COLUMN IF NOT EXISTS country_id INTEGER REFERENCES sofia.countries(id),
         ADD COLUMN IF NOT EXISTS state_id INTEGER REFERENCES sofia.states(id),
         ADD COLUMN IF NOT EXISTS city_id INTEGER REFERENCES sofia.cities(id)
-    """)
+    """
+    )
 
     # Create city-level table
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.brazil_security_cities (
             id SERIAL PRIMARY KEY,
             city VARCHAR(100) NOT NULL,
@@ -384,121 +405,131 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(city, state, year)
         )
-    """)
+    """
+    )
 
     # Add geographic normalization columns to cities table
-    cursor.execute("""
+    cursor.execute(
+        """
         ALTER TABLE sofia.brazil_security_cities
         ADD COLUMN IF NOT EXISTS country_id INTEGER REFERENCES sofia.countries(id),
         ADD COLUMN IF NOT EXISTS state_id INTEGER REFERENCES sofia.states(id),
         ADD COLUMN IF NOT EXISTS city_id INTEGER REFERENCES sofia.cities(id)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_security_region
         ON sofia.brazil_security_data(region_code, year DESC)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_security_type
         ON sofia.brazil_security_data(data_type)
-    """)
+    """
+    )
 
     inserted = 0
 
-    if data_type == 'state_level':
+    if data_type == "state_level":
         for r in records:
             try:
                 # Normalize geographic location (Brazil + state)
-                location = normalize_location(conn, {
-                    'country': 'Brazil',
-                    'state': r['state_name']
-                })
-                country_id = location['country_id']
-                state_id = location['state_id']
+                location = normalize_location(conn, {"country": "Brazil", "state": r["state_name"]})
+                country_id = location["country_id"]
+                state_id = location["state_id"]
 
                 # Homicide rate
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.brazil_security_data
                     (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id, state_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
                     DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
-                """, (
-                    'crime_rate',
-                    'homicide_rate',
-                    'state',
-                    r['uf'],
-                    r['state_name'],
-                    r['year'],
-                    r['homicide_rate'],
-                    'per 100,000',
-                    r['source'],
-                    country_id,
-                    state_id
-                ))
+                """,
+                    (
+                        "crime_rate",
+                        "homicide_rate",
+                        "state",
+                        r["uf"],
+                        r["state_name"],
+                        r["year"],
+                        r["homicide_rate"],
+                        "per 100,000",
+                        r["source"],
+                        country_id,
+                        state_id,
+                    ),
+                )
                 inserted += 1
 
                 # Robbery rate
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.brazil_security_data
                     (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id, state_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
                     DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
-                """, (
-                    'crime_rate',
-                    'robbery_rate',
-                    'state',
-                    r['uf'],
-                    r['state_name'],
-                    r['year'],
-                    r['robbery_rate'],
-                    'per 100,000',
-                    r['source'],
-                    country_id,
-                    state_id
-                ))
+                """,
+                    (
+                        "crime_rate",
+                        "robbery_rate",
+                        "state",
+                        r["uf"],
+                        r["state_name"],
+                        r["year"],
+                        r["robbery_rate"],
+                        "per 100,000",
+                        r["source"],
+                        country_id,
+                        state_id,
+                    ),
+                )
                 inserted += 1
 
                 # Femicide count
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.brazil_security_data
                     (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id, state_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
                     DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id, state_id = EXCLUDED.state_id
-                """, (
-                    'femicide',
-                    'femicide_count',
-                    'state',
-                    r['uf'],
-                    r['state_name'],
-                    r['year'],
-                    r['femicide_count'],
-                    'count',
-                    r['source'],
-                    country_id,
-                    state_id
-                ))
+                """,
+                    (
+                        "femicide",
+                        "femicide_count",
+                        "state",
+                        r["uf"],
+                        r["state_name"],
+                        r["year"],
+                        r["femicide_count"],
+                        "count",
+                        r["source"],
+                        country_id,
+                        state_id,
+                    ),
+                )
                 inserted += 1
             except:
                 continue
 
-    elif data_type == 'city_level':
+    elif data_type == "city_level":
         for r in records:
             try:
                 # Normalize geographic location (Brazil + state + city)
-                location = normalize_location(conn, {
-                    'country': 'Brazil',
-                    'state': r['state'],
-                    'city': r['city']
-                })
-                country_id = location['country_id']
-                state_id = location['state_id']
-                city_id = location['city_id']
+                location = normalize_location(conn, {"country": "Brazil", "state": r["state"], "city": r["city"]})
+                country_id = location["country_id"]
+                state_id = location["state_id"]
+                city_id = location["city_id"]
 
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.brazil_security_cities
                     (city, state, population_millions, year, homicide_rate, robbery_rate, source, country_id, state_id, city_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -509,49 +540,54 @@ def save_to_database(conn, data_type: str, records: List[Dict]) -> int:
                         country_id = EXCLUDED.country_id,
                         state_id = EXCLUDED.state_id,
                         city_id = EXCLUDED.city_id
-                """, (
-                    r['city'],
-                    r['state'],
-                    r['population_millions'],
-                    r['year'],
-                    r['homicide_rate'],
-                    r['robbery_rate'],
-                    r['source'],
-                    country_id,
-                    state_id,
-                    city_id
-                ))
+                """,
+                    (
+                        r["city"],
+                        r["state"],
+                        r["population_millions"],
+                        r["year"],
+                        r["homicide_rate"],
+                        r["robbery_rate"],
+                        r["source"],
+                        country_id,
+                        state_id,
+                        city_id,
+                    ),
+                )
                 inserted += 1
             except:
                 continue
 
-    elif data_type == 'datasus':
+    elif data_type == "datasus":
         # Normalize Brazil country_id (do once outside loop)
-        location = normalize_location(conn, {'country': 'Brazil'})
-        country_id = location['country_id']
+        location = normalize_location(conn, {"country": "Brazil"})
+        country_id = location["country_id"]
 
         for r in records:
-            if r.get('value') is None:
+            if r.get("value") is None:
                 continue
             try:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.brazil_security_data
                     (data_type, indicator, region_type, region_code, region_name, year, value, unit, source, country_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
                     DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
-                """, (
-                    'mortality',
-                    r.get('indicator_code', ''),
-                    'country',
-                    'BRA',
-                    'Brasil',
-                    int(r.get('date', 0)),
-                    float(r.get('value')),
-                    'per 100,000',
-                    'World Bank / DataSUS',
-                    country_id
-                ))
+                """,
+                    (
+                        "mortality",
+                        r.get("indicator_code", ""),
+                        "country",
+                        "BRA",
+                        "Brasil",
+                        int(r.get("date", 0)),
+                        float(r.get("value")),
+                        "per 100,000",
+                        "World Bank / DataSUS",
+                        country_id,
+                    ),
+                )
                 inserted += 1
             except:
                 continue
@@ -595,7 +631,7 @@ def main():
     state_data = fetch_state_level_data()
     if state_data:
         print(f"    Found: {len(state_data)} states")
-        inserted = save_to_database(conn, 'state_level', state_data)
+        inserted = save_to_database(conn, "state_level", state_data)
         total_records += inserted
         print(f"    Saved: {inserted} records")
     print("")
@@ -606,7 +642,7 @@ def main():
     city_data = fetch_city_level_data()
     if city_data:
         print(f"    Found: {len(city_data)} cities")
-        inserted = save_to_database(conn, 'city_level', city_data)
+        inserted = save_to_database(conn, "city_level", city_data)
         total_records += inserted
         print(f"    Saved: {inserted} records")
     print("")
@@ -617,7 +653,7 @@ def main():
     datasus_data = fetch_datasus_mortality()
     if datasus_data:
         print(f"    Found: {len(datasus_data)} records")
-        inserted = save_to_database(conn, 'datasus', datasus_data)
+        inserted = save_to_database(conn, "datasus", datasus_data)
         total_records += inserted
         print(f"    Saved: {inserted} records")
     print("")
@@ -631,26 +667,29 @@ def main():
         # Save IPEA data
         cursor = conn.cursor()
         for r in ipea_data:
-            if r.get('VALVALOR') is None:
+            if r.get("VALVALOR") is None:
                 continue
             try:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.brazil_security_data
                     (data_type, indicator, region_type, region_code, region_name, year, value, unit, source)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
                     DO UPDATE SET value = EXCLUDED.value
-                """, (
-                    'ipea_violence',
-                    r.get('series_code', ''),
-                    'country',
-                    'BRA',
-                    r.get('series_name', ''),
-                    int(str(r.get('VALDATA', ''))[:4]) if r.get('VALDATA') else None,
-                    float(r.get('VALVALOR')),
-                    '',
-                    'IPEA Atlas da Violencia'
-                ))
+                """,
+                    (
+                        "ipea_violence",
+                        r.get("series_code", ""),
+                        "country",
+                        "BRA",
+                        r.get("series_name", ""),
+                        int(str(r.get("VALDATA", ""))[:4]) if r.get("VALDATA") else None,
+                        float(r.get("VALVALOR")),
+                        "",
+                        "IPEA Atlas da Violencia",
+                    ),
+                )
                 total_records += 1
             except:
                 continue
@@ -667,27 +706,30 @@ def main():
         print(f"    Found: {len(ibge_data)} records")
         cursor = conn.cursor()
         for r in ibge_data:
-            value = r.get('V')
-            if value in [None, '-', '...', 'X']:
+            value = r.get("V")
+            if value in [None, "-", "...", "X"]:
                 continue
             try:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO sofia.brazil_security_data
                     (data_type, indicator, region_type, region_code, region_name, year, value, unit, source)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (data_type, indicator, region_code, year)
                     DO UPDATE SET value = EXCLUDED.value
-                """, (
-                    'ibge_crime',
-                    r.get('table_name', ''),
-                    'country',
-                    'BRA',
-                    r.get('D1N', 'Brasil'),
-                    int(r.get('D2C', '0')[:4]) if r.get('D2C') else None,
-                    float(str(value).replace(',', '.')),
-                    r.get('MN', ''),
-                    'IBGE SIDRA'
-                ))
+                """,
+                    (
+                        "ibge_crime",
+                        r.get("table_name", ""),
+                        "country",
+                        "BRA",
+                        r.get("D1N", "Brasil"),
+                        int(r.get("D2C", "0")[:4]) if r.get("D2C") else None,
+                        float(str(value).replace(",", ".")),
+                        r.get("MN", ""),
+                        "IBGE SIDRA",
+                    ),
+                )
                 total_records += 1
             except:
                 continue
@@ -724,5 +766,5 @@ def main():
     print("  - Violence perception")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -13,120 +13,97 @@ APIs:
 
 import os
 import sys
+from datetime import datetime
+from typing import Dict, List
+
 import psycopg2
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
 
 # Database connection
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', os.getenv('DB_HOST', 'localhost')),
-    'port': int(os.getenv('POSTGRES_PORT', os.getenv('DB_PORT', '5432'))),
-    'user': os.getenv('POSTGRES_USER', os.getenv('DB_USER', 'sofia')),
-    'password': os.getenv('POSTGRES_PASSWORD', os.getenv('DB_PASSWORD', '')),
-    'database': os.getenv('POSTGRES_DB', os.getenv('DB_NAME', 'sofia_db'))
+    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
 }
 
 # IBGE SIDRA Tables for Women's Data
 # Reference: https://sidra.ibge.gov.br/
 IBGE_WOMEN_TABLES = {
     # PNAD Continua - Labor Market
-    '6402': {
-        'name': 'Taxa de desocupacao por sexo',
-        'category': 'labor',
-        'description': 'Unemployment rate by sex - PNAD Continua'
+    "6402": {
+        "name": "Taxa de desocupacao por sexo",
+        "category": "labor",
+        "description": "Unemployment rate by sex - PNAD Continua",
     },
-    '6378': {
-        'name': 'Pessoas ocupadas por sexo',
-        'category': 'labor',
-        'description': 'Employed persons by sex'
+    "6378": {"name": "Pessoas ocupadas por sexo", "category": "labor", "description": "Employed persons by sex"},
+    "6387": {"name": "Rendimento medio por sexo", "category": "earnings", "description": "Average earnings by sex"},
+    "6394": {
+        "name": "Taxa de participacao por sexo",
+        "category": "labor",
+        "description": "Labor force participation rate by sex",
     },
-    '6387': {
-        'name': 'Rendimento medio por sexo',
-        'category': 'earnings',
-        'description': 'Average earnings by sex'
-    },
-    '6394': {
-        'name': 'Taxa de participacao por sexo',
-        'category': 'labor',
-        'description': 'Labor force participation rate by sex'
-    },
-
     # Education
-    '7267': {
-        'name': 'Taxa de frequencia escolar por sexo',
-        'category': 'education',
-        'description': 'School attendance rate by sex'
+    "7267": {
+        "name": "Taxa de frequencia escolar por sexo",
+        "category": "education",
+        "description": "School attendance rate by sex",
     },
-
     # Violence (Pesquisa Nacional de Saude)
-    '7654': {
-        'name': 'Pessoas que sofreram violencia',
-        'category': 'violence',
-        'description': 'Persons who suffered violence'
+    "7654": {
+        "name": "Pessoas que sofreram violencia",
+        "category": "violence",
+        "description": "Persons who suffered violence",
     },
-
     # Demographics
-    '6579': {
-        'name': 'Populacao por sexo e idade',
-        'category': 'demographics',
-        'description': 'Population by sex and age'
+    "6579": {
+        "name": "Populacao por sexo e idade",
+        "category": "demographics",
+        "description": "Population by sex and age",
     },
-
     # Health (PNS)
-    '7665': {
-        'name': 'Consultas pre-natal',
-        'category': 'health',
-        'description': 'Prenatal consultations'
-    },
+    "7665": {"name": "Consultas pre-natal", "category": "health", "description": "Prenatal consultations"},
 }
 
 # IPEA Series for Women's Data
 # Reference: http://www.ipeadata.gov.br/
 IPEA_WOMEN_SERIES = {
     # Labor Market
-    'PNADC12_TDESam': {
-        'name': 'Taxa de desemprego - Mulheres',
-        'category': 'labor',
-        'description': 'Female unemployment rate'
+    "PNADC12_TDESam": {
+        "name": "Taxa de desemprego - Mulheres",
+        "category": "labor",
+        "description": "Female unemployment rate",
     },
-    'PNADC12_TOCUM': {
-        'name': 'Taxa de ocupacao - Mulheres',
-        'category': 'labor',
-        'description': 'Female employment rate'
+    "PNADC12_TOCUM": {
+        "name": "Taxa de ocupacao - Mulheres",
+        "category": "labor",
+        "description": "Female employment rate",
     },
-    'PNADC12_RNMM': {
-        'name': 'Rendimento medio - Mulheres',
-        'category': 'earnings',
-        'description': 'Female average earnings'
+    "PNADC12_RNMM": {
+        "name": "Rendimento medio - Mulheres",
+        "category": "earnings",
+        "description": "Female average earnings",
     },
-
     # Education
-    'PNADC12_TALFM': {
-        'name': 'Taxa de alfabetizacao - Mulheres',
-        'category': 'education',
-        'description': 'Female literacy rate'
+    "PNADC12_TALFM": {
+        "name": "Taxa de alfabetizacao - Mulheres",
+        "category": "education",
+        "description": "Female literacy rate",
     },
-
     # Violence (from DataSUS)
-    'SIM_HOMICM': {
-        'name': 'Homicidios de mulheres',
-        'category': 'violence',
-        'description': 'Female homicides (feminicide proxy)'
+    "SIM_HOMICM": {
+        "name": "Homicidios de mulheres",
+        "category": "violence",
+        "description": "Female homicides (feminicide proxy)",
     },
-
     # Fertility
-    'IBGE12_TXFECT': {
-        'name': 'Taxa de fecundidade total',
-        'category': 'health',
-        'description': 'Total fertility rate'
-    },
-
+    "IBGE12_TXFECT": {"name": "Taxa de fecundidade total", "category": "health", "description": "Total fertility rate"},
     # Maternal mortality
-    'SIM_MORTMAT': {
-        'name': 'Taxa de mortalidade materna',
-        'category': 'health',
-        'description': 'Maternal mortality rate'
+    "SIM_MORTMAT": {
+        "name": "Taxa de mortalidade materna",
+        "category": "health",
+        "description": "Maternal mortality rate",
     },
 }
 
@@ -141,10 +118,7 @@ def fetch_ibge_sidra(table_id: str) -> List[Dict]:
     url = f"{base_url}/t/{table_id}/n1/all/p/last%2020/v/all"
 
     try:
-        headers = {
-            'Accept': 'application/json',
-            'User-Agent': 'Sofia-Pulse-Collector/1.0'
-        }
+        headers = {"Accept": "application/json", "User-Agent": "Sofia-Pulse-Collector/1.0"}
         response = requests.get(url, headers=headers, timeout=60)
 
         if response.status_code != 200:
@@ -174,10 +148,7 @@ def fetch_ipea_series(series_code: str) -> List[Dict]:
     url = f"{base_url}/ValoresSerie(SERCODIGO='{series_code}')"
 
     try:
-        headers = {
-            'Accept': 'application/json',
-            'User-Agent': 'Sofia-Pulse-Collector/1.0'
-        }
+        headers = {"Accept": "application/json", "User-Agent": "Sofia-Pulse-Collector/1.0"}
         response = requests.get(url, headers=headers, timeout=60)
 
         if response.status_code != 200:
@@ -185,8 +156,8 @@ def fetch_ipea_series(series_code: str) -> List[Dict]:
 
         data = response.json()
 
-        if 'value' in data:
-            return data['value']
+        if "value" in data:
+            return data["value"]
         return []
 
     except Exception as e:
@@ -202,7 +173,8 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.women_brazil_data (
             country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
@@ -218,17 +190,22 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(source, indicator_code, region, period, sex)
         )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_brazil_women_indicator
         ON sofia.women_brazil_data(indicator_code)
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE INDEX IF NOT EXISTS idx_brazil_women_period
         ON sofia.women_brazil_data(period DESC)
-    """)
+    """
+    )
 
     inserted = 0
 
@@ -237,39 +214,42 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
             continue
 
         # SIDRA format parsing
-        value = record.get('V', record.get('value'))
-        if value in [None, '-', '...', 'X']:
+        value = record.get("V", record.get("value"))
+        if value in [None, "-", "...", "X"]:
             continue
 
         try:
             # Extract fields from SIDRA response
-            period = record.get('D2C', record.get('periodo', ''))
-            region = record.get('D1N', record.get('localidade', 'Brasil'))
-            sex = record.get('D3N', record.get('sexo', 'Total'))
-            unit = record.get('MN', record.get('unidade', ''))
+            period = record.get("D2C", record.get("periodo", ""))
+            region = record.get("D1N", record.get("localidade", "Brasil"))
+            sex = record.get("D3N", record.get("sexo", "Total"))
+            unit = record.get("MN", record.get("unidade", ""))
 
             # Normalize Brazil (region is state)
-            location = normalize_location(conn, {'country': 'Brazil', 'state': region}),
-            country_id = location['country_id']
+            location = (normalize_location(conn, {"country": "Brazil", "state": region}),)
+            country_id = location["country_id"]
 
-            cursor.execute(""",
+            cursor.execute(
+                """,
                 INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (source, indicator_code, region, period, sex),
-                DO UPDATE SET value = EXCLUDED.value            """, (
-                'IBGE',
-                table_id,
-                table_info.get('name', ''),
-                table_info.get('category', 'other'),
-                region,
-                period,
-                sex,
-                float(str(value).replace(',', '.')) if value else None,
-                unit,
-                country_id
-            ))
+                DO UPDATE SET value = EXCLUDED.value            """,
+                (
+                    "IBGE",
+                    table_id,
+                    table_info.get("name", ""),
+                    table_info.get("category", "other"),
+                    region,
+                    period,
+                    sex,
+                    float(str(value).replace(",", ".")) if value else None,
+                    unit,
+                    country_id,
+                ),
+            )
             inserted += 1
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -286,7 +266,8 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
     cursor = conn.cursor()
 
     # Use same table as IBGE
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS sofia.women_brazil_data (
             country_id INTEGER REFERENCES sofia.countries(id),
             id SERIAL PRIMARY KEY,
@@ -302,43 +283,47 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
             collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(source, indicator_code, region, period, sex)
         )
-    """)
+    """
+    )
 
     inserted = 0
 
     for record in records:
-        value = record.get('VALVALOR')
+        value = record.get("VALVALOR")
         if value is None:
             continue
 
         try:
             # IPEA format
-            date = record.get('VALDATA', '')
+            date = record.get("VALDATA", "")
             if date:
                 # Convert IPEA date format to period
                 period = date[:7] if len(date) >= 7 else date[:4]
             else:
                 continue
 
-            cursor.execute(""",
+            cursor.execute(
+                """,
                 INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (source, indicator_code, region, period, sex)
                 DO UPDATE SET value = EXCLUDED.value
-            """, (
-                'IPEA',
-                series_code,
-                series_info.get('name', ''),
-                series_info.get('category', 'other'),
-                'Brasil',
-                period,
-                'Mulheres',
-                float(value),
-                '',
-                country_id
-            ))
+            """,
+                (
+                    "IPEA",
+                    series_code,
+                    series_info.get("name", ""),
+                    series_info.get("category", "other"),
+                    "Brasil",
+                    period,
+                    "Mulheres",
+                    float(value),
+                    "",
+                    country_id,
+                ),
+            )
             inserted += 1
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -354,11 +339,7 @@ def fetch_datasus_violence() -> List[Dict]:
     base_url = "https://api.worldbank.org/v2"
 
     url = f"{base_url}/country/BRA/indicator/SH.STA.MMRT"
-    params = {
-        'format': 'json',
-        'per_page': 100,
-        'date': '2000:2024'
-    }
+    params = {"format": "json", "per_page": 100, "date": "2000:2024"}
 
     try:
         response = requests.get(url, params=params, timeout=60)
@@ -369,7 +350,7 @@ def fetch_datasus_violence() -> List[Dict]:
             return data[1]
         return []
 
-    except Exception as e:
+    except Exception:
         return []
 
 
@@ -445,25 +426,28 @@ def main():
         # Save using IPEA function
         cursor = conn.cursor()
         for r in records:
-            if r.get('value'):
+            if r.get("value"):
                 try:
-                    cursor.execute(""",
+                    cursor.execute(
+                        """,
                         INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (source, indicator_code, region, period, sex)
                         DO UPDATE SET value = EXCLUDED.value
-                    """, (
-                        'World Bank',
-                        'SH.STA.MMRT',
-                        'Maternal mortality ratio (per 100,000 live births)',
-                        'health',
-                        'Brasil',
-                        r.get('date', ''),
-                        'Mulheres',
-                        float(r.get('value')),
-                        'per 100,000',
-                country_id
-                    ))
+                    """,
+                        (
+                            "World Bank",
+                            "SH.STA.MMRT",
+                            "Maternal mortality ratio (per 100,000 live births)",
+                            "health",
+                            "Brasil",
+                            r.get("date", ""),
+                            "Mulheres",
+                            float(r.get("value")),
+                            "per 100,000",
+                            country_id,
+                        ),
+                    )
                     total_records += 1
                 except:
                     pass
@@ -490,5 +474,5 @@ def main():
     print("  - Demographics (population by sex)")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

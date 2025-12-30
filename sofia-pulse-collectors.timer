@@ -1,0 +1,11 @@
+[Unit]
+Description=Sofia Pulse Collectors Timer
+Requires=sofia-pulse-collectors.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Unit=sofia-pulse-collectors.service
+
+[Install]
+WantedBy=timers.target
