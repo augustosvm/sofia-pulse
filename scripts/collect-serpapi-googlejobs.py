@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Coletor: SerpApi - Google Jobs
-API Key: b5567840409995c0a2a9bfb1c2785bc5725adb686882e1d184980f0566d827fb
 Features: Scrape Google Jobs SERP, acesso a todas vagas do Google
 FOCO: Brasil
 """
