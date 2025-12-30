@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Coletor: SerpApi - Google Jobs
-API Key: b5567840409995c0a2a9bfb1c2785bc5725adb686882e1d184980f0566d827fb
 Features: Scrape Google Jobs SERP, acesso a todas vagas do Google
 FOCO: Brasil
 """
@@ -19,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-SERPAPI_KEY = os.getenv("SERPAPI_KEY", "b5567840409995c0a2a9bfb1c2785bc5725adb686882e1d184980f0566d827fb")
+SERPAPI_KEY = os.getenv('SERPAPI_KEY')
 API_URL = "https://serpapi.com/search"
 
 # Keywords focadas em Brasil

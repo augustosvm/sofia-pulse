@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Coletor: TheirStack API (melhor agregador - LinkedIn/Indeed/Glassdoor)
-API Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhdWd1c3Rvc3ZtQGdtYWlsLmNvbSIsInBlcm1pc3Npb25zIjoidXNlciIsImNyZWF0ZWRfYXQiOiIyMDI1LTEyLTEwVDE4OjU1OjA0LjYzODYwMiswMDowMCJ9.RDEuNjs-toWKa-GLiszUVbxraY8fcrDbd3SWh__4W_4
 Features: 195+ countries, LinkedIn/Indeed/Glassdoor aggregator, real-time
 FOCO: Brasil
 """
@@ -19,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-THEIRSTACK_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhdWd1c3Rvc3ZtQGdtYWlsLmNvbSIsInBlcm1pc3Npb25zIjoidXNlciIsImNyZWF0ZWRfYXQiOiIyMDI1LTEyLTEwVDE4OjU1OjA0LjYzODYwMiswMDowMCJ9.RDEuNjs-toWKa-GLiszUVbxraY8fcrDbd3SWh__4W_4"
+THEIRSTACK_KEY = os.getenv('THEIRSTACK_API_KEY')
 API_URL = "https://api.theirstack.com/v1/jobs/search"
 
 KEYWORDS = [

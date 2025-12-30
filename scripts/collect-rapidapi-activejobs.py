@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Coletor: RapidAPI - Active Jobs DB (Fantastic.jobs)
-API Key: 880a9ad324msh90b6bf8ee717866p1855dfjsn6377aaee1939
 Features: 8M+ jobs/month, AI-enriched, 130k+ career sites
 FOCO: Brasil
 """
@@ -19,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY", "880a9ad324msh90b6bf8ee717866p1855dfjsn6377aaee1939")
+RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
 API_URL = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
 
 # Keywords focadas em Brasil (reduzido para evitar rate limit)

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Coletor: RapidAPI - LinkedIn Job Search API
-API Key: 880a9ad324msh90b6bf8ee717866p1855dfjsn6377aaee1939
 Features: LinkedIn jobs, updated hourly
 FOCO: Brasil
 """
@@ -19,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY", "880a9ad324msh90b6bf8ee717866p1855dfjsn6377aaee1939")
+RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
 API_URL = "https://linkedin-job-search-api.p.rapidapi.com/active-jb-1h"
 
 
