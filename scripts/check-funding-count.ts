@@ -4,7 +4,7 @@ const { Client } = pkg;
 async function checkFunding() {
   const client = new Client({
     host: process.env.POSTGRES_HOST || 'localhost',
-    port: parseInt(process.env.POSTGRES_PORT || '5432'),
+    port: Number.parseInt(process.env.POSTGRES_PORT || '5432'),
     database: process.env.POSTGRES_DB || 'sofia_db',
     user: process.env.POSTGRES_USER || 'sofia',
     password: process.env.POSTGRES_PASSWORD || 'sofia123strong'

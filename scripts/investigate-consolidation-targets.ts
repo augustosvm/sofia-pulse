@@ -12,7 +12,7 @@ const { Pool } = pkg;
 
 const pool = new Pool({
   host: '91.98.158.19',
-  port: parseInt(process.env.POSTGRES_PORT || '5432'),
+  port: Number.parseInt(process.env.POSTGRES_PORT || '5432'),
   database: process.env.POSTGRES_DB || 'sofia_db',
   user: process.env.POSTGRES_USER || 'sofia',
   password: process.env.POSTGRES_PASSWORD || 'sofia123strong',
