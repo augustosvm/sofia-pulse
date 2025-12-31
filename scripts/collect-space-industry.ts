@@ -54,6 +54,41 @@ interface SpaceEvent {
 }
 
 /**
+ * Retry fetch with exponential backoff
+ */
+async function fetchWithRetry(url: string, options: any = {}, maxRetries = 3): Promise<Response> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, options);
+
+      if (response.ok) {
+        return response;
+      }
+
+      // If 429 (rate limit) or 503 (service unavailable), retry
+      if (response.status === 429 || response.status === 503) {
+        const waitTime = Math.pow(2, i) * 1000; // 1s, 2s, 4s
+        console.log(`   ⏳ Rate limited, waiting ${waitTime/1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+
+      // Other errors, throw immediately
+      throw new Error(`HTTP ${response.status}`);
+
+    } catch (error: any) {
+      if (i === maxRetries - 1) throw error;
+
+      const waitTime = Math.pow(2, i) * 1000;
+      console.log(`   ⚠️  Attempt ${i+1} failed, retrying in ${waitTime/1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+
+  throw new Error('Max retries exceeded');
+}
+
+/**
  * Coleta lançamentos recentes via Launch Library 2 API
  */
 async function collectLaunches(): Promise<SpaceEvent[]> {
@@ -61,18 +96,15 @@ async function collectLaunches(): Promise<SpaceEvent[]> {
 
   try {
     // Get upcoming and recent launches
-    const response = await fetch(
+    const response = await fetchWithRetry(
       'https://ll.thespacedevs.com/2.2.0/launch/?limit=100&mode=detailed',
       {
         headers: {
           'User-Agent': 'Sofia-Pulse/1.0'
         }
-      }
+      },
+      3
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
 
     const data = await response.json();
     const events: SpaceEvent[] = [];

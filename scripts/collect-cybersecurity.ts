@@ -49,19 +49,52 @@ interface CyberEvent {
 }
 
 /**
+ * Retry fetch with exponential backoff
+ */
+async function fetchWithRetry(url: string, options: any = {}, maxRetries = 3): Promise<Response> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, options);
+
+      if (response.ok) {
+        return response;
+      }
+
+      // If 429 (rate limit) or 503 (service unavailable), retry
+      if (response.status === 429 || response.status === 503) {
+        const waitTime = Math.pow(2, i) * 1000; // 1s, 2s, 4s
+        console.log(`   ⏳ Rate limited, waiting ${waitTime/1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+
+      // Other errors, throw immediately
+      throw new Error(`HTTP ${response.status}`);
+
+    } catch (error: any) {
+      if (i === maxRetries - 1) throw error;
+
+      const waitTime = Math.pow(2, i) * 1000;
+      console.log(`   ⚠️  Attempt ${i+1} failed, retrying in ${waitTime/1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+
+  throw new Error('Max retries exceeded');
+}
+
+/**
  * Coleta CVEs recentes do NVD (via API pública)
  */
 async function collectCVEs(): Promise<CyberEvent[]> {
   console.log('📡 Fetching CVEs from NVD...');
 
   try {
-    const response = await fetch(
-      'https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=100'
+    const response = await fetchWithRetry(
+      'https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=100',
+      {},
+      3
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
 
     const data = await response.json();
     const events: CyberEvent[] = [];
@@ -140,19 +173,16 @@ async function collectGitHubAdvisories(): Promise<CyberEvent[]> {
 
   try {
     // GitHub Advisory Database (public RSS/API)
-    const response = await fetch(
+    const response = await fetchWithRetry(
       'https://api.github.com/advisories?per_page=100',
       {
         headers: {
           'Accept': 'application/vnd.github+json',
           'User-Agent': 'Sofia-Pulse/1.0'
         }
-      }
+      },
+      3
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
 
     const advisories = await response.json();
     const events: CyberEvent[] = [];
@@ -192,13 +222,11 @@ async function collectCISAVulnerabilities(): Promise<CyberEvent[]> {
   console.log('📡 Fetching CISA Known Exploited Vulnerabilities...');
 
   try {
-    const response = await fetch(
-      'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+    const response = await fetchWithRetry(
+      'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',
+      {},
+      3
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
 
     const data = await response.json();
     const events: CyberEvent[] = [];
