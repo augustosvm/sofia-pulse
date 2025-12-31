@@ -18,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-THEIRSTACK_KEY = os.getenv('THEIRSTACK_API_KEY')
+THEIRSTACK_KEY = os.getenv("THEIRSTACK_API_KEY")
 API_URL = "https://api.theirstack.com/v1/jobs/search"
 
 KEYWORDS = [

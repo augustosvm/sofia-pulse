@@ -14,11 +14,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.shared.org_helpers import get_or_create_organization
 
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', '91.98.158.19'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'user': os.getenv('DB_USER', 'sofia'),
-    'password': os.getenv('DB_PASSWORD', ''),
-    'database': os.getenv('DB_NAME', 'sofia_db')
+    "host": os.getenv("DB_HOST", "91.98.158.19"),
+    "port": int(os.getenv("DB_PORT", "5432")),
+    "user": os.getenv("DB_USER", "sofia"),
+    "password": os.getenv("DB_PASSWORD", ""),
+    "database": os.getenv("DB_NAME", "sofia_db"),
 }
 
 

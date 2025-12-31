@@ -18,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 API_URL = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
 
 # Keywords focadas em Brasil (reduzido para evitar rate limit)

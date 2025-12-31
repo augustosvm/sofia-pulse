@@ -6,9 +6,10 @@ Detects: tables, views, functions, indexes, vector columns, constraints
 
 import os
 import sys
-import psycopg2
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
+import psycopg2
 
 DB_CONFIG = {
     'host': os.getenv('POSTGRES_HOST', 'localhost'),

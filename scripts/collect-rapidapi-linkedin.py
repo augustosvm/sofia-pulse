@@ -18,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 API_URL = "https://linkedin-job-search-api.p.rapidapi.com/active-jb-1h"
 
 

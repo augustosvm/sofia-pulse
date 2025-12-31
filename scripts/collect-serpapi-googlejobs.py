@@ -18,7 +18,7 @@ from geo_helpers import normalize_location
 
 load_dotenv()
 
-SERPAPI_KEY = os.getenv('SERPAPI_KEY')
+SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 API_URL = "https://serpapi.com/search"
 
 # Keywords focadas em Brasil
