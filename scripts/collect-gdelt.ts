@@ -66,7 +66,10 @@ async function fetchGDELTEvents(): Promise<GDELTEvent[]> {
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(keyword)}&mode=artlist&format=json&maxrecords=50&startdatetime=${dateStr}000000&enddatetime=${dateStr}235959`;
 
     try {
-      const response = await axios.get(url, { timeout: 30000 });
+      const response = await axios.get(url, {
+        timeout: 30000,
+        httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
+      });
 
       if (response.data && response.data.articles) {
         for (const article of response.data.articles.slice(0, 20)) {
