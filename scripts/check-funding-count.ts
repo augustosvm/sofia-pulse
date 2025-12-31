@@ -3,11 +3,11 @@ const { Client } = pkg;
 
 async function checkFunding() {
   const client = new Client({
-    host: 'localhost',
-    port: 5432,
-    database: 'sofia_db',
-    user: 'sofia',
-    password: 'sofia123strong'
+    host: process.env.POSTGRES_HOST || 'localhost',
+    port: parseInt(process.env.POSTGRES_PORT || '5432'),
+    database: process.env.POSTGRES_DB || 'sofia_db',
+    user: process.env.POSTGRES_USER || 'sofia',
+    password: process.env.POSTGRES_PASSWORD || 'sofia123strong'
   });
 
   try {

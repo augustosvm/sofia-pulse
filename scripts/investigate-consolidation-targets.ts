@@ -12,10 +12,10 @@ const { Pool } = pkg;
 
 const pool = new Pool({
   host: '91.98.158.19',
-  port: 5432,
-  database: 'sofia_db',
-  user: 'sofia',
-  password: 'sofia123strong',
+  port: parseInt(process.env.POSTGRES_PORT || '5432'),
+  database: process.env.POSTGRES_DB || 'sofia_db',
+  user: process.env.POSTGRES_USER || 'sofia',
+  password: process.env.POSTGRES_PASSWORD || 'sofia123strong',
 });
 
 async function investigateGenderTables() {
