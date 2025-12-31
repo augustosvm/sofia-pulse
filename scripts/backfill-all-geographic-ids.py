@@ -62,7 +62,7 @@ def backfill_jobs(conn):
                 if updated % 100 == 0:
                     conn.commit()
                     print(f"  Progresso: {updated}/{len(rows)}")
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -109,7 +109,7 @@ def backfill_persons(conn):
                 if updated % 500 == 0:
                     conn.commit()
                     print(f"  Progresso: {updated}/{len(rows)}")
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -157,7 +157,7 @@ def backfill_socioeconomic(conn):
                 if updated % 1000 == 0:
                     conn.commit()
                     print(f"  Progresso: {updated}/{len(rows)}")
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
@@ -199,7 +199,7 @@ def backfill_space_industry(conn):
                     (loc["country_id"], rec_id),
                 )
                 updated += 1
-        except Exception as e:
+        except Exception:
             continue
 
     conn.commit()
