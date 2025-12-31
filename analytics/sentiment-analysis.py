@@ -195,10 +195,10 @@ def analyze_hackernews_sentiment(conn):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     cur.execute("""
-        SELECT title, url, score, comments
+        SELECT title, url, points as score, num_comments as comments
         FROM sofia.hackernews_stories
         WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
-        ORDER BY score DESC
+        ORDER BY points DESC
         LIMIT 100
     """)
 

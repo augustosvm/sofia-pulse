@@ -219,8 +219,7 @@ def analyze_seniority_demand(conn):
     cur.execute("""
         SELECT
             title,
-            description,
-            seniority
+            description
         FROM sofia.jobs
         WHERE posted_date >= CURRENT_DATE - INTERVAL '90 days'
             AND description IS NOT NULL
@@ -231,9 +230,7 @@ def analyze_seniority_demand(conn):
     seniority_counts = Counter()
 
     for job in jobs:
-        seniority = job.get('seniority')
-        if not seniority:
-            seniority = extract_seniority(job['title'], job['description'])
+        seniority = extract_seniority(job['title'], job['description'])
         seniority_counts[seniority] += 1
 
     total = sum(seniority_counts.values())
