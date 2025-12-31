@@ -399,10 +399,10 @@ def generate_report(conn):
         report.append("Startups grouped by similarity:")
         report.append("")
 
-        for cluster_id, cluster_startups in clusters.items():
+        for cluster_id, startups_in_cluster in clusters.items():
             # Calculate cluster characteristics
-            avg_funding = np.mean([s['total_funding'] for s in cluster_startups])
-            avg_deals = np.mean([s['deals_count'] for s in cluster_startups])
+            avg_funding = np.mean([s['total_funding'] for s in startups_in_cluster])
+            avg_deals = np.mean([s['deals_count'] for s in startups_in_cluster])
 
             # Cluster label
             if avg_funding > 1e9:
@@ -415,13 +415,13 @@ def generate_report(conn):
                 cluster_label = "SEED/PRE-SEED"
 
             report.append(f"📊 Cluster {cluster_id + 1}: {cluster_label}")
-            report.append(f"   Companies: {len(cluster_startups)}")
+            report.append(f"   Companies: {len(startups_in_cluster)}")
             report.append(f"   Avg funding: ${avg_funding/1e6:.1f}M")
             report.append(f"   Avg deals: {avg_deals:.1f}")
             report.append("")
 
             # Top startups in cluster
-            for startup in sorted(cluster_startups, key=lambda x: -x['total_funding'])[:3]:
+            for startup in sorted(startups_in_cluster, key=lambda x: -x['total_funding'])[:3]:
                 report.append(f"   • {startup['company_name']}: ${startup['total_funding']/1e6:.1f}M")
 
             report.append("")

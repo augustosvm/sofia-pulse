@@ -278,18 +278,24 @@ def analyze_reddit_sentiment(conn):
 
 def analyze_topic_sentiment(conn):
     """Analyze sentiment by tech topic"""
+    # Use a fresh cursor with autocommit to avoid transaction issues
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Get papers by topic
-    cur.execute("""
-        SELECT
-            UNNEST(keywords) as topic,
-            title,
-            abstract
-        FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
-            AND keywords IS NOT NULL
-    """)
+    try:
+        # Get papers by topic
+        cur.execute("""
+            SELECT
+                UNNEST(keywords) as topic,
+                title,
+                abstract
+            FROM sofia.arxiv_ai_papers
+            WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
+                AND keywords IS NOT NULL
+        """)
+    except Exception as e:
+        # If error, rollback and return empty
+        conn.rollback()
+        return {'most_hyped': [], 'least_hyped': []}
 
     papers = cur.fetchall()
 

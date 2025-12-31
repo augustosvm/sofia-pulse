@@ -233,8 +233,8 @@ def forecast_funding_trends(conn):
     for row in rows:
         sector_timeline[row['sector']].append({
             'month': row['month'],
-            'funding': float(row['total_funding']),
-            'deals': int(row['deal_count'])
+            'funding': float(row['total_funding']) if row['total_funding'] is not None else 0.0,
+            'deals': int(row['deal_count']) if row['deal_count'] is not None else 0
         })
 
     # Forecast for top sectors
@@ -245,7 +245,7 @@ def forecast_funding_trends(conn):
             continue
 
         timeline_sorted = sorted(timeline, key=lambda x: x['month'])
-        funding = [t['funding'] for t in timeline_sorted]
+        funding = [t['funding'] if t['funding'] is not None else 0 for t in timeline_sorted]
 
         # Trend
         trend, slope = calculate_trend(funding)
