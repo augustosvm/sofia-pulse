@@ -149,9 +149,15 @@ async function scrapeCatho(keywords: string[]) {
             const text = parent.textContent || '';
 
             // Look for location patterns (cidade - UF)
-            const locMatch = text.match(/([A-Z][a-zà-ú\s]+)\s*-\s*([A-Z]{2})/);
+            // Valid Brazilian states
+            const validStates = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+            const locMatch = text.match(/([A-ZÀ-Ú][a-zà-ú\s]{2,})\s*-\s*([A-Z]{2})\b/);
             if (locMatch && !location) {
-              location = locMatch[0];
+              const stateCode = locMatch[2];
+              // Only accept valid Brazilian state codes
+              if (validStates.includes(stateCode)) {
+                location = locMatch[0];
+              }
             }
 
             // Look for company name (often in a specific class/tag)
