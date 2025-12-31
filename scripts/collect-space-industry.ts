@@ -229,6 +229,7 @@ async function saveEvents(events: SpaceEvent[]): Promise<void> {
             event.description,
             event.source,
             event.source_url,
+            null, // country_id (TODO: normalize from event.country)
           ]
         );
         inserted++;
