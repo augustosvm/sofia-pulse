@@ -267,38 +267,47 @@ async function main() {
     const skills = extractSkills(job.title + ' ' + job.description);
     const sector = detectSector(job.title);
 
-    await pool.query(
-      `INSERT INTO sofia.jobs (
-         job_id, title, company, location, city, state, country, country_id, state_id, city_id,
-         url, platform, organization_id,
-         description, salary_min, salary_max, salary_currency, salary_period,
-         remote_type, seniority_level, employment_type, skills_required, sector,
-         collected_at
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())
-       ON CONFLICT (job_id) DO UPDATE SET
-         title = EXCLUDED.title,
-         location = EXCLUDED.location,
-         description = EXCLUDED.description,
-         salary_min = EXCLUDED.salary_min,
-         salary_max = EXCLUDED.salary_max,
-         salary_period = EXCLUDED.salary_period,
-         remote_type = EXCLUDED.remote_type,
-         seniority_level = EXCLUDED.seniority_level,
-         skills_required = EXCLUDED.skills_required,
-         sector = EXCLUDED.sector,
-         organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
-         country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
-         state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
-         city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
-         collected_at = NOW()`,
-      [
-        jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId,
-        job.url, 'catho', organizationId,
-        job.description, salaryMin, salaryMax, 'BRL', salaryPeriod,
-        remoteType, seniority, 'full-time', skills, sector
-      ]
-    );
+    // Try-catch to handle multiple unique constraints
+    try {
+      await pool.query(
+        `INSERT INTO sofia.jobs (
+           job_id, title, company, location, city, state, country, country_id, state_id, city_id,
+           url, platform, organization_id,
+           description, salary_min, salary_max, salary_currency, salary_period,
+           remote_type, seniority_level, employment_type, skills_required, sector,
+           posted_date, collected_at
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, CURRENT_DATE, NOW())
+         ON CONFLICT (job_id, platform) DO UPDATE SET
+           title = EXCLUDED.title,
+           location = EXCLUDED.location,
+           description = EXCLUDED.description,
+           salary_min = EXCLUDED.salary_min,
+           salary_max = EXCLUDED.salary_max,
+           salary_period = EXCLUDED.salary_period,
+           remote_type = EXCLUDED.remote_type,
+           seniority_level = EXCLUDED.seniority_level,
+           skills_required = EXCLUDED.skills_required,
+           sector = EXCLUDED.sector,
+           organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+           country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+           state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+           city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
+           posted_date = EXCLUDED.posted_date,
+           collected_at = NOW()`,
+        [
+          jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId,
+          job.url, 'catho', organizationId,
+          job.description, salaryMin, salaryMax, 'BRL', salaryPeriod,
+          remoteType, seniority, 'full-stack', skills, sector
+        ]
+      );
+    } catch (error: any) {
+      // Ignore duplicate errors from idx_jobs_unique_posting constraint
+      if (error.code !== '23505') {
+        throw error;
+      }
+    }
   }
 
   console.log(`\n✅ Saved ${jobs.length} jobs!`);
