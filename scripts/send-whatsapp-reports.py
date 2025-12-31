@@ -127,6 +127,95 @@ _Relatório completo no email_
             print("❌ Failed to send Capital Flow")
 
 
+def send_ml_analytics_summary():
+    """Send NEW Advanced ML Analytics summary via WhatsApp"""
+
+    # Jobs Intelligence (NLP)
+    jobs_report = "analytics/jobs-intelligence.txt"
+    if os.path.exists(jobs_report):
+        summary = read_report_summary(jobs_report, max_lines=30)
+        message = f"""*💼 JOBS INTELLIGENCE (NLP)*
+
+{summary}
+
+---
+_8,613 vagas globais analisadas_
+_Skills, Remote, Seniority, Tech Stacks_
+"""
+        if send_whatsapp_alert(message, level="INFO"):
+            print("✅ Jobs Intelligence sent to WhatsApp")
+        else:
+            print("❌ Failed to send Jobs Intelligence")
+
+    # Sentiment Analysis
+    sentiment_report = "analytics/sentiment-analysis.txt"
+    if os.path.exists(sentiment_report):
+        summary = read_report_summary(sentiment_report, max_lines=30)
+        message = f"""*📊 SENTIMENT ANALYSIS*
+
+{summary}
+
+---
+_Papers: Hype vs Substance_
+_HackerNews + Reddit sentiment_
+"""
+        if send_whatsapp_alert(message, level="INFO"):
+            print("✅ Sentiment Analysis sent to WhatsApp")
+        else:
+            print("❌ Failed to send Sentiment Analysis")
+
+    # Anomaly Detection
+    anomaly_report = "analytics/anomaly-detection.txt"
+    if os.path.exists(anomaly_report):
+        summary = read_report_summary(anomaly_report, max_lines=30)
+        message = f"""*🚨 ANOMALY DETECTION*
+
+{summary}
+
+---
+_Z-score + Isolation Forest ML_
+_GitHub/Funding/Papers explosions_
+"""
+        if send_whatsapp_alert(message, level="INFO"):
+            print("✅ Anomaly Detection sent to WhatsApp")
+        else:
+            print("❌ Failed to send Anomaly Detection")
+
+    # Time Series Advanced
+    timeseries_report = "analytics/time-series-advanced.txt"
+    if os.path.exists(timeseries_report):
+        summary = read_report_summary(timeseries_report, max_lines=30)
+        message = f"""*📈 TIME SERIES FORECAST (ARIMA)*
+
+{summary}
+
+---
+_3-month predictions_
+_GitHub, Funding, Papers trends_
+"""
+        if send_whatsapp_alert(message, level="INFO"):
+            print("✅ Time Series Forecast sent to WhatsApp")
+        else:
+            print("❌ Failed to send Time Series Forecast")
+
+    # Startup Pattern Matching
+    startup_report = "analytics/startup-pattern-matching.txt"
+    if os.path.exists(startup_report):
+        summary = read_report_summary(startup_report, max_lines=30)
+        message = f"""*🦄 STARTUP PATTERN MATCHING*
+
+{summary}
+
+---
+_Similar to: Stripe, Airbnb, OpenAI_
+_K-Means clustering_
+"""
+        if send_whatsapp_alert(message, level="INFO"):
+            print("✅ Startup Pattern Matching sent to WhatsApp")
+        else:
+            print("❌ Failed to send Startup Pattern Matching")
+
+
 def send_socioeconomic_summary():
     """Send Socioeconomic Intelligence summary via WhatsApp"""
 
@@ -178,7 +267,7 @@ def send_completion_summary():
 *CSVs Exported*: {len(csvs)}
 *Timestamp*: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-*📊 Relatórios (23 total)*:
+*📊 Relatórios (28 total)*:
 
 *Core & Advanced (11)*:
 • MEGA Analysis
@@ -192,6 +281,13 @@ def send_completion_summary():
 • Global Energy Map
 • Causal Insights ML
 • NLG Playbooks (Gemini)
+
+*🧠 NEW: Advanced ML Analytics (5)*:
+• Jobs Intelligence (NLP 8,613 vagas)
+• Sentiment Analysis (Hype vs Substance)
+• Anomaly Detection (Z-score + ML)
+• Time Series Advanced (ARIMA)
+• Startup Pattern Matching (Unicorns)
 
 *Predictive Intelligence (6)*:
 • Career Trends Predictor
@@ -250,13 +346,18 @@ def main():
     send_playbook_summary()
     print("")
 
-    # 5. Intelligence summaries (key predictions)
-    print("5️⃣  Sending Intelligence summaries...")
+    # 5. NEW: Advanced ML Analytics (5 reports)
+    print("5️⃣  Sending Advanced ML Analytics...")
+    send_ml_analytics_summary()
+    print("")
+
+    # 6. Intelligence summaries (key predictions)
+    print("6️⃣  Sending Intelligence summaries...")
     send_intelligence_summary()
     print("")
 
-    # 6. Socioeconomic summaries
-    print("6️⃣  Sending Socioeconomic summaries...")
+    # 7. Socioeconomic summaries
+    print("7️⃣  Sending Socioeconomic summaries...")
     send_socioeconomic_summary()
     print("")
 
@@ -264,11 +365,12 @@ def main():
     print("✅ ALL SUMMARIES SENT TO WHATSAPP")
     print("════════════════════════════════════════════════════════════════")
     print("")
-    print("You should have received ~8-10 WhatsApp messages with:")
+    print("You should have received ~15-18 WhatsApp messages with:")
     print("  • Completion summary (overview)")
     print("  • MEGA Analysis summary")
     print("  • Top 10 Tech Trends")
     print("  • Gemini Playbook (if available)")
+    print("  • 5 Advanced ML Analytics (NEW!)")
     print("  • Career Trends + Capital Flow")
     print("  • Tech Talent Cities + Innovation Hubs")
     print("")

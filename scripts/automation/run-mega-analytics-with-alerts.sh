@@ -88,6 +88,21 @@ echo "════════════════════════�
 run_analytics "Causal Insights ML" "bash analytics/run-causal-insights.sh"
 
 ################################################################################
+# ADVANCED ML ANALYTICS (NEW!)
+################################################################################
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "🧠 ADVANCED ML ANALYTICS"
+echo "════════════════════════════════════════════════════════════════"
+
+run_analytics "Jobs Intelligence (NLP)" "python3 analytics/jobs-intelligence.py"
+run_analytics "Sentiment Analysis" "python3 analytics/sentiment-analysis.py"
+run_analytics "Anomaly Detection" "python3 analytics/anomaly-detection.py"
+run_analytics "Time Series Advanced (ARIMA)" "python3 analytics/time-series-advanced.py"
+run_analytics "Startup Pattern Matching" "python3 analytics/startup-pattern-matching.py"
+
+################################################################################
 # AI-POWERED
 ################################################################################
 

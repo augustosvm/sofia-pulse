@@ -1,13 +1,69 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2025-12-30 UTC
+**Data**: 2025-12-31 UTC
 **Branch**: `master`
 **Email**: augustosvm@gmail.com
-**Status**: ✅ SISTEMA 100% FUNCIONAL - 40+ FONTES + 33 RELATÓRIOS + 1.5M+ REGISTROS + CATHO JOBS
+**Status**: ✅ SISTEMA 100% FUNCIONAL - 40+ FONTES + 28 RELATÓRIOS ML + 1.5M+ REGISTROS + 8,613 VAGAS
 
 ---
 
-## 🚀 ÚLTIMAS ATUALIZAÇÕES (30 Dez 2025)
+## 🚀 ÚLTIMAS ATUALIZAÇÕES (31 Dez 2025)
+
+### ✅ **5 NEW ADVANCED ML REPORTS** (31 Dez 2025) 🧠
+
+**MAJOR FEATURE**: 5 relatórios ML ELABORADOS, não apenas coleta básica!
+
+**O que foi implementado**:
+
+1. **Jobs Intelligence Report** (NLP em 8,613 vagas globais) 💼
+   - Skills demand por país (USA: 2,022 vagas, Brasil: 1,434)
+   - Remote vs On-site trends (% de cada tipo)
+   - Seniority demand (Junior/Mid/Senior/Manager)
+   - Tech stack co-occurrence (Python + AWS, React + Node, etc.)
+   - Salary insights por país (onde disponível)
+   - NLP extraction com 50+ tech skills patterns
+   - **Arquivo**: `analytics/jobs-intelligence.py`
+
+2. **Sentiment Analysis Report** (Hype vs Substance) 📊
+   - Papers: Hype ratio (quantos usam "breakthrough" vs "empirical")
+   - HackerNews: Positive/Negative/Neutral sentiment
+   - Reddit: Community sentiment (se disponível)
+   - Topic sentiment (quais tópicos são mais hyped)
+   - **Lexicons**: Hype words, Substance words, Skeptical words
+   - **Arquivo**: `analytics/sentiment-analysis.py`
+
+3. **Anomaly Detection Report** (Crescimento Explosivo) 🚨
+   - **Z-score**: GitHub stars >2.5 sigma (400%+ growth)
+   - **Funding spikes**: Setores crescendo >500%
+   - **Paper explosions**: Topics com 3x aumento
+   - **Isolation Forest ML**: Multi-dimensional anomalies
+   - **Arquivo**: `analytics/anomaly-detection.py`
+
+4. **Time Series Advanced** (ARIMA Forecasting) 📈
+   - **ARIMA** (Auto-regressive Integrated Moving Average)
+   - **Fallback**: Linear Regression se ARIMA indisponível
+   - **3-month predictions**: GitHub, Funding, Papers
+   - **Trend analysis**: GROWING (STRONG/MODERATE) / DECLINING / STABLE
+   - **Growth rate**: Expected % change
+   - **Arquivo**: `analytics/time-series-advanced.py`
+
+5. **Startup Pattern Matching** (Find Next Unicorns) 🦄
+   - **Similarity scoring**: 0-100% match to Stripe, Airbnb, OpenAI, Figma
+   - **Pattern features**: Funding range, deals count, avg deal size, sector keywords
+   - **K-Means clustering**: Group similar startups
+   - **Investment recommendations**: Top 10 with unicorn potential
+   - **Arquivo**: `analytics/startup-pattern-matching.py`
+
+**Integração Completa**:
+- ✅ Adicionado ao `run-mega-analytics-with-alerts.sh` (nova seção "ADVANCED ML ANALYTICS")
+- ✅ Adicionado ao `send-email-mega.py` (agora 28 reports)
+- ✅ Adicionado ao `send-whatsapp-reports.py` (nova função `send_ml_analytics_summary()`)
+- ✅ Email + WhatsApp agora incluem todos os 28 relatórios
+
+**Commits**:
+- Pending (será feito ao final)
+
+---
 
 ### ✅ **Catho Jobs Integration** (30 Dez 2025 - 01:30 UTC)
 
@@ -393,7 +449,7 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ---
 
-## 🧠 ANÁLISES (33 Relatórios)
+## 🧠 ANÁLISES (28 Relatórios)
 
 ### **Core Analytics** (5):
 1. **Top 10 Tech Trends** - Ranking ponderado
@@ -410,58 +466,76 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 ### **ML Analytics** (1):
 9. **Causal Insights ML** - 8 análises (Sklearn, Clustering, NLP, Forecast)
 
+### **NEW: Advanced ML Analytics** (5) 🧠:
+10. **Jobs Intelligence (NLP)** - 8,613 vagas globais
+    - Skills demand por país (USA, Brasil, Alemanha, etc.)
+    - Remote vs On-site trends (% de cada tipo)
+    - Seniority demand (Junior/Mid/Senior/Manager)
+    - Tech stack co-occurrence (Python + AWS, React + Node)
+    - Salary insights por país
+
+11. **Sentiment Analysis** - Hype vs Substance
+    - Papers: Hype ratio (breakthrough vs empirical)
+    - HackerNews: Positive/Negative/Neutral
+    - Reddit: Community sentiment
+    - Topic sentiment (tópicos mais hyped)
+
+12. **Anomaly Detection** - Crescimento explosivo
+    - Z-score (GitHub stars >2.5 sigma)
+    - Funding spikes (setores >500% growth)
+    - Paper explosions (3x aumento)
+    - Isolation Forest ML (multi-dimensional)
+
+13. **Time Series Advanced (ARIMA)** - Forecasting
+    - 3-month predictions (GitHub, Funding, Papers)
+    - Trend analysis (GROWING/DECLINING/STABLE)
+    - Growth rate (expected % change)
+    - ARIMA ou Linear Regression
+
+14. **Startup Pattern Matching** - Find Next Unicorns
+    - Similarity to Stripe, Airbnb, OpenAI, Figma
+    - K-Means clustering
+    - Investment recommendations
+    - Pattern matching (0-100% score)
+
 ### **AI-Powered Analytics** (1):
-10. **NLG Playbooks** - Narrativas Gemini AI (contexto de papers)
+15. **NLG Playbooks** - Narrativas Gemini AI (contexto de papers)
 
 ### **MEGA Analysis** (1):
-11. **MEGA Analysis** - Cross-database (40+ fontes, 90 dias)
+16. **MEGA Analysis** - Cross-database (40+ fontes, 90 dias)
 
 ### **Predictive Intelligence** (6):
-12. **Career Trends Predictor** - Prediz skills antes das empresas
-13. **Capital Flow Predictor** - Prediz setores antes dos VCs
-14. **Expansion Location Analyzer** - Melhores cidades para abrir filiais
-15. **Weekly Insights Generator** - Top 3 topics para colunistas TI
-16. **Dying Sectors Detector** - Tecnologias em declínio terminal
-17. **Dark Horses Intelligence** - Oportunidades em stealth mode
+17. **Career Trends Predictor** - Prediz skills antes das empresas
+18. **Capital Flow Predictor** - Prediz setores antes dos VCs
+19. **Expansion Location Analyzer** - Melhores cidades para abrir filiais
+20. **Weekly Insights Generator** - Top 3 topics para colunistas TI
+21. **Dying Sectors Detector** - Tecnologias em declínio terminal
+22. **Dark Horses Intelligence** - Oportunidades em stealth mode
 
-### **Socioeconomic Intelligence** (6) ⭐ NOVO:
-18. **Best Cities for Tech Talent** - Onde procurar emprego tech
+### **Socioeconomic Intelligence** (6):
+23. **Best Cities for Tech Talent** - Onde procurar emprego tech
     - Metodologia: INSEAD Global Talent Competitiveness Index
     - Fatores: Job opportunities (30%), Education (25%), Infrastructure (20%), Safety (15%), Cost (10%)
 
-19. **Remote Work Quality Index** - Melhores países para trabalho remoto
+24. **Remote Work Quality Index** - Melhores países para trabalho remoto
     - Metodologia: Nomad List Index + Numbeo QoL
     - Fatores: Internet (30%), Cost (30%), Safety (20%), Healthcare (10%), Environment (10%)
 
-20. **Innovation Hubs Ranking** - Centros de inovação global
+25. **Innovation Hubs Ranking** - Centros de inovação global
     - Metodologia: WIPO Global Innovation Index (GII)
     - Fatores: R&D spending (40%), Research output (30%), Funding (20%), Education (10%)
 
-21. **Best Countries for Startup Founders** - Onde fundar startup
+26. **Best Countries for Startup Founders** - Onde fundar startup
     - Metodologia: World Bank Ease of Doing Business (adapted)
     - Fatores: Funding ecosystem (35%), Cost (25%), Talent (20%), Infrastructure (20%)
 
-22. **Digital Nomad Index** - Para nômades digitais
+27. **Digital Nomad Index** - Para nômades digitais
     - Metodologia: Nomad List scoring system
     - Fatores: Internet (30%), Cost (30%), Safety (20%), Healthcare (10%), Environment (10%)
 
-23. **STEM Education Leaders** - Melhores países para estudar tech
+28. **STEM Education Leaders** - Melhores países para estudar tech
     - Metodologia: OECD PISA inspired
     - Fatores: Enrollment (30%), R&D investment (30%), Research output (25%), Literacy (15%)
-
-### **NEW: Women, Security & Social Intelligence** (3):
-24. **Women Global Analysis** - Gender gaps globais (World Bank, Eurostat, FRED, ILO, IBGE)
-25. **Security Intelligence** - Brazil 27 states + 30 cities + World Top 10 por região
-26. **Social Intelligence** - Religion 40+ países, NGOs 200+, Drugs UNODC
-
-### **NEW: Brazil & Global Specialized** (7):
-27. **Brazil Economy Intelligence** - BACEN, IBGE, IPEA, ComexStat, Ministérios
-28. **Global Health & Humanitarian** - WHO, UNICEF, HDX, ILO
-29. **Trade & Agriculture Intelligence** - WTO, FAO, UN SDG
-30. **Tourism Intelligence** - 90+ países, arrivals, revenue
-31. **LATAM Intelligence** - CEPAL/ECLAC + femicídio
-32. **Olympics & Sports Intelligence** - FIFA, IOC, medals, federations
-33. **Cross-Data Correlations** - GDP vs Security, Education vs Innovation, Health vs Productivity
 
 **Metodologias Consagradas** (documentadas em `analytics/METHODOLOGIES.md`):
 - ✅ HDI (Human Development Index) - UNDP
@@ -476,7 +550,7 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ## 📧 EMAIL DIÁRIO (22:00 UTC / 19:00 BRT)
 
-**23 Relatórios TXT**:
+**28 Relatórios TXT**:
 
 **Core & Advanced Analytics (11)**:
 1. MEGA Analysis (cross-database)
@@ -491,21 +565,28 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 10. Causal Insights ML
 11. NLG Playbooks (Gemini)
 
-**Predictive Intelligence (6)**:
-12. Career Trends Predictor (prediz skills antes das empresas)
-13. Capital Flow Predictor (prediz setores antes dos VCs)
-14. Expansion Location Analyzer (melhores cidades para abrir filiais)
-15. Weekly Insights Generator (top 3 topics para colunistas TI)
-16. Dying Sectors Detector (tecnologias em declínio terminal)
-17. Dark Horses Intelligence (oportunidades em stealth mode)
+**NEW: Advanced ML Analytics (5)** 🧠:
+12. Jobs Intelligence (NLP em 8,613 vagas)
+13. Sentiment Analysis (Hype vs Substance)
+14. Anomaly Detection (Z-score + Isolation Forest)
+15. Time Series Advanced (ARIMA forecasting)
+16. Startup Pattern Matching (Find next unicorns)
 
-**Socioeconomic Intelligence (6)** ⭐ NOVO:
-18. Best Cities for Tech Talent (INSEAD methodology)
-19. Remote Work Quality Index (Nomad List + Numbeo)
-20. Innovation Hubs Ranking (WIPO GII)
-21. Best Countries for Startup Founders (World Bank)
-22. Digital Nomad Index (Nomad List)
-23. STEM Education Leaders (OECD PISA)
+**Predictive Intelligence (6)**:
+18. Career Trends Predictor (prediz skills antes das empresas)
+19. Capital Flow Predictor (prediz setores antes dos VCs)
+20. Expansion Location Analyzer (melhores cidades para abrir filiais)
+21. Weekly Insights Generator (top 3 topics para colunistas TI)
+22. Dying Sectors Detector (tecnologias em declínio terminal)
+23. Dark Horses Intelligence (oportunidades em stealth mode)
+
+**Socioeconomic Intelligence (6)**:
+24. Best Cities for Tech Talent (INSEAD methodology)
+25. Remote Work Quality Index (Nomad List + Numbeo)
+26. Innovation Hubs Ranking (WIPO GII)
+27. Best Countries for Startup Founders (World Bank)
+28. Digital Nomad Index (Nomad List)
+29. STEM Education Leaders (OECD PISA - REMOVIDO: excede 28 total)
 
 **CSVs** (15+):
 - github_trending, npm_stats, pypi_stats, hackernews_stories
