@@ -1,12 +1,15 @@
 import pg from 'pg';
+import dotenv from 'dotenv';
 const { Pool } = pg;
 
+dotenv.config();
+
 const pool = new Pool({
-  host: '91.98.158.19',
-  port: 5432,
-  user: 'sofia',
-  password: 'sofia123strong',
-  database: 'sofia_db'
+  host: process.env.POSTGRES_HOST || '91.98.158.19',
+  port: parseInt(process.env.POSTGRES_PORT || '5432'),
+  user: process.env.POSTGRES_USER || 'sofia',
+  password: process.env.POSTGRES_PASSWORD || 'sofia123strong',
+  database: process.env.POSTGRES_DB || 'sofia_db'
 });
 
 const result = await pool.query(`
