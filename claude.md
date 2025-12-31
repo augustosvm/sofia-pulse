@@ -52,6 +52,7 @@
 - ⚠️ 2 vagas com salário (0.4% - normal para listagens)
 
 **Commits**:
+- `0255c95` - fix(sonar): Remove wildcards from sonar.sources (not supported)
 - `52aba9d` - config: Configure realistic SonarCloud rules for data collectors
 - `b82cdac` - fix(catho): improve location parsing - validate Brazilian state codes
 
