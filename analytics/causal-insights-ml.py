@@ -229,33 +229,34 @@ def detect_geographic_arbitrage(conn):
     """
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Universidades por país (disabled - table not exists)
-    # cur.execute("""
-    #     SELECT country, COUNT(*) as uni_count
-    #     FROM sofia.asia_universities
-    #     GROUP BY country
-    #     ORDER BY uni_count DESC
-    # """)
+    # Universidades por país (via global_universities_progress)
+    cur.execute("""
+        SELECT country_code, COUNT(*) as uni_count
+        FROM sofia.global_universities_progress
+        WHERE country_code IS NOT NULL
+        GROUP BY country_code
+        ORDER BY uni_count DESC
+    """)
 
-    universities_by_country = {}  # Empty for now - table not exists
+    universities_by_country = {r['country_code']: r['uni_count'] for r in cur.fetchall()}
 
-    # Funding by country
+    # Funding by country (using country_code to match universities)
     cur.execute("""
         SELECT
-            COALESCE(co.common_name, fr.country, 'Unknown') as country,
+            COALESCE(co.iso_alpha2, LEFT(fr.country, 2)) as country_code,
             COUNT(*) as deals,
             SUM(fr.amount_usd) as total_funding
         FROM sofia.funding_rounds fr
         LEFT JOIN sofia.countries co ON fr.country_id = co.id
         WHERE (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
-        GROUP BY co.common_name, fr.country
+        GROUP BY co.iso_alpha2, fr.country
         ORDER BY total_funding DESC NULLS LAST
         LIMIT 20
     """)
 
-    funding_by_country = {r['country']: {
+    funding_by_country = {r['country_code']: {
         'deals': r['deals'],
-        'total': float(r['total_funding'])
+        'total': float(r['total_funding'] or 0)
     } for r in cur.fetchall()}
 
     gaps = []
