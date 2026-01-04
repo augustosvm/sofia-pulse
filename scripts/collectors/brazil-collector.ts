@@ -38,7 +38,7 @@ async function runPythonScript(config: BrazilCollectorConfig): Promise<void> {
     console.log('='.repeat(50));
 
     return new Promise((resolve, reject) => {
-        const pythonProcess = spawn('python', [config.scriptPath], {
+        const pythonProcess = spawn('python3', [config.scriptPath], {
             stdio: 'inherit', // Pipe logs directly to console (and thus to global logs)
         });
 
