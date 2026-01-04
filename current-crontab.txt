@@ -146,3 +146,10 @@ PATH=/usr/local/bin:/usr/bin:/bin
 # ============================================================================
 0 22 * * * bash scripts/automation/run-mega-analytics-with-alerts.sh >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/analytics.log 2>&1
 5 22 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && python3 send-email-mega.py >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/email.log 2>&1
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts catho >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/catho-collector.log 2>&1
+
+# Additional Legacy Python Collectors (IBGE + SEC Edgar)
+0 5 * * * npx tsx scripts/collect.ts ibge-api >> logs/ibge-api-collector.log 2>&1
+0 2 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts sec-edgar-funding >> logs/sec-edgar-funding-collector.log 2>&1
+
+# Economic Data Collectors (Currency Rates)
