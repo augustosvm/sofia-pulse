@@ -78,9 +78,9 @@ def main():
         # 2. NPM Stats
         print("📊 NPM Stats...")
         cur.execute("""
-            SELECT package_name, weekly_downloads, version, description, collected_at
+            SELECT package_name, downloads_week as weekly_downloads, version, description, collected_at
             FROM sofia.npm_stats
-            ORDER BY weekly_downloads DESC NULLS LAST
+            ORDER BY downloads_week DESC NULLS LAST
             LIMIT 500
         """)
         total_rows += export_to_csv(cur, 'npm_stats.csv')
@@ -89,9 +89,9 @@ def main():
         # 3. PyPI Stats
         print("📊 PyPI Stats...")
         cur.execute("""
-            SELECT package_name, monthly_downloads, version, description, collected_at
+            SELECT package_name, downloads_month as monthly_downloads, version, description, collected_at
             FROM sofia.pypi_stats
-            ORDER BY monthly_downloads DESC NULLS LAST
+            ORDER BY downloads_month DESC NULLS LAST
             LIMIT 500
         """)
         total_rows += export_to_csv(cur, 'pypi_stats.csv')
@@ -100,7 +100,7 @@ def main():
         # 4. HackerNews Stories
         print("📊 HackerNews Stories...")
         cur.execute("""
-            SELECT title, url, points, comments, author, created_at
+            SELECT title, url, points, num_comments as comments, author, created_at
             FROM sofia.hackernews_stories
             ORDER BY points DESC NULLS LAST
             LIMIT 500
@@ -153,10 +153,10 @@ def main():
         # 8. NIH Grants
         print("📊 NIH Grants...")
         cur.execute("""
-            SELECT project_title, organization, total_cost, fiscal_year,
-                   pi_name, project_terms
+            SELECT title as project_title, organization, award_amount_usd as total_cost, fiscal_year,
+                   principal_investigator as pi_name, abstract as project_terms
             FROM sofia.nih_grants
-            ORDER BY total_cost DESC NULLS LAST
+            ORDER BY award_amount_usd DESC NULLS LAST
             LIMIT 500
         """)
         total_rows += export_to_csv(cur, 'nih_grants.csv')
@@ -165,8 +165,8 @@ def main():
         # 9. Cybersecurity (30 days)
         print("📊 Cybersecurity Events (30 days)...")
         cur.execute("""
-            SELECT cve_id, description, severity, cvss_score, published_date
-            FROM sofia.cybersecurity_cves
+            SELECT event_id as cve_id, description, severity, cvss_score, published_date
+            FROM sofia.cybersecurity_events
             WHERE published_date >= CURRENT_DATE - INTERVAL '30 days'
             ORDER BY published_date DESC
             LIMIT 500
@@ -177,9 +177,9 @@ def main():
         # 10. Space Launches
         print("📊 Space Launches...")
         cur.execute("""
-            SELECT mission_name, launch_date, rocket, launch_site,
-                   success, details
-            FROM sofia.space_launches
+            SELECT mission_name, launch_date, rocket_type as rocket, launch_site,
+                   status as success, description as details
+            FROM sofia.space_industry
             ORDER BY launch_date DESC
             LIMIT 500
         """)
@@ -189,7 +189,7 @@ def main():
         # 11. AI Regulation
         print("📊 AI Regulation...")
         cur.execute("""
-            SELECT title, country, regulation_type, status,
+            SELECT title, jurisdiction as country, regulation_type, status,
                    effective_date, description
             FROM sofia.ai_regulation
             ORDER BY effective_date DESC NULLS LAST
@@ -214,7 +214,7 @@ def main():
         # 13. Socioeconomic Brazil
         print("📊 Socioeconomic Brazil...")
         cur.execute("""
-            SELECT indicator_name, value, year, source
+            SELECT indicator_name, value, year, data_source as source
             FROM sofia.socioeconomic_indicators
             WHERE country_code = 'BRA'
             ORDER BY year DESC, indicator_name
@@ -245,9 +245,9 @@ def main():
         # 15. Electricity Consumption
         print("📊 Electricity Consumption...")
         cur.execute("""
-            SELECT country, consumption_kwh, year, source
+            SELECT country, consumption_twh as consumption_kwh, year, data_source as source
             FROM sofia.electricity_consumption
-            ORDER BY consumption_kwh DESC NULLS LAST
+            ORDER BY consumption_twh DESC NULLS LAST
             LIMIT 500
         """)
         total_rows += export_to_csv(cur, 'electricity_consumption.csv')
@@ -256,9 +256,9 @@ def main():
         # 16. Commodity Prices
         print("📊 Commodity Prices...")
         cur.execute("""
-            SELECT commodity_name, price, unit, currency, date, source
+            SELECT commodity as commodity_name, price, unit, price_date as date, data_source as source
             FROM sofia.commodity_prices
-            ORDER BY date DESC
+            ORDER BY price_date DESC
             LIMIT 500
         """)
         total_rows += export_to_csv(cur, 'commodity_prices.csv')
@@ -267,9 +267,9 @@ def main():
         # 17. Port Traffic
         print("📊 Port Traffic...")
         cur.execute("""
-            SELECT port_name, country, container_teu, year, cargo_tons
+            SELECT country, teu as container_teu, year
             FROM sofia.port_traffic
-            ORDER BY container_teu DESC NULLS LAST
+            ORDER BY teu DESC NULLS LAST
             LIMIT 500
         """)
         total_rows += export_to_csv(cur, 'port_traffic.csv')
