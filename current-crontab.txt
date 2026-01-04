@@ -1,0 +1,148 @@
+# ============================================================================
+# Sofia Pulse - Auto-generated Crontab
+# Generated: 2025-12-24T12:36:19.302Z
+# DO NOT EDIT MANUALLY - Run: npx tsx scripts/generate-crontab.ts --install
+# ============================================================================
+
+# Environment
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# 2x/day (0h, 12h) - github, hackernews
+0 */12 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts github >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/github-collector.log 2>&1
+0 */12 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts hackernews >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/hackernews-collector.log 2>&1
+
+# 1x/day - npm
+0 8 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts npm >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/npm-collector.log 2>&1
+
+# 1x/day - pypi
+0 20 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts pypi >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/pypi-collector.log 2>&1
+
+# 1x/day - stackoverflow, mdic-regional, mdic-comexstat
+0 9 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts stackoverflow >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/stackoverflow-collector.log 2>&1
+0 9 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts mdic-regional >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/mdic-regional-collector.log 2>&1
+0 9 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts mdic-comexstat >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/mdic-comexstat-collector.log 2>&1
+
+# 1x/day - arxiv, openalex, ai-companies
+0 8 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts arxiv >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/arxiv-collector.log 2>&1
+0 8 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts openalex >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/openalex-collector.log 2>&1
+0 8 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts ai-companies >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/ai-companies-collector.log 2>&1
+
+# 4x/day (0h, 6h, 12h, 18h) - himalayas, remoteok, space_launches, greenhouse
+0 */6 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts himalayas >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/himalayas-collector.log 2>&1
+0 */6 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts remoteok >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/remoteok-collector.log 2>&1
+0 */6 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts space_launches >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/space_launches-collector.log 2>&1
+0 */6 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts greenhouse >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/greenhouse-collector.log 2>&1
+
+# Custom schedule - arbeitnow
+0 0,8,16 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts arbeitnow >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/arbeitnow-collector.log 2>&1
+
+# 1x/month (1st day) - universities, ngos
+0 8 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts universities >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/universities-collector.log 2>&1
+0 8 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts ngos >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/ngos-collector.log 2>&1
+
+# 1x/day - yc-companies
+0 10 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts yc-companies >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/yc-companies-collector.log 2>&1
+
+# 1x/day - producthunt
+0 11 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts producthunt >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/producthunt-collector.log 2>&1
+
+# 1x/day - vscode-marketplace
+0 14 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts vscode-marketplace >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/vscode-marketplace-collector.log 2>&1
+
+# 1x/day - jetbrains-marketplace
+0 15 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts jetbrains-marketplace >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/jetbrains-marketplace-collector.log 2>&1
+
+# 1x/day - confs-tech
+0 6 * * 1 cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts confs-tech >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/confs-tech-collector.log 2>&1
+
+# 1x/day - fiesp-data
+0 10 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts fiesp-data >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/fiesp-data-collector.log 2>&1
+
+# Custom schedule - nvd_cve
+0 */4 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts nvd_cve >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/nvd_cve-collector.log 2>&1
+
+# 1x/day - cisa_kev
+0 12 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts cisa_kev >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/cisa_kev-collector.log 2>&1
+
+# Custom schedule - gdelt
+0 * * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts gdelt >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/gdelt-collector.log 2>&1
+
+# 1x/day - ai_regulation
+0 0 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts ai_regulation >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/ai_regulation-collector.log 2>&1
+
+# 1x/day - acled-conflicts
+0 2 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts acled-conflicts >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/acled-conflicts-collector.log 2>&1
+
+# 1x/day - brazil-security, world-security
+0 3 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts brazil-security >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/brazil-security-collector.log 2>&1
+0 3 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts world-security >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/world-security-collector.log 2>&1
+
+# 1x/day - geopolitical-impacts
+0 4 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts geopolitical-impacts >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/geopolitical-impacts-collector.log 2>&1
+
+# 1x/day - bacen-sgs
+0 5 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts bacen-sgs >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/bacen-sgs-collector.log 2>&1
+
+# 1x/day - central-banks-women, semiconductor-sales, socioeconomic-indicators, wto-trade, who-health, unicef, un-sdg, women-brazil, women-eurostat, women-fred, women-ilostat, women-world-bank, world-bank-gender, sports-federations, sports-regional, world-sports, hdx-humanitarian, cepal-latam, brazil-ministries, world-tourism
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts central-banks-women >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/central-banks-women-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts semiconductor-sales >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/semiconductor-sales-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts socioeconomic-indicators >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/socioeconomic-indicators-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts wto-trade >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/wto-trade-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts who-health >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/who-health-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts unicef >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/unicef-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts un-sdg >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/un-sdg-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts women-brazil >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/women-brazil-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts women-eurostat >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/women-eurostat-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts women-fred >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/women-fred-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts women-ilostat >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/women-ilostat-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts women-world-bank >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/women-world-bank-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts world-bank-gender >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/world-bank-gender-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts sports-federations >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/sports-federations-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts sports-regional >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/sports-regional-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts world-sports >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/world-sports-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts hdx-humanitarian >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/hdx-humanitarian-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts cepal-latam >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/cepal-latam-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts brazil-ministries >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/brazil-ministries-collector.log 2>&1
+0 0 1 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts world-tourism >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/world-tourism-collector.log 2>&1
+
+# 1x/day - commodity-prices
+0 6 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts commodity-prices >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/commodity-prices-collector.log 2>&1
+
+# 1x/day - cni-indicators, ipea-api
+0 0 5 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts cni-indicators >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/cni-indicators-collector.log 2>&1
+0 0 5 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts ipea-api >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/ipea-api-collector.log 2>&1
+
+# 1x/day - electricity-consumption, energy-global
+0 0 4 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts electricity-consumption >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/electricity-consumption-collector.log 2>&1
+0 0 4 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts energy-global >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/energy-global-collector.log 2>&1
+
+# 1x/day - fao-agriculture
+0 0 3 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts fao-agriculture >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/fao-agriculture-collector.log 2>&1
+
+# 1x/day - port-traffic
+0 0 2 * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts port-traffic >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/port-traffic-collector.log 2>&1
+
+# 1x/month (1st day) - drugs-data, religion-data, world-ngos
+0 0 1 1 * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts drugs-data >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/drugs-data-collector.log 2>&1
+0 0 1 1 * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts religion-data >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/religion-data-collector.log 2>&1
+0 0 1 1 * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts world-ngos >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/world-ngos-collector.log 2>&1
+
+# 1x/day - careerjet-api, freejobs-api, infojobs-brasil, rapidapi-activejobs, rapidapi-linkedin, serpapi-googlejobs, theirstack-api
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts careerjet-api >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/careerjet-api-collector.log 2>&1
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts freejobs-api >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/freejobs-api-collector.log 2>&1
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts infojobs-brasil >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/infojobs-brasil-collector.log 2>&1
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts rapidapi-activejobs >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/rapidapi-activejobs-collector.log 2>&1
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts rapidapi-linkedin >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/rapidapi-linkedin-collector.log 2>&1
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts serpapi-googlejobs >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/serpapi-googlejobs-collector.log 2>&1
+0 10 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts theirstack-api >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/theirstack-api-collector.log 2>&1
+
+# ============================================================================
+# Total collectors: 69 (5 tech + 2 papers + 3 jobs + 3 orgs + 2 funding + 2 devtools + 1 conf + 2 brazil + 5 industry + 43 python + 1 standalone)
+# Unique schedules: 30
+# ============================================================================
+# ============================================================================
+# SOFIA PULSE - ANALYTICS & EMAIL (Daily at 22:00 UTC / 19:00 BRT)
+# ============================================================================
+0 22 * * * bash scripts/automation/run-mega-analytics-with-alerts.sh >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/analytics.log 2>&1
+5 22 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && python3 send-email-mega.py >> /mnt/c/Users/augusto.moreira/Documents/sofia-pulse/logs/email.log 2>&1
