@@ -153,3 +153,14 @@ PATH=/usr/local/bin:/usr/bin:/bin
 0 2 * * * cd /mnt/c/Users/augusto.moreira/Documents/sofia-pulse && npx tsx scripts/collect.ts sec-edgar-funding >> logs/sec-edgar-funding-collector.log 2>&1
 
 # Economic Data Collectors (Currency Rates)
+0 1 * * * npx tsx scripts/collect.ts currency-rates >> logs/currency-rates-collector.log 2>&1
+
+# Orphaned Collectors (Patents, Security, IPOs)
+0 3 * * * npx tsx scripts/collect.ts epo-patents >> logs/epo-patents-collector.log 2>&1
+0 4 * * * npx tsx scripts/collect.ts gitguardian-incidents >> logs/gitguardian-incidents-collector.log 2>&1
+0 2 * * * npx tsx scripts/collect.ts hkex-ipos >> logs/hkex-ipos-collector.log 2>&1
+0 3 * * * npx tsx scripts/collect.ts wipo-china-patents >> logs/wipo-china-patents-collector.log 2>&1
+
+# Orphaned Python Collectors (AI, Brazil Data)
+0 6 * * * npx tsx scripts/collect.ts ai-huggingface-models >> logs/ai-huggingface-models-collector.log 2>&1
+0 7 * * * npx tsx scripts/collect.ts basedosdados-brazil >> logs/basedosdados-brazil-collector.log 2>&1

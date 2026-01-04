@@ -39,6 +39,11 @@ import { runIndustrySignalsCLI } from './collectors/industry-signals-collector.j
 import { runPythonBridgeCLI } from './collectors/python-bridge-collector.js';
 import { collectGreenhouseJobs } from './collect-jobs-greenhouse.js';
 import { collectCathoJobs } from './collect-catho-final.js';
+import { collectCurrencyRates } from './collect-currency-rates.js';
+import { collectEPOPatents } from './collect-epo-patents.js';
+import { collectGitGuardianIncidents } from './collect-gitguardian-incidents.js';
+import { collectHKEXipos } from './collect-hkex-ipos.js';
+import { collectWIPOPatents } from './collect-wipo-china-patents.js';
 
 import { collectors as techTrendsCollectors } from './configs/tech-trends-config.js';
 import { researchPapersCollectors } from './configs/research-papers-config.js';
@@ -193,6 +198,36 @@ async function main() {
     // Special case: Catho (standalone collector)
     if (collectorName === 'catho' || collectorName === 'catho-final') {
       await collectCathoJobs();
+      return;
+    }
+
+    // Special case: Currency Rates (economic data collector)
+    if (collectorName === 'currency-rates') {
+      await collectCurrencyRates();
+      return;
+    }
+
+    // Special case: EPO Patents (European Patent Office)
+    if (collectorName === 'epo-patents') {
+      await collectEPOPatents();
+      return;
+    }
+
+    // Special case: GitGuardian Incidents (Security)
+    if (collectorName === 'gitguardian-incidents') {
+      await collectGitGuardianIncidents();
+      return;
+    }
+
+    // Special case: HKEX IPOs (Hong Kong Stock Exchange)
+    if (collectorName === 'hkex-ipos') {
+      await collectHKEXipos();
+      return;
+    }
+
+    // Special case: WIPO China Patents (World Intellectual Property Org)
+    if (collectorName === 'wipo-china-patents') {
+      await collectWIPOPatents();
       return;
     }
 

@@ -77,4 +77,10 @@ export const collectors: Record<string, PythonCollectorConfig> = {
     // --- FUNDING & STARTUPS ---
     'sec-edgar-funding': { name: 'sec-edgar-funding', description: 'SEC Edgar Funding Data', script: 'scripts/collect-sec-edgar-funding.py', schedule: '0 0 2 * *', category: 'economic' },
     'yc-companies': { name: 'yc-companies', description: 'Y Combinator Companies', script: 'scripts/collect-yc-companies.py', schedule: '0 0 1 * *', category: 'economic' },
+
+    // --- AI & MACHINE LEARNING ---
+    'ai-huggingface-models': { name: 'ai-huggingface-models', description: 'HuggingFace Model Trends', script: 'scripts/collect-ai-huggingface-models.py', schedule: '0 6 * * *', category: 'tech' },
+
+    // --- BRAZIL DATA ---
+    'basedosdados-brazil': { name: 'basedosdados-brazil', description: 'Base dos Dados Brasil (Open Data)', script: 'scripts/collect-basedosdados-brazil.py', schedule: '0 7 * * *', category: 'economic' },
 };
