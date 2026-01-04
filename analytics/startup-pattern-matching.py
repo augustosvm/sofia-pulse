@@ -240,7 +240,7 @@ def find_similar_startups(startups_features):
         for unicorn_name, unicorn_pattern in UNICORN_PATTERNS.items():
             similarity = calculate_similarity_score(startup, unicorn_pattern)
 
-            if similarity >= 50:  # At least 50% match
+            if similarity >= 30:  # At least 30% match (relaxed threshold)
                 results[unicorn_name].append({
                     **startup,
                     'similarity_score': similarity
