@@ -57,17 +57,23 @@ def main():
 
         total_files = 0
         total_rows = 0
+        failed = []
 
         # 1. GitHub Trending
-        print("📊 GitHub Trending...")
-        cur.execute("""
-            SELECT repo_name, stars, language, description, url, collected_at
-            FROM sofia.github_trending
-            ORDER BY stars DESC
-            LIMIT 500
-        """)
-        total_rows += export_to_csv(cur, 'github_trending.csv')
-        total_files += 1
+        try:
+            print("📊 GitHub Trending...")
+            cur.execute("""
+                SELECT full_name as repo_name, stars, language, description,
+                       homepage as url, collected_at
+                FROM sofia.github_trending
+                ORDER BY stars DESC
+                LIMIT 500
+            """)
+            total_rows += export_to_csv(cur, 'github_trending.csv')
+            total_files += 1
+        except Exception as e:
+            print(f"   ❌ Failed: {e}")
+            failed.append(('github_trending.csv', str(e)))
 
         # 2. NPM Stats
         print("📊 NPM Stats...")
