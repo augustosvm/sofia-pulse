@@ -33,27 +33,27 @@ if not SMTP_USER or not SMTP_PASS:
     sys.exit(1)
 
 # ============================================================================
-# ALL 28 REPORTS (23 original + 5 new ML)
+# ALL 36 REPORTS (28 original + 5 new ML + 3 additional intelligence)
 # ============================================================================
 
 REPORTS = [
     # MEGA
-    'analytics/MEGA-ANALYSIS.txt',
+    'analytics/mega-analysis-latest.txt',
 
     # Core Analytics (5)
-    'analytics/sofia-complete-report.txt',
-    'analytics/top10-tech-trends.txt',
-    'analytics/correlation-papers-funding.txt',
-    'analytics/dark-horses-report.txt',
-    'analytics/entity-resolution.txt',
+    'analytics/tech-trend-score-latest.txt',  # sofia-complete-report
+    'analytics/top10-latest.txt',
+    'analytics/correlation-latest.txt',
+    'analytics/dark-horses-latest.txt',
+    'analytics/entity-resolution-latest.txt',
 
     # Advanced Analytics (3)
-    'analytics/special-sectors-analysis.txt',
-    'analytics/early-stage-deep-dive.txt',
-    'analytics/energy-global-map.txt',
+    'analytics/special-sectors-latest.txt',
+    'analytics/early-stage-latest.txt',
+    'analytics/energy-global-map-latest.txt',
 
     # ML Analytics (1)
-    'analytics/causal-insights-ml.txt',
+    'analytics/causal-insights-latest.txt',
 
     # NEW: Advanced ML Analytics (5) ⭐
     'analytics/jobs-intelligence.txt',
@@ -63,25 +63,35 @@ REPORTS = [
     'analytics/startup-pattern-matching.txt',
 
     # AI-Powered (1)
-    'analytics/nlg-playbooks-gemini.txt',
+    'analytics/playbook-latest.txt',  # nlg-playbooks-gemini
 
     # Intelligence Analytics (6)
-    'analytics/career-trends-predictor.txt',
-    'analytics/capital-flow-predictor.txt',
-    'analytics/expansion-location-analyzer.txt',
-    'analytics/weekly-insights-generator.txt',
-    'analytics/dying-sectors-detector.txt',
-    'analytics/dark-horses-intelligence.txt',
+    'analytics/career-trends-latest.txt',
+    'analytics/capital-flow-latest.txt',
+    'analytics/expansion-locations-latest.txt',
+    'analytics/weekly-insights-latest.txt',
+    'analytics/dying-sectors-latest.txt',
+    'analytics/dark-horses-intelligence-latest.txt',
 
     # Socioeconomic Intelligence (3)
-    'analytics/best-cities-tech-talent.txt',
-    'analytics/remote-work-quality-index.txt',
-    'analytics/innovation-hubs.txt',
+    'analytics/best-cities-tech-talent-latest.txt',
+    'analytics/remote-work-quality-latest.txt',
+    'analytics/innovation-hubs-latest.txt',
 
     # Women, Security & Social (3)
     'analytics/women-global-analysis.txt',
-    'analytics/security-intelligence.txt',
-    'analytics/social-intelligence.txt',
+    'analytics/security-intelligence-report.txt',
+    'analytics/social-intelligence-report.txt',
+
+    # Additional Intelligence Reports (7)
+    'analytics/global-health-humanitarian.txt',
+    'analytics/trade-agriculture-intelligence.txt',
+    'analytics/tourism-intelligence.txt',
+    'analytics/latam-intelligence.txt',
+    'analytics/olympics-sports-intelligence.txt',
+    'analytics/basedosdados-intelligence.txt',
+    'analytics/brazil-economy-intelligence.txt',
+    'analytics/cross-data-correlations.txt',
 ]
 
 CSV_REPORTS = [
