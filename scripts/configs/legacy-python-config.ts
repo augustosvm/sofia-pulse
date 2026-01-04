@@ -19,7 +19,7 @@ export const collectors: Record<string, PythonCollectorConfig> = {
     'acled-conflicts': { name: 'acled-conflicts', description: 'ACLED Conflict Data', script: 'scripts/collect-acled-conflicts.py', schedule: '0 2 * * *', category: 'security' },
     'brazil-security': { name: 'brazil-security', description: 'Brazil Security Data', script: 'scripts/collect-brazil-security.py', schedule: '0 3 * * *', category: 'security' },
     'world-security': { name: 'world-security', description: 'Global Security Index', script: 'scripts/collect-world-security.py', schedule: '0 3 * * *', category: 'security' },
-    'geopolitical-impacts': { name: 'geopolitical-impacts', description: 'Geopolitical Impact Analysis', script: 'scripts/collect-geopolitical-impacts.py', schedule: '0 4 * * *', category: 'security' },
+    // 'geopolitical-impacts': { name: 'geopolitical-impacts', description: 'Geopolitical Impact Analysis', script: 'scripts/collect-geopolitical-impacts.py', schedule: '0 4 * * *', category: 'security' }, // DISABLED: Script does not exist
 
     // --- ECONOMIC ---
     'bacen-sgs': { name: 'bacen-sgs', description: 'BACEN Time Series', script: 'scripts/collect-bacen-sgs.py', schedule: '0 5 * * *', category: 'economic' },
