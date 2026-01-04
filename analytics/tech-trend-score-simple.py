@@ -519,4 +519,37 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import io
+
+    # Capture output to both console and file
+    output_buffer = io.StringIO()
+
+    class TeeOutput:
+        def __init__(self, *files):
+            self.files = files
+        def write(self, data):
+            for f in self.files:
+                f.write(data)
+        def flush(self):
+            for f in self.files:
+                f.flush()
+
+    # Redirect stdout to both console and buffer
+    original_stdout = sys.stdout
+    sys.stdout = TeeOutput(original_stdout, output_buffer)
+
+    try:
+        main()
+
+        # Save to file
+        output_text = output_buffer.getvalue()
+        output_file = 'analytics/tech-trend-score-latest.txt'
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(output_text)
+
+        sys.stdout = original_stdout
+        print(f"\n📝 Report saved to: {output_file}")
+
+    except Exception as e:
+        sys.stdout = original_stdout
+        raise

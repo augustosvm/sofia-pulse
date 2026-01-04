@@ -64,7 +64,7 @@ def extract_research_activity(conn):
 
     query = """
     SELECT
-        unnest(COALESCE(countries, ARRAY['Global']::TEXT[])) as country,
+        unnest(COALESCE(author_countries, ARRAY['Global']::TEXT[])) as country,
         COUNT(*) as paper_count,
         AVG(cited_by_count) as avg_citations
     FROM sofia.openalex_papers
@@ -109,10 +109,12 @@ def extract_funding_activity(conn):
     funding_data = {}
     for row in results:
         country = row['country']
+        total = float(row['total_funding'] or 0)
+        deals = row['deals'] or 0
         funding_data[country] = {
-            'deals': row['deals_count'] or 0,
-            'total_funding': float(row['total_funding'] or 0),
-            'avg_funding': float(row['avg_funding'] or 0)
+            'deals': deals,
+            'total_funding': total,
+            'avg_funding': total / deals if deals > 0 else 0
         }
 
     return funding_data
@@ -121,6 +123,10 @@ def extract_funding_activity(conn):
 
 def generate_innovation_hubs_report(socio_data, research_data, funding_data):
     """Generate Innovation Hubs Ranking Report"""
+
+    # Validate inputs
+    if not socio_data:
+        return "⚠️ No socioeconomic data available for Innovation Hubs report"
 
     country_scores = []
 

@@ -91,7 +91,7 @@ def generate_weekly_insights(conn):
             'title': top_story['title'],
             'angle': f"Deep dive: {top_story['title']}",
             'evidence': [
-                f"HackerNews: {top_story["points"]} upvotes (#1 trending)",
+                f"HackerNews: {top_story.get('points', 0)} upvotes (#1 trending)",
                 f"URL: {top_story['url']}"
             ],
             'seo': ' '.join(top_story['title'].lower().split()[:5]),
