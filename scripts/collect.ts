@@ -38,6 +38,7 @@ import { runBrazilCLI } from './collectors/brazil-collector.js';
 import { runIndustrySignalsCLI } from './collectors/industry-signals-collector.js';
 import { runPythonBridgeCLI } from './collectors/python-bridge-collector.js';
 import { collectGreenhouseJobs } from './collect-jobs-greenhouse.js';
+import { collectCathoJobs } from './collect-catho-final.js';
 
 import { collectors as techTrendsCollectors } from './configs/tech-trends-config.js';
 import { researchPapersCollectors } from './configs/research-papers-config.js';
@@ -186,6 +187,12 @@ async function main() {
     // Special case: Greenhouse (standalone collector)
     if (collectorName === 'greenhouse') {
       await collectGreenhouseJobs();
+      return;
+    }
+
+    // Special case: Catho (standalone collector)
+    if (collectorName === 'catho' || collectorName === 'catho-final') {
+      await collectCathoJobs();
       return;
     }
 

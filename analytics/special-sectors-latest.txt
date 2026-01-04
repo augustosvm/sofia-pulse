@@ -2,7 +2,7 @@
 SPECIAL SECTORS ANALYSIS - Sofia Pulse
 ================================================================================
 
-Generated: 2025-12-26 22:00:04
+Generated: 2026-01-04 14:48:38
 
 Tracking critical sectors:
    ⚡ Space Industry (high)
@@ -33,18 +33,11 @@ Tracking critical sectors:
 Description: AI laws, privacy regulations, compliance, ethics
 
 📄 RESEARCH:
-   Papers (90d): 3
+   Papers (90d): 9
    Recent papers:
-      • Casting a SPELL: Sentence Pairing Exploration for LLM Limitation-break...
-      • Explainable time-series forecasting with sampling-free SHAP for Transf...
-      • Augmenting Intelligence: A Hybrid Framework for Scalable and Stable Ex...
-
-💰 FUNDING:
-   Total (90d): $4.00B
-   Deal Count: 1
-   Avg Ticket: $4000.0M
-   Top deals:
-      • Anthropic: $4000.0M
+      • Iterative Deployment Improves Planning Skills in LLMs...
+      • Explainable Neural Inverse Kinematics for Obstacle-Aware Robotic Manip...
+      • Theory of Mind for Explainable Human-Robot Interaction...
 
 ================================================================================
 
@@ -53,11 +46,11 @@ Description: AI laws, privacy regulations, compliance, ethics
 Description: AR/VR headsets, spatial computing, metaverse platforms
 
 📄 RESEARCH:
-   Papers (90d): 245
+   Papers (90d): 475
    Recent papers:
-      • Language-Guided Grasp Detection with Coarse-to-Fine Learning for Robot...
-      • From Human Bias to Robot Choice: How Occupational Contexts and Racial ...
-      • Tracing Energy Flow: Learning Tactile-based Grasping Force Control to ...
+      • Explaining Why Things Go Where They Go: Interpretable Constructs of Hu...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
 
 💰 FUNDING:
    Total (90d): $10.50B
@@ -68,8 +61,8 @@ Description: AR/VR headsets, spatial computing, metaverse platforms
       • Shield AI: $500.0M
 
 🌍 GEOPOLITICAL EVENTS:
-   Events (30d): 9
-   Media Mentions: 9
+   Events (30d): 15
+   Media Mentions: 15
    Avg Sentiment: 0.00 😐
    Major events:
       • evrensel.net + : 1 mentions
@@ -83,20 +76,20 @@ Description: AR/VR headsets, spatial computing, metaverse platforms
 Description: Self-driving cars, ADAS, autonomous systems
 
 📄 RESEARCH:
-   Papers (90d): 142
+   Papers (90d): 296
    Recent papers:
-      • Language-Guided Grasp Detection with Coarse-to-Fine Learning for Robot...
-      • From Human Bias to Robot Choice: How Occupational Contexts and Racial ...
-      • Tracing Energy Flow: Learning Tactile-based Grasping Force Control to ...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
+      • CPJ: Explainable Agricultural Pest Diagnosis via Caption-Prompt-Judge ...
 
 🌍 GEOPOLITICAL EVENTS:
-   Events (30d): 4
-   Media Mentions: 4
+   Events (30d): 3
+   Media Mentions: 3
    Avg Sentiment: 0.00 😐
    Major events:
       • travel.china.com.cn + : 1 mentions
       • travel.china.com.cn + : 1 mentions
-      • diariodeavisos.elespanol.com + : 1 mentions
+      • travel.china.com.cn + : 1 mentions
 
 ================================================================================
 
@@ -105,18 +98,11 @@ Description: Self-driving cars, ADAS, autonomous systems
 Description: Gene editing, CRISPR, mRNA, precision medicine
 
 📄 RESEARCH:
-   Papers (90d): 45
+   Papers (90d): 69
    Recent papers:
-      • From Human Bias to Robot Choice: How Occupational Contexts and Racial ...
-      • Tracing Energy Flow: Learning Tactile-based Grasping Force Control to ...
-      • Neural Probe-Based Hallucination Detection for Large Language Models...
-
-🌍 GEOPOLITICAL EVENTS:
-   Events (30d): 1
-   Media Mentions: 1
-   Avg Sentiment: 0.00 😐
-   Major events:
-      • slobodna-bosna.ba + : 1 mentions
+      • Iterative Deployment Improves Planning Skills in LLMs...
+      • On the geometry and topology of representations: the manifolds of modu...
+      • Diffusion Language Models are Provably Optimal Parallel Samplers...
 
 ================================================================================
 
@@ -125,11 +111,11 @@ Description: Gene editing, CRISPR, mRNA, precision medicine
 Description: Cloud platforms, containers, Kubernetes, DevOps tools
 
 📄 RESEARCH:
-   Papers (90d): 20
+   Papers (90d): 31
    Recent papers:
-      • Tracing Energy Flow: Learning Tactile-based Grasping Force Control to ...
-      • Certifiable Alignment of GNSS and Local Frames via Lagrangian Duality...
-      • Analytic and Variational Stability of Deep Learning Systems...
+      • ProDM: Synthetic Reality-driven Property-aware Progressive Diffusion M...
+      • LSRE: Latent Semantic Rule Encoding for Real-Time Semantic Risk Detect...
+      • PCR-ORB: Enhanced ORB-SLAM3 with Point Cloud Refinement Using Deep Lea...
 
 ================================================================================
 
@@ -138,11 +124,11 @@ Description: Cloud platforms, containers, Kubernetes, DevOps tools
 Description: Cyber attacks, vulnerabilities, data breaches, security tools
 
 📄 RESEARCH:
-   Papers (90d): 108
+   Papers (90d): 207
    Recent papers:
-      • Language-Guided Grasp Detection with Coarse-to-Fine Learning for Robot...
-      • From Human Bias to Robot Choice: How Occupational Contexts and Racial ...
-      • Neural Probe-Based Hallucination Detection for Large Language Models...
+      • Explaining Why Things Go Where They Go: Interpretable Constructs of Hu...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
 
 ================================================================================
 
@@ -151,11 +137,11 @@ Description: Cyber attacks, vulnerabilities, data breaches, security tools
 Description: Databases, data warehouses, data infrastructure
 
 📄 RESEARCH:
-   Papers (90d): 200
+   Papers (90d): 378
    Recent papers:
-      • Language-Guided Grasp Detection with Coarse-to-Fine Learning for Robot...
-      • From Human Bias to Robot Choice: How Occupational Contexts and Racial ...
-      • Tracing Energy Flow: Learning Tactile-based Grasping Force Control to ...
+      • Explaining Why Things Go Where They Go: Interpretable Constructs of Hu...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
 
 💰 FUNDING:
    Total (90d): $0.50B
@@ -165,8 +151,8 @@ Description: Databases, data warehouses, data infrastructure
       • Databricks: $500.0M
 
 🌍 GEOPOLITICAL EVENTS:
-   Events (30d): 14
-   Media Mentions: 14
+   Events (30d): 18
+   Media Mentions: 18
    Avg Sentiment: 0.00 😐
    Major events:
       • biz.heraldcorp.com + : 1 mentions
@@ -180,11 +166,11 @@ Description: Databases, data warehouses, data infrastructure
 Description: Military technology, defense contractors, dual-use AI
 
 📄 RESEARCH:
-   Papers (90d): 5
+   Papers (90d): 9
    Recent papers:
-      • RoboSafe: Safeguarding Embodied Agents via Executable Safety Logic...
-      • AUDRON: A Deep Learning Framework with Fused Acoustic Signatures for D...
-      • SlideTailor: Personalized Presentation Slide Generation for Scientific...
+      • ProGuard: Towards Proactive Multimodal Safeguard...
+      • Toward Trustworthy Agentic AI: A Multimodal Framework for Preventing P...
+      • Bridging the Copyright Gap: Do Large Vision-Language Models Recognize ...
 
 💰 FUNDING:
    Total (90d): $2.00B
@@ -201,11 +187,11 @@ Description: Military technology, defense contractors, dual-use AI
 Description: AI on edge devices, embedded systems, on-device ML
 
 📄 RESEARCH:
-   Papers (90d): 23
+   Papers (90d): 41
    Recent papers:
-      • Reflection Pretraining Enables Token-Level Self-Correction in Biologic...
-      • Casting a SPELL: Sentence Pairing Exploration for LLM Limitation-break...
-      • Rethinking Supervised Fine-Tuning: Emphasizing Key Answer Tokens for I...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Evaluating the Impact of Compression Techniques on the Robustness of C...
+      • SpaceTimePilot: Generative Rendering of Dynamic Scenes Across Space an...
 
 ================================================================================
 
@@ -214,20 +200,20 @@ Description: AI on edge devices, embedded systems, on-device ML
 Description: EVs, battery technology, charging infrastructure
 
 📄 RESEARCH:
-   Papers (90d): 228
+   Papers (90d): 445
    Recent papers:
-      • Language-Guided Grasp Detection with Coarse-to-Fine Learning for Robot...
-      • From Human Bias to Robot Choice: How Occupational Contexts and Racial ...
-      • Tracing Energy Flow: Learning Tactile-based Grasping Force Control to ...
+      • Explaining Why Things Go Where They Go: Interpretable Constructs of Hu...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
 
 🌍 GEOPOLITICAL EVENTS:
-   Events (30d): 8
-   Media Mentions: 8
+   Events (30d): 13
+   Media Mentions: 13
    Avg Sentiment: 0.00 😐
    Major events:
       • evrensel.net + : 1 mentions
-      • opinion.people.com.cn + : 1 mentions
-      • opinion.people.com.cn + : 1 mentions
+      • lanueva.com + : 1 mentions
+      • lanueva.com + : 1 mentions
 
 ================================================================================
 
@@ -236,11 +222,11 @@ Description: EVs, battery technology, charging infrastructure
 Description: Grid modernization, energy storage, hydrogen economy
 
 📄 RESEARCH:
-   Papers (90d): 7
+   Papers (90d): 10
    Recent papers:
-      • GriDiT: Factorized Grid-Based Diffusion for Efficient Long Image Seque...
-      • Design and Modeling of a Simple-Structured Continuously Variable Trans...
-      • Emergent temporal abstractions in autoregressive models enable hierarc...
+      • Antagonistic Bowden-Cable Actuation of a Lightweight Robotic Hand: Tow...
+      • Diffusion Knows Transparency: Repurposing Video Diffusion for Transpar...
+      • Joint Link Adaptation and Device Scheduling Approach for URLLC Industr...
 
 ================================================================================
 
@@ -249,11 +235,11 @@ Description: Grid modernization, energy storage, hydrogen economy
 Description: Digital payments, neobanks, embedded finance, BNPL
 
 📄 RESEARCH:
-   Papers (90d): 31
+   Papers (90d): 62
    Recent papers:
-      • Reflection Pretraining Enables Token-Level Self-Correction in Biologic...
-      • LookPlanGraph: Embodied Instruction Following Method with VLM Graph Au...
-      • Variationally correct operator learning: Reduced basis neural operator...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
+      • Iterative Deployment Improves Planning Skills in LLMs...
+      • Let It Flow: Agentic Crafting on Rock and Roll, Building the ROME Mode...
 
 💰 FUNDING:
    Total (90d): $0.75B
@@ -269,11 +255,11 @@ Description: Digital payments, neobanks, embedded finance, BNPL
 Description: Nuclear power plants, SMRs, fusion reactors
 
 📄 RESEARCH:
-   Papers (90d): 59
+   Papers (90d): 113
    Recent papers:
-      • Language-Guided Grasp Detection with Coarse-to-Fine Learning for Robot...
-      • Relative Localization System Design for SnailBot: A Modular Self-recon...
-      • ACD: Direct Conditional Control for Video Diffusion Models via Attenti...
+      • CPJ: Explainable Agricultural Pest Diagnosis via Caption-Prompt-Judge ...
+      • Iterative Deployment Improves Planning Skills in LLMs...
+      • Coordinated Humanoid Manipulation with Choice Policies...
 
 ================================================================================
 
@@ -282,9 +268,11 @@ Description: Nuclear power plants, SMRs, fusion reactors
 Description: Quantum computers, algorithms, cryptography
 
 📄 RESEARCH:
-   Papers (90d): 1
+   Papers (90d): 4
    Recent papers:
-      • Reflection Pretraining Enables Token-Level Self-Correction in Biologic...
+      • SpaceTimePilot: Generative Rendering of Dynamic Scenes Across Space an...
+      • Towards autonomous time-calibration of large quantum-dot devices: Dete...
+      • Unsupervised Anomaly Detection in Brain MRI via Disentangled Anatomy L...
 
 ================================================================================
 
@@ -293,11 +281,11 @@ Description: Quantum computers, algorithms, cryptography
 Description: Solar, wind, hydro, renewable energy projects
 
 📄 RESEARCH:
-   Papers (90d): 5
+   Papers (90d): 14
    Recent papers:
-      • ReaSeq: Unleashing World Knowledge via Reasoning for Sequential Modeli...
-      • Finite-Time Control Based on Differential Flatness for Wheeled Mobile ...
-      • UrbanV2X: A Multisensory Vehicle-Infrastructure Dataset for Cooperativ...
+      • Resolving State Ambiguity in Robot Manipulation via Adaptive Working M...
+      • Unsupervised Learning for Detection of Rare Driving Scenarios...
+      • The Nonstationarity-Complexity Tradeoff in Return Prediction...
 
 ================================================================================
 
@@ -306,11 +294,11 @@ Description: Solar, wind, hydro, renewable energy projects
 Description: Humanoid robots, industrial automation, autonomous systems
 
 📄 RESEARCH:
-   Papers (90d): 62
+   Papers (90d): 132
    Recent papers:
-      • Language-Guided Grasp Detection with Coarse-to-Fine Learning for Robot...
-      • From Human Bias to Robot Choice: How Occupational Contexts and Racial ...
-      • Tracing Energy Flow: Learning Tactile-based Grasping Force Control to ...
+      • Explaining Why Things Go Where They Go: Interpretable Constructs of Hu...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
 
 💰 FUNDING:
    Total (90d): $0.50B
@@ -326,11 +314,11 @@ Description: Humanoid robots, industrial automation, autonomous systems
 Description: Chip manufacturing, fabs, AI accelerators, process nodes
 
 📄 RESEARCH:
-   Papers (90d): 78
+   Papers (90d): 161
    Recent papers:
-      • Reflection Pretraining Enables Token-Level Self-Correction in Biologic...
-      • ACD: Direct Conditional Control for Video Diffusion Models via Attenti...
-      • Fast SAM2 with Text-Driven Token Pruning...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Dynamic Policy Learning for Legged Robot with Simplified Model Pretrai...
+      • Coordinated Humanoid Manipulation with Choice Policies...
 
 💰 FUNDING:
    Total (90d): $10.00B
@@ -355,11 +343,11 @@ Description: Chip manufacturing, fabs, AI accelerators, process nodes
 Description: Smartphones, mobile processors, 5G, foldables
 
 📄 RESEARCH:
-   Papers (90d): 26
+   Papers (90d): 58
    Recent papers:
-      • BALLAST: Bandit-Assisted Learning for Latency-Aware Stable Timeouts in...
-      • Casting a SPELL: Sentence Pairing Exploration for LLM Limitation-break...
-      • Global End-Effector Pose Control of an Underactuated Aerial Manipulato...
+      • Control of Microrobots with Reinforcement Learning under On-Device Com...
+      • Coordinated Humanoid Manipulation with Choice Policies...
+      • Evaluating the Impact of Compression Techniques on the Robustness of C...
 
 ================================================================================
 
@@ -368,11 +356,11 @@ Description: Smartphones, mobile processors, 5G, foldables
 Description: Space exploration, launches, satellites, space tourism
 
 📄 RESEARCH:
-   Papers (90d): 62
+   Papers (90d): 126
    Recent papers:
-      • Neural Probe-Based Hallucination Detection for Large Language Models...
-      • Reflection Pretraining Enables Token-Level Self-Correction in Biologic...
-      • SegMo: Segment-aligned Text to 3D Human Motion Generation...
+      • Explaining Why Things Go Where They Go: Interpretable Constructs of Hu...
+      • ReSPIRe: Informative and Reusable Belief Tree Search for Robot Probabi...
+      • FineTec: Fine-Grained Action Recognition Under Temporal Corruption via...
 
 ================================================================================
 
@@ -382,12 +370,12 @@ Description: Space exploration, launches, satellites, space tourism
 💰 HOTTEST SECTORS (by funding):
    AR/VR & Spatial Computing: $10.50B
    Semiconductors & Chips: $10.00B
-   AI Regulation: $4.00B
+   Defense Tech: $2.00B
 
 📄 HOTTEST SECTORS (by research):
-   AR/VR & Spatial Computing: 245 papers
-   Electric Vehicles & Batteries: 228 papers
-   Databases & Data Infrastructure: 200 papers
+   AR/VR & Spatial Computing: 475 papers
+   Electric Vehicles & Batteries: 445 papers
+   Databases & Data Infrastructure: 378 papers
 
 🔥 CRITICAL ALERTS:
 

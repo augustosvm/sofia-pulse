@@ -2,7 +2,7 @@
 🐴 DARK HORSES REPORT - MONTHLY
 ================================================================================
 
-Generated: 2025-12-26 22:00:03
+Generated: 2026-01-04 14:48:30
 
 Oportunidades SUBVALORIZADAS: Alto potencial, baixo funding/visibilidade
 
@@ -12,19 +12,19 @@ Oportunidades SUBVALORIZADAS: Alto potencial, baixo funding/visibilidade
 --------------------------------------------------------------------------------
 Rank   Sector                         Papers     Funding         Score     
 --------------------------------------------------------------------------------
-1      Tech: Jupyter Notebook         0          N/A             293552.0  
-       GitHub: 293,552 ⭐ | HN: 0 mentions
-2      Tech: Vue                      0          N/A             239151.0  
-       GitHub: 239,151 ⭐ | HN: 0 mentions
-3      Tech: Svelte                   0          N/A             209194.0  
-       GitHub: 209,194 ⭐ | HN: 0 mentions
-4      Tech: MDX                      0          N/A             204882.0  
-       GitHub: 204,882 ⭐ | HN: 0 mentions
-5      Tech: Zig                      0          N/A             28689.7   
-       GitHub: 86,069 ⭐ | HN: 2 mentions
-6      Robotics                       48         N/A             4800.0    
-7      NLP                            40         N/A             4000.0    
-8      Computer Vision                39         N/A             3900.0    
+1      Tech: Jupyter Notebook         0          N/A             293942.0  
+       GitHub: 293,942 ⭐ | HN: 0 mentions
+2      Tech: Vue                      0          N/A             239392.0  
+       GitHub: 239,392 ⭐ | HN: 0 mentions
+3      Tech: Svelte                   0          N/A             210329.0  
+       GitHub: 210,329 ⭐ | HN: 0 mentions
+4      Tech: MDX                      0          N/A             205402.0  
+       GitHub: 205,402 ⭐ | HN: 0 mentions
+5      Tech: Zig                      0          N/A             21768.2   
+       GitHub: 87,073 ⭐ | HN: 3 mentions
+6      Robotics                       107        N/A             10700.0   
+7      Computer Vision                80         N/A             8000.0    
+8      NLP                            63         N/A             6300.0    
 
 ================================================================================
 
@@ -33,47 +33,47 @@ Rank   Sector                         Papers     Funding         Score
    📚 Academic Dark Horses: 3
       (Muitos papers, pouco funding)
 
-      • Robotics: 48 papers, $0.0M funding
-      • NLP: 40 papers, $0.0M funding
-      • Computer Vision: 39 papers, $0.0M funding
+      • Robotics: 107 papers, $0.0M funding
+      • Computer Vision: 80 papers, $0.0M funding
+      • NLP: 63 papers, $0.0M funding
 
    💻 GitHub Dark Horses: 5
       (Alto GitHub stars, baixo HN buzz)
 
-      • Tech: Jupyter Notebook: 293,552 stars, 0 HN mentions
-      • Tech: Vue: 239,151 stars, 0 HN mentions
-      • Tech: Svelte: 209,194 stars, 0 HN mentions
-      • Tech: MDX: 204,882 stars, 0 HN mentions
-      • Tech: Zig: 86,069 stars, 2 HN mentions
+      • Tech: Jupyter Notebook: 293,942 stars, 0 HN mentions
+      • Tech: Vue: 239,392 stars, 0 HN mentions
+      • Tech: Svelte: 210,329 stars, 0 HN mentions
+      • Tech: MDX: 205,402 stars, 0 HN mentions
+      • Tech: Zig: 87,073 stars, 3 HN mentions
 
 ================================================================================
 
 💡 INVESTMENT OPPORTUNITIES:
 
    1. Tech: Jupyter Notebook
-      Score: 293552.0
-      GitHub: 293,552 stars
+      Score: 293942.0
+      GitHub: 293,942 stars
       HN visibility: 0 mentions (LOW = opportunity!)
 
    2. Tech: Vue
-      Score: 239151.0
-      GitHub: 239,151 stars
+      Score: 239392.0
+      GitHub: 239,392 stars
       HN visibility: 0 mentions (LOW = opportunity!)
 
    3. Tech: Svelte
-      Score: 209194.0
-      GitHub: 209,194 stars
+      Score: 210329.0
+      GitHub: 210,329 stars
       HN visibility: 0 mentions (LOW = opportunity!)
 
    4. Tech: MDX
-      Score: 204882.0
-      GitHub: 204,882 stars
+      Score: 205402.0
+      GitHub: 205,402 stars
       HN visibility: 0 mentions (LOW = opportunity!)
 
    5. Tech: Zig
-      Score: 28689.7
-      GitHub: 86,069 stars
-      HN visibility: 2 mentions (LOW = opportunity!)
+      Score: 21768.2
+      GitHub: 87,073 stars
+      HN visibility: 3 mentions (LOW = opportunity!)
 
 ================================================================================
 

@@ -208,7 +208,7 @@ async function scrapeCatho(keywords: string[]) {
   return jobs;
 }
 
-async function main() {
+export async function collectCathoJobs() {
   console.log('🚀 Catho Scraper - Centralized Keywords');
   console.log('='.repeat(50));
 
@@ -320,4 +320,7 @@ async function main() {
   await pool.end();
 }
 
-main();
+// Run standalone if executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  collectCathoJobs().catch(console.error);
+}

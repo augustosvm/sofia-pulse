@@ -1,7 +1,7 @@
 ================================================================================
 🌍 SOFIA PULSE - MEGA ANALYSIS REPORT
 ================================================================================
-Generated: 2025-12-26 22:00:26 UTC
+Generated: 2026-01-04 14:53:24 UTC
 
 This report combines data from 30+ sources:
 • Socioeconomic indicators (World Bank - 56 indicators)
@@ -16,58 +16,59 @@ This report combines data from 30+ sources:
 📊 DATABASE SUMMARY
 ================================================================================
 
-Total Records: 4,359,595
+Total Records: 4,383,890
 Total Tables: 185
 
 Records by table:
   • paper_authors: 1,320,137
   • gender_indicators: 874,391
-  • women_eurostat_data: 807,866
+  • women_eurostat_data: 808,061
   • authors: 245,965
-  • persons: 228,456
+  • persons: 230,732
   • person_papers: 221,696
   • acled_aggregated: 197,932
   • person_roles: 130,933
   • socioeconomic_indicators: 94,704
   • women_world_bank_data: 62,700
-  • who_health_data: 48,091
+  • who_health_data: 51,774
   • world_tourism_data: 18,580
-  • jobs: 10,547
-  • world_drugs_data: 9,861
-  • research_papers: 8,028
-  • funding_rounds: 7,097
-  • space_industry: 6,500
+  • industry_signals: 15,733
+  • world_drugs_data: 9,868
+  • jobs: 8,995
+  • research_papers: 8,528
+  • funding_rounds: 8,100
+  • tech_trends: 7,779
+  • space_industry: 6,700
   • world_sports_data: 5,546
-  • industry_signals: 4,803
   • fao_agriculture_data: 4,433
-  • tech_trends: 4,190
   • women_ilo_data: 3,825
   • tech_jobs: 3,675
+  • organizations: 3,504
   • world_security_data: 3,414
   • cepal_latam_data: 3,392
   • unicef_children_data: 3,095
-  • gdelt_events: 2,751
+  • gdelt_events: 2,871
   • port_traffic: 2,462
   • central_banks_women_data: 2,225
+  • cybersecurity_events: 1,661
   • comexstat_trade: 1,596
-  • cybersecurity_events: 1,549
-  • organizations: 1,254
-  • cities: 1,074
-  • bacen_sgs_series: 1,004
+  • cities: 1,098
+  • bacen_sgs_series: 1,025
+  • cardboard_production: 1,000
   • github_embeddings: 955
+  • hackernews_stories: 917
+  • pypi_stats: 909
   • ipea_series: 879
-  • cardboard_production: 840
-  • hackernews_stories: 832
-  • pypi_stats: 821
-  • github_niches: 768
+  • github_niches: 769
   • emerging_tech_niches: 618
-  • npm_stats: 441
-  • github_trending: 388
+  • collector_runs: 545
+  • npm_stats: 493
+  • arxiv_ai_papers: 476
+  • github_trending: 473
   • states: 385
   • global_universities_progress: 370
   • market_data_brazil: 352
   • publications: 350
-  • collector_runs: 348
   • sports_regional: 308
   • energy_global: 307
   • reddit_tech: 300
@@ -75,7 +76,6 @@ Records by table:
   • world_religion_data: 297
   • tech_metrics: 294
   • hackernews_embeddings: 271
-  • arxiv_ai_papers: 245
   • insights_acceleration: 243
   • insights_variations: 243
   • electricity_consumption: 239
@@ -87,17 +87,18 @@ Records by table:
   • hdx_humanitarian_data: 196
   • countries: 195
   • brazil_security_data: 180
+  • commodity_prices: 171
   • mega_tech_niches: 152
   • data_quality_report: 151
-  • v_recent_publications: 150
   • ai_tech_categories: 137
-  • commodity_prices: 131
   • baseline_snapshots: 114
   • brazil_ministries_data: 113
+  • hkex_ipos: 106
   • cybersecurity_events_view: 100
   • developer_tools: 100
   • stackoverflow_trends: 100
-  • hkex_ipos: 97
+  • v_recent_publications: 100
+  • nih_grants: 92
   • market_data_nasdaq: 91
   • data_quality_dashboard: 82
   • tables_by_source: 82
@@ -106,7 +107,6 @@ Records by table:
   • sources_summary: 78
   • openalex_papers: 69
   • ibge_indicators: 62
-  • nih_grants: 52
   • insights_alerts: 47
   • v_active_alerts: 47
   • trends: 46
@@ -118,7 +118,6 @@ Records by table:
   • brazil_security_cities: 30
   • github_metrics: 30
   • pypi_embeddings: 27
-  • v_tech_signals: 27
   • collector_health: 25
   • insights_anomalies: 24
   • women_brazil_data: 24
@@ -130,20 +129,22 @@ Records by table:
   • npm_embeddings: 19
   • cepal_femicide: 18
   • insight_narratives: 18
+  • v_tech_signals: 18
   • vw_yc_batch_analysis: 18
   • collector_stale: 15
   • sources: 14
   • currency_rates: 11
   • epo_patents: 11
   • wipo_china_patents: 10
+  • sports_federations: 9
   • ai_regulation: 6
   • cni_industrial_indicators: 6
   • documents: 6
   • dim_university: 5
   • embedding_standards: 4
   • semiconductor_sales: 4
-  • failed_collectors_today: 3
   • latest_research_papers: 3
+  • failed_collectors_today: 2
   • api_insights_today: 1
   • exits: 1
   • olympics_medals: 1
@@ -191,7 +192,6 @@ Records by table:
   • reddit_tech_posts: 0
   • relationship_network_summary: 0
   • socioeconomic_metrics: 0
-  • sports_federations: 0
   • tech_conferences: 0
   • tech_embedding_jobs: 0
   • tech_funding_correlation: 0
@@ -274,60 +274,59 @@ Benin                                4.56       51.7%
 ================================================================================
 
 🔥 GitHub Top Languages (by stars):
-   1. TypeScript              127 repos     4,860,081 stars
-   2. Python                   75 repos     2,469,961 stars
-   3. JavaScript               36 repos     1,726,089 stars
-   4. Go                       14 repos       660,915 stars
-   5. Java                     20 repos       651,571 stars
-   6. C++                       7 repos       643,349 stars
-   7. Rust                     10 repos       495,585 stars
-   8. PHP                      18 repos       353,206 stars
-   9. C                         6 repos       349,449 stars
-  10. Jupyter Notebook          4 repos       293,552 stars
+   1. TypeScript              143 repos     4,878,264 stars
+   2. Python                   97 repos     2,484,131 stars
+   3. JavaScript               43 repos     1,729,822 stars
+   4. Java                     23 repos       773,076 stars
+   5. Go                       16 repos       662,536 stars
+   6. C++                       8 repos       644,068 stars
+   7. Rust                     13 repos       497,816 stars
+   8. Markdown                  1 repos       453,367 stars
+   9. PHP                      19 repos       354,040 stars
+  10. C                         7 repos       350,520 stars
 
 📦 NPM Top Packages (monthly downloads):
    1. lodash                             362,775,563
    2. esbuild                            341,108,533
    3. axios                              324,569,782
-   4. express                            230,363,716
+   4. express                            206,504,285
    5. jest                               151,891,774
    6. dayjs                              134,100,649
    7. moment                             116,803,571
-   8. koa                                 21,195,830
-   9. fastify                             13,614,927
-  10. angular                              2,255,275
+   8. koa                                 18,357,265
+   9. fastify                             12,148,135
+  10. angular                              1,927,782
 
 🐍 PyPI Top Packages (monthly downloads):
-   1. click                              481,113,446
-   2. aiohttp                            283,034,617
-   3. beautifulsoup4                     205,438,175
-   4. fastapi                            204,692,278
-   5. flask                              180,960,999
-   6. matplotlib                         123,897,179
-   7. black                               86,706,437
-   8. mypy                                82,825,194
-   9. django                              28,868,994
-  10. keras                               16,965,477
+   1. click                              462,077,987
+   2. aiohttp                            268,969,218
+   3. beautifulsoup4                     199,462,243
+   4. fastapi                            191,333,892
+   5. flask                              168,979,078
+   6. matplotlib                         115,249,347
+   7. black                               80,157,668
+   8. mypy                                77,902,647
+   9. django                              25,380,093
+  10. keras                               16,321,122
 
 ================================================================================
 💵 FUNDING & INVESTMENT (Last 30 days)
 ================================================================================
 
-Total Deals: 40
-Total Amount: $18,015,000,000.00
+Total Deals: 41
+Total Amount: $14,015,000,000.00
 
 🏆 Top 10 Deals:
    1. OpenAI                         $10,000,000,000.00 Series C        USA       
-   2. Anthropic                      $4,000,000,000.00 Series C        USA       
-   3. Anduril Industries             $1,500,000,000.00 Series F        USA       
-   4. Nubank                         $ 750,000,000.00 Series H        Brazil    
-   5. Shield AI                      $ 500,000,000.00 Series E        USA       
-   6. Databricks                     $ 500,000,000.00 Series I        USA       
-   7. Mistral AI                     $ 415,000,000.00 Series A        France    
-   8. Adept AI                       $ 350,000,000.00 Series B        USA       
+   2. Anduril Industries             $1,500,000,000.00 Series F        USA       
+   3. Nubank                         $ 750,000,000.00 Series H        Brazil    
+   4. Shield AI                      $ 500,000,000.00 Series E        USA       
+   5. Databricks                     $ 500,000,000.00 Series I        USA       
+   6. Mistral AI                     $ 415,000,000.00 Series A        France    
+   7. Adept AI                       $ 350,000,000.00 Series B        USA       
 
 🌍 Top 10 Countries by Funding:
-   1. United States                    18 deals  $16,850,000,000.00
+   1. United States                    16 deals  $12,850,000,000.00
    2. Brazil                            1 deals  $ 750,000,000.00
    3. France                            1 deals  $ 415,000,000.00
 
@@ -335,9 +334,21 @@ Total Amount: $18,015,000,000.00
 🔒 CRITICAL SECTORS
 ================================================================================
 
-Cybersecurity Events (30d): 358
-Space Launches: 6,500
+Cybersecurity Events (30d): 312
+Space Launches: 6,700
 AI Regulations: 6
+
+🔒 Top CVEs (last 30 days):
+  • MongoDB and MongoDB Server Improper Handling of Length Param high       CVSS:None
+  • Digiever DS-2105 Pro Missing Authorization Vulnerability     high       CVSS:None
+  • WatchGuard Firebox Out of Bounds Write Vulnerability         high       CVSS:None
+  • ASUS Live Update Embedded Malicious Code Vulnerability       high       CVSS:None
+  • SonicWall SMA1000 Missing Authorization Vulnerability        high       CVSS:None
+  • Cisco Multiple Products Improper Input Validation Vulnerabil high       CVSS:None
+  • Fortinet Multiple Products Improper Verification of Cryptogr high       CVSS:None
+  • Gladinet CentreStack and Triofox Hard Coded Cryptographic Vu high       CVSS:None
+  • Apple Multiple Products Use-After-Free WebKit Vulnerability  high       CVSS:None
+  • Sierra Wireless AirLink ALEOS Unrestricted Upload of File wi high       CVSS:None
 
 ================================================================================
 🌐 GLOBAL ECONOMY
@@ -349,13 +360,13 @@ Port Traffic Records: 2,462
 📈 Latest Commodity Prices:
   • crude_oil_wti        $     76.20 USD/barrel
   • crude_oil_brent      $     79.80 USD/barrel
-  • Platinum             $   2456.50 USD
+  • Platinum             $   2137.00 USD
   • copper               $      4.15 USD/lb
   • gold                 $   2068.00 USD/oz
   • gold                 $   2068.00 USD/oz
   • crude_oil_wti        $     76.20 USD/barrel
   • crude_oil_brent      $     79.80 USD/barrel
-  • Platinum             $   2247.80 USD
+  • Platinum             $   2161.80 USD
   • copper               $      4.15 USD/lb
 
 💾 Semiconductor Sales (latest quarters):
@@ -368,6 +379,6 @@ Port Traffic Records: 2,462
 ✅ MEGA ANALYSIS COMPLETE
 ================================================================================
 
-Report generated: 2025-12-26 22:00:28 UTC
+Report generated: 2026-01-04 14:54:27 UTC
 Total data sources: 30+
-Total records analyzed: 4,359,595
+Total records analyzed: 4,383,890
