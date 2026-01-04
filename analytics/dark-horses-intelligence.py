@@ -23,20 +23,47 @@ DB_CONFIG = {
 
 def detect_dark_horses(conn):
     """
-    Detecta tecnologias com sinais conflitantes:
-    - Papers ↑ mas Funding ↓ = Research forte mas sem hype
-    - Patents ↑ mas GitHub ↓ = Corporações em stealth mode
-    - GDELT ↑ mas Funding ↓ = Governo investindo, VCs não
+    Detecta tecnologias com sinais conflitantes usando 9 fontes:
+
+    DARK HORSE PATTERNS:
+    - Papers ↑ + Funding ↓ = Research forte mas sem hype comercial
+    - GitHub ↓ + OpenAlex ↑ = Academia forte, implementação fraca
+    - StackOverflow ↑ + Funding ↓ = Developers usando, VCs ignorando
+    - PyPI/NPM ↑ + Papers ↓ = Prática sem teoria (underdog tools)
+    - GDELT ↑ + Funding ↓ = Governo investindo, VCs não (strategic tech)
+    - HackerNews ↑ + GitHub ↓ = Buzz sem código (vaporware ou early)
     """
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Áreas emergentes para monitorar
+    # Áreas emergentes para monitorar (expandido)
     emerging_areas = [
+        # Computing paradigms
         'Neuromorphic Computing', 'Photonic Computing', 'DNA Storage',
-        'Quantum Networking', 'Molecular Computing', 'Brain-Computer Interface',
-        'Synthetic Biology', 'Lab-grown Materials', 'Carbon Capture',
-        'Fusion Energy', 'Space Mining', 'Vertical Farming',
-        'Longevity Tech', 'Digital Twins', 'Edge AI'
+        'Quantum Networking', 'Molecular Computing', 'Optical Computing',
+        'Reversible Computing', 'Probabilistic Computing',
+
+        # Biology & Health
+        'Brain-Computer Interface', 'Synthetic Biology', 'Lab-grown Materials',
+        'Longevity Tech', 'Gene Therapy', 'CRISPR', 'Organoids',
+        'Biohacking', 'Neurotechnology', 'Precision Medicine',
+
+        # Energy & Environment
+        'Carbon Capture', 'Fusion Energy', 'Hydrogen Storage',
+        'Nuclear Batteries', 'Perovskite Solar', 'Geothermal',
+        'Wave Energy', 'Thorium Reactors',
+
+        # Space & Materials
+        'Space Mining', 'Asteroid Mining', 'Lunar Resources',
+        'Graphene', 'Metamaterials', 'Aerogel', 'Self-healing Materials',
+
+        # Agriculture & Food
+        'Vertical Farming', 'Cellular Agriculture', 'Algae Farming',
+        'Insect Protein', 'Lab-grown Meat', 'Mycoprotein',
+
+        # Computing & AI
+        'Edge AI', 'Federated Learning', 'Homomorphic Encryption',
+        'Zero-Knowledge Proofs', 'Digital Twins', 'Neuromorphic Chips',
+        'Analog AI', 'Spiking Neural Networks'
     ]
 
     dark_horses = []
@@ -99,26 +126,142 @@ def detect_dark_horses(conn):
         if gdelt_count > 100:
             high_signals.append(f"Geopolitics: High activity ({gdelt_count} events)")
 
-        # Detect dark horse pattern: HIGH research/patents BUT LOW funding/github
+        # 5. StackOverflow (Developer interest)
+        cur.execute("""
+            SELECT SUM(count) as questions
+            FROM sofia.stackoverflow_trends
+            WHERE collected_at >= CURRENT_DATE - INTERVAL '90 days'
+            AND LOWER(tag_name) LIKE %s
+        """, (f'%{area.lower()}%',))
+        so_data = cur.fetchone()
+        so_questions = int(so_data['questions'] or 0)
+
+        if so_questions > 1000:
+            high_signals.append(f"StackOverflow: {so_questions:,} questions")
+        elif so_questions > 0:
+            low_signals.append(f"StackOverflow: Only {so_questions} questions")
+
+        # 6. HackerNews (Community buzz)
+        cur.execute("""
+            SELECT SUM(points) as total_points, COUNT(*) as stories
+            FROM sofia.hackernews_stories
+            WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+            AND LOWER(title) LIKE %s
+        """, (f'%{area.lower()}%',))
+        hn_data = cur.fetchone()
+        hn_points = int(hn_data['total_points'] or 0)
+        hn_stories = int(hn_data['stories'] or 0)
+
+        if hn_points > 100:
+            high_signals.append(f"HackerNews: {hn_points} points ({hn_stories} stories)")
+        elif hn_stories > 0:
+            low_signals.append(f"HackerNews: Minimal buzz ({hn_points} points)")
+
+        # 7. NPM (JavaScript ecosystem)
+        cur.execute("""
+            SELECT SUM(downloads_week) as downloads, COUNT(*) as packages
+            FROM sofia.npm_stats
+            WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+            AND (LOWER(package_name) LIKE %s OR LOWER(description) LIKE %s)
+        """, (f'%{area.lower()}%', f'%{area.lower()}%'))
+        npm_data = cur.fetchone()
+        npm_downloads = int(npm_data['downloads'] or 0)
+        npm_packages = int(npm_data['packages'] or 0)
+
+        if npm_downloads > 100000:  # >100k/week
+            high_signals.append(f"NPM: {npm_downloads:,} downloads/week ({npm_packages} packages)")
+        elif npm_packages > 0:
+            low_signals.append(f"NPM: Low adoption ({npm_downloads:,} downloads)")
+
+        # 8. PyPI (Python ecosystem)
+        cur.execute("""
+            SELECT SUM(downloads_month) as downloads, COUNT(*) as packages
+            FROM sofia.pypi_stats
+            WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+            AND (LOWER(package_name) LIKE %s OR LOWER(description) LIKE %s)
+        """, (f'%{area.lower()}%', f'%{area.lower()}%'))
+        pypi_data = cur.fetchone()
+        pypi_downloads = int(pypi_data['downloads'] or 0)
+        pypi_packages = int(pypi_data['packages'] or 0)
+
+        if pypi_downloads > 50000:  # >50k/month
+            high_signals.append(f"PyPI: {pypi_downloads:,} downloads/month ({pypi_packages} packages)")
+        elif pypi_packages > 0:
+            low_signals.append(f"PyPI: Low adoption ({pypi_downloads:,} downloads)")
+
+        # 9. OpenAlex (High-citation research)
+        cur.execute("""
+            SELECT SUM(cited_by_count) as total_citations, COUNT(*) as papers
+            FROM sofia.openalex_papers
+            WHERE LOWER(title) LIKE %s
+        """, (f'%{area.lower()}%',))
+        openalex_data = cur.fetchone()
+        openalex_citations = int(openalex_data['total_citations'] or 0)
+        openalex_papers = int(openalex_data['papers'] or 0)
+
+        if openalex_citations > 100:
+            high_signals.append(f"OpenAlex: {openalex_citations:,} citations ({openalex_papers} papers)")
+        elif openalex_papers > 0:
+            low_signals.append(f"OpenAlex: Low citations ({openalex_citations})")
+
+        # Detect dark horse patterns with 9 sources (lowered thresholds)
         is_dark_horse = False
         stealth_score = 0
+        analysis_parts = []
 
-        if papers_count >= 5 and funding_data['deals'] == 0:
+        # Pattern 1: Research ↑ + Funding ↓ (Academia strong, VCs ignoring)
+        if papers_count >= 3 and funding_data['deals'] == 0:  # Lowered: 5→3
             is_dark_horse = True
-            stealth_score += 40
-            analysis = "Strong research BUT no VC funding = Stealth mode or too early"
+            stealth_score += 35
+            analysis_parts.append("Research strong BUT no VC funding = Stealth/Early")
 
-        if papers_count >= 5 and github_data['repos'] == 0:
+        # Pattern 2: Papers ↑ + GitHub ↓ (Theory without practice)
+        if papers_count >= 3 and github_data['repos'] == 0:
             is_dark_horse = True
             stealth_score += 30
-            analysis += " | High papers BUT low GitHub = Corporate R&D"
+            analysis_parts.append("Papers BUT no GitHub = Corporate R&D")
 
+        # Pattern 3: OpenAlex ↑ + GitHub ↓ (Academia strong, implementation weak)
+        if openalex_citations > 100 and github_data['repos'] == 0:
+            is_dark_horse = True
+            stealth_score += 25
+            analysis_parts.append("High citations BUT no code = Academic only")
+
+        # Pattern 4: StackOverflow ↑ + Funding ↓ (Devs using, VCs ignoring)
+        if so_questions > 1000 and funding_data['deals'] == 0:
+            is_dark_horse = True
+            stealth_score += 30
+            analysis_parts.append("Devs using BUT no VC = Undervalued tool")
+
+        # Pattern 5: PyPI/NPM ↑ + Papers ↓ (Practice without theory - underdog!)
+        if (pypi_downloads > 50000 or npm_downloads > 100000) and papers_count < 3:
+            is_dark_horse = True
+            stealth_score += 25
+            analysis_parts.append("High downloads BUT no papers = Pragmatic underdog")
+
+        # Pattern 6: GDELT ↑ + Funding ↓ (Gov investing, VCs not)
         if gdelt_count > 100 and funding_data['deals'] == 0:
             is_dark_horse = True
-            stealth_score += 30
-            analysis += " | Government interest BUT no VC = Strategic tech"
+            stealth_score += 20
+            analysis_parts.append("Gov interest BUT no VC = Strategic tech")
 
-        if is_dark_horse and stealth_score >= 40:
+        # Pattern 7: HackerNews ↑ + GitHub ↓ (Buzz without code)
+        if hn_points > 100 and github_data['repos'] == 0:
+            is_dark_horse = True
+            stealth_score += 20
+            analysis_parts.append("HN buzz BUT no code = Vaporware or very early")
+
+        # Pattern 8: High diversity of signals (many sources = emerging broadly)
+        total_signals = len(high_signals) + len(low_signals)
+        if total_signals >= 5 and len(high_signals) >= 2 and len(low_signals) >= 2:
+            is_dark_horse = True
+            stealth_score += 15
+            analysis_parts.append(f"Diverse signals ({len(high_signals)}↑ {len(low_signals)}↓) = Emerging")
+
+        analysis = " | ".join(analysis_parts) if analysis_parts else ""
+
+        # Lowered threshold: 40 → 30
+        if is_dark_horse and stealth_score >= 30:
             dark_horses.append({
                 'area': area,
                 'stealth_score': stealth_score,
@@ -141,8 +284,11 @@ def generate_report(dark_horses):
     report.append("")
     report.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     report.append("")
-    report.append("Detects technologies in STEALTH MODE")
+    report.append("Detects technologies in STEALTH MODE using 9 data sources")
     report.append("Conflicting signals = Hidden opportunities")
+    report.append("")
+    report.append("Sources: ArXiv + Funding + GitHub + GDELT + StackOverflow + HackerNews + NPM + PyPI + OpenAlex")
+    report.append("Patterns: 8 dark horse patterns (Academia-VC gap, Dev-VC gap, Theory-Practice gap, etc.)")
     report.append("")
     report.append("=" * 80)
     report.append("")
