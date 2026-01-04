@@ -35,6 +35,61 @@ DB_CONFIG = {
 }
 
 # ============================================================================
+# TECH NAME NORMALIZATION
+# ============================================================================
+
+TECH_MAPPING = {
+    # AI & Machine Learning
+    'ai': ['llm', 'gpt', 'chatbot', 'chatbots', 'multimodal', 'ai-agents',
+           'machine-learning', 'deep-learning', 'neural', 'transformer'],
+    'computer-vision': ['vision-transformer', 'cnn', 'image-recognition',
+                        'object-detection', 'diffusion-models'],
+    'nlp': ['natural-language', 'nlp', 'text-generation', 'sentiment'],
+    'reinforcement-learning': ['reinforcement-learning', 'rl', 'q-learning'],
+
+    # Mobile & Frontend
+    'mobile': ['swift', 'swiftui', 'ios', 'android', 'flutter', 'react-native', 'macos', 'macos-app'],
+    'web': ['react', 'vue', 'angular', 'frontend', 'javascript', 'typescript', 'nextjs'],
+
+    # Backend & Infrastructure
+    'backend': ['node', 'python', 'django', 'flask', 'fastapi', 'api', 'graphql'],
+    'cloud': ['aws', 'azure', 'gcp', 'kubernetes', 'docker', 'serverless'],
+    'database': ['postgres', 'mysql', 'mongodb', 'redis', 'sql'],
+
+    # Specialized
+    'robotics': ['robotics', 'robot', 'automation'],
+    'blockchain': ['blockchain', 'crypto', 'web3', 'ethereum', 'bitcoin'],
+    'cybersecurity': ['security', 'cybersecurity', 'encryption', 'auth'],
+    'devtools': ['developer-tools', 'devtools', 'cli', 'ide', 'vscode'],
+
+    # Domains
+    'fintech': ['fintech', 'finance', 'payment', 'banking'],
+    'healthtech': ['healthtech', 'health', 'medical', 'biotech'],
+    'edtech': ['edtech', 'education', 'learning'],
+}
+
+def normalize_tech_name(tech_name):
+    """Normalize tech name to common category"""
+    if not tech_name:
+        return None
+
+    tech_lower = tech_name.lower().strip()
+
+    # Direct match
+    for category, terms in TECH_MAPPING.items():
+        if tech_lower in terms or tech_lower == category:
+            return category
+
+    # Partial match (contains)
+    for category, terms in TECH_MAPPING.items():
+        for term in terms:
+            if term in tech_lower or tech_lower in term:
+                return category
+
+    # No match - return original (lowercase)
+    return tech_lower
+
+# ============================================================================
 # STATISTICAL ANOMALY DETECTION (Z-Score)
 # ============================================================================
 
@@ -266,7 +321,7 @@ def detect_ml_anomalies(conn):
         'jobs': 0
     })
 
-    # GitHub data
+    # GitHub data (with normalization)
     cur.execute("""
         SELECT unnest(topics) as tech, SUM(stars) as stars
         FROM sofia.github_trending
@@ -274,9 +329,11 @@ def detect_ml_anomalies(conn):
         GROUP BY tech
     """)
     for row in cur.fetchall():
-        tech_data[row['tech']]['github_stars'] = int(row['stars'])
+        normalized = normalize_tech_name(row['tech'])
+        if normalized:
+            tech_data[normalized]['github_stars'] += int(row['stars'])
 
-    # Funding data (map sector to tech)
+    # Funding data (with normalization)
     cur.execute("""
         SELECT sector, SUM(amount_usd) as total
         FROM sofia.funding_rounds
@@ -284,9 +341,11 @@ def detect_ml_anomalies(conn):
         GROUP BY sector
     """)
     for row in cur.fetchall():
-        tech_data[row['sector']]['funding'] = float(row['total'] or 0)
+        normalized = normalize_tech_name(row['sector'])
+        if normalized:
+            tech_data[normalized]['funding'] += float(row['total'] or 0)
 
-    # Papers
+    # Papers (with normalization)
     cur.execute("""
         SELECT UNNEST(keywords) as topic, COUNT(*) as count
         FROM sofia.arxiv_ai_papers
@@ -294,7 +353,9 @@ def detect_ml_anomalies(conn):
         GROUP BY topic
     """)
     for row in cur.fetchall():
-        tech_data[row['topic']]['papers'] = int(row['count'])
+        normalized = normalize_tech_name(row['topic'])
+        if normalized:
+            tech_data[normalized]['papers'] += int(row['count'])
 
     # Convert to feature matrix
     techs = []
@@ -312,7 +373,7 @@ def detect_ml_anomalies(conn):
                 data['jobs']
             ])
 
-    if len(features) < 5:
+    if len(features) < 3:
         return []
 
     # Normalize features
