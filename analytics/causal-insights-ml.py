@@ -54,7 +54,7 @@ def detect_weak_signals(conn):
         WHERE topics IS NOT NULL
             AND created_at >= CURRENT_DATE - INTERVAL '90 days'
         GROUP BY tech
-        HAVING SUM(stars) > 10000
+        HAVING SUM(stars) > 1000
         ORDER BY total_stars DESC
         LIMIT 20
     """)
@@ -77,14 +77,14 @@ def detect_weak_signals(conn):
         funding = cur.fetchone()
 
         # Sinal Fraco = Alto GitHub + Baixo Funding
-        if tech['total_stars'] > 50000 and (funding['deal_count'] or 0) < 3:
+        if tech['total_stars'] > 2000 and (funding['deal_count'] or 0) < 3:
             signals.append({
                 'tech': tech['tech'],
                 'github_stars': int(tech['total_stars']),
                 'repos': int(tech['repo_count']),
                 'funding_deals': int(funding['deal_count'] or 0),
                 'funding_total': float(funding['total_funding'] or 0),
-                'signal_strength': 'FORTE' if tech['total_stars'] > 100000 else 'MÉDIO'
+                'signal_strength': 'FORTE' if tech['total_stars'] > 5000 else 'MÉDIO'
             })
 
     return signals
@@ -129,7 +129,7 @@ def analyze_temporal_lag(conn):
 
     funding_timeline = {r['month']: {
         'count': r['funding_count'],
-        'amount': float(r['total_amount'])
+        'amount': float(r['total_amount'] or 0)
     } for r in cur.fetchall()}
 
     # Calcular correlação (básica, pode melhorar com scipy)
@@ -199,7 +199,7 @@ def detect_sector_convergence(conn):
 
     # Lógica: Se Defense + Space ativo + CVEs alto = Convergência
     for sector in top_sectors:
-        if 'defense' in sector['sector'].lower() and space_count > 50:
+        if sector['sector'] and 'defense' in sector['sector'].lower() and space_count > 50:
             convergences.append({
                 'type': 'Defense + Space',
                 'funding': float(sector['total']),
@@ -207,7 +207,7 @@ def detect_sector_convergence(conn):
                 'insight': f"Defense Tech (${sector['total']/1e9:.1f}B) + Space ({space_count} launches) = Oportunidade em Space Defense"
             })
 
-        if 'cyber' in sector['sector'].lower() and cve_count > 500:
+        if sector['sector'] and 'cyber' in sector['sector'].lower() and cve_count > 500:
             convergences.append({
                 'type': 'Cybersecurity + High CVE Activity',
                 'funding': float(sector['total']),
@@ -229,15 +229,15 @@ def detect_geographic_arbitrage(conn):
     """
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Universidades por país
-    cur.execute("""
-        SELECT country, COUNT(*) as uni_count
-        FROM sofia.asia_universities
-        GROUP BY country
-        ORDER BY uni_count DESC
-    """)
+    # Universidades por país (disabled - table not exists)
+    # cur.execute("""
+    #     SELECT country, COUNT(*) as uni_count
+    #     FROM sofia.asia_universities
+    #     GROUP BY country
+    #     ORDER BY uni_count DESC
+    # """)
 
-    universities_by_country = {r['country']: r['uni_count'] for r in cur.fetchall()}
+    universities_by_country = {}  # Empty for now - table not exists
 
     # Funding by country
     cur.execute("""
