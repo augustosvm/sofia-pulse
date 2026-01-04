@@ -23,11 +23,14 @@ DB_CONFIG = {
 
 def analyze_career_trends(conn):
     """
-    Cruza 4 fontes para detectar skills emergentes:
+    Cruza 7 fontes para detectar skills emergentes:
     1. GitHub Trending - Stars crescendo
-    2. LinkedIn Jobs - Menções em vagas (simulado via descrições)
-    3. Reddit/HN - Discussões crescendo
-    4. Papers - Research acadêmico
+    2. HackerNews - Discussões crescendo
+    3. ArXiv Papers - Research acadêmico
+    4. StackOverflow - Tags trending
+    5. NPM - Package downloads (JavaScript ecosystem)
+    6. PyPI - Package downloads (Python ecosystem)
+    7. OpenAlex - Research papers com citações
     """
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -88,6 +91,63 @@ def analyze_career_trends(conn):
     """)
     paper_trends = {row['keyword']: row['paper_count'] for row in cur.fetchall()}
 
+    # 4. StackOverflow: Trending tags (discussion volume)
+    cur.execute("""
+        SELECT
+            tag_name,
+            SUM(count) as total_questions
+        FROM sofia.stackoverflow_trends
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '90 days'
+        GROUP BY tag_name
+        ORDER BY total_questions DESC NULLS LAST
+        LIMIT 100
+    """)
+    stackoverflow_trends = {row['tag_name']: row['total_questions'] for row in cur.fetchall()}
+
+    # 5. NPM: Trending JavaScript packages (via keywords)
+    cur.execute("""
+        SELECT
+            UNNEST(keywords) as keyword,
+            SUM(downloads_week) as total_downloads
+        FROM sofia.npm_stats
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+            AND keywords IS NOT NULL
+        GROUP BY keyword
+        ORDER BY total_downloads DESC NULLS LAST
+        LIMIT 100
+    """)
+    npm_trends = {row['keyword']: row['total_downloads'] for row in cur.fetchall() if row['total_downloads']}
+
+    # 6. PyPI: Trending Python packages
+    cur.execute("""
+        SELECT
+            package_name,
+            SUM(downloads_month) as total_downloads
+        FROM sofia.pypi_stats
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
+        GROUP BY package_name
+        ORDER BY total_downloads DESC NULLS LAST
+        LIMIT 100
+    """)
+    pypi_trends = {row['package_name']: row['total_downloads'] for row in cur.fetchall() if row['total_downloads']}
+
+    # 7. OpenAlex: High-citation research papers (via concepts)
+    cur.execute("""
+        SELECT
+            title,
+            cited_by_count,
+            UNNEST(concepts) as concept
+        FROM sofia.openalex_papers
+        WHERE cited_by_count > 100
+            AND concepts IS NOT NULL
+        ORDER BY cited_by_count DESC
+        LIMIT 50
+    """)
+    openalex_concepts = defaultdict(int)
+    for row in cur.fetchall():
+        if row['concept']:
+            openalex_concepts[row['concept']] += row['cited_by_count']
+
     # Cruzar dados e calcular score
     hot_skills = []
 
@@ -114,9 +174,43 @@ def analyze_career_trends(conn):
                 tech_in_papers = True
                 break
 
-        # Multi-signal bonus
-        if len(signals) >= 2:
-            score += 25
+        # StackOverflow signal (strong indicator of active community)
+        for tag in stackoverflow_trends:
+            if tech.lower() in tag.lower() or tag.lower() in tech.lower():
+                if stackoverflow_trends[tag] > 10000:
+                    score += 15
+                    signals.append(f"StackOverflow: {stackoverflow_trends[tag]:,} questions")
+                break
+
+        # NPM signal (JavaScript ecosystem adoption)
+        for keyword in npm_trends:
+            if tech.lower() in keyword.lower() or keyword.lower() in tech.lower():
+                if npm_trends[keyword] > 1000000:  # 1M+ downloads/week
+                    score += 15
+                    signals.append(f"NPM: {npm_trends[keyword]:,} downloads/week")
+                break
+
+        # PyPI signal (Python ecosystem adoption)
+        for package in pypi_trends:
+            if tech.lower() in package.lower() or package.lower() in tech.lower():
+                if pypi_trends[package] > 100000:  # 100k+ downloads/month
+                    score += 10
+                    signals.append(f"PyPI: {pypi_trends[package]:,} downloads/month")
+                break
+
+        # OpenAlex signal (high-citation research)
+        for concept in openalex_concepts:
+            if tech.lower() in concept.lower() or concept.lower() in tech.lower():
+                if openalex_concepts[concept] > 500:  # 500+ total citations
+                    score += 10
+                    signals.append(f"OpenAlex: {openalex_concepts[concept]:,} citations")
+                break
+
+        # Multi-signal bonus (now with 7 possible sources!)
+        if len(signals) >= 3:
+            score += 30  # Higher bonus for 3+ sources
+        elif len(signals) >= 2:
+            score += 20
 
         if score >= 50:  # Threshold para "hot skill"
             hot_skills.append({
@@ -141,7 +235,7 @@ def generate_report(hot_skills):
     report.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}")
     report.append("")
     report.append("Predicts hot skills 6-12 months BEFORE market explosion")
-    report.append("Data sources: GitHub + HackerNews + ArXiv Papers")
+    report.append("Data sources: GitHub + HackerNews + ArXiv + StackOverflow + NPM + PyPI + OpenAlex")
     report.append("")
     report.append("=" * 80)
     report.append("")
