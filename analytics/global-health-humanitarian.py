@@ -60,9 +60,9 @@ def main():
         if count > 0:
             # Life expectancy by country
             cur.execute("""
-                SELECT country_code as country, indicator, value, year
+                SELECT country_code as country, indicator_name as indicator, value, year
                 FROM sofia.who_health_data
-                WHERE LOWER(indicator) LIKE '%life%expect%'
+                WHERE LOWER(indicator_name) LIKE '%life%expect%'
                 ORDER BY value DESC
                 LIMIT 15
             """)
@@ -76,9 +76,9 @@ def main():
 
             # Healthcare indicators
             cur.execute("""
-                SELECT DISTINCT indicator, COUNT(*) as countries
+                SELECT DISTINCT indicator_name as indicator, COUNT(*) as countries
                 FROM sofia.who_health_data
-                GROUP BY indicator
+                GROUP BY indicator_name
                 ORDER BY countries DESC
                 LIMIT 15
             """)
@@ -92,9 +92,9 @@ def main():
 
             # Mortality rates
             cur.execute("""
-                SELECT country_code as country, indicator, value, year
+                SELECT country_code as country, indicator_name as indicator, value, year
                 FROM sofia.who_health_data
-                WHERE LOWER(indicator) LIKE '%mortality%' OR LOWER(indicator) LIKE '%death%'
+                WHERE LOWER(indicator_name) LIKE '%mortality%' OR LOWER(indicator_name) LIKE '%death%'
                 ORDER BY value ASC
                 LIMIT 15
             """)
@@ -128,9 +128,9 @@ def main():
         if count > 0:
             # Child mortality
             cur.execute("""
-                SELECT country_code as country, indicator, value, year
+                SELECT country_code as country, indicator_name as indicator, value, year
                 FROM sofia.unicef_children_data
-                WHERE LOWER(indicator) LIKE '%mortality%' OR LOWER(indicator) LIKE '%death%'
+                WHERE LOWER(indicator_name) LIKE '%mortality%' OR LOWER(indicator_name) LIKE '%death%'
                 ORDER BY value ASC
                 LIMIT 15
             """)
@@ -144,9 +144,9 @@ def main():
 
             # Education indicators
             cur.execute("""
-                SELECT country_code as country, indicator, value, year
+                SELECT country_code as country, indicator_name as indicator, value, year
                 FROM sofia.unicef_children_data
-                WHERE LOWER(indicator) LIKE '%school%' OR LOWER(indicator) LIKE '%education%'
+                WHERE LOWER(indicator_name) LIKE '%school%' OR LOWER(indicator_name) LIKE '%education%'
                 ORDER BY value DESC
                 LIMIT 15
             """)
@@ -180,7 +180,7 @@ def main():
         if count > 0:
             # Crisis areas
             cur.execute("""
-                SELECT country_code as country, indicator, value, year, source
+                SELECT country_codes[1] as country, dataset_name as indicator, value, year, source
                 FROM sofia.hdx_humanitarian_data
                 ORDER BY year DESC, value DESC
                 LIMIT 20
@@ -208,15 +208,15 @@ def main():
     report_lines.append("")
 
     try:
-        cur.execute("SELECT COUNT(*) FROM sofia.ilo_labor_data")
+        cur.execute("SELECT COUNT(*) FROM sofia.women_ilo_data")
         count = cur.fetchone()[0]
         report_lines.append(f"Total records: {count:,}")
         report_lines.append("")
 
         if count > 0:
             cur.execute("""
-                SELECT country_code as country, indicator, value, year
-                FROM sofia.ilo_labor_data
+                SELECT country_code as country, indicator_name as indicator, value, year
+                FROM sofia.women_ilo_data
                 ORDER BY year DESC
                 LIMIT 20
             """)

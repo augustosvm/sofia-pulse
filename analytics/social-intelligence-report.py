@@ -65,21 +65,13 @@ def main():
         if count > 0:
             # Top Christian countries (latest year only)
             cur.execute("""
-                SELECT DISTINCT ON (c.common_name)
-                    c.common_name, r.name, w.percentage, w.year
-                FROM sofia.world_religion_data w JOIN sofia.countries c ON w.country_id = c.id JOIN sofia.religions r ON r.name_id = r.id
-                INNER JOIN (
-                    SELECT country_name, MAX(year) as max_year
-                    FROM sofia.world_religion_data
-                    WHERE LOWER(religion) LIKE '%christian%' AND percentage IS NOT NULL
-                    GROUP BY country_name
-                ) latest ON c.common_name = latest.country_name AND w.year = latest.max_year
-                WHERE LOWER(r.name) LIKE '%christian%' AND w.percentage IS NOT NULL
-                ORDER BY c.common_name, w.percentage DESC
+                SELECT country_name, religion, percentage, year
+                FROM sofia.world_religion_data
+                WHERE LOWER(religion) LIKE '%christian%' AND percentage IS NOT NULL
+                ORDER BY percentage DESC
+                LIMIT 10
             """)
             rows = cur.fetchall()
-            # Sort by percentage and limit to top 10
-            rows = sorted(rows, key=lambda x: x[2], reverse=True)[:10]
             if rows:
                 report_lines.append("✝️ TOP CHRISTIAN COUNTRIES:")
                 report_lines.append("-" * 60)
@@ -302,10 +294,10 @@ def main():
     report_lines.append("")
 
     try:
-        # Sports federations
-        cur.execute("SELECT COUNT(*) FROM sofia.sports_federations")
+        # Sports rankings
+        cur.execute("SELECT COUNT(*) FROM sofia.sports_rankings")
         count = cur.fetchone()[0]
-        report_lines.append(f"Sports federations tracked: {count:,}")
+        report_lines.append(f"Sports rankings tracked: {count:,}")
 
         cur.execute("SELECT COUNT(*) FROM sofia.sports_regional")
         count2 = cur.fetchone()[0]
@@ -314,8 +306,8 @@ def main():
 
         if count > 0:
             cur.execute("""
-                SELECT federation, sport, ranking_type, country, rank, year
-                FROM sofia.sports_federations
+                SELECT federation, ranking_type, country_name as country, rank, year
+                FROM sofia.sports_rankings
                 ORDER BY rank ASC
                 LIMIT 20
             """)
@@ -323,11 +315,11 @@ def main():
             if rows:
                 report_lines.append("🏆 TOP COUNTRIES BY SPORT (FIFA, IOC, etc.):")
                 report_lines.append("-" * 60)
-                current_sport = None
-                for fed, sport, ranking, country, rank, year in rows:
-                    if sport != current_sport:
-                        report_lines.append(f"\n  {sport.upper()} ({fed}):")
-                        current_sport = sport
+                current_fed = None
+                for fed, ranking, country, rank, year in rows:
+                    if fed != current_fed:
+                        report_lines.append(f"\n  {fed} - {ranking}:")
+                        current_fed = fed
                     report_lines.append(f"    {rank:>2}. {country}")
                 report_lines.append("")
 
