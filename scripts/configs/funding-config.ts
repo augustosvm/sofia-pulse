@@ -25,15 +25,21 @@ export const ycCompanies: FundingCollectorConfig = {
   url: 'https://yc-oss.github.io/api/companies/all.json',
   timeout: 30000,
   parseResponse: async (data) => {
-    // Helper: Parse YC batch to date (W24 → 2024-01-15, S23 → 2023-06-15)
+    // Helper: Parse YC batch to date (Winter 2024 → 2024-01-15, Summer 2023 → 2023-06-15)
     const parseYCBatchDate = (batch: string): Date | null => {
-      if (!batch || batch.length < 3) return null;
-      const season = batch[0].toUpperCase();
-      const year = parseInt(batch.slice(1), 10);
+      if (!batch) return null;
+
+      // Extract season and year from formats like "Winter 2024" or "Summer 2023"
+      const match = batch.match(/(Winter|Summer|W|S)\s*(\d{4})/i);
+      if (!match) return null;
+
+      const season = match[1].toUpperCase();
+      const year = parseInt(match[2], 10);
       if (isNaN(year)) return null;
-      const fullYear = year < 100 ? year + 2000 : year;
-      const month = season === 'W' ? 1 : season === 'S' ? 6 : 1; // Winter=Jan, Summer=Jun
-      return new Date(fullYear, month - 1, 15); // Mid-month
+
+      // Map season to month (Winter=Jan, Summer=Jun)
+      const month = (season === 'WINTER' || season === 'W') ? 1 : 6;
+      return new Date(year, month - 1, 15); // Mid-month
     };
 
     // Filter for recent batches and active companies
