@@ -49,6 +49,50 @@ DB_CONFIG = {
 }
 
 # ============================================================================
+# DYNAMIC DATA WINDOW
+# ============================================================================
+
+def get_optimal_lookback_period(conn, table, date_column):
+    """
+    Dynamically determine optimal lookback period:
+    - Use all available data up to 12 months
+    - After 12 months of data collection, fix at 12 months (rolling window)
+
+    Returns: (days, description)
+    """
+    cur = conn.cursor()
+
+    # Get age of data collection
+    cur.execute(f"""
+        SELECT
+            MIN({date_column}) as first_date,
+            MAX({date_column}) as last_date,
+            MAX({date_column}) - MIN({date_column}) as data_age
+        FROM {table}
+        WHERE {date_column} IS NOT NULL
+    """)
+
+    result = cur.fetchone()
+    if not result or not result[2]:
+        return 90, "90 days (default - no data)"
+
+    # Handle timedelta or interval types
+    data_age = result[2]
+    if hasattr(data_age, 'days'):
+        data_age_days = data_age.days
+    else:
+        # If it's an integer (days), use directly
+        data_age_days = int(data_age)
+
+    # Use all available data up to 365 days (12 months)
+    if data_age_days <= 365:
+        # Use all available data
+        return data_age_days, f"{data_age_days} days (all available data)"
+    else:
+        # Cap at 12 months (rolling window)
+        return 365, "365 days (12 month rolling window)"
+
+# ============================================================================
 # TIME SERIES FORECASTING
 # ============================================================================
 
@@ -144,14 +188,19 @@ def forecast_github_trends(conn):
     """Forecast GitHub stars by technology"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Get weekly GitHub data (changed from monthly due to limited data collection period)
-    cur.execute("""
+    # Get optimal lookback period dynamically
+    lookback_days, lookback_desc = get_optimal_lookback_period(
+        conn, 'sofia.github_trending', 'collected_at'
+    )
+
+    # Get weekly GitHub data (uses dynamic lookback period)
+    cur.execute(f"""
         SELECT
             unnest(topics) as tech,
             DATE_TRUNC('week', collected_at) as week,
             SUM(stars) as total_stars
         FROM sofia.github_trending
-        WHERE collected_at >= CURRENT_DATE - INTERVAL '90 days'
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '{lookback_days} days'
             AND topics IS NOT NULL
         GROUP BY tech, week
         ORDER BY week
@@ -211,15 +260,20 @@ def forecast_funding_trends(conn):
     """Forecast funding by sector"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Get monthly funding data (90 days for realistic data coverage)
-    cur.execute("""
+    # Get optimal lookback period dynamically
+    lookback_days, lookback_desc = get_optimal_lookback_period(
+        conn, 'sofia.funding_rounds', 'announced_date'
+    )
+
+    # Get monthly funding data (uses dynamic lookback period)
+    cur.execute(f"""
         SELECT
             sector,
             DATE_TRUNC('month', announced_date) as month,
             SUM(amount_usd) as total_funding,
             COUNT(*) as deal_count
         FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '90 days'
+        WHERE announced_date >= CURRENT_DATE - INTERVAL '{lookback_days} days'
             AND sector IS NOT NULL
         GROUP BY sector, month
         ORDER BY month
@@ -278,13 +332,18 @@ def forecast_paper_trends(conn):
     """Forecast paper publications by topic"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    cur.execute("""
+    # Get optimal lookback period dynamically
+    lookback_days, lookback_desc = get_optimal_lookback_period(
+        conn, 'sofia.arxiv_ai_papers', 'published_date'
+    )
+
+    cur.execute(f"""
         SELECT
             UNNEST(keywords) as topic,
             DATE_TRUNC('month', published_date) as month,
             COUNT(*) as paper_count
         FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
+        WHERE published_date >= CURRENT_DATE - INTERVAL '{lookback_days} days'
             AND keywords IS NOT NULL
         GROUP BY topic, month
         ORDER BY month
