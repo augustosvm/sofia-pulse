@@ -7,6 +7,7 @@ Features: 5500+ startups YC, batches, funding stages
 """
 import json
 import os
+from datetime import datetime
 
 import psycopg2
 import requests
@@ -18,6 +19,36 @@ load_dotenv()
 
 # Y Combinator Unofficial API (URL correta)
 YC_API_URL = "https://yc-oss.github.io/api/companies/all.json"
+
+
+def parse_yc_batch_date(batch):
+    """
+    Convert YC batch (W24, S23, etc.) to announced_date
+
+    Examples:
+        W24 → 2024-01-15 (Winter)
+        S23 → 2023-06-15 (Summer)
+    """
+    if not batch or len(batch) < 3:
+        return None
+
+    season = batch[0].upper()
+    try:
+        year = int(batch[1:])
+        # Convert 2-digit to 4-digit year
+        if year < 100:
+            year += 2000
+    except ValueError:
+        return None
+
+    # Map season to month
+    season_months = {
+        'W': 1,   # Winter (Jan)
+        'S': 6,   # Summer (Jun)
+    }
+
+    month = season_months.get(season, 1)
+    return datetime(year, month, 15).strftime('%Y-%m-%d')
 
 
 def collect_yc_companies():
@@ -34,11 +65,18 @@ def collect_yc_companies():
             for company in data:
                 # Verificar se tem informações básicas
                 if company.get("name") and company.get("batch"):
-                    # Aceitar todas as empresas (remover filtro de batch)
+                    batch = company.get("batch")
+                    announced_date = parse_yc_batch_date(batch)
+
+                    # Skip if can't parse date (invalid batch format)
+                    if not announced_date:
+                        continue
+
                     companies.append(
                         {
                             "company_name": company.get("name"),
-                            "batch": company.get("batch"),
+                            "batch": batch,
+                            "announced_date": announced_date,  # NEW: Inferred from batch
                             "status": company.get("status", "Active"),
                             "location": company.get("location", "USA"),
                             "description": company.get("description", "")[:500],
@@ -90,19 +128,24 @@ def save_to_db(companies):
             # 3. Extrair metadata
             metadata = extract_funding_metadata("yc_companies", company)
 
-            # 4. Inserir com schema unificado
+            # 4. Inserir com schema unificado (NOW WITH announced_date!)
             cur.execute(
                 """
                 INSERT INTO sofia.funding_rounds (
-                    company_name, organization_id, round_type, 
+                    company_name, organization_id, round_type, announced_date,
                     country, sector, source, metadata, collected_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
-                ON CONFLICT (company_name, announced_date, source) DO NOTHING
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                ON CONFLICT (company_name, round_type, announced_date) DO UPDATE SET
+                    organization_id = EXCLUDED.organization_id,
+                    sector = COALESCE(EXCLUDED.sector, sofia.funding_rounds.sector),
+                    metadata = EXCLUDED.metadata,
+                    collected_at = NOW()
             """,
                 (
                     company["company_name"],
                     org_id,
                     normalized_type,
+                    company["announced_date"],  # NEW: Now has date!
                     "USA",
                     company.get("tags", "")[:200],  # Limitar tamanho
                     "yc_companies",

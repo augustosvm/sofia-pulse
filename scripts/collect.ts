@@ -37,7 +37,7 @@ import { runTechConferencesCLI } from './collectors/tech-conferences-collector.j
 import { runBrazilCLI } from './collectors/brazil-collector.js';
 import { runIndustrySignalsCLI } from './collectors/industry-signals-collector.js';
 import { runPythonBridgeCLI } from './collectors/python-bridge-collector.js';
-import { collectGreenhouseJobs } from './collect-jobs-greenhouse.js';
+// import { collectGreenhouseJobs } from './collect-jobs-greenhouse.js'; // REMOVED: File does not exist
 import { collectCathoJobs } from './collect-catho-final.js';
 import { collectCurrencyRates } from './collect-currency-rates.js';
 import { collectEPOPatents } from './collect-epo-patents.js';

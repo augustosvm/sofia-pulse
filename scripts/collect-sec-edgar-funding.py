@@ -26,15 +26,90 @@ SEC_HEADERS = {
     "Host": "data.sec.gov",
 }
 
-# CIKs de empresas tech conhecidas (exemplos)
+# CIKs de empresas tech públicas e startups que fazem filings SEC
+# Fonte: SEC EDGAR (https://www.sec.gov/cgi-bin/browse-edgar)
 TECH_COMPANIES_CIK = [
+    # ==================== BIG TECH ====================
     "0001018724",  # Amazon
     "0001652044",  # Alphabet (Google)
     "0001326801",  # Meta (Facebook)
     "0001045810",  # NVIDIA
     "0000789019",  # Microsoft
+    "0000320193",  # Apple
+    "0001318605",  # Tesla
+    "0001403161",  # Netflix
+    "0001535527",  # Cloudflare
+    "0001467373",  # Twitter/X Corp
+
+    # ==================== AI & ML ====================
+    "0001849635",  # Palantir
+    "0001679788",  # Snowflake
+    "0001764925",  # C3.ai
+    "0001861497",  # Couchbase
+    "0001728688",  # Unity Software
+    "0001823089",  # UiPath
+
+    # ==================== CLOUD & INFRASTRUCTURE ====================
+    "0001646708",  # MongoDB
+    "0001467623",  # Datadog
     "0001559720",  # Databricks (se público)
+    "0001650372",  # Okta
+    "0001673172",  # CrowdStrike
+    "0001792789",  # JFrog
+    "0001784105",  # HashiCorp
+
+    # ==================== FINTECH ====================
     "0001564590",  # Stripe (se público)
+    "0001783879",  # Coinbase
+    "0001510580",  # Square/Block
+    "0001530804",  # PayPal
+    "0001633917",  # Affirm
+    "0001559865",  # Robinhood
+    "0001708341",  # Plaid (se público)
+
+    # ==================== CYBERSECURITY ====================
+    "0001355096",  # Palo Alto Networks
+    "0001487568",  # Zscaler
+    "0001617640",  # SentinelOne
+
+    # ==================== SEMICONDUCTORS ====================
+    "0000002488",  # Intel
+    "0000004904",  # Advanced Micro Devices (AMD)
+    "0000743988",  # Qualcomm
+    "0001085872",  # Broadcom
+    "0001408198",  # Marvell Technology
+    "0001013462",  # Applied Materials
+
+    # ==================== E-COMMERCE & MARKETPLACE ====================
+    "0001373715",  # Shopify
+    "0001616707",  # DoorDash
+    "0001543151",  # Uber
+    "0001647188",  # Lyft
+    "0001559865",  # Etsy
+    "0001733210",  # Wish
+
+    # ==================== SAAS & PRODUCTIVITY ====================
+    "0001467623",  # Atlassian
+    "0001640147",  # Slack (Salesforce)
+    "0001477294",  # Zoom
+    "0001477720",  # Workday
+    "0001394451",  # ServiceNow
+    "0001108524",  # Salesforce
+
+    # ==================== SOCIAL & CONTENT ====================
+    "0001737520",  # Discord (se público)
+    "0001590955",  # Snap (Snapchat)
+    "0001418091",  # Pinterest
+
+    # ==================== GAMING ====================
+    "0001748790",  # Roblox
+    "0001315098",  # Electronic Arts
+    "0000718877",  # Activision Blizzard
+    "0000831259",  # Epic Games (se público)
+
+    # ==================== HEALTHTECH & BIOTECH ====================
+    "0001577916",  # 23andMe
+    "0001673953",  # Oscar Health
 ]
 
 
