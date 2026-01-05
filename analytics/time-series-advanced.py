@@ -144,17 +144,17 @@ def forecast_github_trends(conn):
     """Forecast GitHub stars by technology"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Get monthly GitHub data
+    # Get weekly GitHub data (changed from monthly due to limited data collection period)
     cur.execute("""
         SELECT
             unnest(topics) as tech,
-            DATE_TRUNC('month', created_at) as month,
+            DATE_TRUNC('week', collected_at) as week,
             SUM(stars) as total_stars
         FROM sofia.github_trending
-        WHERE created_at >= CURRENT_DATE - INTERVAL '12 months'
+        WHERE collected_at >= CURRENT_DATE - INTERVAL '90 days'
             AND topics IS NOT NULL
-        GROUP BY tech, month
-        ORDER BY month
+        GROUP BY tech, week
+        ORDER BY week
     """)
 
     rows = cur.fetchall()
@@ -164,7 +164,7 @@ def forecast_github_trends(conn):
 
     for row in rows:
         tech_timeline[row['tech']].append({
-            'month': row['month'],
+            'week': row['week'],
             'stars': int(row['total_stars'])
         })
 
@@ -172,11 +172,11 @@ def forecast_github_trends(conn):
     forecasts = []
 
     for tech, timeline in tech_timeline.items():
-        if len(timeline) < 6:
+        if len(timeline) < 2:  # Lowered from 6 to 2 (need at least 2 data points)
             continue
 
-        # Sort by month
-        timeline_sorted = sorted(timeline, key=lambda x: x['month'])
+        # Sort by week
+        timeline_sorted = sorted(timeline, key=lambda x: x['week'])
         stars = [t['stars'] for t in timeline_sorted]
 
         # Trend analysis
@@ -211,7 +211,7 @@ def forecast_funding_trends(conn):
     """Forecast funding by sector"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Get monthly funding data
+    # Get monthly funding data (90 days for realistic data coverage)
     cur.execute("""
         SELECT
             sector,
@@ -219,7 +219,7 @@ def forecast_funding_trends(conn):
             SUM(amount_usd) as total_funding,
             COUNT(*) as deal_count
         FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
+        WHERE announced_date >= CURRENT_DATE - INTERVAL '90 days'
             AND sector IS NOT NULL
         GROUP BY sector, month
         ORDER BY month
@@ -241,7 +241,7 @@ def forecast_funding_trends(conn):
     forecasts = []
 
     for sector, timeline in sector_timeline.items():
-        if len(timeline) < 6:
+        if len(timeline) < 2:  # Lowered from 6 to 2
             continue
 
         timeline_sorted = sorted(timeline, key=lambda x: x['month'])
@@ -284,7 +284,7 @@ def forecast_paper_trends(conn):
             DATE_TRUNC('month', published_date) as month,
             COUNT(*) as paper_count
         FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '12 months'
+        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
             AND keywords IS NOT NULL
         GROUP BY topic, month
         ORDER BY month
@@ -305,7 +305,7 @@ def forecast_paper_trends(conn):
     forecasts = []
 
     for topic, timeline in topic_timeline.items():
-        if len(timeline) < 6:
+        if len(timeline) < 2:  # Lowered from 6 to 2
             continue
 
         timeline_sorted = sorted(timeline, key=lambda x: x['month'])
