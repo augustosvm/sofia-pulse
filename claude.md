@@ -672,26 +672,47 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ## 🚀 COMO USAR
 
+### Acesso ao Servidor (IMPORTANTE!)
+
+**Servidor de Produção:** `root@91.98.158.19`
+**Chave SSH:** `~/.ssh/id_ed25519_server`
+
+```bash
+# Conectar ao servidor
+ssh -i ~/.ssh/id_ed25519_server root@91.98.158.19
+
+# Ir para o projeto
+cd /root/sofia-pulse  # ou onde estiver instalado
+
+# IMPORTANTE: Sempre rodar analytics e email DO SERVIDOR!
+# O servidor tem todas as credenciais SMTP configuradas
+```
+
 ### Setup Inicial (Servidor)
 
 ```bash
-# 1. Clone/Pull do repositório
-cd ~/sofia-pulse
-git checkout claude/fix-github-rate-limits-012Xm4nfg6i34xKQHSDbWfq3
+# 1. Conectar ao servidor
+ssh -i ~/.ssh/id_ed25519_server root@91.98.158.19
+
+# 2. Ir para o projeto
+cd /root/sofia-pulse
+
+# 3. Pull latest changes
 git pull
 
-# 2. Verificar .env
+# 4. Verificar .env (credenciais SMTP corretas estão aqui!)
 cat .env
 
-# 3. Aplicar migrations (se necessário)
+# 5. Aplicar migrations (se necessário)
 bash run-migrations.sh
 
-# 4. Executar coletas distribuídas
-bash collect-fast-apis.sh       # 10:00 UTC
-bash collect-limited-apis.sh    # 16:00 UTC
+# 6. Executar analytics + email (DO SERVIDOR!)
+python3 analytics/time-series-advanced.py
+python3 analytics/mega-analysis.py
+python3 send-email-mega.py
 
-# 5. Executar analytics + email
-bash run-mega-analytics.sh && bash send-email-mega.sh  # 22:00 UTC
+# 7. Ou rodar script completo
+bash run-mega-analytics.sh && python3 send-email-mega.py
 ```
 
 ### Automatizar (Cron)
