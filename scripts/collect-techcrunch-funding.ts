@@ -61,6 +61,9 @@ function parseRSSFeed(xmlData: string): FundingRound[] {
 
   const fundingRounds: FundingRound[] = [];
 
+  // Blacklist of generic/common words that shouldn't be company names
+  const COMPANY_BLACKLIST = ['tech', 'meta', 'big', 'startup', 'company', 'firm', 'news', 'today', 'this', 'that'];
+
   for (const itemXml of items) {
     // Extract fields using regex
     const title = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] ||
@@ -76,40 +79,80 @@ function parseRSSFeed(xmlData: string): FundingRound[] {
     const hasFundingKeyword = FUNDING_KEYWORDS.some((keyword) => text.includes(keyword));
     if (!hasFundingKeyword) continue;
 
-    // Extract company name (first capitalized word/phrase before "raises" or "gets")
-    let companyName = 'Unknown';
-    const companyPatterns = [
-      // "Acme Corp raises $10M"
-      /^([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s+(?:raises|raised|gets|lands|closes|secures|snags|scores)/,
-      // "Startup Acme Corp raises"
-      /\b([A-Z][A-Za-z]+(?:\.[A-Za-z]+)?)\s+(?:raises|raised|gets)/,
-      // First capitalized phrase in title
-      /([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,3})/,
-    ];
-
-    for (const pattern of companyPatterns) {
-      const match = title.match(pattern);
-      if (match?.[1]) {
-        companyName = match[1].trim();
-        break;
-      }
-    }
-
-    // Extract amount (e.g., "$10M", "$450 million", "$1.5B")
+    // Extract amount FIRST (to get context around it)
     const amountPatterns = [
-      /\$(\d+(?:\.\d+)?)\s?(million|billion|m|b)\b/i,
-      /(\d+(?:\.\d+)?)\s?\$(million|m)\b/i, // "10 million" or "10M"
+      /\$(\d+(?:\.\d+)?)\s?(million|billion|m|b)\b/gi,
+      /(\d+(?:\.\d+)?)\s?million/gi,
     ];
 
     let amountUsd: number | null = null;
+    let amountContext = '';
+
     for (const pattern of amountPatterns) {
-      const match = text.match(pattern);
-      if (match) {
+      const matches = Array.from(text.matchAll(pattern));
+      // Get first reasonable amount (ignore values like $16000M = $16B which is suspicious)
+      for (const match of matches) {
         const value = parseFloat(match[1]);
-        const unit = match[2].toLowerCase();
-        amountUsd = unit.startsWith('b') ? value * 1_000_000_000 : value * 1_000_000;
+        const unit = match[2]?.toLowerCase() || 'million';
+        const calculatedAmount = unit.startsWith('b') ? value * 1_000_000_000 : value * 1_000_000;
+
+        // Sanity check: reject unrealistic values
+        if (calculatedAmount < 100_000 || calculatedAmount > 5_000_000_000) {
+          continue; // Skip values <$100K or >$5B (likely errors)
+        }
+
+        amountUsd = calculatedAmount;
+        // Get 50 chars of context around the amount
+        const matchIndex = match.index || 0;
+        amountContext = text.substring(Math.max(0, matchIndex - 50), matchIndex + 50);
         break;
       }
+      if (amountUsd) break;
+    }
+
+    // Skip if no valid amount found
+    if (!amountUsd) continue;
+
+    // Extract company name - try multiple strategies
+    let companyName = 'Unknown';
+
+    // Strategy 1: Look for company name near the amount in context
+    const contextCompanyMatch = amountContext.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})/);
+    if (contextCompanyMatch?.[1]) {
+      const candidate = contextCompanyMatch[1].trim();
+      if (!COMPANY_BLACKLIST.includes(candidate.toLowerCase()) && candidate.length > 2) {
+        companyName = candidate;
+      }
+    }
+
+    // Strategy 2: Pattern matching in full title (fallback)
+    if (companyName === 'Unknown') {
+      const companyPatterns = [
+        // "Acme Corp raises $10M"
+        /^([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})\s+(?:raises|raised|gets|lands|closes|secures|snags|scores)/,
+        // "How Acme raised $10M"
+        /(?:how|why|when)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s+(?:raised|secured)/,
+        // First capitalized multi-word phrase
+        /^([A-Z][a-z]+\s+[A-Z][a-z]+)/,
+        // Single capitalized word (last resort)
+        /^([A-Z][a-z]{2,})\b/,
+      ];
+
+      for (const pattern of companyPatterns) {
+        const match = title.match(pattern);
+        if (match?.[1]) {
+          const candidate = match[1].trim();
+          if (!COMPANY_BLACKLIST.includes(candidate.toLowerCase()) && candidate.length > 2) {
+            companyName = candidate;
+            break;
+          }
+        }
+      }
+    }
+
+    // Skip if company name is still generic or blacklisted
+    if (companyName === 'Unknown' || COMPANY_BLACKLIST.includes(companyName.toLowerCase())) {
+      continue;
     }
 
     // Extract round type
@@ -122,6 +165,16 @@ function parseRSSFeed(xmlData: string): FundingRound[] {
     else if (text.includes('seed') || text.includes('pre-seed')) roundType = 'Seed';
     else if (text.includes('ipo') || text.includes('goes public')) roundType = 'IPO';
     else if (text.includes('acquisition') || text.includes('acquired') || text.includes('acquires')) roundType = 'Acquisition';
+
+    // Validation: Check if amount makes sense for round type
+    if (roundType === 'Seed' && amountUsd > 50_000_000) {
+      // Seed rounds rarely exceed $50M, likely misclassified
+      roundType = 'VC Funding';
+    }
+    if (roundType === 'Series A' && amountUsd > 200_000_000) {
+      // Series A rarely exceeds $200M
+      roundType = 'Series B'; // Likely misclassified
+    }
 
     // Parse date
     let announcedDate: Date | null = null;
