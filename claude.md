@@ -9,6 +9,71 @@
 
 ## 🚀 ÚLTIMAS ATUALIZAÇÕES (13 Jan 2026)
 
+### ✅ **TECHCRUNCH FUNDING COLLECTOR** (13 Jan 2026) 💰
+
+**MAJOR FEATURE**: Novo collector de funding com NLP extraction de valores!
+
+**O que foi implementado**:
+
+**TechCrunch RSS Collector** (`scripts/collect-techcrunch-funding.ts`):
+- ✅ Fetch RSS feed do TechCrunch diariamente
+- ✅ Parse XML sem dependências externas (regex puro)
+- ✅ **NLP extraction de funding amounts** ($10M, $450 million, $1.5B, etc.)
+- ✅ Extração de company names com múltiplos padrões
+- ✅ Detecção de round types (Seed, Series A/B/C/D/E, IPO, Acquisition)
+- ✅ Salva com `amount_usd` preenchido!
+
+**Teste Bem-Sucedido**:
+```
+📊 Found 4 funding-related articles
+
+  • Eleven - VC Funding - $330.0M
+  • Deepgram - Series C - $130.0M
+  • Superorganism - VC Funding - $25.0M
+  • Converge Bio - Series A - $25.0M
+
+✅ Saved 4/4 funding rounds
+```
+
+**Impacto no Banco**:
+- **ANTES**: 30 funding rounds com amount_usd > 0
+- **AGORA**: 34 funding rounds com amount_usd > 0 (após 1 execução)
+- **Esperado**: +4-8 rounds/dia = 120-240 rounds/mês 📈
+
+**NLP Patterns Implementados**:
+```typescript
+// Amount extraction
+/\$(\d+(?:\.\d+)?)\s?(million|billion|m|b)\b/i
+// Examples: "$10M", "$450 million", "$1.5B"
+
+// Company name extraction
+/^([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s+(?:raises|raised|gets|lands)/
+// Examples: "Acme Corp raises $10M"
+
+// Round type detection
+Keywords: series a/b/c/d/e, seed, pre-seed, ipo, acquisition
+```
+
+**Crontab**:
+```cron
+# TechCrunch Funding News (NLP extraction)
+0 13 * * 1-5 cd /home/ubuntu/sofia-pulse && npx tsx scripts/collect-techcrunch-funding.ts >> /var/log/sofia/techcrunch.log 2>&1
+```
+- **Schedule**: 13:00 UTC (10:00 BRT), Monday-Friday
+- **Expected**: ~4-8 rounds/dia
+- **Log**: `/var/log/sofia/techcrunch.log`
+
+**Próximos Passos**:
+- ✅ TechCrunch funcionando (TypeScript)
+- ⏳ YC Companies precisa fix (Python - metadata error)
+- ⏳ Product Hunt (Python)
+- ⏳ SEC EDGAR (Python)
+- ⏳ Crunchbase (TypeScript - precisa criar)
+
+**Status**: ✅ FUNCIONANDO - Early-Stage Deep Dive terá dados reais em breve!
+
+---
+
 ### ✅ **EMAIL SYSTEM FIXED** (13 Jan 2026) 📧
 
 **PROBLEMA**: Emails diários não estavam sendo enviados

@@ -5,14 +5,13 @@ URL: https://api.ycombinator.com/ (unofficial GitHub API)
 Auth: Nenhuma (100% gratuito)
 Features: 5500+ startups YC, batches, funding stages
 """
-import json
 import os
 from datetime import datetime
 
 import psycopg2
 import requests
 from dotenv import load_dotenv
-from shared.funding_helpers import extract_funding_metadata, normalize_round_type
+from shared.funding_helpers import normalize_round_type
 from shared.org_helpers import get_or_create_organization
 
 load_dotenv()
@@ -23,32 +22,55 @@ YC_API_URL = "https://yc-oss.github.io/api/companies/all.json"
 
 def parse_yc_batch_date(batch):
     """
-    Convert YC batch (W24, S23, etc.) to announced_date
+    Convert YC batch to announced_date
 
     Examples:
         W24 → 2024-01-15 (Winter)
         S23 → 2023-06-15 (Summer)
+        Winter 2024 → 2024-01-15
+        Summer 2023 → 2023-06-15
     """
-    if not batch or len(batch) < 3:
+    if not batch:
         return None
 
-    season = batch[0].upper()
-    try:
-        year = int(batch[1:])
-        # Convert 2-digit to 4-digit year
-        if year < 100:
-            year += 2000
-    except ValueError:
-        return None
+    # Handle "Winter 2024" or "Summer 2023" format
+    if ' ' in batch:
+        parts = batch.split()
+        if len(parts) == 2:
+            season_word = parts[0].upper()
+            try:
+                year = int(parts[1])
+            except ValueError:
+                return None
 
-    # Map season to month
-    season_months = {
-        'W': 1,   # Winter (Jan)
-        'S': 6,   # Summer (Jun)
-    }
+            season_months = {
+                'WINTER': 1,
+                'SUMMER': 6,
+            }
+            month = season_months.get(season_word, 1)
+            return datetime(year, month, 15).strftime('%Y-%m-%d')
 
-    month = season_months.get(season, 1)
-    return datetime(year, month, 15).strftime('%Y-%m-%d')
+    # Handle "W24" or "S23" format
+    if len(batch) >= 3:
+        season = batch[0].upper()
+        try:
+            year = int(batch[1:])
+            # Convert 2-digit to 4-digit year
+            if year < 100:
+                year += 2000
+        except ValueError:
+            return None
+
+        # Map season to month
+        season_months = {
+            'W': 1,   # Winter (Jan)
+            'S': 6,   # Summer (Jun)
+        }
+
+        month = season_months.get(season, 1)
+        return datetime(year, month, 15).strftime('%Y-%m-%d')
+
+    return None
 
 
 def collect_yc_companies():
@@ -125,20 +147,16 @@ def save_to_db(companies):
             # 2. Normalizar round_type (YC é sempre Accelerator)
             normalized_type = normalize_round_type(f"YC {company['batch']}")
 
-            # 3. Extrair metadata
-            metadata = extract_funding_metadata("yc_companies", company)
-
-            # 4. Inserir com schema unificado (NOW WITH announced_date!)
+            # 3. Inserir com schema unificado (NOW WITH announced_date!)
             cur.execute(
                 """
                 INSERT INTO sofia.funding_rounds (
                     company_name, organization_id, round_type, announced_date,
-                    country, sector, source, metadata, collected_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    country, sector, source, collected_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (company_name, round_type, announced_date) DO UPDATE SET
                     organization_id = EXCLUDED.organization_id,
                     sector = COALESCE(EXCLUDED.sector, sofia.funding_rounds.sector),
-                    metadata = EXCLUDED.metadata,
                     collected_at = NOW()
             """,
                 (
@@ -149,7 +167,6 @@ def save_to_db(companies):
                     "USA",
                     company.get("tags", "")[:200],  # Limitar tamanho
                     "yc_companies",
-                    json.dumps(metadata),
                 ),
             )
             saved += 1
