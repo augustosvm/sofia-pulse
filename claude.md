@@ -1,13 +1,73 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2026-01-05 UTC
+**Data**: 2026-01-13 UTC
 **Branch**: `master`
 **Email**: augustosvm@gmail.com
 **Status**: ✅ SISTEMA 100% FUNCIONAL - 40+ FONTES + 28 RELATÓRIOS ML + 1.5M+ REGISTROS + 8,613 VAGAS + 5 FUNDING SOURCES
 
 ---
 
-## 🚀 ÚLTIMAS ATUALIZAÇÕES (05 Jan 2026)
+## 🚀 ÚLTIMAS ATUALIZAÇÕES (13 Jan 2026)
+
+### ✅ **AUTO-CREATE CITIES FEATURE** (13 Jan 2026) 🏙️
+
+**MAJOR IMPROVEMENT**: Collectors agora adicionam cidades automaticamente ao banco de dados!
+
+**Problema Resolvido**:
+- Antes: Collectors encontravam ~80 cidades brasileiras não cadastradas e pulavam essas vagas
+- Agora: Cidades são criadas automaticamente quando não existem no banco
+
+**O que foi implementado**:
+
+1. **TypeScript Helper Updated** (`scripts/shared/geo-helpers.ts`):
+   ```typescript
+   // Antes: getOrCreateCity() apenas procurava (lookup-only)
+   // Agora: getOrCreateCity() CRIA automaticamente se não encontrar
+   ```
+   - Tenta buscar cidade existente
+   - Se não encontrar e tiver state_id válido, cria automaticamente
+   - Handle de race conditions (duplicates)
+   - Log de confirmação: "✅ Auto-created city: Nome (state_id: X)"
+
+2. **Python Helper Updated** (`scripts/shared/geo_helpers.py`):
+   - Mesma lógica para collectors Python
+   - Commit automático após criação
+   - Rollback em caso de erro
+
+3. **Estados Brasileiros Completos**:
+   - Adicionados todos os 27 estados brasileiros ao banco
+   - Script: `scripts/add-missing-brazilian-states.ts`
+
+4. **48 Cidades Adicionadas Manualmente**:
+   - Script inicial: `scripts/add-missing-cities.ts`
+   - Goiânia, Itajaí, Niterói, Criciúma, Palhoça, etc.
+   - Total: 147+ cidades brasileiras cadastradas
+
+**Teste de Validação**:
+```bash
+npx tsx scripts/test-auto-create-cities.ts
+# ✅ Cidade "Americana" criada automaticamente (ID: 3734)
+# ✅ São Paulo encontrada (existente, ID: 2150)
+```
+
+**Impacto**:
+- ✅ Catho: 730 vagas coletadas (antes: muitas puladas por cidade não cadastrada)
+- ✅ Outros collectors: Não perdem mais dados por cidades faltantes
+- ✅ Qualidade de dados: city_id sempre preenchido quando possível
+- ✅ Escalabilidade: Sistema cresce organicamente com os dados
+
+**Arquivos Modificados**:
+- `scripts/shared/geo-helpers.ts` - Auto-create em TypeScript
+- `scripts/shared/geo_helpers.py` - Auto-create em Python
+- `scripts/add-missing-brazilian-states.ts` - Script auxiliar
+- `scripts/add-missing-cities.ts` - Script auxiliar
+- `scripts/test-auto-create-cities.ts` - Script de teste
+
+**Status**: ✅ TESTADO E FUNCIONANDO
+
+---
+
+## 🚀 ATUALIZAÇÕES ANTERIORES (05 Jan 2026)
 
 ### ✅ **FUNDING COLLECTORS - 5 SOURCES COMPLETE** (05 Jan 2026) 💰
 

@@ -1023,7 +1023,7 @@ def get_or_create_city(
     """
     Obtém uma cidade normalizada da tabela sofia.cities
     Busca por nome dentro do estado/país especificado
-    NÃO cria novos registros - apenas faz lookup
+    CRIA AUTOMATICAMENTE se não existir (UPDATED 2026-01-13)
     """
     if not city_name or not city_name.strip() or not country_id:
         return None
@@ -1035,7 +1035,33 @@ def get_or_create_city(
 
     try:
         with conn.cursor() as cursor:
-            return get_city_id(cursor, normalized_name, state_id, country_id)
+            # Try to find existing city
+            city_id = get_city_id(cursor, normalized_name, state_id, country_id)
+
+            # If not found and we have a state_id, create it automatically
+            if not city_id and state_id:
+                try:
+                    cursor.execute(
+                        """INSERT INTO sofia.cities (name, state_id, country_id, created_at)
+                           VALUES (%s, %s, %s, NOW())
+                           RETURNING id""",
+                        (normalized_name, state_id, country_id)
+                    )
+                    result = cursor.fetchone()
+                    if result:
+                        city_id = result[0]
+                        conn.commit()
+                        print(f"✅ Auto-created city: {normalized_name} (state_id: {state_id})")
+                except Exception as create_error:
+                    # If duplicate (race condition), try to get it again
+                    if '23505' in str(create_error):  # unique_violation
+                        conn.rollback()
+                        city_id = get_city_id(cursor, normalized_name, state_id, country_id)
+                    else:
+                        conn.rollback()
+                        print(f'⚠️  Failed to auto-create city "{normalized_name}": {create_error}')
+
+            return city_id
     except Exception as e:
         print(f'Erro ao normalizar cidade "{city_name}": {e}')
         return None

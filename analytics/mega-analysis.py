@@ -222,14 +222,20 @@ def get_funding_summary():
         summary['total_30d'] = row[0] or 0
         summary['total_amount_30d'] = row[1] or 0
 
-        # Top 10 deals
+        # Top 20 deals
         cur.execute(f"""
-            SELECT company_name, amount_usd, round_type, country, announced_date
-            FROM sofia.funding_rounds
-            WHERE announced_date >= '{ninety_days_ago}'
-              AND amount_usd IS NOT NULL
-            ORDER BY amount_usd DESC
-            LIMIT 10
+            SELECT
+                fr.company_name,
+                fr.amount_usd,
+                fr.round_type,
+                COALESCE(co.common_name, fr.country, 'Unknown') as country,
+                fr.announced_date
+            FROM sofia.funding_rounds fr
+            LEFT JOIN sofia.countries co ON fr.country_id = co.id
+            WHERE fr.announced_date >= '{ninety_days_ago}'
+              AND fr.amount_usd IS NOT NULL
+            ORDER BY fr.amount_usd DESC
+            LIMIT 20
         """)
         summary['top_deals_30d'] = cur.fetchall()
 
@@ -291,14 +297,16 @@ def get_critical_sectors_summary():
         """)
         summary['cybersecurity_30d'] = cur.fetchone()[0] or 0
 
-        # Top CVEs (last 30 days)
+        # Top CVEs (last 90 days with CVSS score)
+        ninety_days_ago = (datetime.now() - timedelta(days=90)).date()
         cur.execute(f"""
-            SELECT title, severity, cvss_score, published_date
+            SELECT event_id, description, affected_products, severity, cvss_score
             FROM sofia.cybersecurity_events
-            WHERE published_date >= '{thirty_days_ago}'
+            WHERE published_date >= '{ninety_days_ago}'
               AND event_type = 'cve'
-            ORDER BY cvss_score DESC NULLS LAST
-            LIMIT 10
+              AND cvss_score IS NOT NULL
+            ORDER BY cvss_score DESC
+            LIMIT 20
         """)
         summary['top_cves'] = cur.fetchall()
 
@@ -356,12 +364,13 @@ def get_global_economy_summary():
         """)
         summary['commodity_prices'] = cur.fetchall()
 
-        # Semiconductor sales (latest)
+        # Semiconductor sales (quarterly totals only, not monthly)
         cur.execute("""
             SELECT region, sales_usd_billions, quarter, year
             FROM sofia.semiconductor_sales
+            WHERE month IS NULL OR month = ''
             ORDER BY year DESC, quarter DESC
-            LIMIT 10
+            LIMIT 4
         """)
         summary['semiconductor_sales'] = cur.fetchall()
 
@@ -493,9 +502,10 @@ def generate_mega_report():
     output.append("")
 
     if funding['top_deals_30d']:
-        output.append("🏆 Top 10 Deals:")
+        output.append("🏆 Top 20 Deals:")
         for i, (company, amount, round_type, country, date) in enumerate(funding['top_deals_30d'], 1):
-            output.append(f"  {i:2d}. {company:30s} ${amount:>15,.2f} {round_type:15s} {country:10s}")
+            country_str = country if country else 'Unknown'
+            output.append(f"  {i:2d}. {company:30s} ${amount:>15,.2f} {round_type:15s} {country_str:10s}")
         output.append("")
 
     if funding['by_country']:
@@ -518,9 +528,18 @@ def generate_mega_report():
     output.append("")
 
     if sectors['top_cves']:
-        output.append("🔒 Top CVEs (last 30 days):")
-        for title, severity, cvss, date in sectors['top_cves']:
-            output.append(f"  • {title[:60]:60s} {severity:10s} CVSS:{cvss}")
+        output.append("🔒 Top 20 Critical CVEs (with CVSS scores):")
+        for cve_id, desc, products, severity, cvss in sectors['top_cves']:
+            # Create readable name from description or products
+            if desc and len(desc) > 10:
+                name = desc[:70]
+            elif products and len(products) > 0:
+                name = f"{products[0]} vulnerability"
+            else:
+                name = cve_id
+
+            severity_str = severity if severity else 'unknown'
+            output.append(f"  • {name[:70]:70s} {severity_str:10s} CVSS:{cvss:.1f}")
         output.append("")
 
     if sectors['upcoming_launches']:

@@ -451,7 +451,7 @@ export async function getOrCreateState(
 /**
  * Obtém uma cidade normalizada da tabela sofia.cities
  * Busca por nome dentro do estado/país especificado
- * NÃO cria novos registros - apenas faz lookup
+ * CRIA AUTOMATICAMENTE se não existir (UPDATED 2026-01-13)
  */
 export async function getOrCreateCity(
     pool: Pool,
@@ -469,8 +469,33 @@ export async function getOrCreateCity(
         return null;  // Filtered out (Remote, Hybrid, etc)
     }
 
-    // Use new lookup function that tries with state_id and country_id
-    return await getCityId(pool, normalizedName, stateId, countryId);
+    // Try to find existing city
+    let cityId = await getCityId(pool, normalizedName, stateId, countryId);
+
+    // If not found, create it automatically
+    if (!cityId && stateId) {
+        try {
+            const result = await pool.query(
+                `INSERT INTO sofia.cities (name, state_id, country_id, created_at)
+                 VALUES ($1, $2, $3, NOW())
+                 RETURNING id`,
+                [normalizedName, stateId, countryId]
+            );
+            cityId = result.rows[0]?.id || null;
+            if (cityId) {
+                console.log(`✅ Auto-created city: ${normalizedName} (state_id: ${stateId})`);
+            }
+        } catch (error: any) {
+            // If duplicate (race condition), try to get it again
+            if (error.code === '23505') { // unique_violation
+                cityId = await getCityId(pool, normalizedName, stateId, countryId);
+            } else {
+                console.error(`⚠️  Failed to auto-create city "${normalizedName}":`, error.message);
+            }
+        }
+    }
+
+    return cityId;
 }
 
 /**
