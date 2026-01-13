@@ -65,6 +65,16 @@ npx tsx scripts/test-auto-create-cities.ts
 
 **Status**: ✅ TESTADO E FUNCIONANDO
 
+**Crontab**:
+```cron
+# Catho Jobs Collector (Brazilian jobs - 67 tech keywords)
+30 12 * * 1-5 cd /home/ubuntu/sofia-pulse && npx tsx scripts/collect-catho-final.ts >> /var/log/sofia/catho.log 2>&1
+```
+- **Schedule**: 12:30 UTC (09:30 BRT), Monday-Friday
+- **Expected**: ~700+ vagas/dia
+- **Log**: `/var/log/sofia/catho.log`
+- **Auto-creates cities**: Yes (feature enabled)
+
 ---
 
 ## 🚀 ATUALIZAÇÕES ANTERIORES (05 Jan 2026)
