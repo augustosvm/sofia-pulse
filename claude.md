@@ -75,6 +75,20 @@ npx tsx scripts/test-auto-create-cities.ts
 - **Log**: `/var/log/sofia/catho.log`
 - **Auto-creates cities**: Yes (feature enabled)
 
+**Intelligence Report**:
+```bash
+python3 analytics/catho-jobs-intelligence.py
+```
+- **Total jobs analyzed**: 1,395 vagas (90 days)
+- **Report**: `analytics/catho-jobs-intelligence.txt`
+- **Insights**:
+  - 🔥 Top skills: Git (35x), React (34x), Java (31x), Python (26x)
+  - 🗺️ Top states: Sergipe (539), São Paulo (507), Rio de Janeiro (72)
+  - 🏙️ Top cities: Aracaju (539), São Paulo (329), Rio de Janeiro (59)
+  - 🎓 Seniority: Mid (56%), Senior (7%), Entry (4%)
+  - 🏠 Remote: 96% unknown, 2% remote, 2% hybrid
+  - 📊 Sectors: Other Tech (40%), Leadership (4%), QA (4%), Backend (4%)
+
 ---
 
 ## 🚀 ATUALIZAÇÕES ANTERIORES (05 Jan 2026)
