@@ -42,6 +42,9 @@ export interface FundingCollectorConfig {
   /** Headers HTTP (pode incluir API keys) */
   headers?: Record<string, string> | ((env: NodeJS.ProcessEnv) => Record<string, string>);
 
+  /** Request body for POST requests (can be string, object, or function) */
+  body?: string | object | ((env: NodeJS.ProcessEnv) => string | object);
+
   /** Timeout em ms (padrão: 30000) */
   timeout?: number;
 
@@ -156,7 +159,25 @@ export class FundingCollector {
       };
 
       const method = config.method || 'GET';
-      const requestData = config.graphqlQuery ? { query: config.graphqlQuery } : undefined;
+
+      // 4. Preparar body (prioridade: body > graphqlQuery)
+      let requestData: any = undefined;
+      if (config.body) {
+        requestData = typeof config.body === 'function'
+          ? config.body(process.env)
+          : config.body;
+
+        // Se body é uma string JSON, fazer parse para objeto
+        if (typeof requestData === 'string') {
+          try {
+            requestData = JSON.parse(requestData);
+          } catch {
+            // Se não for JSON válido, mantenha como string
+          }
+        }
+      } else if (config.graphqlQuery) {
+        requestData = { query: config.graphqlQuery };
+      }
 
       if (config.rateLimit && typeof config.rateLimit === 'string' && config.rateLimit in rateLimiters) {
         // Usa rate limiter específico

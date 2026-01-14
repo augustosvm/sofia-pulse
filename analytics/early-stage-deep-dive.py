@@ -16,6 +16,9 @@ import os
 from collections import defaultdict
 import re
 
+from dotenv import load_dotenv
+load_dotenv()
+
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
     'port': int(os.getenv('DB_PORT', '5432')),
@@ -50,10 +53,16 @@ UNIVERSITIES = {
 }
 
 def analyze_early_stage(conn):
-    """Analisa startups seed/angel (<$50M para capturar mais dados)"""
+    """Analisa startups seed/angel e early-stage activity (últimos 12 meses)"""
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Tentar primeiro <$10M
+    # Estratégia multi-source:
+    # 1. Rounds com amount < $10M (seed/angel com valor conhecido)
+    # 2. Rounds com amount < $50M (early-stage com valor conhecido)
+    # 3. Rounds YC recentes (sem amount mas indica early-stage activity)
+    # 4. Qualquer funding recente (fallback)
+
+    # Tentar primeiro <$10M (seed/angel verificados)
     cursor.execute("""
         SELECT
             company_name,
@@ -63,7 +72,8 @@ def analyze_early_stage(conn):
             round_type,
             announced_date,
             investors,
-            country
+            country,
+            source
         FROM sofia.funding_rounds
         WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
             AND amount_usd > 0
@@ -73,7 +83,7 @@ def analyze_early_stage(conn):
 
     seed_rounds = cursor.fetchall()
 
-    # Se não encontrou nada, tentar <$50M
+    # Se não encontrou nada, tentar <$50M (early-stage com valor)
     if not seed_rounds:
         cursor.execute("""
             SELECT
@@ -84,17 +94,18 @@ def analyze_early_stage(conn):
                 round_type,
                 announced_date,
                 investors,
-                country
+                country,
+                source
             FROM sofia.funding_rounds
             WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
                 AND amount_usd > 0
                 AND amount_usd < 50000000
             ORDER BY amount_usd ASC
-            LIMIT 30
+            LIMIT 50
         """)
         seed_rounds = cursor.fetchall()
 
-    # Se ainda não encontrou, pegar qualquer funding recente
+    # Se ainda não encontrou, pegar YC companies recentes (proxy de early-stage)
     if not seed_rounds:
         cursor.execute("""
             SELECT
@@ -105,11 +116,39 @@ def analyze_early_stage(conn):
                 round_type,
                 announced_date,
                 investors,
-                country
+                country,
+                source
+            FROM sofia.funding_rounds
+            WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
+                AND (
+                    source = 'yc_companies'
+                    OR round_type ILIKE '%seed%'
+                    OR round_type ILIKE '%angel%'
+                    OR round_type ILIKE '%pre-seed%'
+                    OR round_type ILIKE '%accelerator%'
+                )
+            ORDER BY announced_date DESC
+            LIMIT 100
+        """)
+        seed_rounds = cursor.fetchall()
+
+    # Último fallback: qualquer funding recente
+    if not seed_rounds:
+        cursor.execute("""
+            SELECT
+                company_name,
+                sector,
+                amount_usd,
+                valuation_usd,
+                round_type,
+                announced_date,
+                investors,
+                country,
+                source
             FROM sofia.funding_rounds
             WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
             ORDER BY announced_date DESC
-            LIMIT 20
+            LIMIT 50
         """)
         seed_rounds = cursor.fetchall()
 
@@ -197,15 +236,21 @@ def find_patents(conn, sector):
 def generate_report(seed_rounds, tech_stack, conn):
     """Gera relatório completo"""
 
+    # Separar rounds com e sem amount_usd
+    rounds_with_amount = [r for r in seed_rounds if r.get('amount_usd') and r['amount_usd'] > 0]
+    rounds_without_amount = [r for r in seed_rounds if not r.get('amount_usd') or r['amount_usd'] == 0]
+
     # Determinar qual filtro foi usado
-    if seed_rounds:
-        max_amount = max(r['amount_usd'] for r in seed_rounds) / 1e6
+    if rounds_with_amount:
+        max_amount = max(r['amount_usd'] for r in rounds_with_amount) / 1e6
         if max_amount < 10:
-            filter_desc = "(<$10M - Seed/Angel only)"
+            filter_desc = "(<$10M - Seed/Angel with known amounts)"
         elif max_amount < 50:
-            filter_desc = "(<$50M - Early-stage)"
+            filter_desc = "(<$50M - Early-stage with known amounts)"
         else:
-            filter_desc = "(All recent funding - fallback)"
+            filter_desc = "(Recent funding rounds)"
+    elif rounds_without_amount:
+        filter_desc = "(YC batches & early-stage rounds - amounts not disclosed)"
     else:
         filter_desc = "(No data available)"
 
@@ -225,18 +270,27 @@ Conectando: Funding → Papers → Universities → Tech Stack → Patents
 {'-'*80}
 
 Total de rounds encontrados: {len(seed_rounds)}
+   • With disclosed amount: {len(rounds_with_amount)}
+   • YC/undisclosed: {len(rounds_without_amount)}
 """
 
-    if seed_rounds:
-        avg_ticket = sum(r['amount_usd'] for r in seed_rounds) / len(seed_rounds) / 1e6
-        min_ticket = min(r['amount_usd'] for r in seed_rounds) / 1e6
-        max_ticket = max(r['amount_usd'] for r in seed_rounds) / 1e6
-        report += f"""Ticket médio: ${avg_ticket:.2f}M
+    if rounds_with_amount:
+        avg_ticket = sum(r['amount_usd'] for r in rounds_with_amount) / len(rounds_with_amount) / 1e6
+        min_ticket = min(r['amount_usd'] for r in rounds_with_amount) / 1e6
+        max_ticket = max(r['amount_usd'] for r in rounds_with_amount) / 1e6
+        report += f"""
+Ticket médio (disclosed): ${avg_ticket:.2f}M
 Range: ${min_ticket:.2f}M - ${max_ticket:.2f}M
-
-💡 Nota: Filtro ajustado automaticamente para capturar dados disponíveis
 """
-    else:
+
+    if rounds_without_amount:
+        report += f"""
+💡 Note: {len(rounds_without_amount)} rounds don't have disclosed amounts
+   Sources: YC batches (accelerator), early-stage stealth mode
+   These indicate early-stage activity but amounts are not public yet
+"""
+
+    if not seed_rounds:
         report += """
 ⚠️  Nenhum funding encontrado nos últimos 12 meses.
 💡 Possíveis razões:
@@ -263,15 +317,20 @@ Recomendações:
     for round_data in seed_rounds:
         country = round_data.get('country', 'Unknown')
         geo_analysis[country]['count'] += 1
-        geo_analysis[country]['total'] += round_data['amount_usd']
-        if round_data['sector']:
+        if round_data.get('amount_usd') and round_data['amount_usd'] > 0:
+            geo_analysis[country]['total'] += round_data['amount_usd']
+        if round_data.get('sector'):
             geo_analysis[country]['sectors'].add(round_data['sector'])
 
     # Ordenar por número de deals
     top_countries = sorted(geo_analysis.items(), key=lambda x: x[1]['count'], reverse=True)[:10]
 
     for country, data in top_countries:
-        report += f"   {country:20s} | {data['count']:2d} deals | ${data['total']/1e6:.1f}M total\n"
+        country_str = str(country) if country else 'Unknown'
+        if data['total'] > 0:
+            report += f"   {country_str:20s} | {data['count']:2d} deals | ${data['total']/1e6:.1f}M total\n"
+        else:
+            report += f"   {country_str:20s} | {data['count']:2d} deals | (amounts undisclosed)\n"
         if data['sectors']:
             top_sectors = list(data['sectors'])[:3]
             report += f"      → {', '.join(top_sectors)}\n"
@@ -285,9 +344,10 @@ Recomendações:
     sector_analysis = defaultdict(lambda: {'count': 0, 'total': 0, 'companies': [], 'countries': set()})
 
     for round_data in seed_rounds:
-        sector = round_data['sector'] or 'Other'
+        sector = round_data.get('sector') or 'Other'
         sector_analysis[sector]['count'] += 1
-        sector_analysis[sector]['total'] += round_data['amount_usd']
+        if round_data.get('amount_usd') and round_data['amount_usd'] > 0:
+            sector_analysis[sector]['total'] += round_data['amount_usd']
         sector_analysis[sector]['companies'].append(round_data['company_name'])
         if round_data.get('country'):
             sector_analysis[sector]['countries'].add(round_data['country'])
@@ -296,8 +356,12 @@ Recomendações:
 
     for sector, data in top_sectors:
         report += f"   • {sector}\n"
-        report += f"     {data['count']} startups | ${data['total']/1e6:.1f}M total | Avg ${data['total']/data['count']/1e6:.2f}M\n"
-        report += f"     Países: {', '.join(list(data['countries'])[:5])}\n"
+        if data['total'] > 0:
+            report += f"     {data['count']} startups | ${data['total']/1e6:.1f}M total | Avg ${data['total']/data['count']/1e6:.2f}M\n"
+        else:
+            report += f"     {data['count']} startups | (amounts undisclosed)\n"
+        if data['countries']:
+            report += f"     Países: {', '.join(list(data['countries'])[:5])}\n"
 
         # Tentar encontrar papers relacionados
         papers = find_related_papers(conn, '', sector)
@@ -323,17 +387,24 @@ Recomendações:
     report += f"\n{'='*80}\n\n"
 
     # Top Deals com contexto
-    report += f"🔥 TOP 20 SEED/ANGEL ROUNDS (Últimos 12 meses)\n{'-'*80}\n\n"
+    report += f"🔥 TOP 20 EARLY-STAGE ROUNDS (Últimos 12 meses)\n{'-'*80}\n\n"
 
     for idx, round_data in enumerate(seed_rounds[:20], 1):
         company = round_data['company_name']
-        sector = round_data['sector'] or 'N/A'
-        amount = round_data['amount_usd'] / 1e6
+        sector = round_data.get('sector') or 'N/A'
         country = round_data.get('country', 'Unknown')
-        date = round_data['announced_date']
+        date = round_data.get('announced_date', 'N/A')
+        round_type = round_data.get('round_type', 'N/A')
+        source = round_data.get('source', 'N/A')
 
         report += f"{idx:2d}. {company}\n"
-        report += f"    💰 ${amount:.2f}M | {sector} | {country} | {date}\n"
+
+        if round_data.get('amount_usd') and round_data['amount_usd'] > 0:
+            amount = round_data['amount_usd'] / 1e6
+            report += f"    💰 ${amount:.2f}M | {round_type} | {sector} | {country} | {date}\n"
+        else:
+            report += f"    🎯 {round_type} | {sector} | {country} | {date} | [{source}]\n"
+            report += f"    💡 Amount undisclosed (early-stage/stealth)\n"
 
         # Investors
         if round_data.get('investors'):

@@ -3,9 +3,9 @@
 💎 EARLY-STAGE DEEP DIVE - Sofia Pulse
 ================================================================================
 
-Generated: 2025-11-20 03:16:26
+Generated: 2026-01-14 16:25:45
 
-Análise de startups SEED/ANGEL (<$10M) dos últimos 12 meses
+Análise de startups dos últimos 12 meses (<$50M - Early-stage with known amounts)
 Conectando: Funding → Papers → Universities → Tech Stack → Patents
 
 ================================================================================
@@ -13,21 +13,29 @@ Conectando: Funding → Papers → Universities → Tech Stack → Patents
 📊 RESUMO EXECUTIVO
 --------------------------------------------------------------------------------
 
-Total de rounds seed/angel: 0
+Total de rounds encontrados: 3
+   • With disclosed amount: 3
+   • YC/undisclosed: 0
 
-⚠️  Nenhum round seed/angel (<$10M) encontrado no período.
-💡 Ajuste o filtro de amount_usd ou período para encontrar deals menores.
+Ticket médio (disclosed): $25.00M
+Range: $25.00M - $25.00M
 
 ================================================================================
 
 🌍 GEOGRAFIA - ONDE ESTÃO OS FOUNDERS?
 --------------------------------------------------------------------------------
 
+   Unknown              |  3 deals | $75.0M total
+
 
 ================================================================================
 
 🎯 SETORES EMERGENTES
 --------------------------------------------------------------------------------
+
+   • Other
+     3 startups | $75.0M total | Avg $25.00M
+     📄 Papers relacionados: 5 publicações recentes
 
 
 ================================================================================
@@ -37,11 +45,38 @@ Total de rounds seed/angel: 0
 
 Baseado em análise de repos GitHub trending:
 
+    1. TypeScript           | 180 repos | 4,925,550 stars
+    2. Python               | 138 repos | 3,006,653 stars
+    3. JavaScript           |  53 repos | 1,937,187 stars
+    4. Go                   |  20 repos | 881,887 stars
+    5. Java                 |  24 repos | 774,147 stars
+    6. C++                  |  11 repos | 646,247 stars
+    7. Rust                 |  18 repos | 502,125 stars
+    8. HTML                 |  13 repos | 472,096 stars
+    9. Markdown             |   1 repos | 453,367 stars
+   10. C                    |  12 repos | 358,621 stars
+   11. PHP                  |  19 repos | 355,322 stars
+   12. Jupyter Notebook     |   4 repos | 294,557 stars
+   13. Vue                  |  10 repos | 239,873 stars
+   14. C#                   |   5 repos | 229,423 stars
+   15. Svelte               |   5 repos | 212,099 stars
 
 ================================================================================
 
-🔥 TOP 20 SEED/ANGEL ROUNDS (Últimos 12 meses)
+🔥 TOP 20 EARLY-STAGE ROUNDS (Últimos 12 meses)
 --------------------------------------------------------------------------------
+
+ 1. Superorganism
+    💰 $25.00M | VC Funding | N/A | None | 2026-01-13
+    📄 1 paper(s) relacionado(s) no ArXiv
+
+ 2. Converge Bio
+    💰 $25.00M | Series A | N/A | None | 2026-01-13
+    📄 1 paper(s) relacionado(s) no ArXiv
+
+ 3. Flutterwave
+    💰 $25.00M | Acquisition | N/A | None | 2026-01-05
+    📄 1 paper(s) relacionado(s) no ArXiv
 
 
 ================================================================================
@@ -51,7 +86,14 @@ Baseado em análise de repos GitHub trending:
 
 🎯 OPORTUNIDADES:
 
+   • Other: Apenas 3 startups
+     → Oportunidade de entrar em mercado não saturado
+     → Ticket médio $25.00M indica validação inicial
+
 🌍 HUBS EMERGENTES:
+
+   • None: 3 deals
+     → Hub emergente para 
 
 
 ================================================================================

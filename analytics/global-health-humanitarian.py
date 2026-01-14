@@ -20,12 +20,15 @@ import psycopg2
 from datetime import datetime
 
 def get_connection():
+    from dotenv import load_dotenv
+    load_dotenv()
+
     return psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST', 'localhost'),
-        port=os.getenv('POSTGRES_PORT', '5432'),
-        dbname=os.getenv('POSTGRES_DB', 'sofia'),
-        user=os.getenv('POSTGRES_USER', 'postgres'),
-        password=os.getenv('POSTGRES_PASSWORD', '')
+        host=os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', 'localhost'),
+        port=os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT', '5432'),
+        dbname=os.getenv('POSTGRES_DB') or os.getenv('DB_NAME', 'sofia_db'),
+        user=os.getenv('POSTGRES_USER') or os.getenv('DB_USER', 'sofia'),
+        password=os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD', '')
     )
 
 def main():
@@ -178,20 +181,29 @@ def main():
         report_lines.append("")
 
         if count > 0:
-            # Crisis areas
+            # Crisis areas - show most recent datasets by organization
             cur.execute("""
-                SELECT country_codes[1] as country, dataset_name as indicator, value, year, source
+                SELECT
+                    COALESCE(country_codes[1], 'Global') as country,
+                    title,
+                    organization,
+                    num_resources,
+                    total_downloads,
+                    date_modified
                 FROM sofia.hdx_humanitarian_data
-                ORDER BY year DESC, value DESC
+                WHERE date_modified IS NOT NULL
+                ORDER BY date_modified DESC, total_downloads DESC
                 LIMIT 20
             """)
             rows = cur.fetchall()
             if rows:
-                report_lines.append("🌍 HUMANITARIAN INDICATORS:")
+                report_lines.append("🌍 RECENT HUMANITARIAN DATASETS:")
                 report_lines.append("-" * 60)
-                for country, indicator, value, year, source in rows:
-                    src = source[:15] if source else "HDX"
-                    report_lines.append(f"  • {country}: {indicator[:25]} = {value:,.0f} ({year}, {src})")
+                for country, title, org, resources, downloads, date_mod in rows:
+                    org_str = org[:20] if org else "Unknown"
+                    date_str = date_mod.strftime('%Y-%m-%d') if date_mod else "N/A"
+                    report_lines.append(f"  • {country}: {title[:40]}")
+                    report_lines.append(f"    By: {org_str} | Resources: {resources} | Downloads: {downloads:,} | {date_str}")
                 report_lines.append("")
 
     except Exception as e:
@@ -258,7 +270,7 @@ def main():
     print(report_text)
 
     output_path = "analytics/global-health-humanitarian.txt"
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(report_text)
     print(f"\n✅ Report saved to: {output_path}")
 

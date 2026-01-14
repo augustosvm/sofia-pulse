@@ -3,7 +3,9 @@
 ================================================================================
 TRADE & AGRICULTURE INTELLIGENCE
 ================================================================================
-Sources: WTO, FAO, UN SDG
+Sources:
+- ComexStat (Brazilian Trade - MDIC): Import/export data
+- FAO (Food and Agriculture Organization): Agricultural indicators
 ================================================================================
 """
 
@@ -12,12 +14,15 @@ import psycopg2
 from datetime import datetime
 
 def get_connection():
+    from dotenv import load_dotenv
+    load_dotenv()
+
     return psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST', 'localhost'),
-        port=os.getenv('POSTGRES_PORT', '5432'),
-        dbname=os.getenv('POSTGRES_DB', 'sofia'),
-        user=os.getenv('POSTGRES_USER', 'postgres'),
-        password=os.getenv('POSTGRES_PASSWORD', '')
+        host=os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', 'localhost'),
+        port=os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT', '5432'),
+        dbname=os.getenv('POSTGRES_DB') or os.getenv('DB_NAME', 'sofia_db'),
+        user=os.getenv('POSTGRES_USER') or os.getenv('DB_USER', 'sofia'),
+        password=os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD', '')
     )
 
 def main():
@@ -31,22 +36,49 @@ def main():
     report_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     report_lines.append("")
 
-    # WTO Trade
+    # ComexStat Trade (Brazil)
     report_lines.append("=" * 80)
-    report_lines.append("🌐 WTO - WORLD TRADE")
+    report_lines.append("🌐 COMEXSTAT - BRAZILIAN TRADE")
     report_lines.append("=" * 80)
     try:
-        cur.execute("SELECT COUNT(*) FROM sofia.wto_trade_data")
+        cur.execute("SELECT COUNT(*) FROM sofia.comexstat_trade")
         count = cur.fetchone()[0]
         report_lines.append(f"Records: {count:,}")
         if count > 0:
-            cur.execute("SELECT reporter_name, indicator_name, value, year FROM sofia.wto_trade_data WHERE value IS NOT NULL ORDER BY value DESC LIMIT 20")
-            for country, ind, val, year in cur.fetchall():
-                ind_str = ind[:30] if ind else "N/A"
-                report_lines.append(f"  • {country}: {ind_str} = {float(val):,.2f} ({year})")
+            # Top exports
+            cur.execute("""
+                SELECT ncm_description, value_usd, period, country_name
+                FROM sofia.comexstat_trade
+                WHERE value_usd IS NOT NULL AND flow = 'export'
+                ORDER BY value_usd DESC
+                LIMIT 10
+            """)
+            rows = cur.fetchall()
+            if rows:
+                report_lines.append("")
+                report_lines.append("📤 TOP BRAZILIAN EXPORTS:")
+                report_lines.append("-" * 60)
+                for product, value, period, country in rows:
+                    report_lines.append(f"  • {product[:40]} → {country}: ${float(value):,.0f} ({period})")
+
+            # Top imports
+            cur.execute("""
+                SELECT ncm_description, value_usd, period, country_name
+                FROM sofia.comexstat_trade
+                WHERE value_usd IS NOT NULL AND flow = 'import'
+                ORDER BY value_usd DESC
+                LIMIT 10
+            """)
+            rows = cur.fetchall()
+            if rows:
+                report_lines.append("")
+                report_lines.append("📥 TOP BRAZILIAN IMPORTS:")
+                report_lines.append("-" * 60)
+                for product, value, period, country in rows:
+                    report_lines.append(f"  • {product[:40]} ← {country}: ${float(value):,.0f} ({period})")
     except Exception as e:
         conn.rollback()
-        report_lines.append(f"⚠️ WTO error: {e}")
+        report_lines.append(f"⚠️ ComexStat error: {e}")
     report_lines.append("")
 
     # FAO Agriculture
@@ -67,22 +99,15 @@ def main():
         report_lines.append(f"⚠️ FAO error: {e}")
     report_lines.append("")
 
-    # UN SDG
+    # Add insights section
     report_lines.append("=" * 80)
-    report_lines.append("🎯 UN SDG - SUSTAINABLE DEVELOPMENT GOALS")
+    report_lines.append("💡 TRADE & AGRICULTURE INSIGHTS")
     report_lines.append("=" * 80)
-    try:
-        cur.execute("SELECT COUNT(*) FROM sofia.sdg_indicators")
-        count = cur.fetchone()[0]
-        report_lines.append(f"Records: {count:,}")
-        if count > 0:
-            cur.execute("SELECT geo_area_name, goal, indicator_name, value, time_period FROM sofia.sdg_indicators WHERE value IS NOT NULL ORDER BY time_period DESC LIMIT 20")
-            for country, goal, ind, val, year in cur.fetchall():
-                ind_str = ind[:25] if ind else "N/A"
-                report_lines.append(f"  • {country} (SDG {goal}): {ind_str} = {float(val):.2f} ({year})")
-    except Exception as e:
-        conn.rollback()
-        report_lines.append(f"⚠️ SDG error: {e}")
+    report_lines.append("")
+    report_lines.append("FOR BUSINESS INTELLIGENCE:")
+    report_lines.append("• Brazilian exports = Supply chain opportunities")
+    report_lines.append("• Agricultural production = Food security & pricing trends")
+    report_lines.append("• Trade balance = Economic stability indicators")
     report_lines.append("")
 
     cur.close()
@@ -90,7 +115,7 @@ def main():
 
     report_text = "\n".join(report_lines)
     print(report_text)
-    with open("analytics/trade-agriculture-intelligence.txt", 'w') as f:
+    with open("analytics/trade-agriculture-intelligence.txt", 'w', encoding='utf-8') as f:
         f.write(report_text)
     print("\n✅ Saved: trade-agriculture-intelligence.txt")
 

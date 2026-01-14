@@ -65,12 +65,12 @@ Keywords: series a/b/c/d/e, seed, pre-seed, ipo, acquisition
 
 **Próximos Passos**:
 - ✅ TechCrunch funcionando (TypeScript)
+- ✅ Crunchbase implementado (TypeScript - precisa API key)
 - ⏳ YC Companies precisa fix (Python - metadata error)
 - ⏳ Product Hunt (Python)
 - ⏳ SEC EDGAR (Python)
-- ⏳ Crunchbase (TypeScript - precisa criar)
 
-**Status**: ✅ FUNCIONANDO - Early-Stage Deep Dive terá dados reais em breve!
+**Status**: ✅ FUNCIONANDO - Crunchbase pronto para coletar após configurar API key!
 
 ---
 
@@ -206,13 +206,16 @@ python3 analytics/catho-jobs-intelligence.py
 
 **O que foi implementado**:
 
-1. **Crunchbase Free API** (NOVO!) 💰
+1. **Crunchbase Free API** (✅ IMPLEMENTED! 14 Jan 2026) 💰
    - 15 funding rounds/dia = 450/mês (buffer para 500 limit FREE tier)
    - Series A-E, Seed, Pre-Seed, Venture
-   - TypeScript config: `scripts/configs/funding-config.ts` (line 123-187)
+   - TypeScript collector: `scripts/collect.ts crunchbase`
+   - TypeScript config: `scripts/configs/funding-config.ts` (line 140-204)
+   - Test script: `scripts/test-crunchbase-collector.ts`
+   - Instructions: `GET_CRUNCHBASE_API_KEY.md`
    - Schedule: Diário 12:00 UTC
    - Source: crunchbase
-   - Requires: CRUNCHBASE_API_KEY
+   - Status: ✅ Code ready, needs CRUNCHBASE_API_KEY
 
 2. **TechCrunch RSS** (NOVO!) 📰
    - Funding news com NLP extraction (company, amount, round type)
@@ -244,12 +247,13 @@ python3 analytics/catho-jobs-intelligence.py
    - Source: producthunt
 
 **Integração Completa**:
-- ✅ Todos os 5 collectors no crontab com horários distribuídos
+- ✅ Todos os 5 collectors configurados (4 ativos + 1 precisa API key)
 - ✅ Padrão TypeScript config seguido (via `scripts/collect.ts`)
 - ✅ Dados unificados em `sofia.funding_rounds` (separado por `source`)
 - ✅ FK para `sofia.organizations` (get_or_create_organization)
 - ✅ Geographic normalization (city_id, country_id)
 - ✅ TechCrunch testado e funcionando (3 rounds coletados)
+- ✅ Crunchbase implementado e testável (precisa API key gratuita)
 
 **Volume Esperado**:
 - **ANTES**: 99 deals/365d (dados antigos, ~0.3 deals/dia)

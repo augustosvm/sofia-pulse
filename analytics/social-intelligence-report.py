@@ -23,12 +23,15 @@ import psycopg2
 from datetime import datetime
 
 def get_connection():
+    from dotenv import load_dotenv
+    load_dotenv()
+
     return psycopg2.connect(
-        host=os.getenv('POSTGRES_HOST', 'localhost'),
-        port=os.getenv('POSTGRES_PORT', '5432'),
-        dbname=os.getenv('POSTGRES_DB', 'sofia'),
-        user=os.getenv('POSTGRES_USER', 'postgres'),
-        password=os.getenv('POSTGRES_PASSWORD', '')
+        host=os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', 'localhost'),
+        port=os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT', '5432'),
+        dbname=os.getenv('POSTGRES_DB') or os.getenv('DB_NAME', 'sofia_db'),
+        user=os.getenv('POSTGRES_USER') or os.getenv('DB_USER', 'sofia'),
+        password=os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD', '')
     )
 
 def main():
@@ -325,18 +328,18 @@ def main():
 
         if count2 > 0:
             cur.execute("""
-                SELECT sport, region, country, participation_rate, year
+                SELECT sport, region, country_name, popularity_level
                 FROM sofia.sports_regional
-                WHERE participation_rate IS NOT NULL
-                ORDER BY participation_rate DESC
+                WHERE country_name IS NOT NULL AND popularity_level IS NOT NULL
+                ORDER BY popularity_level DESC, sport
                 LIMIT 15
             """)
             rows = cur.fetchall()
             if rows:
-                report_lines.append("📊 SPORTS PARTICIPATION BY REGION:")
+                report_lines.append("📊 SPORTS POPULARITY BY REGION:")
                 report_lines.append("-" * 60)
-                for sport, region, country, rate, year in rows:
-                    report_lines.append(f"  • {sport}: {country} ({region}) - {rate:.1f}%")
+                for sport, region, country, popularity in rows:
+                    report_lines.append(f"  • {sport}: {country} ({region}) - {popularity}")
                 report_lines.append("")
 
     except Exception as e:
@@ -375,7 +378,7 @@ def main():
     print(report_text)
 
     output_path = "analytics/social-intelligence-report.txt"
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(report_text)
     print(f"\n✅ Report saved to: {output_path}")
 
