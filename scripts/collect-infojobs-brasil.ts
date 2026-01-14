@@ -2,8 +2,8 @@
 /**
  * InfoJobs Brasil Collector - Sofia Pulse
  *
- * Coleta vagas tech do InfoJobs Brasil via scraping.
- * A API oficial requer OAuth2, então usamos scraping público.
+ * Coleta vagas tech do InfoJobs Brasil via Puppeteer (headless browser).
+ * A API oficial requer OAuth2, então usamos scraping com browser.
  *
  * Features:
  * - Extrai salário quando disponível
@@ -13,10 +13,9 @@
  * - Normaliza localização (city_id, state_id, country_id)
  */
 
-import axios from 'axios';
+import puppeteer from 'puppeteer';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
-import * as cheerio from 'cheerio';
 import { normalizeLocation, getOrCreateCity } from './shared/geo-helpers.js';
 import { getOrCreateOrganization } from './shared/org-helpers.js';
 
@@ -32,10 +31,10 @@ const dbConfig = {
 
 // Keywords tech em português
 const KEYWORDS = [
-  'desenvolvedor', 'programador', 'engenheiro-de-software', 'analista-de-sistemas',
-  'frontend', 'backend', 'fullstack', 'devops', 'data-scientist', 'data-engineer',
-  'qa', 'tester', 'mobile', 'android', 'ios', 'react', 'java', 'python', 'node',
-  'cloud', 'aws', 'azure', 'seguranca-da-informacao', 'tech-lead', 'scrum-master',
+  'desenvolvedor', 'programador', 'engenheiro de software', 'analista de sistemas',
+  'frontend', 'backend', 'fullstack', 'devops', 'data scientist', 'data engineer',
+  'qa', 'mobile', 'react', 'java', 'python', 'node', 'cloud', 'aws', 'azure',
+  'segurança da informação', 'tech lead', 'scrum master',
 ];
 
 // Brazilian states
@@ -69,7 +68,6 @@ interface InfoJobsJob {
   description: string;
   salary: string | null;
   url: string;
-  postedDate: string | null;
 }
 
 function extractSkills(text: string): string[] {
@@ -165,105 +163,102 @@ function parseLocation(location: string): { city: string | null; state: string |
 
 async function scrapeInfoJobs(keyword: string): Promise<InfoJobsJob[]> {
   const jobs: InfoJobsJob[] = [];
+  let browser;
 
   try {
-    // InfoJobs search URL
-    const url = `https://www.infojobs.com.br/empregos.aspx?palabra=${encodeURIComponent(keyword)}&Pagina=1`;
-
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-      },
-      timeout: 30000,
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=1920x1080',
+      ],
     });
 
-    const $ = cheerio.load(response.data);
+    const page = await browser.newPage();
 
-    // Parse job listings - InfoJobs uses specific CSS classes
-    $('.element-list').each((_, element) => {
-      try {
-        const $job = $(element);
+    // Set user agent
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-        const title = $job.find('.h2-blue, .title-vaga').text().trim();
-        const company = $job.find('.text-body, .empresa').text().trim();
-        const location = $job.find('.location, .local').text().trim();
-        const salary = $job.find('.salary, .salario').text().trim();
-        const description = $job.find('.description, .descricao').text().trim();
-        const link = $job.find('a').first().attr('href') || '';
+    // Navigate to search page
+    const url = `https://www.infojobs.com.br/vagas-de-emprego-${keyword.replace(/\s+/g, '-')}.aspx`;
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
-        if (!title) return;
+    // Wait for job listings to load
+    await page.waitForSelector('[data-qa="vacancy-item"], .ij-Box-root, .vacante', { timeout: 10000 }).catch(() => {});
 
-        // Generate unique ID
-        const id = `infojobs-${Buffer.from(link || title + company).toString('base64').substring(0, 20)}`;
+    // Extract job data
+    const jobsData = await page.evaluate(() => {
+      const items: any[] = [];
 
-        const { city, state } = parseLocation(location);
+      // Try multiple selectors
+      const selectors = [
+        '[data-qa="vacancy-item"]',
+        '.ij-Box-root',
+        '.vacante',
+        'article',
+        '[class*="vacancy"]',
+        '[class*="offer"]',
+      ];
 
-        jobs.push({
-          id,
-          title,
-          company: company || 'Confidencial',
-          location,
-          city,
-          state,
-          description,
-          salary,
-          url: link.startsWith('http') ? link : `https://www.infojobs.com.br${link}`,
-          postedDate: null,
-        });
-      } catch (e) {
-        // Skip malformed job entries
-      }
-    });
+      for (const selector of selectors) {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > 0) {
+          elements.forEach((el) => {
+            const titleEl = el.querySelector('[data-qa="vacancy-title"], h2, h3, .title, [class*="title"]');
+            const companyEl = el.querySelector('[data-qa="vacancy-company"], [class*="company"], [class*="empresa"]');
+            const locationEl = el.querySelector('[data-qa="vacancy-location"], [class*="location"], [class*="local"]');
+            const salaryEl = el.querySelector('[data-qa="vacancy-salary"], [class*="salary"], [class*="salario"]');
+            const linkEl = el.querySelector('a[href*="oferta"]') || el.querySelector('a');
 
-    // Also try alternate selector pattern
-    if (jobs.length === 0) {
-      $('[data-test="vacancy-item"], .vacante').each((_, element) => {
-        try {
-          const $job = $(element);
+            const title = titleEl?.textContent?.trim();
+            const company = companyEl?.textContent?.trim();
+            const location = locationEl?.textContent?.trim();
+            const salary = salaryEl?.textContent?.trim();
+            const link = linkEl?.getAttribute('href');
 
-          const title = $job.find('[data-test="vacancy-title"], .titulo').text().trim();
-          const company = $job.find('[data-test="vacancy-company"], .empresa').text().trim();
-          const location = $job.find('[data-test="vacancy-location"], .ubicacion').text().trim();
-          const link = $job.find('a').first().attr('href') || '';
-
-          if (!title) return;
-
-          const id = `infojobs-${Buffer.from(link || title).toString('base64').substring(0, 20)}`;
-          const { city, state } = parseLocation(location);
-
-          jobs.push({
-            id,
-            title,
-            company: company || 'Confidencial',
-            location,
-            city,
-            state,
-            description: '',
-            salary: null,
-            url: link.startsWith('http') ? link : `https://www.infojobs.com.br${link}`,
-            postedDate: null,
+            if (title && title.length > 3) {
+              items.push({ title, company, location, salary, link });
+            }
           });
-        } catch (e) {
-          // Skip malformed entries
+          if (items.length > 0) break;
         }
+      }
+
+      return items;
+    });
+
+    for (const data of jobsData) {
+      const id = `infojobs-${Buffer.from(data.link || data.title + data.company).toString('base64').substring(0, 20)}`;
+      const { city, state } = parseLocation(data.location || '');
+
+      jobs.push({
+        id,
+        title: data.title,
+        company: data.company || 'Confidencial',
+        location: data.location || '',
+        city,
+        state,
+        description: '',
+        salary: data.salary,
+        url: data.link?.startsWith('http') ? data.link : `https://www.infojobs.com.br${data.link || ''}`,
       });
     }
 
   } catch (error: any) {
-    if (error.response?.status === 403 || error.response?.status === 429) {
-      console.log(`   ⚠️  Rate limited for ${keyword}`);
-    } else {
-      console.error(`   ❌ Error scraping ${keyword}: ${error.message}`);
-    }
+    console.error(`   ❌ Error scraping ${keyword}: ${error.message}`);
+  } finally {
+    if (browser) await browser.close();
   }
 
   return jobs;
 }
 
 async function collectInfoJobsBrasil(): Promise<void> {
-  console.log('🇧🇷 InfoJobs Brasil Collector');
+  console.log('🇧🇷 InfoJobs Brasil Collector (Puppeteer)');
   console.log('='.repeat(60));
   console.log(`📋 ${KEYWORDS.length} keywords to search`);
   console.log('');
@@ -313,9 +308,9 @@ async function collectInfoJobsBrasil(): Promise<void> {
               url, platform, organization_id,
               description, salary_min, salary_max, salary_currency, salary_period,
               remote_type, seniority_level, employment_type, skills_required, sector,
-              posted_date, collected_at
+              collected_at
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW())
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())
             ON CONFLICT (job_id, platform) DO UPDATE SET
               title = EXCLUDED.title,
               location = EXCLUDED.location,
@@ -354,8 +349,7 @@ async function collectInfoJobsBrasil(): Promise<void> {
             seniority,
             'full-time',
             skills.length > 0 ? `{${skills.join(',')}}` : null,
-            sector,
-            job.postedDate
+            sector
           ]);
 
           totalSaved++;
@@ -366,8 +360,8 @@ async function collectInfoJobsBrasil(): Promise<void> {
         }
       }
 
-      // Rate limiting - 3 seconds between keywords
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Rate limiting - 5 seconds between keywords (to avoid blocking)
+      await new Promise(resolve => setTimeout(resolve, 5000));
     }
 
     console.log('');
