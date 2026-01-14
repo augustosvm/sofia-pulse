@@ -26,23 +26,24 @@ const dbConfig = {
 const JOOBLE_API_KEY = process.env.JOOBLE_API_KEY;
 
 // Countries to collect from (Jooble supports 70+ countries)
+// API uses single endpoint with location parameter
 const COUNTRIES = [
-    { code: 'br', name: 'Brazil', domain: 'br.jooble.org' },
-    { code: 'us', name: 'United States', domain: 'jooble.org' },
-    { code: 'gb', name: 'United Kingdom', domain: 'uk.jooble.org' },
-    { code: 'de', name: 'Germany', domain: 'de.jooble.org' },
-    { code: 'fr', name: 'France', domain: 'fr.jooble.org' },
-    { code: 'ca', name: 'Canada', domain: 'ca.jooble.org' },
-    { code: 'au', name: 'Australia', domain: 'au.jooble.org' },
-    { code: 'in', name: 'India', domain: 'in.jooble.org' },
-    { code: 'nl', name: 'Netherlands', domain: 'nl.jooble.org' },
-    { code: 'es', name: 'Spain', domain: 'es.jooble.org' },
-    { code: 'it', name: 'Italy', domain: 'it.jooble.org' },
-    { code: 'pt', name: 'Portugal', domain: 'pt.jooble.org' },
-    { code: 'mx', name: 'Mexico', domain: 'mx.jooble.org' },
-    { code: 'ar', name: 'Argentina', domain: 'ar.jooble.org' },
-    { code: 'cl', name: 'Chile', domain: 'cl.jooble.org' },
+    { code: 'br', name: 'Brazil', location: 'Brazil' },
+    { code: 'us', name: 'United States', location: 'United States' },
+    { code: 'gb', name: 'United Kingdom', location: 'United Kingdom' },
+    { code: 'de', name: 'Germany', location: 'Germany' },
+    { code: 'fr', name: 'France', location: 'France' },
+    { code: 'ca', name: 'Canada', location: 'Canada' },
+    { code: 'au', name: 'Australia', location: 'Australia' },
+    { code: 'in', name: 'India', location: 'India' },
+    { code: 'nl', name: 'Netherlands', location: 'Netherlands' },
+    { code: 'es', name: 'Spain', location: 'Spain' },
+    { code: 'pt', name: 'Portugal', location: 'Portugal' },
+    { code: 'mx', name: 'Mexico', location: 'Mexico' },
 ];
+
+// Jooble API endpoint (single global endpoint)
+const JOOBLE_API_URL = 'https://jooble.org/api';
 
 // Keywords for each language
 const KEYWORDS_BY_LANG: Record<string, string[]> = {
@@ -195,14 +196,12 @@ async function collectJoobleJobs() {
 
             for (const keyword of keywordsToUse) {
                 try {
-                    // Jooble API endpoint
-                    const url = `https://${country.domain}/api/${JOOBLE_API_KEY}`;
+                    // Jooble API endpoint (single global endpoint)
+                    const url = `${JOOBLE_API_URL}/${JOOBLE_API_KEY}`;
 
                     const response = await axios.post<JoobleResponse>(url, {
                         keywords: keyword,
-                        location: '',
-                        radius: '',
-                        salary: '',
+                        location: country.location,
                         page: 1
                     }, {
                         headers: {
