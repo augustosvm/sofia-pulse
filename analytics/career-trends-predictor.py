@@ -5,11 +5,16 @@ Prevê tendências de carreira ANTES das empresas
 """
 
 import os
+import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
+
+# Add analytics directory to path for shared imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from shared.tech_normalizer import normalize_tech_name, normalize_tech_dict
 
 load_dotenv()
 
@@ -147,6 +152,15 @@ def analyze_career_trends(conn):
     for row in cur.fetchall():
         if row['concept']:
             openalex_concepts[row['concept']] += row['cited_by_count']
+
+    # Normalize all dictionaries BEFORE cross-referencing (fix: typescript vs TypeScript)
+    github_trends = normalize_tech_dict(github_trends, merge_strategy='sum')
+    paper_trends = normalize_tech_dict(paper_trends, merge_strategy='sum')
+    stackoverflow_trends = normalize_tech_dict(stackoverflow_trends, merge_strategy='sum')
+    npm_trends = normalize_tech_dict(npm_trends, merge_strategy='sum')
+    pypi_trends = normalize_tech_dict(pypi_trends, merge_strategy='sum')
+    openalex_concepts = normalize_tech_dict(dict(openalex_concepts), merge_strategy='sum')
+    hn_mentions = normalize_tech_dict(dict(hn_mentions), merge_strategy='sum')
 
     # Cruzar dados e calcular score
     hot_skills = []

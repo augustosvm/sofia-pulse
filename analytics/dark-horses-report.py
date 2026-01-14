@@ -14,10 +14,15 @@ Critérios:
 """
 
 import os
+import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from dotenv import load_dotenv
+
+# Add analytics directory to path for shared imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from shared.tech_normalizer import normalize_tech_name, normalize_tech_dict
 
 load_dotenv()
 
@@ -98,9 +103,13 @@ def get_dark_horses(conn):
         GROUP BY tech
         ORDER BY mentions DESC;
     """)
-    hn = {r['tech']: r for r in cursor.fetchall()}
+    hn_raw = {r['tech']: r for r in cursor.fetchall()}
 
     cursor.close()
+
+    # Normalize tech names BEFORE lookups (fix: typescript vs TypeScript)
+    github = normalize_tech_dict(github, merge_strategy='sum')
+    hn = normalize_tech_dict(hn_raw, merge_strategy='sum')
 
     # Calcular Dark Horse Score
     dark_horses = []
@@ -145,14 +154,17 @@ def get_dark_horses(conn):
     }
 
     for tech, gh_data in github.items():
-        # Pular linguagens mainstream
-        if tech in mainstream_langs:
+        # Normalize tech name for lookup
+        tech_normalized = normalize_tech_name(tech)
+
+        # Pular linguagens mainstream (check both original and normalized)
+        if tech in mainstream_langs or tech_normalized in mainstream_langs:
             continue
 
-        total_stars = int(gh_data['total_stars'])
-        repo_count = int(gh_data['repo_count'])
-        hn_data = hn.get(tech, {'mentions': 0})
-        hn_mentions = int(hn_data.get('mentions', 0))
+        total_stars = int(gh_data.get('total_stars', 0) if isinstance(gh_data, dict) else gh_data)
+        repo_count = int(gh_data.get('repo_count', 1) if isinstance(gh_data, dict) else 1)
+        hn_data = hn.get(tech_normalized, {})
+        hn_mentions = int(hn_data.get('mentions', 0) if isinstance(hn_data, dict) else 0)
 
         # Dark Horse: Linguagem emergente com tração mas baixa visibilidade
         # Critérios mais estritos: 10k-500k stars (não milhões), múltiplos repos

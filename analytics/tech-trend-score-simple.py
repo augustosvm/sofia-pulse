@@ -36,6 +36,10 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
+# Add analytics directory to path for shared imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from shared.tech_normalizer import normalize_tech_name
+
 load_dotenv()
 
 # ============================================================================
@@ -207,49 +211,7 @@ def get_hackernews_technologies(conn) -> Dict[str, Dict[str, float]]:
     return tech_data
 
 
-def normalize_tech_name(tech: str) -> str:
-    """Normaliza nomes de tecnologias para matching"""
-    # Mapeamento de aliases
-    aliases = {
-        'javascript': 'JavaScript',
-        'typescript': 'TypeScript',
-        'python': 'Python',
-        'rust': 'Rust',
-        'go': 'Go',
-        'golang': 'Go',
-        'java': 'Java',
-        'c++': 'C++',
-        'csharp': 'C#',
-        'c#': 'C#',
-        'ruby': 'Ruby',
-        'php': 'PHP',
-        'swift': 'Swift',
-        'kotlin': 'Kotlin',
-        'elixir': 'Elixir',
-        'react': 'React',
-        'vue': 'Vue',
-        'angular': 'Angular',
-        'svelte': 'Svelte',
-        'nextjs': 'Next.js',
-        'next.js': 'Next.js',
-        'django': 'Django',
-        'flask': 'Flask',
-        'rails': 'Rails',
-        'laravel': 'Laravel',
-        'tensorflow': 'TensorFlow',
-        'pytorch': 'PyTorch',
-        'kubernetes': 'Kubernetes',
-        'docker': 'Docker',
-        'postgres': 'PostgreSQL',
-        'postgresql': 'PostgreSQL',
-        'mongodb': 'MongoDB',
-        'redis': 'Redis',
-        'wasm': 'WebAssembly',
-        'webassembly': 'WebAssembly',
-    }
-
-    tech_lower = tech.lower().strip()
-    return aliases.get(tech_lower, tech)
+# normalize_tech_name is imported from shared.tech_normalizer
 
 
 def calculate_tech_trend_scores(
@@ -268,21 +230,40 @@ def calculate_tech_trend_scores(
     Returns:
         List[(tech_name, score, {metrics})]
     """
-    # Combinar dados
-    all_techs = set(github_data.keys()) | set(hn_data.keys())
+    # Normalizar chaves ANTES de combinar (fix: typescript vs TypeScript)
+    normalized_github = {}
+    for tech, data in github_data.items():
+        norm_key = normalize_tech_name(tech)
+        if norm_key in normalized_github:
+            # Merge data se já existe (soma stars/repos)
+            normalized_github[norm_key]['github_stars'] += data.get('github_stars', 0)
+            normalized_github[norm_key]['github_repos'] += data.get('github_repos', 0)
+        else:
+            normalized_github[norm_key] = data.copy()
+
+    normalized_hn = {}
+    for tech, data in hn_data.items():
+        norm_key = normalize_tech_name(tech)
+        if norm_key in normalized_hn:
+            # Merge data se já existe
+            normalized_hn[norm_key]['hn_mentions'] += data.get('hn_mentions', 0)
+            normalized_hn[norm_key]['hn_points'] += data.get('hn_points', 0)
+        else:
+            normalized_hn[norm_key] = data.copy()
+
+    # Combinar dados normalizados
+    all_techs = set(normalized_github.keys()) | set(normalized_hn.keys())
 
     scores = []
 
-    for tech in all_techs:
-        tech_normalized = normalize_tech_name(tech)
-
-        # GitHub metrics
-        gh = github_data.get(tech, {})
+    for tech_normalized in all_techs:
+        # GitHub metrics (já normalizado)
+        gh = normalized_github.get(tech_normalized, {})
         github_stars = gh.get('github_stars', 0)
         github_repos = gh.get('github_repos', 0)
 
-        # HackerNews metrics
-        hn = hn_data.get(tech, {})
+        # HackerNews metrics (já normalizado)
+        hn = normalized_hn.get(tech_normalized, {})
         hn_points = hn.get('hn_points', 0)
         hn_mentions = hn.get('hn_mentions', 0)
 
@@ -300,7 +281,7 @@ def calculate_tech_trend_scores(
 
         if trend_score > 0:  # Filtrar techs sem dados
             scores.append((
-                tech_normalized,
+                tech_normalized,  # já é o nome normalizado do loop
                 trend_score,
                 {
                     'github_stars': int(github_stars),

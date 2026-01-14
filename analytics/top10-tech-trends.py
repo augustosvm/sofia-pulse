@@ -6,12 +6,17 @@ Combina TODAS as fontes para rankeamento final
 """
 
 import os
+import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from collections import defaultdict
 from dotenv import load_dotenv
 import math
+
+# Add analytics directory to path for shared imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from shared.tech_normalizer import normalize_tech_name, normalize_tech_dict
 
 load_dotenv()
 
@@ -75,7 +80,14 @@ def get_tech_scores(conn):
 
     cursor.close()
 
-    # Normalize
+    # Normalize tech names BEFORE combining (fix: typescript vs TypeScript)
+    github = normalize_tech_dict(github, merge_strategy='sum')
+    hn = normalize_tech_dict(hn, merge_strategy='sum')
+    reddit = normalize_tech_dict(reddit, merge_strategy='sum')
+    npm = normalize_tech_dict(npm, merge_strategy='sum')
+    pypi = normalize_tech_dict(pypi, merge_strategy='sum')
+
+    # Normalize scores
     max_github = max(github.values()) if github else 1
     max_hn = max(hn.values()) if hn else 1
     max_reddit = max(reddit.values()) if reddit else 1

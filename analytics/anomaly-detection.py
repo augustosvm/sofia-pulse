@@ -15,6 +15,7 @@ Alerts for:
 """
 
 import os
+import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
@@ -23,6 +24,10 @@ import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from dotenv import load_dotenv
+
+# Add analytics directory to path for shared imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from shared.tech_normalizer import normalize_tech_name
 
 load_dotenv()
 
@@ -34,60 +39,7 @@ DB_CONFIG = {
     'database': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME') or 'sofia_db',
 }
 
-# ============================================================================
-# TECH NAME NORMALIZATION
-# ============================================================================
-
-TECH_MAPPING = {
-    # AI & Machine Learning
-    'ai': ['llm', 'gpt', 'chatbot', 'chatbots', 'multimodal', 'ai-agents',
-           'machine-learning', 'deep-learning', 'neural', 'transformer'],
-    'computer-vision': ['vision-transformer', 'cnn', 'image-recognition',
-                        'object-detection', 'diffusion-models'],
-    'nlp': ['natural-language', 'nlp', 'text-generation', 'sentiment'],
-    'reinforcement-learning': ['reinforcement-learning', 'rl', 'q-learning'],
-
-    # Mobile & Frontend
-    'mobile': ['swift', 'swiftui', 'ios', 'android', 'flutter', 'react-native', 'macos', 'macos-app'],
-    'web': ['react', 'vue', 'angular', 'frontend', 'javascript', 'typescript', 'nextjs'],
-
-    # Backend & Infrastructure
-    'backend': ['node', 'python', 'django', 'flask', 'fastapi', 'api', 'graphql'],
-    'cloud': ['aws', 'azure', 'gcp', 'kubernetes', 'docker', 'serverless'],
-    'database': ['postgres', 'mysql', 'mongodb', 'redis', 'sql'],
-
-    # Specialized
-    'robotics': ['robotics', 'robot', 'automation'],
-    'blockchain': ['blockchain', 'crypto', 'web3', 'ethereum', 'bitcoin'],
-    'cybersecurity': ['security', 'cybersecurity', 'encryption', 'auth'],
-    'devtools': ['developer-tools', 'devtools', 'cli', 'ide', 'vscode'],
-
-    # Domains
-    'fintech': ['fintech', 'finance', 'payment', 'banking'],
-    'healthtech': ['healthtech', 'health', 'medical', 'biotech'],
-    'edtech': ['edtech', 'education', 'learning'],
-}
-
-def normalize_tech_name(tech_name):
-    """Normalize tech name to common category"""
-    if not tech_name:
-        return None
-
-    tech_lower = tech_name.lower().strip()
-
-    # Direct match
-    for category, terms in TECH_MAPPING.items():
-        if tech_lower in terms or tech_lower == category:
-            return category
-
-    # Partial match (contains)
-    for category, terms in TECH_MAPPING.items():
-        for term in terms:
-            if term in tech_lower or tech_lower in term:
-                return category
-
-    # No match - return original (lowercase)
-    return tech_lower
+# normalize_tech_name is imported from shared.tech_normalizer
 
 # ============================================================================
 # STATISTICAL ANOMALY DETECTION (Z-Score)
