@@ -1,54 +1,146 @@
 ================================================================================
 SOFIA PULSE - CAUSAL INSIGHTS (Machine Learning Enhanced)
 ================================================================================
-Generated: 2025-11-20 03:16:29
+Generated: 2026-01-14 16:51:40
 
 ================================================================================
-🔥 SINAIS FRACOS (GitHub → Funding Prediction)
+1. DATA OVERVIEW
 ================================================================================
 
-(Nenhum sinal fraco detectado)
-================================================================================
-📅 LAG TEMPORAL (Papers → Funding)
-================================================================================
-
-(Aguardando mais dados temporais)
-================================================================================
-🔗 CONVERGÊNCIA DE SETORES
-================================================================================
-
-(Nenhuma convergência forte detectada)
-================================================================================
-🌍 ARBITRAGEM GEOGRÁFICA
-================================================================================
-
-(Nenhuma arbitragem detectada)
-================================================================================
-🤖 ML CORRELATION & REGRESSION (Sklearn)
-================================================================================
-
-(Dados insuficientes para correlação)
-================================================================================
-🎯 SECTOR CLUSTERING (KMeans)
-================================================================================
-
-(Dados insuficientes para clustering)
-================================================================================
-💬 NLP TOPIC EXTRACTION
-================================================================================
-
-(Nenhum tópico detectado)
-================================================================================
-📈 TIME SERIES FORECASTING
-================================================================================
-
-🔮 PREVISÕES (próximos 3 meses):
-
-• Funding (próximos 3 meses):
-  Mês 1: $6.47B
-  Mês 2: $6.91B
-  Mês 3: $7.34B
-  Tendência: CRESCENDO
+Available Data:
+  Funding Rounds: 609
+    Date Range: 2005-06-15 to 2026-01-13
+    Total Capital: $33.31B
+  GitHub Repos: 618
+    Total Stars: 17,643,834
+  Research Papers: 1,027
 
 ================================================================================
-✅ Análise completa com ML!
+2. GITHUB SIGNALS (Weak Signal Detection)
+================================================================================
+
+TOP LANGUAGES (by stars):
+--------------------------------------------------
+  TypeScript        180 repos,    4,925,550 stars
+  Python            138 repos,    3,006,653 stars
+  JavaScript         53 repos,    1,937,187 stars
+  Go                 20 repos,      881,887 stars
+  Java               24 repos,      774,147 stars
+  C++                11 repos,      646,247 stars
+  Rust               18 repos,      502,125 stars
+  HTML               13 repos,      472,096 stars
+
+WEAK SIGNALS (trending but not heavily funded):
+--------------------------------------------------
+  javascript: 3,930,409 stars (STRONG)
+    -> Potential funding opportunity in 3-6 months
+  react: 3,422,678 stars (STRONG)
+    -> Potential funding opportunity in 3-6 months
+  python: 2,757,614 stars (STRONG)
+    -> Potential funding opportunity in 3-6 months
+  typescript: 2,479,786 stars (STRONG)
+    -> Potential funding opportunity in 3-6 months
+  hacktoberfest: 2,313,247 stars (STRONG)
+    -> Potential funding opportunity in 3-6 months
+
+================================================================================
+3. RESEARCH TOPIC ANALYSIS (NLP)
+================================================================================
+
+EMERGING RESEARCH TOPICS (extracted from titles):
+--------------------------------------------------
+  Vision                  60 papers
+  LLM/GPT                 35 papers
+  Robotics                35 papers
+  Reinforcement           29 papers
+  Diffusion               18 papers
+  Agents                  17 papers
+  Medical/Bio              9 papers
+
+PAPER CATEGORIES:
+--------------------------------------------------
+  cs.AI                       260 papers
+  cs.RO                       223 papers
+  cs.CV                       188 papers
+  cs.LG                       182 papers
+  cs.CL                       174 papers
+
+================================================================================
+4. FUNDING PATTERNS
+================================================================================
+
+TOP SECTORS:
+----------------------------------------------------------------------
+Sector                            Deals              Total             Avg
+----------------------------------------------------------------------
+Artificial Intelligence               2          $11300.0M        $5650.0M
+AI Safety                             1           $4000.0M        $4000.0M
+Autonomous Vehicles                   1           $2500.0M        $2500.0M
+Electric Vehicles                    21           $2500.0M         $119.0M
+Fast Fashion E-commerce               1           $2000.0M        $2000.0M
+Defense AI                            1           $1500.0M        $1500.0M
+Battery Manufacturing                 1           $1200.0M        $1200.0M
+Buy Now Pay Later                     1            $800.0M         $800.0M
+Neobank                               1            $750.0M         $750.0M
+Fintech                             102            $750.0M           $7.4M
+
+GEOGRAPHIC DISTRIBUTION:
+--------------------------------------------------
+  USA                  10183 deals ($27289.0M)
+  Singapore                1 deals ($2000.0M)
+  Sweden                   2 deals ($2000.0M)
+  Brazil                   1 deals ($750.0M)
+  Switzerland              1 deals ($650.0M)
+  France                   1 deals ($415.0M)
+
+MONTHLY TREND (recent):
+--------------------------------------------------
+  2026-01:    7 deals, $535.0M
+  2025-12:   26 deals, N/A
+  2025-11:   10 deals, $2750.0M
+  2025-10:    8 deals, $11265.0M
+  2025-09:    6 deals, $4539.0M
+  2025-08:    6 deals, $1950.0M
+
+================================================================================
+5. ML CORRELATION ANALYSIS (Sklearn)
+================================================================================
+
+ML libraries not available (sklearn/scipy).
+
+================================================================================
+6. SECTOR CLUSTERING (KMeans)
+================================================================================
+
+ML libraries not available (sklearn).
+
+================================================================================
+7. TIME SERIES FORECASTING
+================================================================================
+
+ML libraries not available (sklearn).
+
+================================================================================
+8. STRATEGIC INSIGHTS
+================================================================================
+
+FOR INVESTORS:
+--------------------------------------------------
+  - Watch 'javascript' - trending on GitHub but not heavily funded
+  - 'Vision' is hot in research (60 papers)
+  - Top sector: Artificial Intelligence ($11300M, 2 deals)
+
+FOR FOUNDERS:
+--------------------------------------------------
+  - Hot tech stack: TypeScript, Python, JavaScript
+  - Capital flowing to: USA, Singapore, Sweden
+
+FOR TALENT:
+--------------------------------------------------
+  - Learn trending languages from GitHub data
+  - Follow funded sectors for job opportunities
+  - Research topics indicate future skill demands
+
+================================================================================
+Analysis complete!
+================================================================================

@@ -1,813 +1,764 @@
 #!/usr/bin/env python3
 """
-SOFIA PULSE - CAUSAL INSIGHTS com MACHINE LEARNING
-Gera insights PICA conectando TODOS os dados
+================================================================================
+SOFIA PULSE - CAUSAL INSIGHTS (Machine Learning Enhanced)
+================================================================================
+Intelligent cross-data analysis using ML techniques on ALL available data.
+
+Strategy:
+1. Use FULL historical data (not hardcoded time ranges)
+2. Graceful fallback when tables don't exist
+3. Work with whatever data is available
+4. Provide insights even with limited data
+
+Analyses:
+1. Weak Signals: GitHub trends -> Future funding opportunities
+2. Topic Analysis: Research trends from papers
+3. Sector Patterns: Funding by sector/stage
+4. Geographic Intelligence: Where is capital flowing?
+5. ML Correlation: Papers vs Funding correlation
+6. Sector Clustering: Group similar sectors (KMeans)
+7. Time Series: Forecasting with available data
+================================================================================
 """
 
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import defaultdict
-import json
-from dotenv import load_dotenv
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-from scipy.stats import pearsonr
 import re
+from dotenv import load_dotenv
+
+# ML imports with graceful fallback
+try:
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
+    from sklearn.cluster import KMeans
+    from sklearn.preprocessing import StandardScaler
+    from scipy.stats import pearsonr
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    print("Warning: sklearn/scipy not installed. ML features disabled.")
 
 load_dotenv()
 
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST') or 'localhost',
-    'port': int(os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT') or '5432'),
-    'user': os.getenv('POSTGRES_USER') or os.getenv('DB_USER') or 'sofia',
-    'password': os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD') or '',
-    'database': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME') or 'sofia_db',
+    'host': os.getenv('DB_HOST', os.getenv('POSTGRES_HOST', 'localhost')),
+    'port': int(os.getenv('DB_PORT', os.getenv('POSTGRES_PORT', '5432'))),
+    'user': os.getenv('DB_USER', os.getenv('POSTGRES_USER', 'postgres')),
+    'password': os.getenv('DB_PASSWORD', os.getenv('POSTGRES_PASSWORD', '')),
+    'database': os.getenv('DB_NAME', os.getenv('POSTGRES_DB', 'sofia_db')),
 }
 
-# ============================================================================
-# 1. SINAIS FRACOS (Weak Signals) - GitHub → Funding
-# ============================================================================
+def safe_query(cursor, query, params=None, fallback=None):
+    """Execute query with error handling for missing tables"""
+    try:
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        return cursor.fetchall()
+    except Exception as e:
+        cursor.connection.rollback()
+        return fallback if fallback is not None else []
 
-def detect_weak_signals(conn):
-    """
-    Detecta tecnologias com crescimento explosivo ANTES de funding
+def get_data_overview(conn):
+    """Get overview of all available data"""
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    overview = {}
 
-    Lógica:
-    - GitHub stars crescendo >200% últimos 3 meses
-    - Ainda sem funding significativo
-    - = Sinal Fraco de próximo unicórnio
-    """
+    # Funding
+    result = safe_query(cur, """
+        SELECT COUNT(*) as total,
+               MIN(announced_date) as earliest,
+               MAX(announced_date) as latest,
+               SUM(COALESCE(amount_usd, 0)) as total_funding
+        FROM sofia.funding_rounds
+        WHERE announced_date IS NOT NULL
+    """)
+    overview['funding'] = result[0] if result else {'total': 0}
+
+    # GitHub
+    result = safe_query(cur, """
+        SELECT COUNT(*) as total,
+               MIN(collected_at) as earliest,
+               MAX(collected_at) as latest,
+               SUM(COALESCE(stars, 0)) as total_stars
+        FROM sofia.github_trending
+    """)
+    overview['github'] = result[0] if result else {'total': 0}
+
+    # Papers
+    result = safe_query(cur, """
+        SELECT COUNT(*) as total,
+               MIN(published_date) as earliest,
+               MAX(published_date) as latest
+        FROM sofia.arxiv_ai_papers
+    """)
+    overview['papers'] = result[0] if result else {'total': 0}
+
+    cur.close()
+    return overview
+
+def analyze_github_signals(conn):
+    """Analyze GitHub trending for weak signals (technologies without funding yet)"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Technologies trending no GitHub
-    cur.execute("""
-        SELECT
-            unnest(topics) as tech,
-            SUM(stars) as total_stars,
-            COUNT(*) as repo_count,
-            AVG(stars) as avg_stars_per_repo
+    # Get top languages/topics from GitHub
+    languages = safe_query(cur, """
+        SELECT language,
+               COUNT(*) as repo_count,
+               SUM(COALESCE(stars, 0)) as total_stars,
+               AVG(COALESCE(stars, 0)) as avg_stars
         FROM sofia.github_trending
-        WHERE topics IS NOT NULL
-            AND created_at >= CURRENT_DATE - INTERVAL '90 days'
-        GROUP BY tech
-        HAVING SUM(stars) > 1000
+        WHERE language IS NOT NULL
+        GROUP BY language
+        ORDER BY total_stars DESC
+        LIMIT 15
+    """)
+
+    # Get topics from GitHub (if topics column exists)
+    topics = safe_query(cur, """
+        SELECT topic, COUNT(*) as count, SUM(stars) as total_stars
+        FROM (
+            SELECT UNNEST(topics) as topic, stars
+            FROM sofia.github_trending
+            WHERE topics IS NOT NULL
+        ) t
+        GROUP BY topic
         ORDER BY total_stars DESC
         LIMIT 20
     """)
 
-    trending_techs = cur.fetchall()
+    # Get funded sectors for comparison
+    funded_sectors = safe_query(cur, """
+        SELECT LOWER(sector) as sector, COUNT(*) as deals
+        FROM sofia.funding_rounds
+        WHERE sector IS NOT NULL
+        GROUP BY LOWER(sector)
+    """)
+    funded_set = {r['sector'] for r in funded_sectors}
 
-    # Check if there's funding for these techs
+    # Find topics trending on GitHub but not heavily funded
     signals = []
-
-    for tech in trending_techs:
-        # Buscar funding relacionado
-        cur.execute("""
-            SELECT COUNT(*) as deal_count, SUM(amount_usd) as total_funding
-            FROM sofia.funding_rounds
-            WHERE LOWER(company_name) LIKE %s
-                OR LOWER(sector) LIKE %s
-                AND announced_date >= CURRENT_DATE - INTERVAL '180 days'
-        """, (f"%{tech['tech']}%", f"%{tech['tech']}%"))
-
-        funding = cur.fetchone()
-
-        # Sinal Fraco = Alto GitHub + Baixo Funding
-        if tech['total_stars'] > 2000 and (funding['deal_count'] or 0) < 3:
+    for topic in topics:
+        topic_lower = topic['topic'].lower()
+        # Check if this topic has funding
+        is_funded = any(topic_lower in sector for sector in funded_set)
+        if not is_funded and topic['total_stars'] > 1000:
             signals.append({
-                'tech': tech['tech'],
-                'github_stars': int(tech['total_stars']),
-                'repos': int(tech['repo_count']),
-                'funding_deals': int(funding['deal_count'] or 0),
-                'funding_total': float(funding['total_funding'] or 0),
-                'signal_strength': 'FORTE' if tech['total_stars'] > 5000 else 'MÉDIO'
+                'topic': topic['topic'],
+                'stars': int(topic['total_stars'] or 0),
+                'repos': topic['count'],
+                'signal': 'STRONG' if topic['total_stars'] > 10000 else 'MODERATE'
             })
 
-    return signals
+    cur.close()
+    return {'languages': languages, 'topics': topics, 'signals': signals[:10]}
 
-# ============================================================================
-# 2. LAG TEMPORAL (Papers → Funding)
-# ============================================================================
-
-def analyze_temporal_lag(conn):
-    """
-    Descobre LAG entre papers e funding
-
-    Se papers sobre "AI Agents" explodiram em Jan 2024,
-    quando vem o funding? (hipótese: 6-12 meses)
-    """
+def analyze_research_topics(conn):
+    """Analyze research paper topics and keywords"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Papers count por mês
-    cur.execute("""
-        SELECT
-            DATE_TRUNC('month', published_date) as month,
-            COUNT(*) as paper_count
+    # Get paper categories
+    categories = safe_query(cur, """
+        SELECT primary_category as category, COUNT(*) as count
         FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '12 months'
-        GROUP BY month
-        ORDER BY month
+        WHERE primary_category IS NOT NULL
+        GROUP BY primary_category
+        ORDER BY count DESC
+        LIMIT 15
     """)
 
-    papers_timeline = {r['month']: r['paper_count'] for r in cur.fetchall()}
-
-    # Funding count por mês
-    cur.execute("""
-        SELECT
-            DATE_TRUNC('month', announced_date) as month,
-            COUNT(*) as funding_count,
-            SUM(amount_usd) as total_amount
-        FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
-        GROUP BY month
-        ORDER BY month
-    """)
-
-    funding_timeline = {r['month']: {
-        'count': r['funding_count'],
-        'amount': float(r['total_amount'] or 0)
-    } for r in cur.fetchall()}
-
-    # Calcular correlação (básica, pode melhorar com scipy)
-    lags = []
-
-    for month_paper, paper_count in papers_timeline.items():
-        # Checar se 6 meses depois teve funding spike
-        future_month = month_paper + timedelta(days=180)
-
-        if future_month in funding_timeline:
-            funding_data = funding_timeline[future_month]
-
-            # Se papers >100 E funding >$1B = correlação
-            if paper_count > 100 and funding_data['amount'] > 1e9:
-                lags.append({
-                    'paper_month': month_paper.strftime('%Y-%m'),
-                    'paper_count': paper_count,
-                    'funding_month': future_month.strftime('%Y-%m'),
-                    'funding_amount': funding_data['amount'],
-                    'lag_months': 6
-                })
-
-    return lags
-
-# ============================================================================
-# 3. CONVERGÊNCIA DE SETORES
-# ============================================================================
-
-def detect_sector_convergence(conn):
-    """
-    Detecta quando 2+ setores estão convergindo
-
-    Ex: Defense ($2B) + Space (700 launches) + Cybersecurity CVEs
-    = Nova categoria "Space Defense Cyber"
-    """
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    # Top setores de funding
-    cur.execute("""
-        SELECT sector, SUM(amount_usd) as total, COUNT(*) as deals
-        FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '90 days'
-        GROUP BY sector
-        ORDER BY total DESC
-        LIMIT 10
-    """)
-
-    top_sectors = cur.fetchall()
-
-    # Space activity
-    cur.execute("""
-        SELECT COUNT(*) as launches
-        FROM sofia.space_industry
-        WHERE launch_date >= CURRENT_DATE - INTERVAL '90 days'
-    """)
-    space_count = cur.fetchone()['launches']
-
-    # Cybersecurity CVEs
-    cur.execute("""
-        SELECT COUNT(*) as cve_count
-        FROM sofia.cybersecurity_events
-        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
-    """)
-    cve_count = cur.fetchone()['cve_count']
-
-    convergences = []
-
-    # Lógica: Se Defense + Space ativo + CVEs alto = Convergência
-    for sector in top_sectors:
-        if sector['sector'] and 'defense' in sector['sector'].lower() and space_count > 50:
-            convergences.append({
-                'type': 'Defense + Space',
-                'funding': float(sector['total']),
-                'space_launches': space_count,
-                'insight': f"Defense Tech (${sector['total']/1e9:.1f}B) + Space ({space_count} launches) = Oportunidade em Space Defense"
-            })
-
-        if sector['sector'] and 'cyber' in sector['sector'].lower() and cve_count > 500:
-            convergences.append({
-                'type': 'Cybersecurity + High CVE Activity',
-                'funding': float(sector['total']),
-                'cve_count': cve_count,
-                'insight': f"Cybersecurity funding (${sector['total']/1e9:.1f}B) com {cve_count} CVEs = Mercado aquecido"
-            })
-
-    return convergences
-
-# ============================================================================
-# 4. ARBITRAGEM GEOGRÁFICA
-# ============================================================================
-
-def detect_geographic_arbitrage(conn):
-    """
-    Encontra gaps: Research forte MAS funding fraco = Oportunidade
-
-    Ex: Brasil tem 8 universidades fazendo Edge AI, mas zero startups funded
-    """
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    # Universidades por país (via global_universities_progress)
-    cur.execute("""
-        SELECT country_code, COUNT(*) as uni_count
-        FROM sofia.global_universities_progress
-        WHERE country_code IS NOT NULL
-        GROUP BY country_code
-        ORDER BY uni_count DESC
-    """)
-
-    universities_by_country = {r['country_code']: r['uni_count'] for r in cur.fetchall()}
-
-    # Funding by country (using country_code to match universities)
-    cur.execute("""
-        SELECT
-            COALESCE(co.iso_alpha2, LEFT(fr.country, 2)) as country_code,
-            COUNT(*) as deals,
-            SUM(fr.amount_usd) as total_funding
-        FROM sofia.funding_rounds fr
-        LEFT JOIN sofia.countries co ON fr.country_id = co.id
-        WHERE (fr.country_id IS NOT NULL OR fr.country IS NOT NULL)
-        GROUP BY co.iso_alpha2, fr.country
-        ORDER BY total_funding DESC NULLS LAST
+    # Get keywords if available
+    keywords = safe_query(cur, """
+        SELECT keyword, COUNT(*) as count
+        FROM (
+            SELECT UNNEST(keywords) as keyword
+            FROM sofia.arxiv_ai_papers
+            WHERE keywords IS NOT NULL
+        ) k
+        GROUP BY keyword
+        ORDER BY count DESC
         LIMIT 20
     """)
 
-    funding_by_country = {r['country_code']: {
-        'deals': r['deals'],
-        'total': float(r['total_funding'] or 0)
-    } for r in cur.fetchall()}
-
-    gaps = []
-
-    for country, uni_count in universities_by_country.items():
-        funding = funding_by_country.get(country, {'deals': 0, 'total': 0})
-
-        # Gap = Muitas universidades MAS pouco funding
-        if uni_count > 5 and funding['deals'] < 3:
-            gaps.append({
-                'country': country,
-                'universities': uni_count,
-                'funding_deals': funding['deals'],
-                'funding_total': funding['total'],
-                'opportunity': f"{country}: {uni_count} universidades mas apenas {funding['deals']} deals - Arbitragem!"
-            })
-
-    return gaps
-
-# ============================================================================
-# 5. ML CORRELATION & REGRESSION (Sklearn)
-# ============================================================================
-
-def ml_correlation_analysis(conn):
-    """
-    Usa sklearn para encontrar correlações e fazer previsões
-
-    Análise:
-    - Correlação Papers vs Funding (Pearson r)
-    - Regressão Linear para previsão de funding baseado em papers
-    - Score de confiança da previsão
-    """
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    # Buscar dados temporais
-    cur.execute("""
-        SELECT
-            DATE_TRUNC('month', published_date) as month,
-            COUNT(*) as paper_count
-        FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '12 months'
-        GROUP BY month
-        ORDER BY month
+    # Extract topics from titles using regex
+    papers = safe_query(cur, """
+        SELECT title FROM sofia.arxiv_ai_papers
+        WHERE title IS NOT NULL
+        LIMIT 500
     """)
 
-    papers_data = cur.fetchall()
-
-    cur.execute("""
-        SELECT
-            DATE_TRUNC('month', announced_date) as month,
-            COUNT(*) as funding_count,
-            SUM(amount_usd) as total_amount
-        FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
-        GROUP BY month
-        ORDER BY month
-    """)
-
-    funding_data = {r['month']: {'count': r['funding_count'], 'amount': float(r['total_amount'] or 0)} for r in cur.fetchall()}
-
-    # Preparar dados para ML
-    X = []  # Papers count
-    y = []  # Funding amount
-    months = []
-
-    for p in papers_data:
-        month = p['month']
-        # Lag de 6 meses: papers em Jan → funding em Jul
-        future_month = month + timedelta(days=180)
-
-        if future_month in funding_data:
-            X.append([p['paper_count']])
-            y.append([funding_data[future_month]['amount']])
-            months.append((month, future_month))
-
-    if len(X) < 2:
-        return None
-
-    X = np.array(X)
-    y = np.array(y)
-
-    # Regressão Linear
-    model = LinearRegression()
-    model.fit(X, y)
-
-    # Score (R²)
-    score = model.score(X, y)
-
-    # Correlação de Pearson
-    if len(X) > 0:
-        correlation, p_value = pearsonr(X.flatten(), y.flatten())
-    else:
-        correlation, p_value = 0, 1
-
-    # Previsão: Se tivermos N papers este mês, quanto funding em 6 meses?
-    latest_papers = papers_data[-1]['paper_count'] if papers_data else 0
-    predicted_funding = model.predict([[latest_papers]])[0][0] if latest_papers > 0 else 0
-
-    return {
-        'correlation': correlation,
-        'p_value': p_value,
-        'r_squared': score,
-        'latest_papers': latest_papers,
-        'predicted_funding_6m': predicted_funding,
-        'confidence': 'ALTA' if score > 0.7 else 'MÉDIA' if score > 0.4 else 'BAIXA'
+    # Common AI/ML terms to look for
+    tech_patterns = {
+        'LLM/GPT': r'\b(llm|gpt|language model|transformer|bert|chatgpt)\b',
+        'Diffusion': r'\b(diffusion|stable diffusion|imagen|dalle)\b',
+        'Vision': r'\b(vision|image|visual|cnn|yolo|object detection)\b',
+        'Reinforcement': r'\b(reinforcement|rl|reward|policy)\b',
+        'Agents': r'\b(agent|multi-agent|autonomous)\b',
+        'Robotics': r'\b(robot|manipulation|navigation)\b',
+        'Medical/Bio': r'\b(medical|clinical|drug|protein|health)\b',
     }
 
-# ============================================================================
-# 6. SECTOR CLUSTERING (KMeans)
-# ============================================================================
+    topic_counts = defaultdict(int)
+    for paper in papers:
+        title = paper['title'].lower()
+        for topic, pattern in tech_patterns.items():
+            if re.search(pattern, title, re.IGNORECASE):
+                topic_counts[topic] += 1
 
-def cluster_sectors(conn):
-    """
-    Agrupa setores similares usando KMeans
+    extracted_topics = [{'topic': k, 'count': v} for k, v in sorted(topic_counts.items(), key=lambda x: -x[1])]
 
-    Features:
-    - Total funding
-    - Number of deals
-    - Average deal size
-    - Growth rate
-    """
+    cur.close()
+    return {'categories': categories, 'keywords': keywords, 'extracted_topics': extracted_topics}
+
+def analyze_funding_patterns(conn):
+    """Analyze funding patterns by sector, stage, and geography"""
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Dados de funding por setor
-    cur.execute("""
-        SELECT
-            sector,
-            COUNT(*) as deals,
-            SUM(amount_usd) as total_funding,
-            AVG(amount_usd) as avg_deal_size
+    # By sector
+    sectors = safe_query(cur, """
+        SELECT sector,
+               COUNT(*) as deals,
+               SUM(COALESCE(amount_usd, 0)) as total_funding,
+               AVG(COALESCE(amount_usd, 0)) as avg_deal
         FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '90 days'
-            AND sector IS NOT NULL
+        WHERE sector IS NOT NULL
+        GROUP BY sector
+        ORDER BY total_funding DESC
+        LIMIT 15
+    """)
+
+    # By round type
+    stages = safe_query(cur, """
+        SELECT round_type,
+               COUNT(*) as deals,
+               SUM(COALESCE(amount_usd, 0)) as total_funding
+        FROM sofia.funding_rounds
+        WHERE round_type IS NOT NULL
+        GROUP BY round_type
+        ORDER BY total_funding DESC
+        LIMIT 10
+    """)
+
+    # By country
+    countries = safe_query(cur, """
+        SELECT country,
+               COUNT(*) as deals,
+               SUM(COALESCE(amount_usd, 0)) as total_funding
+        FROM sofia.funding_rounds
+        WHERE country IS NOT NULL
+        GROUP BY country
+        ORDER BY total_funding DESC
+        LIMIT 15
+    """)
+
+    # Monthly trend
+    monthly = safe_query(cur, """
+        SELECT DATE_TRUNC('month', announced_date) as month,
+               COUNT(*) as deals,
+               SUM(COALESCE(amount_usd, 0)) as total_funding
+        FROM sofia.funding_rounds
+        WHERE announced_date IS NOT NULL
+        GROUP BY DATE_TRUNC('month', announced_date)
+        ORDER BY month DESC
+        LIMIT 12
+    """)
+
+    cur.close()
+    return {'sectors': sectors, 'stages': stages, 'countries': countries, 'monthly': monthly}
+
+def ml_correlation_analysis(conn):
+    """ML correlation between papers and funding"""
+    if not ML_AVAILABLE:
+        return None
+
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # Papers by month
+    papers_monthly = safe_query(cur, """
+        SELECT DATE_TRUNC('month', published_date) as month,
+               COUNT(*) as count
+        FROM sofia.arxiv_ai_papers
+        WHERE published_date IS NOT NULL
+        GROUP BY DATE_TRUNC('month', published_date)
+        ORDER BY month
+    """)
+
+    # Funding by month
+    funding_monthly = safe_query(cur, """
+        SELECT DATE_TRUNC('month', announced_date) as month,
+               SUM(COALESCE(amount_usd, 0)) as total
+        FROM sofia.funding_rounds
+        WHERE announced_date IS NOT NULL
+        GROUP BY DATE_TRUNC('month', announced_date)
+        ORDER BY month
+    """)
+
+    if len(papers_monthly) < 3 or len(funding_monthly) < 3:
+        cur.close()
+        return None
+
+    # Align data by month
+    papers_dict = {r['month']: r['count'] for r in papers_monthly}
+    funding_dict = {r['month']: float(r['total'] or 0) for r in funding_monthly}
+
+    common_months = set(papers_dict.keys()) & set(funding_dict.keys())
+    if len(common_months) < 3:
+        cur.close()
+        return None
+
+    common_months = sorted(common_months)
+    X = np.array([papers_dict[m] for m in common_months]).reshape(-1, 1)
+    y = np.array([funding_dict[m] for m in common_months])
+
+    # Correlation
+    corr, p_value = pearsonr(X.flatten(), y)
+
+    # Regression
+    model = LinearRegression()
+    model.fit(X, y)
+    r_squared = model.score(X, y)
+
+    # Prediction
+    latest_papers = papers_monthly[-1]['count'] if papers_monthly else 0
+    predicted = model.predict([[latest_papers]])[0] if latest_papers > 0 else 0
+
+    cur.close()
+    return {
+        'correlation': corr,
+        'p_value': p_value,
+        'r_squared': r_squared,
+        'data_points': len(common_months),
+        'latest_papers': latest_papers,
+        'predicted_funding': predicted,
+        'confidence': 'HIGH' if r_squared > 0.7 else 'MEDIUM' if r_squared > 0.4 else 'LOW'
+    }
+
+def cluster_sectors(conn):
+    """Cluster sectors using KMeans"""
+    if not ML_AVAILABLE:
+        return None
+
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    sectors = safe_query(cur, """
+        SELECT sector,
+               COUNT(*) as deals,
+               SUM(COALESCE(amount_usd, 0)) as total_funding,
+               AVG(COALESCE(amount_usd, 0)) as avg_deal
+        FROM sofia.funding_rounds
+        WHERE sector IS NOT NULL AND amount_usd > 0
         GROUP BY sector
         HAVING COUNT(*) >= 2
     """)
 
-    sectors_data = cur.fetchall()
+    cur.close()
 
-    if len(sectors_data) < 3:
-        return []
+    if len(sectors) < 4:
+        return None
 
-    # Preparar features
-    sectors = []
-    features = []
+    # Prepare features
+    sector_names = [s['sector'] for s in sectors]
+    features = np.array([[float(s['total_funding']), float(s['deals']), float(s['avg_deal'])] for s in sectors])
 
-    for s in sectors_data:
-        sectors.append(s['sector'])
-        features.append([
-            float(s['total_funding']),
-            float(s['deals']),
-            float(s['avg_deal_size'])
-        ])
-
-    # Normalizar
+    # Scale
     scaler = StandardScaler()
     features_scaled = scaler.fit_transform(features)
 
-    # KMeans clustering (3 clusters: High/Medium/Low activity)
-    n_clusters = min(3, len(sectors_data))
+    # Cluster
+    n_clusters = min(3, len(sectors))
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-    clusters = kmeans.fit_predict(features_scaled)
+    labels = kmeans.fit_predict(features_scaled)
 
-    # Agrupar resultados
-    result = []
-    for i, sector in enumerate(sectors):
-        result.append({
+    # Group results
+    clusters = defaultdict(list)
+    for i, sector in enumerate(sector_names):
+        clusters[int(labels[i])].append({
             'sector': sector,
-            'cluster': int(clusters[i]),
-            'total_funding': float(sectors_data[i]['total_funding']),
-            'deals': int(sectors_data[i]['deals'])
+            'funding': float(sectors[i]['total_funding']),
+            'deals': int(sectors[i]['deals'])
         })
 
-    # Ordenar por cluster
-    result.sort(key=lambda x: (x['cluster'], -x['total_funding']))
+    # Sort each cluster by funding
+    for cluster_id in clusters:
+        clusters[cluster_id].sort(key=lambda x: -x['funding'])
 
-    return result
+    return dict(clusters)
 
-# ============================================================================
-# 7. NLP TOPIC EXTRACTION
-# ============================================================================
+def forecast_trends(conn):
+    """Forecast future trends using linear regression"""
+    if not ML_AVAILABLE:
+        return None
 
-def extract_topics_nlp(conn):
-    """
-    Extrai tópicos automaticamente de papers usando NLP básico
-
-    Técnica: TF-IDF simplificado + keyword frequency
-    """
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Buscar papers recentes
-    cur.execute("""
-        SELECT title, abstract, keywords
-        FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '90 days'
-        LIMIT 100
-    """)
-
-    papers = cur.fetchall()
-
-    if not papers:
-        return []
-
-    # Contar keywords
-    keyword_freq = defaultdict(int)
-
-    for paper in papers:
-        keywords = paper.get('keywords') or []
-        for kw in keywords:
-            keyword_freq[kw] += 1
-
-    # Extrair termos técnicos dos títulos/abstracts
-    tech_terms = defaultdict(int)
-
-    # Padrões técnicos comuns
-    patterns = [
-        r'\b(transformer|attention|bert|gpt|llm)\b',
-        r'\b(diffusion|gan|vae|autoencoder)\b',
-        r'\b(reinforcement learning|supervised|unsupervised)\b',
-        r'\b(vision|nlp|robotics|speech)\b',
-        r'\b(neural network|deep learning|machine learning)\b',
-        r'\b(quantum|edge|federated|distributed)\b',
-    ]
-
-    for paper in papers:
-        text = f"{paper['title']} {paper['abstract']}".lower()
-
-        for pattern in patterns:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            for match in matches:
-                tech_terms[match.lower()] += 1
-
-    # Top topics
-    topics = []
-
-    # Keywords estruturados
-    for kw, count in sorted(keyword_freq.items(), key=lambda x: -x[1])[:10]:
-        topics.append({
-            'topic': kw,
-            'count': count,
-            'source': 'keywords'
-        })
-
-    # Termos técnicos
-    for term, count in sorted(tech_terms.items(), key=lambda x: -x[1])[:5]:
-        topics.append({
-            'topic': term,
-            'count': count,
-            'source': 'nlp_extraction'
-        })
-
-    return topics
-
-# ============================================================================
-# 8. TIME SERIES FORECASTING
-# ============================================================================
-
-def forecast_time_series(conn):
-    """
-    Previsão para próximos 3-6 meses usando regressão linear simples
-
-    Prevê:
-    - Número de papers
-    - Volume de funding
-    - Tendências de setores
-    """
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    # Histórico de papers (últimos 12 meses)
-    cur.execute("""
-        SELECT
-            DATE_TRUNC('month', published_date) as month,
-            COUNT(*) as paper_count
-        FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '12 months'
-        GROUP BY month
-        ORDER BY month
-    """)
-
-    papers_history = cur.fetchall()
-
-    # Histórico de funding
-    cur.execute("""
-        SELECT
-            DATE_TRUNC('month', announced_date) as month,
-            SUM(amount_usd) as total_funding
+    # Funding by month
+    funding_monthly = safe_query(cur, """
+        SELECT DATE_TRUNC('month', announced_date) as month,
+               SUM(COALESCE(amount_usd, 0)) as total
         FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
-        GROUP BY month
+        WHERE announced_date IS NOT NULL
+        GROUP BY DATE_TRUNC('month', announced_date)
         ORDER BY month
     """)
 
-    funding_history = cur.fetchall()
+    # Papers by month
+    papers_monthly = safe_query(cur, """
+        SELECT DATE_TRUNC('month', published_date) as month,
+               COUNT(*) as count
+        FROM sofia.arxiv_ai_papers
+        WHERE published_date IS NOT NULL
+        GROUP BY DATE_TRUNC('month', published_date)
+        ORDER BY month
+    """)
 
-    predictions = []
+    cur.close()
 
-    # Previsão de Papers
-    if len(papers_history) >= 3:
-        X = np.array([[i] for i in range(len(papers_history))])
-        y = np.array([r['paper_count'] for r in papers_history])
+    forecasts = []
 
-        model = LinearRegression()
-        model.fit(X, y)
-
-        # Próximos 3 meses
-        future_months = []
-        for i in range(1, 4):
-            future_idx = len(papers_history) + i
-            pred = model.predict([[future_idx]])[0]
-            future_months.append(int(max(0, pred)))
-
-        predictions.append({
-            'metric': 'Papers (próximos 3 meses)',
-            'values': future_months,
-            'trend': 'CRESCENDO' if future_months[-1] > papers_history[-1]['paper_count'] else 'ESTÁVEL'
-        })
-
-    # Previsão de Funding
-    if len(funding_history) >= 3:
-        X = np.array([[i] for i in range(len(funding_history))])
-        y = np.array([float(r['total_funding'] or 0) for r in funding_history])
+    # Funding forecast
+    if len(funding_monthly) >= 3:
+        X = np.array(range(len(funding_monthly))).reshape(-1, 1)
+        y = np.array([float(r['total'] or 0) for r in funding_monthly])
 
         model = LinearRegression()
         model.fit(X, y)
 
-        # Próximos 3 meses
-        future_funding = []
-        for i in range(1, 4):
-            future_idx = len(funding_history) + i
-            pred = model.predict([[future_idx]])[0]
-            future_funding.append(max(0, pred))
+        future = [model.predict([[len(funding_monthly) + i]])[0] for i in range(1, 4)]
+        trend = 'GROWING' if future[-1] > y[-1] else 'STABLE'
 
-        predictions.append({
-            'metric': 'Funding (próximos 3 meses)',
-            'values': future_funding,
-            'trend': 'CRESCENDO' if future_funding[-1] > y[-1] else 'ESTÁVEL'
+        forecasts.append({
+            'metric': 'Funding',
+            'current': float(y[-1]),
+            'predictions': [max(0, f) for f in future],
+            'trend': trend
         })
 
-    return predictions
+    # Papers forecast
+    if len(papers_monthly) >= 3:
+        X = np.array(range(len(papers_monthly))).reshape(-1, 1)
+        y = np.array([r['count'] for r in papers_monthly])
 
-# ============================================================================
-# MAIN - Gerar Relatório
-# ============================================================================
+        model = LinearRegression()
+        model.fit(X, y)
+
+        future = [int(max(0, model.predict([[len(papers_monthly) + i]])[0])) for i in range(1, 4)]
+        trend = 'GROWING' if future[-1] > y[-1] else 'STABLE'
+
+        forecasts.append({
+            'metric': 'Papers',
+            'current': int(y[-1]),
+            'predictions': future,
+            'trend': trend
+        })
+
+    return forecasts if forecasts else None
 
 def generate_report(conn):
-    report = []
+    """Generate the complete ML insights report"""
+    r = []
 
-    report.append("=" * 80)
-    report.append("SOFIA PULSE - CAUSAL INSIGHTS (Machine Learning Enhanced)")
-    report.append("=" * 80)
-    report.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    report.append("")
+    r.append("=" * 80)
+    r.append("SOFIA PULSE - CAUSAL INSIGHTS (Machine Learning Enhanced)")
+    r.append("=" * 80)
+    r.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    r.append("")
 
-    # 1. Sinais Fracos
-    report.append("=" * 80)
-    report.append("🔥 SINAIS FRACOS (GitHub → Funding Prediction)")
-    report.append("=" * 80)
-    report.append("")
+    # =========================================================================
+    # DATA OVERVIEW
+    # =========================================================================
+    overview = get_data_overview(conn)
 
-    signals = detect_weak_signals(conn)
+    r.append("=" * 80)
+    r.append("1. DATA OVERVIEW")
+    r.append("=" * 80)
+    r.append("")
 
-    if signals:
-        report.append("⚡ TECNOLOGIAS PRESTES A EXPLODIR:")
-        report.append("")
-        for s in signals[:5]:
-            report.append(f"• {s['tech']}")
-            report.append(f"  GitHub: {s['github_stars']:,} stars em {s['repos']} repos")
-            report.append(f"  Funding: Apenas {s['funding_deals']} deals (${s['funding_total']/1e9:.2f}B)")
-            report.append(f"  PREVISÃO: Funding esperado em 3-6 meses")
-            report.append(f"  Signal: {s['signal_strength']}")
-            report.append("")
+    funding = overview.get('funding', {})
+    github = overview.get('github', {})
+    papers = overview.get('papers', {})
+
+    r.append("Available Data:")
+    r.append(f"  Funding Rounds: {funding.get('total', 0):,}")
+    if funding.get('earliest'):
+        r.append(f"    Date Range: {funding['earliest']} to {funding['latest']}")
+    total_funding = float(funding.get('total_funding', 0) or 0)
+    if total_funding > 0:
+        r.append(f"    Total Capital: ${total_funding/1e9:.2f}B")
+
+    r.append(f"  GitHub Repos: {github.get('total', 0):,}")
+    if github.get('total_stars'):
+        r.append(f"    Total Stars: {int(github['total_stars'] or 0):,}")
+
+    r.append(f"  Research Papers: {papers.get('total', 0):,}")
+    r.append("")
+
+    # =========================================================================
+    # GITHUB SIGNALS
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("2. GITHUB SIGNALS (Weak Signal Detection)")
+    r.append("=" * 80)
+    r.append("")
+
+    github_data = analyze_github_signals(conn)
+
+    if github_data['languages']:
+        r.append("TOP LANGUAGES (by stars):")
+        r.append("-" * 50)
+        for lang in github_data['languages'][:8]:
+            stars = int(lang['total_stars'] or 0)
+            r.append(f"  {lang['language']:<15} {lang['repo_count']:>5} repos, {stars:>12,} stars")
+        r.append("")
+
+    if github_data['signals']:
+        r.append("WEAK SIGNALS (trending but not heavily funded):")
+        r.append("-" * 50)
+        for sig in github_data['signals'][:5]:
+            r.append(f"  {sig['topic']}: {sig['stars']:,} stars ({sig['signal']})")
+            r.append(f"    -> Potential funding opportunity in 3-6 months")
+        r.append("")
     else:
-        report.append("(Nenhum sinal fraco detectado)")
+        r.append("No weak signals detected with current data.")
+        r.append("")
 
-    # 2. Lag Temporal
-    report.append("=" * 80)
-    report.append("📅 LAG TEMPORAL (Papers → Funding)")
-    report.append("=" * 80)
-    report.append("")
+    # =========================================================================
+    # RESEARCH TOPICS
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("3. RESEARCH TOPIC ANALYSIS (NLP)")
+    r.append("=" * 80)
+    r.append("")
 
-    lags = analyze_temporal_lag(conn)
+    research_data = analyze_research_topics(conn)
 
-    if lags:
-        report.append("⏱️  CORRELAÇÕES TEMPORAIS DETECTADAS:")
-        report.append("")
-        for lag in lags[:3]:
-            report.append(f"• Papers: {lag['paper_month']} ({lag['paper_count']} publicações)")
-            report.append(f"  → Funding: {lag['funding_month']} (${lag['funding_amount']/1e9:.1f}B)")
-            report.append(f"  LAG: {lag['lag_months']} meses")
-            report.append("")
+    if research_data['extracted_topics']:
+        r.append("EMERGING RESEARCH TOPICS (extracted from titles):")
+        r.append("-" * 50)
+        for topic in research_data['extracted_topics']:
+            r.append(f"  {topic['topic']:<20} {topic['count']:>5} papers")
+        r.append("")
+
+    if research_data['categories']:
+        r.append("PAPER CATEGORIES:")
+        r.append("-" * 50)
+        for cat in research_data['categories'][:10]:
+            r.append(f"  {cat['category']:<25} {cat['count']:>5} papers")
+        r.append("")
+
+    if not research_data['extracted_topics'] and not research_data['categories']:
+        r.append("No research paper data available.")
+        r.append("")
+
+    # =========================================================================
+    # FUNDING PATTERNS
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("4. FUNDING PATTERNS")
+    r.append("=" * 80)
+    r.append("")
+
+    funding_data = analyze_funding_patterns(conn)
+
+    if funding_data['sectors']:
+        r.append("TOP SECTORS:")
+        r.append("-" * 70)
+        r.append(f"{'Sector':<30} {'Deals':>8} {'Total':>18} {'Avg':>15}")
+        r.append("-" * 70)
+        for sector in funding_data['sectors'][:10]:
+            total = float(sector['total_funding'] or 0)
+            avg = float(sector['avg_deal'] or 0)
+            total_str = f"${total/1e6:.1f}M" if total > 0 else "N/A"
+            avg_str = f"${avg/1e6:.1f}M" if avg > 0 else "N/A"
+            r.append(f"{sector['sector'][:28]:<30} {sector['deals']:>8} {total_str:>18} {avg_str:>15}")
+        r.append("")
+
+    if funding_data['countries']:
+        r.append("GEOGRAPHIC DISTRIBUTION:")
+        r.append("-" * 50)
+        for country in funding_data['countries'][:8]:
+            total = float(country['total_funding'] or 0)
+            total_str = f"${total/1e6:.1f}M" if total > 0 else "N/A"
+            r.append(f"  {country['country']:<20} {country['deals']:>5} deals ({total_str})")
+        r.append("")
+
+    if funding_data['monthly']:
+        r.append("MONTHLY TREND (recent):")
+        r.append("-" * 50)
+        for month in funding_data['monthly'][:6]:
+            total = float(month['total_funding'] or 0)
+            month_str = str(month['month'])[:7] if month['month'] else 'N/A'
+            total_str = f"${total/1e6:.1f}M" if total > 0 else "N/A"
+            r.append(f"  {month_str}: {month['deals']:>4} deals, {total_str}")
+        r.append("")
+
+    if not funding_data['sectors']:
+        r.append("No funding data available.")
+        r.append("")
+
+    # =========================================================================
+    # ML CORRELATION
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("5. ML CORRELATION ANALYSIS (Sklearn)")
+    r.append("=" * 80)
+    r.append("")
+
+    if ML_AVAILABLE:
+        ml_corr = ml_correlation_analysis(conn)
+        if ml_corr:
+            r.append("PAPERS -> FUNDING CORRELATION:")
+            r.append("-" * 50)
+            r.append(f"  Pearson Correlation: {ml_corr['correlation']:.4f}")
+            r.append(f"  P-value: {ml_corr['p_value']:.4f}")
+            r.append(f"  R-squared: {ml_corr['r_squared']:.4f}")
+            r.append(f"  Data Points: {ml_corr['data_points']} months")
+            r.append(f"  Confidence: {ml_corr['confidence']}")
+            r.append("")
+            r.append("PREDICTION:")
+            r.append(f"  Latest Papers/Month: {ml_corr['latest_papers']}")
+            pred = ml_corr['predicted_funding']
+            r.append(f"  Predicted Funding: ${pred/1e9:.2f}B")
+            r.append("")
+        else:
+            r.append("Insufficient data for correlation analysis.")
+            r.append("Need at least 3 months of overlapping paper and funding data.")
+            r.append("")
     else:
-        report.append("(Aguardando mais dados temporais)")
+        r.append("ML libraries not available (sklearn/scipy).")
+        r.append("")
 
-    # 3. Convergência
-    report.append("=" * 80)
-    report.append("🔗 CONVERGÊNCIA DE SETORES")
-    report.append("=" * 80)
-    report.append("")
+    # =========================================================================
+    # SECTOR CLUSTERING
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("6. SECTOR CLUSTERING (KMeans)")
+    r.append("=" * 80)
+    r.append("")
 
-    convergences = detect_sector_convergence(conn)
-
-    if convergences:
-        for conv in convergences[:3]:
-            report.append(f"• {conv['type']}")
-            report.append(f"  {conv['insight']}")
-            report.append("")
+    if ML_AVAILABLE:
+        clusters = cluster_sectors(conn)
+        if clusters:
+            for cluster_id, sectors in clusters.items():
+                total = sum(s['funding'] for s in sectors)
+                label = "HIGH ACTIVITY" if cluster_id == 0 else "MEDIUM" if cluster_id == 1 else "EMERGING"
+                r.append(f"CLUSTER {cluster_id} - {label} (${total/1e9:.2f}B total):")
+                r.append("-" * 50)
+                for s in sectors[:5]:
+                    r.append(f"  {s['sector'][:30]:<32} {s['deals']:>4} deals, ${s['funding']/1e6:.1f}M")
+                r.append("")
+        else:
+            r.append("Insufficient sector data for clustering.")
+            r.append("Need at least 4 sectors with 2+ deals each.")
+            r.append("")
     else:
-        report.append("(Nenhuma convergência forte detectada)")
+        r.append("ML libraries not available (sklearn).")
+        r.append("")
 
-    # 4. Arbitragem Geográfica
-    report.append("=" * 80)
-    report.append("🌍 ARBITRAGEM GEOGRÁFICA")
-    report.append("=" * 80)
-    report.append("")
+    # =========================================================================
+    # TIME SERIES FORECASTING
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("7. TIME SERIES FORECASTING")
+    r.append("=" * 80)
+    r.append("")
 
-    gaps = detect_geographic_arbitrage(conn)
-
-    if gaps:
-        report.append("💎 OPORTUNIDADES (Research sem Funding):")
-        report.append("")
-        for gap in gaps[:3]:
-            report.append(f"• {gap['opportunity']}")
-            report.append("")
+    if ML_AVAILABLE:
+        forecasts = forecast_trends(conn)
+        if forecasts:
+            r.append("PREDICTIONS (next 3 months):")
+            r.append("-" * 50)
+            for f in forecasts:
+                r.append(f"\n{f['metric']}:")
+                if f['metric'] == 'Funding':
+                    r.append(f"  Current: ${f['current']/1e9:.2f}B")
+                    for i, pred in enumerate(f['predictions'], 1):
+                        r.append(f"  Month {i}: ${pred/1e9:.2f}B")
+                else:
+                    r.append(f"  Current: {f['current']} papers")
+                    for i, pred in enumerate(f['predictions'], 1):
+                        r.append(f"  Month {i}: {pred} papers")
+                r.append(f"  Trend: {f['trend']}")
+            r.append("")
+        else:
+            r.append("Insufficient temporal data for forecasting.")
+            r.append("Need at least 3 months of data.")
+            r.append("")
     else:
-        report.append("(Nenhuma arbitragem detectada)")
+        r.append("ML libraries not available (sklearn).")
+        r.append("")
 
-    # 5. ML Correlation & Regression
-    report.append("=" * 80)
-    report.append("🤖 ML CORRELATION & REGRESSION (Sklearn)")
-    report.append("=" * 80)
-    report.append("")
+    # =========================================================================
+    # STRATEGIC INSIGHTS
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("8. STRATEGIC INSIGHTS")
+    r.append("=" * 80)
+    r.append("")
 
-    ml_corr = ml_correlation_analysis(conn)
+    r.append("FOR INVESTORS:")
+    r.append("-" * 50)
+    if github_data['signals']:
+        top_signal = github_data['signals'][0]
+        r.append(f"  - Watch '{top_signal['topic']}' - trending on GitHub but not heavily funded")
 
-    if ml_corr:
-        report.append("📊 CORRELAÇÃO PAPERS → FUNDING:")
-        report.append("")
-        report.append(f"• Correlação de Pearson: {ml_corr['correlation']:.3f}")
-        report.append(f"• P-value: {ml_corr['p_value']:.4f}")
-        report.append(f"• R² Score: {ml_corr['r_squared']:.3f}")
-        report.append(f"• Confiança: {ml_corr['confidence']}")
-        report.append("")
-        report.append(f"📈 PREVISÃO (próximos 6 meses):")
-        report.append(f"• Papers este mês: {ml_corr['latest_papers']}")
-        report.append(f"• Funding previsto: ${ml_corr['predicted_funding_6m']/1e9:.2f}B")
-        report.append("")
-    else:
-        report.append("(Dados insuficientes para correlação)")
+    if research_data['extracted_topics']:
+        top_topic = research_data['extracted_topics'][0]
+        r.append(f"  - '{top_topic['topic']}' is hot in research ({top_topic['count']} papers)")
 
-    # 6. Sector Clustering
-    report.append("=" * 80)
-    report.append("🎯 SECTOR CLUSTERING (KMeans)")
-    report.append("=" * 80)
-    report.append("")
+    if funding_data['sectors']:
+        top_sector = funding_data['sectors'][0]
+        total = float(top_sector['total_funding'] or 0)
+        r.append(f"  - Top sector: {top_sector['sector']} (${total/1e6:.0f}M, {top_sector['deals']} deals)")
+    r.append("")
 
-    clusters = cluster_sectors(conn)
+    r.append("FOR FOUNDERS:")
+    r.append("-" * 50)
+    if github_data['languages']:
+        top_langs = [l['language'] for l in github_data['languages'][:3]]
+        r.append(f"  - Hot tech stack: {', '.join(top_langs)}")
 
-    if clusters:
-        report.append("🔬 SETORES AGRUPADOS POR SIMILARIDADE:")
-        report.append("")
+    if funding_data['countries']:
+        top_countries = [c['country'] for c in funding_data['countries'][:3]]
+        r.append(f"  - Capital flowing to: {', '.join(top_countries)}")
+    r.append("")
 
-        # Agrupar por cluster
-        cluster_groups = defaultdict(list)
-        for c in clusters:
-            cluster_groups[c['cluster']].append(c)
+    r.append("FOR TALENT:")
+    r.append("-" * 50)
+    r.append("  - Learn trending languages from GitHub data")
+    r.append("  - Follow funded sectors for job opportunities")
+    r.append("  - Research topics indicate future skill demands")
+    r.append("")
 
-        for cluster_id, sectors in cluster_groups.items():
-            total = sum(s['total_funding'] for s in sectors)
-            report.append(f"• Cluster {cluster_id} (${total/1e9:.2f}B total):")
-            for s in sectors[:3]:  # Top 3 por cluster
-                report.append(f"  - {s['sector']}: ${s['total_funding']/1e9:.2f}B ({s['deals']} deals)")
-            report.append("")
-    else:
-        report.append("(Dados insuficientes para clustering)")
+    r.append("=" * 80)
+    r.append("Analysis complete!")
+    r.append("=" * 80)
 
-    # 7. NLP Topic Extraction
-    report.append("=" * 80)
-    report.append("💬 NLP TOPIC EXTRACTION")
-    report.append("=" * 80)
-    report.append("")
-
-    topics = extract_topics_nlp(conn)
-
-    if topics:
-        report.append("🔥 TÓPICOS EMERGENTES (extraídos automaticamente):")
-        report.append("")
-
-        for topic in topics[:10]:
-            source_label = "Keywords" if topic['source'] == 'keywords' else "NLP"
-            report.append(f"• {topic['topic']}: {topic['count']} menções ({source_label})")
-
-        report.append("")
-    else:
-        report.append("(Nenhum tópico detectado)")
-
-    # 8. Time Series Forecasting
-    report.append("=" * 80)
-    report.append("📈 TIME SERIES FORECASTING")
-    report.append("=" * 80)
-    report.append("")
-
-    forecasts = forecast_time_series(conn)
-
-    if forecasts:
-        report.append("🔮 PREVISÕES (próximos 3 meses):")
-        report.append("")
-
-        for forecast in forecasts:
-            report.append(f"• {forecast['metric']}:")
-            if forecast['metric'].startswith('Papers'):
-                report.append(f"  Mês 1: {forecast['values'][0]} papers")
-                report.append(f"  Mês 2: {forecast['values'][1]} papers")
-                report.append(f"  Mês 3: {forecast['values'][2]} papers")
-            else:
-                report.append(f"  Mês 1: ${forecast['values'][0]/1e9:.2f}B")
-                report.append(f"  Mês 2: ${forecast['values'][1]/1e9:.2f}B")
-                report.append(f"  Mês 3: ${forecast['values'][2]/1e9:.2f}B")
-            report.append(f"  Tendência: {forecast['trend']}")
-            report.append("")
-    else:
-        report.append("(Dados insuficientes para previsões)")
-
-    report.append("=" * 80)
-    report.append("✅ Análise completa com ML!")
-    report.append("")
-
-    return "\n".join(report)
+    return "\n".join(r)
 
 def main():
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        print("✅ Connected to database")
-        print()
+    print("Connecting to database...")
+    conn = psycopg2.connect(**DB_CONFIG)
+    print("Connected.")
+    print()
 
-        report = generate_report(conn)
+    print("Generating ML insights report...")
+    report = generate_report(conn)
 
-        # Print
-        print(report)
+    print(report)
 
-        # Save
-        with open('analytics/causal-insights-latest.txt', 'w') as f:
-            f.write(report)
+    # Save
+    output_path = 'analytics/causal-insights-latest.txt'
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(report)
 
-        print("💾 Saved to: analytics/causal-insights-latest.txt")
+    print(f"\nSaved to: {output_path}")
 
-        conn.close()
-
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+    conn.close()
 
 if __name__ == '__main__':
     main()
