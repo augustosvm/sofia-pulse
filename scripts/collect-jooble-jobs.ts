@@ -298,7 +298,7 @@ async function collectJoobleJobs() {
                                 remoteType,
                                 seniority,
                                 job.type || 'full-time',
-                                skills.length > 0 ? skills.join(', ') : null,
+                                skills.length > 0 ? `{${skills.join(',')}}` : null,
                                 sector,
                                 postedDate
                             ]);
