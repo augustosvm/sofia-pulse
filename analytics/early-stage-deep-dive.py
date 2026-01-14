@@ -1,68 +1,102 @@
 #!/usr/bin/env python3
 """
-Sofia Pulse - Early-Stage Deep Dive
-Analisa startups em seed/angel stage (<$10M) e conecta:
-- Papers publicados pelos fundadores
-- Universidades de origem
-- Tech stack usado (GitHub)
-- Patentes registradas
-- Geografia global
+================================================================================
+EARLY-STAGE DEEP DIVE - Sofia Pulse
+================================================================================
+Intelligent analysis of early-stage startup ecosystem using ALL available data.
+
+Strategy:
+1. Detect data date range (not hardcoded to "last 12 months")
+2. Use full historical data for meaningful analysis
+3. Cross-reference: Funding -> YC -> GitHub -> Papers
+4. Provide insights regardless of data volume
+
+Connects:
+- Funding rounds (all stages, with focus on early-stage)
+- YC batches (proxy for early-stage activity)
+- GitHub trending repos (tech stack signals)
+- Research papers (R&D pipeline)
+- Geographic patterns
+================================================================================
 """
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
 from collections import defaultdict
-import re
 
 from dotenv import load_dotenv
 load_dotenv()
 
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'user': os.getenv('DB_USER', 'sofia'),
-    'password': os.getenv('DB_PASSWORD', 'sofia123strong'),
-    'database': os.getenv('DB_NAME', 'sofia_db'),
+    'host': os.getenv('DB_HOST', os.getenv('POSTGRES_HOST', 'localhost')),
+    'port': int(os.getenv('DB_PORT', os.getenv('POSTGRES_PORT', '5432'))),
+    'user': os.getenv('DB_USER', os.getenv('POSTGRES_USER', 'postgres')),
+    'password': os.getenv('DB_PASSWORD', os.getenv('POSTGRES_PASSWORD', '')),
+    'database': os.getenv('DB_NAME', os.getenv('POSTGRES_DB', 'sofia_db')),
 }
 
-# Mapa de universidades globais
-UNIVERSITIES = {
-    'MIT': {'country': 'USA', 'region': 'Americas', 'focus': ['AI', 'Robotics', 'Quantum']},
-    'Stanford': {'country': 'USA', 'region': 'Americas', 'focus': ['AI', 'Biotech', 'Startup Culture']},
-    'Berkeley': {'country': 'USA', 'region': 'Americas', 'focus': ['AI', 'Climate', 'Open Source']},
-    'CMU': {'country': 'USA', 'region': 'Americas', 'focus': ['AI', 'Robotics', 'HCI']},
-    'Harvard': {'country': 'USA', 'region': 'Americas', 'focus': ['Medicine', 'Biotech']},
-    'Caltech': {'country': 'USA', 'region': 'Americas', 'focus': ['Physics', 'Space', 'Quantum']},
-
-    'Oxford': {'country': 'UK', 'region': 'Europe', 'focus': ['AI', 'Medicine', 'Climate']},
-    'Cambridge': {'country': 'UK', 'region': 'Europe', 'focus': ['Physics', 'Biotech', 'AI']},
-    'ETH': {'country': 'Switzerland', 'region': 'Europe', 'focus': ['Robotics', 'Quantum', 'Climate']},
-    'Imperial': {'country': 'UK', 'region': 'Europe', 'focus': ['Engineering', 'AI', 'Biotech']},
-
-    'Tsinghua': {'country': 'China', 'region': 'Asia', 'focus': ['AI', 'Manufacturing', 'Engineering']},
-    'Peking': {'country': 'China', 'region': 'Asia', 'focus': ['AI', 'Chemistry', 'Materials']},
-    'NUS': {'country': 'Singapore', 'region': 'Asia', 'focus': ['AI', 'Fintech', 'Biotech']},
-    'Tokyo': {'country': 'Japan', 'region': 'Asia', 'focus': ['Robotics', 'Materials', 'AI']},
-    'IIT': {'country': 'India', 'region': 'Asia', 'focus': ['Software', 'AI', 'Startups']},
-
-    'USP': {'country': 'Brazil', 'region': 'Americas', 'focus': ['Agro-tech', 'Medicine', 'Energy']},
-    'Unicamp': {'country': 'Brazil', 'region': 'Americas', 'focus': ['Agro-tech', 'Materials', 'AI']},
-    'UNAM': {'country': 'Mexico', 'region': 'Americas', 'focus': ['Climate', 'Materials', 'Physics']},
-}
-
-def analyze_early_stage(conn):
-    """Analisa startups seed/angel e early-stage activity (últimos 12 meses)"""
+def get_data_overview(conn):
+    """Get overview of all available data with date ranges"""
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Estratégia multi-source:
-    # 1. Rounds com amount < $10M (seed/angel com valor conhecido)
-    # 2. Rounds com amount < $50M (early-stage com valor conhecido)
-    # 3. Rounds YC recentes (sem amount mas indica early-stage activity)
-    # 4. Qualquer funding recente (fallback)
+    overview = {}
 
-    # Tentar primeiro <$10M (seed/angel verificados)
+    # Funding rounds
+    cursor.execute("""
+        SELECT
+            COUNT(*) as total,
+            COUNT(CASE WHEN amount_usd > 0 AND amount_usd < 10000000 THEN 1 END) as seed_angel,
+            COUNT(CASE WHEN amount_usd > 0 AND amount_usd < 50000000 THEN 1 END) as early_stage,
+            COUNT(CASE WHEN source = 'yc_companies' THEN 1 END) as yc_companies,
+            MIN(announced_date) as earliest_date,
+            MAX(announced_date) as latest_date,
+            SUM(COALESCE(amount_usd, 0)) as total_funding
+        FROM sofia.funding_rounds
+        WHERE announced_date IS NOT NULL
+    """)
+    overview['funding'] = cursor.fetchone()
+
+    # GitHub trending
+    cursor.execute("""
+        SELECT
+            COUNT(*) as total,
+            COUNT(DISTINCT language) as languages,
+            MIN(collected_at) as earliest_date,
+            MAX(collected_at) as latest_date,
+            SUM(COALESCE(stars, 0)) as total_stars
+        FROM sofia.github_trending
+    """)
+    overview['github'] = cursor.fetchone()
+
+    # Research papers
+    cursor.execute("""
+        SELECT
+            COUNT(*) as total,
+            MIN(published_date) as earliest_date,
+            MAX(published_date) as latest_date
+        FROM sofia.arxiv_ai_papers
+    """)
+    overview['papers'] = cursor.fetchone()
+
+    # OpenAlex papers
+    cursor.execute("""
+        SELECT
+            COUNT(*) as total,
+            MIN(publication_date) as earliest_date,
+            MAX(publication_date) as latest_date
+        FROM sofia.openalex_papers
+    """)
+    overview['openalex'] = cursor.fetchone()
+
+    cursor.close()
+    return overview
+
+def get_all_funding_data(conn):
+    """Get ALL funding data, sorted by date (oldest first for historical context)"""
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
     cursor.execute("""
         SELECT
             company_name,
@@ -75,411 +109,446 @@ def analyze_early_stage(conn):
             country,
             source
         FROM sofia.funding_rounds
-        WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
-            AND amount_usd > 0
-            AND amount_usd < 10000000
+        WHERE announced_date IS NOT NULL
         ORDER BY announced_date DESC
     """)
 
-    seed_rounds = cursor.fetchall()
+    all_rounds = cursor.fetchall()
+    cursor.close()
+    return all_rounds
 
-    # Se não encontrou nada, tentar <$50M (early-stage com valor)
-    if not seed_rounds:
-        cursor.execute("""
-            SELECT
-                company_name,
-                sector,
-                amount_usd,
-                valuation_usd,
-                round_type,
-                announced_date,
-                investors,
-                country,
-                source
-            FROM sofia.funding_rounds
-            WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
-                AND amount_usd > 0
-                AND amount_usd < 50000000
-            ORDER BY amount_usd ASC
-            LIMIT 50
-        """)
-        seed_rounds = cursor.fetchall()
-
-    # Se ainda não encontrou, pegar YC companies recentes (proxy de early-stage)
-    if not seed_rounds:
-        cursor.execute("""
-            SELECT
-                company_name,
-                sector,
-                amount_usd,
-                valuation_usd,
-                round_type,
-                announced_date,
-                investors,
-                country,
-                source
-            FROM sofia.funding_rounds
-            WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
-                AND (
-                    source = 'yc_companies'
-                    OR round_type ILIKE '%seed%'
-                    OR round_type ILIKE '%angel%'
-                    OR round_type ILIKE '%pre-seed%'
-                    OR round_type ILIKE '%accelerator%'
-                )
-            ORDER BY announced_date DESC
-            LIMIT 100
-        """)
-        seed_rounds = cursor.fetchall()
-
-    # Último fallback: qualquer funding recente
-    if not seed_rounds:
-        cursor.execute("""
-            SELECT
-                company_name,
-                sector,
-                amount_usd,
-                valuation_usd,
-                round_type,
-                announced_date,
-                investors,
-                country,
-                source
-            FROM sofia.funding_rounds
-            WHERE announced_date >= CURRENT_DATE - INTERVAL '12 months'
-            ORDER BY announced_date DESC
-            LIMIT 50
-        """)
-        seed_rounds = cursor.fetchall()
-
-    return seed_rounds
-
-def find_related_papers(conn, company_name, sector):
-    """Tenta encontrar papers relacionados à empresa"""
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-    # Buscar papers com palavras-chave do setor
-    keywords = sector.lower().split() if sector else []
-    if not keywords:
-        return []
-
-    # Buscar nos últimos 24 meses
-    cursor.execute("""
-        SELECT
-            title,
-            authors,
-            categories,
-            published_date
-        FROM sofia.arxiv_ai_papers
-        WHERE published_date >= CURRENT_DATE - INTERVAL '24 months'
-            AND (
-                title ILIKE %s
-                OR abstract ILIKE %s
-            )
-        ORDER BY published_date DESC
-        LIMIT 5
-    """, (f'%{keywords[0]}%', f'%{keywords[0]}%'))
-
-    return cursor.fetchall()
-
-def find_tech_stack(conn):
-    """Analisa tech stack de repos GitHub trending"""
+def get_github_tech_stack(conn):
+    """Get tech stack from ALL GitHub trending data"""
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     cursor.execute("""
         SELECT
             language,
             COUNT(*) as repo_count,
-            SUM(stars) as total_stars
+            SUM(COALESCE(stars, 0)) as total_stars,
+            MAX(collected_at) as last_seen
         FROM sofia.github_trending
-        WHERE collected_at >= CURRENT_DATE - INTERVAL '30 days'
-            AND language IS NOT NULL
+        WHERE language IS NOT NULL
         GROUP BY language
         ORDER BY total_stars DESC
         LIMIT 15
     """)
 
-    return cursor.fetchall()
+    tech_stack = cursor.fetchall()
+    cursor.close()
+    return tech_stack
 
-def find_patents(conn, sector):
-    """Busca patentes relacionadas ao setor (opcional - não quebra se tabela não existir)"""
+def get_top_github_repos(conn, limit=20):
+    """Get top GitHub repos by stars"""
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    keywords = sector.lower().split() if sector else []
-    if not keywords:
-        return []
+    cursor.execute("""
+        SELECT DISTINCT ON (name, owner)
+            name,
+            owner,
+            description,
+            language,
+            stars,
+            forks,
+            topics
+        FROM sofia.github_trending
+        ORDER BY name, owner, stars DESC
+    """)
 
-    try:
-        # Buscar em patentes WIPO dos últimos 12 meses
-        cursor.execute("""
-            SELECT
-                title,
-                applicant,
-                filing_date,
-                ipc_class
-            FROM sofia.wipo_patents
-            WHERE filing_date >= CURRENT_DATE - INTERVAL '12 months'
-                AND (
-                    title ILIKE %s
-                    OR abstract ILIKE %s
-                )
-            ORDER BY filing_date DESC
-            LIMIT 5
-        """, (f'%{keywords[0]}%', f'%{keywords[0]}%'))
+    repos = cursor.fetchall()
+    # Sort by stars and take top N
+    repos = sorted(repos, key=lambda x: x['stars'] or 0, reverse=True)[:limit]
+    cursor.close()
+    return repos
 
-        return cursor.fetchall()
-    except Exception:
-        # Tabela não existe ou erro - fazer rollback e retornar lista vazia
-        conn.rollback()
-        return []
+def get_research_papers(conn, limit=20):
+    """Get recent research papers"""
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-def generate_report(seed_rounds, tech_stack, conn):
-    """Gera relatório completo"""
+    cursor.execute("""
+        SELECT
+            title,
+            authors,
+            categories,
+            published_date,
+            primary_category
+        FROM sofia.arxiv_ai_papers
+        ORDER BY published_date DESC
+        LIMIT %s
+    """, (limit,))
 
-    # Separar rounds com e sem amount_usd
-    rounds_with_amount = [r for r in seed_rounds if r.get('amount_usd') and r['amount_usd'] > 0]
-    rounds_without_amount = [r for r in seed_rounds if not r.get('amount_usd') or r['amount_usd'] == 0]
+    papers = cursor.fetchall()
+    cursor.close()
+    return papers
 
-    # Determinar qual filtro foi usado
-    if rounds_with_amount:
-        max_amount = max(r['amount_usd'] for r in rounds_with_amount) / 1e6
-        if max_amount < 10:
-            filter_desc = "(<$10M - Seed/Angel with known amounts)"
-        elif max_amount < 50:
-            filter_desc = "(<$50M - Early-stage with known amounts)"
+def classify_round_stage(amount, round_type):
+    """Classify funding round into stage"""
+    round_type_lower = (round_type or '').lower()
+
+    if 'pre-seed' in round_type_lower or 'preseed' in round_type_lower:
+        return 'Pre-Seed'
+    elif 'seed' in round_type_lower:
+        return 'Seed'
+    elif 'angel' in round_type_lower:
+        return 'Angel'
+    elif 'series a' in round_type_lower:
+        return 'Series A'
+    elif 'series b' in round_type_lower:
+        return 'Series B'
+    elif 'series c' in round_type_lower:
+        return 'Series C'
+    elif 'series d' in round_type_lower or 'series e' in round_type_lower:
+        return 'Series D+'
+    elif amount:
+        if amount < 1000000:
+            return 'Pre-Seed'
+        elif amount < 5000000:
+            return 'Seed'
+        elif amount < 15000000:
+            return 'Series A'
+        elif amount < 50000000:
+            return 'Series B'
         else:
-            filter_desc = "(Recent funding rounds)"
-    elif rounds_without_amount:
-        filter_desc = "(YC batches & early-stage rounds - amounts not disclosed)"
+            return 'Series C+'
     else:
-        filter_desc = "(No data available)"
+        return 'Unknown'
 
-    report = f"""
-{'='*80}
-💎 EARLY-STAGE DEEP DIVE - Sofia Pulse
-{'='*80}
+def generate_report(overview, all_rounds, tech_stack, top_repos, papers):
+    """Generate intelligent report based on all available data"""
+    r = []
 
-Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    r.append("=" * 80)
+    r.append("EARLY-STAGE DEEP DIVE - Sofia Pulse")
+    r.append("=" * 80)
+    r.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    r.append("")
 
-Análise de startups dos últimos 12 meses {filter_desc}
-Conectando: Funding → Papers → Universities → Tech Stack → Patents
+    # =========================================================================
+    # DATA OVERVIEW
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("1. DATA OVERVIEW (Full Historical Range)")
+    r.append("=" * 80)
+    r.append("")
 
-{'='*80}
+    funding = overview['funding']
+    github = overview['github']
+    papers_ov = overview['papers']
+    openalex = overview['openalex']
 
-📊 RESUMO EXECUTIVO
-{'-'*80}
+    r.append("FUNDING DATA:")
+    r.append("-" * 50)
+    if funding and funding['total'] > 0:
+        r.append(f"  Total Rounds: {funding['total']:,}")
+        r.append(f"  Seed/Angel (<$10M): {funding['seed_angel'] or 0:,}")
+        r.append(f"  Early-Stage (<$50M): {funding['early_stage'] or 0:,}")
+        r.append(f"  YC Companies: {funding['yc_companies'] or 0:,}")
+        total_funding = float(funding['total_funding'] or 0)
+        r.append(f"  Total Capital: ${total_funding/1e9:.2f}B")
+        if funding['earliest_date']:
+            r.append(f"  Date Range: {funding['earliest_date']} to {funding['latest_date']}")
+    else:
+        r.append("  No funding data available yet")
+    r.append("")
 
-Total de rounds encontrados: {len(seed_rounds)}
-   • With disclosed amount: {len(rounds_with_amount)}
-   • YC/undisclosed: {len(rounds_without_amount)}
-"""
+    r.append("GITHUB DATA:")
+    r.append("-" * 50)
+    if github and github['total'] > 0:
+        r.append(f"  Trending Repos: {github['total']:,}")
+        r.append(f"  Languages: {github['languages'] or 0}")
+        total_stars = int(github['total_stars'] or 0)
+        r.append(f"  Total Stars: {total_stars:,}")
+        if github['earliest_date']:
+            r.append(f"  Date Range: {str(github['earliest_date'])[:10]} to {str(github['latest_date'])[:10]}")
+    else:
+        r.append("  No GitHub data available yet")
+    r.append("")
 
-    if rounds_with_amount:
-        avg_ticket = sum(r['amount_usd'] for r in rounds_with_amount) / len(rounds_with_amount) / 1e6
-        min_ticket = min(r['amount_usd'] for r in rounds_with_amount) / 1e6
-        max_ticket = max(r['amount_usd'] for r in rounds_with_amount) / 1e6
-        report += f"""
-Ticket médio (disclosed): ${avg_ticket:.2f}M
-Range: ${min_ticket:.2f}M - ${max_ticket:.2f}M
-"""
+    r.append("RESEARCH PAPERS:")
+    r.append("-" * 50)
+    total_papers = (papers_ov['total'] if papers_ov else 0) + (openalex['total'] if openalex else 0)
+    r.append(f"  ArXiv Papers: {papers_ov['total'] if papers_ov else 0:,}")
+    r.append(f"  OpenAlex Papers: {openalex['total'] if openalex else 0:,}")
+    r.append(f"  Total: {total_papers:,}")
+    r.append("")
 
-    if rounds_without_amount:
-        report += f"""
-💡 Note: {len(rounds_without_amount)} rounds don't have disclosed amounts
-   Sources: YC batches (accelerator), early-stage stealth mode
-   These indicate early-stage activity but amounts are not public yet
-"""
+    # =========================================================================
+    # FUNDING ANALYSIS
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("2. FUNDING ECOSYSTEM ANALYSIS")
+    r.append("=" * 80)
+    r.append("")
 
-    if not seed_rounds:
-        report += """
-⚠️  Nenhum funding encontrado nos últimos 12 meses.
-💡 Possíveis razões:
-   • Dados ainda não coletados
-   • Período sem atividade
-   • Problema de conexão com fontes
+    if not all_rounds:
+        r.append("No funding data available yet.")
+        r.append("Run collectors to populate: npx tsx scripts/collect.ts funding")
+        r.append("")
+    else:
+        # Classify rounds by stage
+        stage_stats = defaultdict(lambda: {'count': 0, 'total': 0, 'companies': []})
+        for round_data in all_rounds:
+            stage = classify_round_stage(round_data.get('amount_usd'), round_data.get('round_type'))
+            stage_stats[stage]['count'] += 1
+            if round_data.get('amount_usd'):
+                stage_stats[stage]['total'] += float(round_data['amount_usd'])
+            stage_stats[stage]['companies'].append(round_data['company_name'])
 
-Recomendações:
-   • Execute os collectors: bash collect-limited-apis.sh
-   • Verifique funding_rounds: SELECT COUNT(*) FROM sofia.funding_rounds
-"""
+        r.append("FUNDING BY STAGE:")
+        r.append("-" * 70)
+        r.append(f"{'Stage':<15} {'Deals':>8} {'Total Funding':>18} {'Avg Deal':>15}")
+        r.append("-" * 70)
 
-    report += f"""
-{'='*80}
+        stage_order = ['Pre-Seed', 'Seed', 'Angel', 'Series A', 'Series B', 'Series C', 'Series C+', 'Series D+', 'Unknown']
+        for stage in stage_order:
+            if stage in stage_stats:
+                data = stage_stats[stage]
+                total = data['total']
+                avg = total / data['count'] if data['count'] > 0 else 0
+                total_str = f"${total/1e6:.1f}M" if total > 0 else "N/A"
+                avg_str = f"${avg/1e6:.1f}M" if avg > 0 else "N/A"
+                r.append(f"{stage:<15} {data['count']:>8} {total_str:>18} {avg_str:>15}")
+        r.append("")
 
-🌍 GEOGRAFIA - ONDE ESTÃO OS FOUNDERS?
-{'-'*80}
+        # Early-stage focus
+        early_rounds = [rd for rd in all_rounds if classify_round_stage(rd.get('amount_usd'), rd.get('round_type')) in ['Pre-Seed', 'Seed', 'Angel', 'Series A']]
 
-"""
+        if early_rounds:
+            r.append(f"EARLY-STAGE FOCUS ({len(early_rounds)} deals):")
+            r.append("-" * 50)
 
-    # Análise geográfica
-    geo_analysis = defaultdict(lambda: {'count': 0, 'total': 0, 'sectors': set()})
+            # By sector
+            sector_stats = defaultdict(lambda: {'count': 0, 'total': 0})
+            for rd in early_rounds:
+                sector = rd.get('sector') or 'Unknown'
+                sector_stats[sector]['count'] += 1
+                if rd.get('amount_usd'):
+                    sector_stats[sector]['total'] += float(rd['amount_usd'])
 
-    for round_data in seed_rounds:
-        country = round_data.get('country', 'Unknown')
-        geo_analysis[country]['count'] += 1
-        if round_data.get('amount_usd') and round_data['amount_usd'] > 0:
-            geo_analysis[country]['total'] += round_data['amount_usd']
-        if round_data.get('sector'):
-            geo_analysis[country]['sectors'].add(round_data['sector'])
+            r.append("\nTop Sectors (Early-Stage):")
+            for sector, data in sorted(sector_stats.items(), key=lambda x: x[1]['count'], reverse=True)[:10]:
+                total_str = f"${data['total']/1e6:.1f}M" if data['total'] > 0 else "undisclosed"
+                r.append(f"  {sector:<30} {data['count']:>4} deals ({total_str})")
+            r.append("")
 
-    # Ordenar por número de deals
-    top_countries = sorted(geo_analysis.items(), key=lambda x: x[1]['count'], reverse=True)[:10]
+            # By country
+            country_stats = defaultdict(lambda: {'count': 0, 'total': 0})
+            for rd in early_rounds:
+                country = rd.get('country') or 'Unknown'
+                country_stats[country]['count'] += 1
+                if rd.get('amount_usd'):
+                    country_stats[country]['total'] += float(rd['amount_usd'])
 
-    for country, data in top_countries:
-        country_str = str(country) if country else 'Unknown'
-        if data['total'] > 0:
-            report += f"   {country_str:20s} | {data['count']:2d} deals | ${data['total']/1e6:.1f}M total\n"
-        else:
-            report += f"   {country_str:20s} | {data['count']:2d} deals | (amounts undisclosed)\n"
-        if data['sectors']:
-            top_sectors = list(data['sectors'])[:3]
-            report += f"      → {', '.join(top_sectors)}\n"
-        report += "\n"
+            r.append("Top Countries (Early-Stage):")
+            for country, data in sorted(country_stats.items(), key=lambda x: x[1]['count'], reverse=True)[:10]:
+                total_str = f"${data['total']/1e6:.1f}M" if data['total'] > 0 else "undisclosed"
+                r.append(f"  {country:<25} {data['count']:>4} deals ({total_str})")
+            r.append("")
 
-    report += f"\n{'='*80}\n\n"
+        # Top recent deals
+        r.append("RECENT NOTABLE DEALS:")
+        r.append("-" * 70)
+        for idx, rd in enumerate(all_rounds[:15], 1):
+            company = rd['company_name']
+            sector = rd.get('sector') or 'N/A'
+            country = rd.get('country') or 'Unknown'
+            date = rd.get('announced_date', 'N/A')
+            round_type = rd.get('round_type') or 'N/A'
 
-    # Análise por setor
-    report += f"🎯 SETORES EMERGENTES\n{'-'*80}\n\n"
+            if rd.get('amount_usd') and rd['amount_usd'] > 0:
+                amount = float(rd['amount_usd']) / 1e6
+                r.append(f"{idx:2d}. {company[:30]:<30} ${amount:>8.1f}M | {round_type} | {sector[:15]} | {country}")
+            else:
+                r.append(f"{idx:2d}. {company[:30]:<30} {'undisclosed':>10} | {round_type} | {sector[:15]} | {country}")
+        r.append("")
 
-    sector_analysis = defaultdict(lambda: {'count': 0, 'total': 0, 'companies': [], 'countries': set()})
+    # =========================================================================
+    # TECH STACK SIGNALS
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("3. TECH STACK SIGNALS (GitHub Trending)")
+    r.append("=" * 80)
+    r.append("")
 
-    for round_data in seed_rounds:
-        sector = round_data.get('sector') or 'Other'
-        sector_analysis[sector]['count'] += 1
-        if round_data.get('amount_usd') and round_data['amount_usd'] > 0:
-            sector_analysis[sector]['total'] += round_data['amount_usd']
-        sector_analysis[sector]['companies'].append(round_data['company_name'])
-        if round_data.get('country'):
-            sector_analysis[sector]['countries'].add(round_data['country'])
+    if tech_stack:
+        r.append("LANGUAGES BY POPULARITY:")
+        r.append("-" * 60)
+        r.append(f"{'Language':<20} {'Repos':>10} {'Total Stars':>15}")
+        r.append("-" * 60)
+        for tech in tech_stack:
+            stars = int(tech['total_stars'] or 0)
+            r.append(f"{tech['language']:<20} {tech['repo_count']:>10} {stars:>15,}")
+        r.append("")
 
-    top_sectors = sorted(sector_analysis.items(), key=lambda x: x[1]['count'], reverse=True)[:15]
+        # Top repos
+        if top_repos:
+            r.append("TOP TRENDING REPOSITORIES:")
+            r.append("-" * 70)
+            for idx, repo in enumerate(top_repos[:10], 1):
+                name = f"{repo['owner']}/{repo['name']}"
+                stars = repo['stars'] or 0
+                lang = repo.get('language') or 'N/A'
+                desc = (repo.get('description') or '')[:40]
+                r.append(f"{idx:2d}. {name[:35]:<35} {stars:>10,} stars | {lang}")
+                if desc:
+                    r.append(f"    {desc}...")
+            r.append("")
+    else:
+        r.append("No GitHub data available yet.")
+        r.append("Run collectors to populate: npx tsx scripts/collect.ts github")
+        r.append("")
 
-    for sector, data in top_sectors:
-        report += f"   • {sector}\n"
-        if data['total'] > 0:
-            report += f"     {data['count']} startups | ${data['total']/1e6:.1f}M total | Avg ${data['total']/data['count']/1e6:.2f}M\n"
-        else:
-            report += f"     {data['count']} startups | (amounts undisclosed)\n"
-        if data['countries']:
-            report += f"     Países: {', '.join(list(data['countries'])[:5])}\n"
+    # =========================================================================
+    # RESEARCH PIPELINE
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("4. RESEARCH PIPELINE (ArXiv)")
+    r.append("=" * 80)
+    r.append("")
 
-        # Tentar encontrar papers relacionados
-        papers = find_related_papers(conn, '', sector)
-        if papers:
-            report += f"     📄 Papers relacionados: {len(papers)} publicações recentes\n"
+    if papers:
+        r.append("RECENT AI/ML RESEARCH:")
+        r.append("-" * 70)
+        for idx, paper in enumerate(papers[:10], 1):
+            title = (paper['title'] or '')[:60]
+            date = paper.get('published_date', 'N/A')
+            category = paper.get('primary_category') or paper.get('categories') or 'N/A'
+            if isinstance(category, list):
+                category = category[0] if category else 'N/A'
+            r.append(f"{idx:2d}. {title}...")
+            r.append(f"    Category: {category} | Date: {date}")
+        r.append("")
 
-        # Tentar encontrar patentes
-        patents = find_patents(conn, sector)
-        if patents:
-            report += f"     📜 Patentes: {len(patents)} registros recentes\n"
+        # Category distribution
+        category_stats = defaultdict(int)
+        for paper in papers:
+            cat = paper.get('primary_category') or 'Unknown'
+            category_stats[cat] += 1
 
-        report += "\n"
+        r.append("RESEARCH CATEGORIES:")
+        r.append("-" * 40)
+        for cat, count in sorted(category_stats.items(), key=lambda x: x[1], reverse=True)[:10]:
+            r.append(f"  {cat:<25} {count:>5} papers")
+        r.append("")
+    else:
+        r.append("No research paper data available yet.")
+        r.append("Run collectors to populate: npx tsx scripts/collect.ts arxiv")
+        r.append("")
 
-    report += f"\n{'='*80}\n\n"
+    # =========================================================================
+    # INSIGHTS & OPPORTUNITIES
+    # =========================================================================
+    r.append("=" * 80)
+    r.append("5. STRATEGIC INSIGHTS")
+    r.append("=" * 80)
+    r.append("")
 
-    # Tech Stack
-    report += f"💻 TECH STACK - O QUE ESTÃO USANDO?\n{'-'*80}\n\n"
-    report += "Baseado em análise de repos GitHub trending:\n\n"
+    if all_rounds:
+        # Find emerging patterns
+        early_stage = [rd for rd in all_rounds if classify_round_stage(rd.get('amount_usd'), rd.get('round_type')) in ['Pre-Seed', 'Seed', 'Angel']]
 
-    for idx, tech in enumerate(tech_stack, 1):
-        report += f"   {idx:2d}. {tech['language']:20s} | {tech['repo_count']:3d} repos | {tech['total_stars']:,} stars\n"
+        if early_stage:
+            # Sectors with small # of deals but validation
+            sector_counts = defaultdict(int)
+            for rd in early_stage:
+                sector_counts[rd.get('sector') or 'Unknown'] += 1
 
-    report += f"\n{'='*80}\n\n"
+            emerging = [(s, c) for s, c in sector_counts.items() if 2 <= c <= 5 and s != 'Unknown']
+            if emerging:
+                r.append("EMERGING SECTORS (2-5 early-stage deals = market validation):")
+                r.append("-" * 50)
+                for sector, count in sorted(emerging, key=lambda x: x[1], reverse=True)[:5]:
+                    r.append(f"  {sector}: {count} deals")
+                    r.append(f"    -> Early market, room for new entrants")
+                r.append("")
 
-    # Top Deals com contexto
-    report += f"🔥 TOP 20 EARLY-STAGE ROUNDS (Últimos 12 meses)\n{'-'*80}\n\n"
+        # Geographic opportunities
+        country_counts = defaultdict(int)
+        for rd in all_rounds:
+            country_counts[rd.get('country') or 'Unknown'] += 1
 
-    for idx, round_data in enumerate(seed_rounds[:20], 1):
-        company = round_data['company_name']
-        sector = round_data.get('sector') or 'N/A'
-        country = round_data.get('country', 'Unknown')
-        date = round_data.get('announced_date', 'N/A')
-        round_type = round_data.get('round_type', 'N/A')
-        source = round_data.get('source', 'N/A')
+        non_us = [(c, cnt) for c, cnt in country_counts.items() if c not in ['USA', 'United States', 'Unknown'] and cnt >= 2]
+        if non_us:
+            r.append("EMERGING GEOGRAPHIC HUBS (outside USA):")
+            r.append("-" * 50)
+            for country, count in sorted(non_us, key=lambda x: x[1], reverse=True)[:8]:
+                r.append(f"  {country}: {count} deals")
+            r.append("")
 
-        report += f"{idx:2d}. {company}\n"
+    # Tech stack insights
+    if tech_stack:
+        r.append("TECH STACK INSIGHTS:")
+        r.append("-" * 50)
+        top_langs = [t['language'] for t in tech_stack[:5]]
+        r.append(f"  Dominant: {', '.join(top_langs)}")
+        r.append("  -> Skills in demand for startups")
+        r.append("")
 
-        if round_data.get('amount_usd') and round_data['amount_usd'] > 0:
-            amount = round_data['amount_usd'] / 1e6
-            report += f"    💰 ${amount:.2f}M | {round_type} | {sector} | {country} | {date}\n"
-        else:
-            report += f"    🎯 {round_type} | {sector} | {country} | {date} | [{source}]\n"
-            report += f"    💡 Amount undisclosed (early-stage/stealth)\n"
+    r.append("FOR FOUNDERS:")
+    r.append("-" * 50)
+    r.append("  - Check emerging sectors for less competition")
+    r.append("  - Geographic hubs outside USA may offer advantages")
+    r.append("  - Tech stack: align with trending technologies")
+    r.append("")
 
-        # Investors
-        if round_data.get('investors'):
-            investors = round_data['investors'][:100]  # Truncar
-            report += f"    👥 {investors}\n"
+    r.append("FOR INVESTORS:")
+    r.append("-" * 50)
+    r.append("  - Early-stage sectors with 2-5 deals = validated but not crowded")
+    r.append("  - Watch research pipeline for next wave of startups")
+    r.append("  - Geographic diversification opportunities")
+    r.append("")
 
-        # Buscar papers relacionados
-        papers = find_related_papers(conn, company, sector)
-        if papers:
-            report += f"    📄 {len(papers)} paper(s) relacionado(s) no ArXiv\n"
+    r.append("FOR TALENT:")
+    r.append("-" * 50)
+    r.append("  - Learn trending languages/frameworks from GitHub data")
+    r.append("  - Follow funded sectors for job opportunities")
+    r.append("  - Research papers indicate future skill demands")
+    r.append("")
 
-        report += "\n"
+    r.append("=" * 80)
+    r.append("Report complete.")
+    r.append("=" * 80)
 
-    report += f"\n{'='*80}\n\n"
-
-    # Insights estratégicos
-    report += f"💡 INSIGHTS ESTRATÉGICOS\n{'-'*80}\n\n"
-
-    report += "🎯 OPORTUNIDADES:\n\n"
-
-    # Setores com poucos players mas atividade
-    for sector, data in top_sectors[:5]:
-        if 2 <= data['count'] <= 5:
-            report += f"   • {sector}: Apenas {data['count']} startups\n"
-            report += f"     → Oportunidade de entrar em mercado não saturado\n"
-            report += f"     → Ticket médio ${data['total']/data['count']/1e6:.2f}M indica validação inicial\n\n"
-
-    report += "🌍 HUBS EMERGENTES:\n\n"
-
-    # Países fora USA com atividade
-    for country, data in top_countries:
-        if country not in ['USA', 'United States'] and data['count'] >= 3:
-            report += f"   • {country}: {data['count']} deals\n"
-            report += f"     → Hub emergente para {', '.join(list(data['sectors'])[:2])}\n\n"
-
-    report += f"\n{'='*80}\n"
-    report += "Gerado por Sofia Pulse - Early-Stage Deep Dive\n"
-    report += f"{'='*80}\n"
-
-    return report
+    return "\n".join(r)
 
 def main():
-    print("💎 Early-Stage Deep Dive - Analyzing...")
+    print("Connecting to database...")
+    conn = psycopg2.connect(**DB_CONFIG)
+    print("Connected.")
     print()
 
-    try:
-        conn = psycopg2.connect(**DB_CONFIG)
+    print("Getting data overview...")
+    overview = get_data_overview(conn)
 
-        print("📊 Fetching seed/angel rounds (<$10M)...")
-        seed_rounds = analyze_early_stage(conn)
-        print(f"   ✅ Found {len(seed_rounds)} early-stage deals")
+    print("Fetching all funding data...")
+    all_rounds = get_all_funding_data(conn)
+    print(f"  Found {len(all_rounds)} funding rounds")
 
-        print("💻 Analyzing tech stack...")
-        tech_stack = find_tech_stack(conn)
-        print(f"   ✅ Found {len(tech_stack)} technologies")
+    print("Analyzing tech stack...")
+    tech_stack = get_github_tech_stack(conn)
+    print(f"  Found {len(tech_stack)} languages")
 
-        print("📝 Generating report...")
-        report = generate_report(seed_rounds, tech_stack, conn)
+    print("Getting top GitHub repos...")
+    top_repos = get_top_github_repos(conn)
 
-        # Salvar
-        output_file = 'analytics/early-stage-latest.txt'
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(report)
+    print("Fetching research papers...")
+    papers = get_research_papers(conn)
+    print(f"  Found {len(papers)} papers")
 
-        print(f"✅ Report saved to {output_file}")
-        print()
-        print("Preview:")
-        print(report[:1000])
+    print()
+    print("Generating report...")
+    report = generate_report(overview, all_rounds, tech_stack, top_repos, papers)
 
-        conn.close()
+    print(report)
 
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+    # Save
+    output_file = 'analytics/early-stage-latest.txt'
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(report)
+
+    print(f"\nSaved to: {output_file}")
+
+    conn.close()
 
 if __name__ == '__main__':
     main()
