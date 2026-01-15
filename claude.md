@@ -1,384 +1,9 @@
 # 🤖 CLAUDE - Sofia Pulse Complete Intelligence System
 
-**Data**: 2026-01-13 UTC
-**Branch**: `master`
+**Data**: 2025-11-23 UTC
+**Branch**: `claude/setup-auto-notifications-012c4Fo8viNHgba4oBwMpCjf`
 **Email**: augustosvm@gmail.com
-**Status**: ✅ SISTEMA 100% FUNCIONAL - 40+ FONTES + 28 RELATÓRIOS ML + 1.5M+ REGISTROS + 8,613 VAGAS + 5 FUNDING SOURCES
-
----
-
-## 🚀 ÚLTIMAS ATUALIZAÇÕES (13 Jan 2026)
-
-### ✅ **TECHCRUNCH FUNDING COLLECTOR** (13 Jan 2026) 💰
-
-**MAJOR FEATURE**: Novo collector de funding com NLP extraction de valores!
-
-**O que foi implementado**:
-
-**TechCrunch RSS Collector** (`scripts/collect-techcrunch-funding.ts`):
-- ✅ Fetch RSS feed do TechCrunch diariamente
-- ✅ Parse XML sem dependências externas (regex puro)
-- ✅ **NLP extraction de funding amounts** ($10M, $450 million, $1.5B, etc.)
-- ✅ Extração de company names com múltiplos padrões
-- ✅ Detecção de round types (Seed, Series A/B/C/D/E, IPO, Acquisition)
-- ✅ Salva com `amount_usd` preenchido!
-
-**Teste Bem-Sucedido**:
-```
-📊 Found 4 funding-related articles
-
-  • Eleven - VC Funding - $330.0M
-  • Deepgram - Series C - $130.0M
-  • Superorganism - VC Funding - $25.0M
-  • Converge Bio - Series A - $25.0M
-
-✅ Saved 4/4 funding rounds
-```
-
-**Impacto no Banco**:
-- **ANTES**: 30 funding rounds com amount_usd > 0
-- **AGORA**: 34 funding rounds com amount_usd > 0 (após 1 execução)
-- **Esperado**: +4-8 rounds/dia = 120-240 rounds/mês 📈
-
-**NLP Patterns Implementados**:
-```typescript
-// Amount extraction
-/\$(\d+(?:\.\d+)?)\s?(million|billion|m|b)\b/i
-// Examples: "$10M", "$450 million", "$1.5B"
-
-// Company name extraction
-/^([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s+(?:raises|raised|gets|lands)/
-// Examples: "Acme Corp raises $10M"
-
-// Round type detection
-Keywords: series a/b/c/d/e, seed, pre-seed, ipo, acquisition
-```
-
-**Crontab**:
-```cron
-# TechCrunch Funding News (NLP extraction)
-0 13 * * 1-5 cd /home/ubuntu/sofia-pulse && npx tsx scripts/collect-techcrunch-funding.ts >> /var/log/sofia/techcrunch.log 2>&1
-```
-- **Schedule**: 13:00 UTC (10:00 BRT), Monday-Friday
-- **Expected**: ~4-8 rounds/dia
-- **Log**: `/var/log/sofia/techcrunch.log`
-
-**Próximos Passos**:
-- ✅ TechCrunch funcionando (TypeScript)
-- ✅ Crunchbase implementado (TypeScript - precisa API key)
-- ⏳ YC Companies precisa fix (Python - metadata error)
-- ⏳ Product Hunt (Python)
-- ⏳ SEC EDGAR (Python)
-
-**Status**: ✅ FUNCIONANDO - Crunchbase pronto para coletar após configurar API key!
-
----
-
-### ✅ **EMAIL SYSTEM FIXED** (13 Jan 2026) 📧
-
-**PROBLEMA**: Emails diários não estavam sendo enviados
-
-**Problemas Encontrados e Corrigidos**:
-
-1. **Crontab chamando arquivo errado**:
-   - ❌ Antes: `bash send-email-mega.sh` (arquivo não existe)
-   - ✅ Agora: `python3 send-email-mega.py` (arquivo correto)
-
-2. **Script de analytics faltando**:
-   - ❌ Antes: `run-mega-analytics-with-alerts.sh` não existia
-   - ✅ Agora: Script criado com 38 analytics
-
-3. **Última execução**: 2025-12-29 (2 semanas atrás)
-   - ✅ Sistema corrigido e testado manualmente
-
-**Correções Aplicadas**:
-```bash
-# Crontab corrigido
-30 22 * * 1-5 cd $SOFIA_DIR && python3 send-email-mega.py >> /var/log/sofia/email.log 2>&1
-
-# Script de analytics criado
-run-mega-analytics-with-alerts.sh - 38 analytics em sequência
-```
-
-**Teste Manual**:
-```bash
-cd /home/ubuntu/sofia-pulse
-python3 send-email-mega.py
-# ✅ Email sent successfully to augustosvm@gmail.com
-# 📊 36 TXT reports + 16 CSVs
-```
-
-**Status**: ✅ CORRIGIDO E TESTADO
-
-**Próxima Execução Automática**:
-- Analytics: 22:00 UTC (19:00 BRT) Segunda-Sexta
-- Email: 22:30 UTC (19:30 BRT) Segunda-Sexta
-
----
-
-### ✅ **AUTO-CREATE CITIES FEATURE** (13 Jan 2026) 🏙️
-
-**MAJOR IMPROVEMENT**: Collectors agora adicionam cidades automaticamente ao banco de dados!
-
-**Problema Resolvido**:
-- Antes: Collectors encontravam ~80 cidades brasileiras não cadastradas e pulavam essas vagas
-- Agora: Cidades são criadas automaticamente quando não existem no banco
-
-**O que foi implementado**:
-
-1. **TypeScript Helper Updated** (`scripts/shared/geo-helpers.ts`):
-   ```typescript
-   // Antes: getOrCreateCity() apenas procurava (lookup-only)
-   // Agora: getOrCreateCity() CRIA automaticamente se não encontrar
-   ```
-   - Tenta buscar cidade existente
-   - Se não encontrar e tiver state_id válido, cria automaticamente
-   - Handle de race conditions (duplicates)
-   - Log de confirmação: "✅ Auto-created city: Nome (state_id: X)"
-
-2. **Python Helper Updated** (`scripts/shared/geo_helpers.py`):
-   - Mesma lógica para collectors Python
-   - Commit automático após criação
-   - Rollback em caso de erro
-
-3. **Estados Brasileiros Completos**:
-   - Adicionados todos os 27 estados brasileiros ao banco
-   - Script: `scripts/add-missing-brazilian-states.ts`
-
-4. **48 Cidades Adicionadas Manualmente**:
-   - Script inicial: `scripts/add-missing-cities.ts`
-   - Goiânia, Itajaí, Niterói, Criciúma, Palhoça, etc.
-   - Total: 147+ cidades brasileiras cadastradas
-
-**Teste de Validação**:
-```bash
-npx tsx scripts/test-auto-create-cities.ts
-# ✅ Cidade "Americana" criada automaticamente (ID: 3734)
-# ✅ São Paulo encontrada (existente, ID: 2150)
-```
-
-**Impacto**:
-- ✅ Catho: 730 vagas coletadas (antes: muitas puladas por cidade não cadastrada)
-- ✅ Outros collectors: Não perdem mais dados por cidades faltantes
-- ✅ Qualidade de dados: city_id sempre preenchido quando possível
-- ✅ Escalabilidade: Sistema cresce organicamente com os dados
-
-**Arquivos Modificados**:
-- `scripts/shared/geo-helpers.ts` - Auto-create em TypeScript
-- `scripts/shared/geo_helpers.py` - Auto-create em Python
-- `scripts/add-missing-brazilian-states.ts` - Script auxiliar
-- `scripts/add-missing-cities.ts` - Script auxiliar
-- `scripts/test-auto-create-cities.ts` - Script de teste
-
-**Status**: ✅ TESTADO E FUNCIONANDO
-
-**Crontab**:
-```cron
-# Catho Jobs Collector (Brazilian jobs - 67 tech keywords)
-30 12 * * 1-5 cd /home/ubuntu/sofia-pulse && npx tsx scripts/collect-catho-final.ts >> /var/log/sofia/catho.log 2>&1
-```
-- **Schedule**: 12:30 UTC (09:30 BRT), Monday-Friday
-- **Expected**: ~700+ vagas/dia
-- **Log**: `/var/log/sofia/catho.log`
-- **Auto-creates cities**: Yes (feature enabled)
-
-**Intelligence Report**:
-```bash
-python3 analytics/catho-jobs-intelligence.py
-```
-- **Total jobs analyzed**: 1,395 vagas (90 days)
-- **Report**: `analytics/catho-jobs-intelligence.txt`
-- **Insights**:
-  - 🔥 Top skills: Git (35x), React (34x), Java (31x), Python (26x)
-  - 🗺️ Top states: Sergipe (539), São Paulo (507), Rio de Janeiro (72)
-  - 🏙️ Top cities: Aracaju (539), São Paulo (329), Rio de Janeiro (59)
-  - 🎓 Seniority: Mid (56%), Senior (7%), Entry (4%)
-  - 🏠 Remote: 96% unknown, 2% remote, 2% hybrid
-  - 📊 Sectors: Other Tech (40%), Leadership (4%), QA (4%), Backend (4%)
-
----
-
-## 🚀 ATUALIZAÇÕES ANTERIORES (05 Jan 2026)
-
-### ✅ **FUNDING COLLECTORS - 5 SOURCES COMPLETE** (05 Jan 2026) 💰
-
-**MAJOR FEATURE**: 5 fontes de funding configuradas para resolver Time Series Funding vazio!
-
-**O que foi implementado**:
-
-1. **Crunchbase Free API** (✅ IMPLEMENTED! 14 Jan 2026) 💰
-   - 15 funding rounds/dia = 450/mês (buffer para 500 limit FREE tier)
-   - Series A-E, Seed, Pre-Seed, Venture
-   - TypeScript collector: `scripts/collect.ts crunchbase`
-   - TypeScript config: `scripts/configs/funding-config.ts` (line 140-204)
-   - Test script: `scripts/test-crunchbase-collector.ts`
-   - Instructions: `GET_CRUNCHBASE_API_KEY.md`
-   - Schedule: Diário 12:00 UTC
-   - Source: crunchbase
-   - Status: ✅ Code ready, needs CRUNCHBASE_API_KEY
-
-2. **TechCrunch RSS** (NOVO!) 📰
-   - Funding news com NLP extraction (company, amount, round type)
-   - Regex XML parser (sem dependências externas)
-   - TypeScript config: `scripts/configs/funding-config.ts` (line 193-271)
-   - TESTADO: ✅ 3 funding rounds coletados com sucesso!
-   - Schedule: Diário 13:00 UTC
-   - Source: techcrunch
-   - Sem API key necessária
-
-3. **Y Combinator** (FIXED!) 🚀
-   - announced_date parsing corrigido (W24 → 2024-01-15, S23 → 2023-06-15)
-   - Função parseYCBatchDate() adicionada
-   - TypeScript config: `scripts/configs/funding-config.ts` (line 29-37)
-   - Schedule: Segundas 10:00 UTC
-   - Source: yc-companies
-
-4. **SEC EDGAR** (EXPANDED!) 🏛️
-   - Expandido de 7 → 60+ empresas tech
-   - 11 categorias: Big Tech, AI/ML, Cloud, Fintech, Cybersecurity, Semiconductors, E-commerce, SaaS, Social, Gaming, Healthtech
-   - Python collector: `scripts/collect-sec-edgar-funding.py`
-   - Schedule: Diário 02:00 UTC
-   - Source: sec_edgar
-
-5. **Product Hunt** (Existing) 🔥
-   - Product launches como proxy de funding
-   - API Key: PRODUCTHUNT_TOKEN (já configurada)
-   - Schedule: Diário 11:00 UTC
-   - Source: producthunt
-
-**Integração Completa**:
-- ✅ Todos os 5 collectors configurados (4 ativos + 1 precisa API key)
-- ✅ Padrão TypeScript config seguido (via `scripts/collect.ts`)
-- ✅ Dados unificados em `sofia.funding_rounds` (separado por `source`)
-- ✅ FK para `sofia.organizations` (get_or_create_organization)
-- ✅ Geographic normalization (city_id, country_id)
-- ✅ TechCrunch testado e funcionando (3 rounds coletados)
-- ✅ Crunchbase implementado e testável (precisa API key gratuita)
-
-**Volume Esperado**:
-- **ANTES**: 99 deals/365d (dados antigos, ~0.3 deals/dia)
-- **DEPOIS**: ~1,270 deals/mês (~42 deals/dia) 🚀
-  - SEC EDGAR: ~20 filings/mês
-  - YC: ~50 companies/semana
-  - Product Hunt: ~600 launches/mês
-  - Crunchbase: 450 rounds/mês
-  - TechCrunch: ~150 news/mês
-
-**Impacto**:
-- ✅ Time Series Funding funcionará após 7-14 dias de coleta diária!
-- ✅ Mega Analysis terá dados recentes de funding
-- ✅ Capital Flow Predictor terá mais signals
-- ✅ Correlações Papers ↔ Funding mais robustas
-
-**Commits**:
-- `7eeb4d9` - feat(funding): Add 2 new funding sources + fix existing collectors
-
----
-
-## 🚀 ÚLTIMAS ATUALIZAÇÕES (31 Dez 2025)
-
-### ✅ **5 NEW ADVANCED ML REPORTS** (31 Dez 2025) 🧠
-
-**MAJOR FEATURE**: 5 relatórios ML ELABORADOS, não apenas coleta básica!
-
-**O que foi implementado**:
-
-1. **Jobs Intelligence Report** (NLP em 8,613 vagas globais) 💼
-   - Skills demand por país (USA: 2,022 vagas, Brasil: 1,434)
-   - Remote vs On-site trends (% de cada tipo)
-   - Seniority demand (Junior/Mid/Senior/Manager)
-   - Tech stack co-occurrence (Python + AWS, React + Node, etc.)
-   - Salary insights por país (onde disponível)
-   - NLP extraction com 50+ tech skills patterns
-   - **Arquivo**: `analytics/jobs-intelligence.py`
-
-2. **Sentiment Analysis Report** (Hype vs Substance) 📊
-   - Papers: Hype ratio (quantos usam "breakthrough" vs "empirical")
-   - HackerNews: Positive/Negative/Neutral sentiment
-   - Reddit: Community sentiment (se disponível)
-   - Topic sentiment (quais tópicos são mais hyped)
-   - **Lexicons**: Hype words, Substance words, Skeptical words
-   - **Arquivo**: `analytics/sentiment-analysis.py`
-
-3. **Anomaly Detection Report** (Crescimento Explosivo) 🚨
-   - **Z-score**: GitHub stars >2.5 sigma (400%+ growth)
-   - **Funding spikes**: Setores crescendo >500%
-   - **Paper explosions**: Topics com 3x aumento
-   - **Isolation Forest ML**: Multi-dimensional anomalies
-   - **Arquivo**: `analytics/anomaly-detection.py`
-
-4. **Time Series Advanced** (ARIMA Forecasting) 📈
-   - **ARIMA** (Auto-regressive Integrated Moving Average)
-   - **Fallback**: Linear Regression se ARIMA indisponível
-   - **3-month predictions**: GitHub, Funding, Papers
-   - **Trend analysis**: GROWING (STRONG/MODERATE) / DECLINING / STABLE
-   - **Growth rate**: Expected % change
-   - **Arquivo**: `analytics/time-series-advanced.py`
-
-5. **Startup Pattern Matching** (Find Next Unicorns) 🦄
-   - **Similarity scoring**: 0-100% match to Stripe, Airbnb, OpenAI, Figma
-   - **Pattern features**: Funding range, deals count, avg deal size, sector keywords
-   - **K-Means clustering**: Group similar startups
-   - **Investment recommendations**: Top 10 with unicorn potential
-   - **Arquivo**: `analytics/startup-pattern-matching.py`
-
-**Integração Completa**:
-- ✅ Adicionado ao `run-mega-analytics-with-alerts.sh` (nova seção "ADVANCED ML ANALYTICS")
-- ✅ Adicionado ao `send-email-mega.py` (agora 28 reports)
-- ✅ Adicionado ao `send-whatsapp-reports.py` (nova função `send_ml_analytics_summary()`)
-- ✅ Email + WhatsApp agora incluem todos os 28 relatórios
-
-**Commits**:
-- Pending (será feito ao final)
-
----
-
-### ✅ **Catho Jobs Integration** (30 Dez 2025 - 01:30 UTC)
-
-**NOVA FONTE DE DADOS**: Integração completa com Catho.com.br (maior site de empregos do Brasil)!
-
-**O que foi implementado**:
-
-1. **Catho Collector com Parse Completo** 🇧🇷
-   - 710 vagas coletadas do Catho
-   - 67 keywords tech processadas (desenvolvedor, frontend, backend, AI/ML, DevOps, etc.)
-   - Parse helpers integrados: salary, skills, seniority, sector, remote type
-   - Puppeteer stealth mode (anti-detection)
-   - Geographic normalization (country_id, state_id, city_id)
-   - Organization management (FK relationships)
-
-2. **24 Cidades Brasileiras Adicionadas** 🏙️
-   - Guaramirim, Itajaí, Confins, Niterói, Betim, Atibaia, Mauá, Resende
-   - Guaratinguetá, Bombinhas, Itapema, Valinhos, Caieiras, Tupã
-   - Joacaba, Guaíba, Teófilo Otoni, Itaituba, Parnaíba, Carajás
-   - Ponta Grossa, Lagoa Santa, Santa Cruz, Caçapava
-   - Total agora: 147 cidades brasileiras (antes: 123)
-
-3. **Location Parsing Melhorado** 🗺️
-   - Validação de estados brasileiros (27 estados válidos)
-   - Evita falsos positivos ("Funcional - ER", "Fullstack - IA")
-   - Minimum 3 caracteres para cidade
-   - Regex otimizado: `/([A-ZÀ-Ú][a-zà-ú\s]{2,})\s*-\s*([A-Z]{2})\b/`
-
-4. **SonarCloud Config Realista** 📊
-   - Ignora 9 padrões intencionais de data collectors
-   - Foco em bugs e vulnerabilities legítimas
-   - Redução esperada: 1,648 → 200-400 issues (Rating C/D → B/A)
-
-**Arquivos**:
-- `scripts/collect-catho-final.ts` - Catho collector completo
-- `sonar-project.properties` - SonarCloud config realista
-
-**Estatísticas**:
-- ✅ 710 vagas coletadas
-- ✅ 114 vagas com skills detectadas (21.7%)
-- ✅ 710 vagas com description (100%)
-- ⚠️ 2 vagas com salário (0.4% - normal para listagens)
-
-**Commits**:
-- `0255c95` - fix(sonar): Remove wildcards from sonar.sources (not supported)
-- `52aba9d` - config: Configure realistic SonarCloud rules for data collectors
-- `b82cdac` - fix(catho): improve location parsing - validate Brazilian state codes
+**Status**: ✅ SISTEMA 100% FUNCIONAL - 40+ FONTES + 33 RELATÓRIOS + 1.5M+ REGISTROS
 
 ---
 
@@ -717,7 +342,7 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ---
 
-## 🧠 ANÁLISES (28 Relatórios)
+## 🧠 ANÁLISES (33 Relatórios)
 
 ### **Core Analytics** (5):
 1. **Top 10 Tech Trends** - Ranking ponderado
@@ -734,76 +359,58 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 ### **ML Analytics** (1):
 9. **Causal Insights ML** - 8 análises (Sklearn, Clustering, NLP, Forecast)
 
-### **NEW: Advanced ML Analytics** (5) 🧠:
-10. **Jobs Intelligence (NLP)** - 8,613 vagas globais
-    - Skills demand por país (USA, Brasil, Alemanha, etc.)
-    - Remote vs On-site trends (% de cada tipo)
-    - Seniority demand (Junior/Mid/Senior/Manager)
-    - Tech stack co-occurrence (Python + AWS, React + Node)
-    - Salary insights por país
-
-11. **Sentiment Analysis** - Hype vs Substance
-    - Papers: Hype ratio (breakthrough vs empirical)
-    - HackerNews: Positive/Negative/Neutral
-    - Reddit: Community sentiment
-    - Topic sentiment (tópicos mais hyped)
-
-12. **Anomaly Detection** - Crescimento explosivo
-    - Z-score (GitHub stars >2.5 sigma)
-    - Funding spikes (setores >500% growth)
-    - Paper explosions (3x aumento)
-    - Isolation Forest ML (multi-dimensional)
-
-13. **Time Series Advanced (ARIMA)** - Forecasting
-    - 3-month predictions (GitHub, Funding, Papers)
-    - Trend analysis (GROWING/DECLINING/STABLE)
-    - Growth rate (expected % change)
-    - ARIMA ou Linear Regression
-
-14. **Startup Pattern Matching** - Find Next Unicorns
-    - Similarity to Stripe, Airbnb, OpenAI, Figma
-    - K-Means clustering
-    - Investment recommendations
-    - Pattern matching (0-100% score)
-
 ### **AI-Powered Analytics** (1):
-15. **NLG Playbooks** - Narrativas Gemini AI (contexto de papers)
+10. **NLG Playbooks** - Narrativas Gemini AI (contexto de papers)
 
 ### **MEGA Analysis** (1):
-16. **MEGA Analysis** - Cross-database (40+ fontes, 90 dias)
+11. **MEGA Analysis** - Cross-database (40+ fontes, 90 dias)
 
 ### **Predictive Intelligence** (6):
-17. **Career Trends Predictor** - Prediz skills antes das empresas
-18. **Capital Flow Predictor** - Prediz setores antes dos VCs
-19. **Expansion Location Analyzer** - Melhores cidades para abrir filiais
-20. **Weekly Insights Generator** - Top 3 topics para colunistas TI
-21. **Dying Sectors Detector** - Tecnologias em declínio terminal
-22. **Dark Horses Intelligence** - Oportunidades em stealth mode
+12. **Career Trends Predictor** - Prediz skills antes das empresas
+13. **Capital Flow Predictor** - Prediz setores antes dos VCs
+14. **Expansion Location Analyzer** - Melhores cidades para abrir filiais
+15. **Weekly Insights Generator** - Top 3 topics para colunistas TI
+16. **Dying Sectors Detector** - Tecnologias em declínio terminal
+17. **Dark Horses Intelligence** - Oportunidades em stealth mode
 
-### **Socioeconomic Intelligence** (6):
-23. **Best Cities for Tech Talent** - Onde procurar emprego tech
+### **Socioeconomic Intelligence** (6) ⭐ NOVO:
+18. **Best Cities for Tech Talent** - Onde procurar emprego tech
     - Metodologia: INSEAD Global Talent Competitiveness Index
     - Fatores: Job opportunities (30%), Education (25%), Infrastructure (20%), Safety (15%), Cost (10%)
 
-24. **Remote Work Quality Index** - Melhores países para trabalho remoto
+19. **Remote Work Quality Index** - Melhores países para trabalho remoto
     - Metodologia: Nomad List Index + Numbeo QoL
     - Fatores: Internet (30%), Cost (30%), Safety (20%), Healthcare (10%), Environment (10%)
 
-25. **Innovation Hubs Ranking** - Centros de inovação global
+20. **Innovation Hubs Ranking** - Centros de inovação global
     - Metodologia: WIPO Global Innovation Index (GII)
     - Fatores: R&D spending (40%), Research output (30%), Funding (20%), Education (10%)
 
-26. **Best Countries for Startup Founders** - Onde fundar startup
+21. **Best Countries for Startup Founders** - Onde fundar startup
     - Metodologia: World Bank Ease of Doing Business (adapted)
     - Fatores: Funding ecosystem (35%), Cost (25%), Talent (20%), Infrastructure (20%)
 
-27. **Digital Nomad Index** - Para nômades digitais
+22. **Digital Nomad Index** - Para nômades digitais
     - Metodologia: Nomad List scoring system
     - Fatores: Internet (30%), Cost (30%), Safety (20%), Healthcare (10%), Environment (10%)
 
-28. **STEM Education Leaders** - Melhores países para estudar tech
+23. **STEM Education Leaders** - Melhores países para estudar tech
     - Metodologia: OECD PISA inspired
     - Fatores: Enrollment (30%), R&D investment (30%), Research output (25%), Literacy (15%)
+
+### **NEW: Women, Security & Social Intelligence** (3):
+24. **Women Global Analysis** - Gender gaps globais (World Bank, Eurostat, FRED, ILO, IBGE)
+25. **Security Intelligence** - Brazil 27 states + 30 cities + World Top 10 por região
+26. **Social Intelligence** - Religion 40+ países, NGOs 200+, Drugs UNODC
+
+### **NEW: Brazil & Global Specialized** (7):
+27. **Brazil Economy Intelligence** - BACEN, IBGE, IPEA, ComexStat, Ministérios
+28. **Global Health & Humanitarian** - WHO, UNICEF, HDX, ILO
+29. **Trade & Agriculture Intelligence** - WTO, FAO, UN SDG
+30. **Tourism Intelligence** - 90+ países, arrivals, revenue
+31. **LATAM Intelligence** - CEPAL/ECLAC + femicídio
+32. **Olympics & Sports Intelligence** - FIFA, IOC, medals, federations
+33. **Cross-Data Correlations** - GDP vs Security, Education vs Innovation, Health vs Productivity
 
 **Metodologias Consagradas** (documentadas em `analytics/METHODOLOGIES.md`):
 - ✅ HDI (Human Development Index) - UNDP
@@ -818,7 +425,7 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ## 📧 EMAIL DIÁRIO (22:00 UTC / 19:00 BRT)
 
-**28 Relatórios TXT**:
+**23 Relatórios TXT**:
 
 **Core & Advanced Analytics (11)**:
 1. MEGA Analysis (cross-database)
@@ -833,28 +440,21 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 10. Causal Insights ML
 11. NLG Playbooks (Gemini)
 
-**NEW: Advanced ML Analytics (5)** 🧠:
-12. Jobs Intelligence (NLP em 8,613 vagas)
-13. Sentiment Analysis (Hype vs Substance)
-14. Anomaly Detection (Z-score + Isolation Forest)
-15. Time Series Advanced (ARIMA forecasting)
-16. Startup Pattern Matching (Find next unicorns)
-
 **Predictive Intelligence (6)**:
-18. Career Trends Predictor (prediz skills antes das empresas)
-19. Capital Flow Predictor (prediz setores antes dos VCs)
-20. Expansion Location Analyzer (melhores cidades para abrir filiais)
-21. Weekly Insights Generator (top 3 topics para colunistas TI)
-22. Dying Sectors Detector (tecnologias em declínio terminal)
-23. Dark Horses Intelligence (oportunidades em stealth mode)
+12. Career Trends Predictor (prediz skills antes das empresas)
+13. Capital Flow Predictor (prediz setores antes dos VCs)
+14. Expansion Location Analyzer (melhores cidades para abrir filiais)
+15. Weekly Insights Generator (top 3 topics para colunistas TI)
+16. Dying Sectors Detector (tecnologias em declínio terminal)
+17. Dark Horses Intelligence (oportunidades em stealth mode)
 
-**Socioeconomic Intelligence (6)**:
-24. Best Cities for Tech Talent (INSEAD methodology)
-25. Remote Work Quality Index (Nomad List + Numbeo)
-26. Innovation Hubs Ranking (WIPO GII)
-27. Best Countries for Startup Founders (World Bank)
-28. Digital Nomad Index (Nomad List)
-29. STEM Education Leaders (OECD PISA - REMOVIDO: excede 28 total)
+**Socioeconomic Intelligence (6)** ⭐ NOVO:
+18. Best Cities for Tech Talent (INSEAD methodology)
+19. Remote Work Quality Index (Nomad List + Numbeo)
+20. Innovation Hubs Ranking (WIPO GII)
+21. Best Countries for Startup Founders (World Bank)
+22. Digital Nomad Index (Nomad List)
+23. STEM Education Leaders (OECD PISA)
 
 **CSVs** (15+):
 - github_trending, npm_stats, pypi_stats, hackernews_stories
@@ -867,47 +467,26 @@ Sofia Pulse coleta dados de **40+ fontes internacionais**, analisa **20+ setores
 
 ## 🚀 COMO USAR
 
-### Acesso ao Servidor (IMPORTANTE!)
-
-**Servidor de Produção:** `root@91.98.158.19`
-**Chave SSH:** `~/.ssh/id_ed25519_server`
-
-```bash
-# Conectar ao servidor
-ssh -i ~/.ssh/id_ed25519_server root@91.98.158.19
-
-# Ir para o projeto
-cd /root/sofia-pulse  # ou onde estiver instalado
-
-# IMPORTANTE: Sempre rodar analytics e email DO SERVIDOR!
-# O servidor tem todas as credenciais SMTP configuradas
-```
-
 ### Setup Inicial (Servidor)
 
 ```bash
-# 1. Conectar ao servidor
-ssh -i ~/.ssh/id_ed25519_server root@91.98.158.19
-
-# 2. Ir para o projeto
-cd /root/sofia-pulse
-
-# 3. Pull latest changes
+# 1. Clone/Pull do repositório
+cd ~/sofia-pulse
+git checkout claude/fix-github-rate-limits-012Xm4nfg6i34xKQHSDbWfq3
 git pull
 
-# 4. Verificar .env (credenciais SMTP corretas estão aqui!)
+# 2. Verificar .env
 cat .env
 
-# 5. Aplicar migrations (se necessário)
+# 3. Aplicar migrations (se necessário)
 bash run-migrations.sh
 
-# 6. Executar analytics + email (DO SERVIDOR!)
-python3 analytics/time-series-advanced.py
-python3 analytics/mega-analysis.py
-python3 send-email-mega.py
+# 4. Executar coletas distribuídas
+bash collect-fast-apis.sh       # 10:00 UTC
+bash collect-limited-apis.sh    # 16:00 UTC
 
-# 7. Ou rodar script completo
-bash run-mega-analytics.sh && python3 send-email-mega.py
+# 5. Executar analytics + email
+bash run-mega-analytics.sh && bash send-email-mega.sh  # 22:00 UTC
 ```
 
 ### Automatizar (Cron)

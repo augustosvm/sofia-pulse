@@ -1,101 +1,189 @@
+================================================================================
+EARLY-STAGE DEEP DIVE - Sofia Pulse
+================================================================================
+Generated: 2026-01-14 16:46:55
 
 ================================================================================
-💎 EARLY-STAGE DEEP DIVE - Sofia Pulse
+1. DATA OVERVIEW (Full Historical Range)
 ================================================================================
 
-Generated: 2026-01-14 16:25:45
+FUNDING DATA:
+--------------------------------------------------
+  Total Rounds: 609
+  Seed/Angel (<$10M): 0
+  Early-Stage (<$50M): 3
+  YC Companies: 0
+  Total Capital: $33.31B
+  Date Range: 2005-06-15 to 2026-01-13
 
-Análise de startups dos últimos 12 meses (<$50M - Early-stage with known amounts)
-Conectando: Funding → Papers → Universities → Tech Stack → Patents
+GITHUB DATA:
+--------------------------------------------------
+  Trending Repos: 618
+  Languages: 31
+  Total Stars: 17,643,834
+  Date Range: 2025-12-20 to 2026-01-14
 
-================================================================================
-
-📊 RESUMO EXECUTIVO
---------------------------------------------------------------------------------
-
-Total de rounds encontrados: 3
-   • With disclosed amount: 3
-   • YC/undisclosed: 0
-
-Ticket médio (disclosed): $25.00M
-Range: $25.00M - $25.00M
-
-================================================================================
-
-🌍 GEOGRAFIA - ONDE ESTÃO OS FOUNDERS?
---------------------------------------------------------------------------------
-
-   Unknown              |  3 deals | $75.0M total
-
+RESEARCH PAPERS:
+--------------------------------------------------
+  ArXiv Papers: 1,027
+  OpenAlex Papers: 69
+  Total: 1,096
 
 ================================================================================
-
-🎯 SETORES EMERGENTES
---------------------------------------------------------------------------------
-
-   • Other
-     3 startups | $75.0M total | Avg $25.00M
-     📄 Papers relacionados: 5 publicações recentes
-
-
+2. FUNDING ECOSYSTEM ANALYSIS
 ================================================================================
 
-💻 TECH STACK - O QUE ESTÃO USANDO?
---------------------------------------------------------------------------------
+FUNDING BY STAGE:
+----------------------------------------------------------------------
+Stage              Deals      Total Funding        Avg Deal
+----------------------------------------------------------------------
+Series A               2            $440.0M         $220.0M
+Series B               4           $1700.0M         $425.0M
+Series C               5          $17030.0M        $3406.0M
+Series C+              9           $6050.0M         $672.2M
+Series D+              9           $8089.0M         $898.8M
+Unknown              580                N/A             N/A
 
-Baseado em análise de repos GitHub trending:
+EARLY-STAGE FOCUS (2 deals):
+--------------------------------------------------
 
-    1. TypeScript           | 180 repos | 4,925,550 stars
-    2. Python               | 138 repos | 3,006,653 stars
-    3. JavaScript           |  53 repos | 1,937,187 stars
-    4. Go                   |  20 repos | 881,887 stars
-    5. Java                 |  24 repos | 774,147 stars
-    6. C++                  |  11 repos | 646,247 stars
-    7. Rust                 |  18 repos | 502,125 stars
-    8. HTML                 |  13 repos | 472,096 stars
-    9. Markdown             |   1 repos | 453,367 stars
-   10. C                    |  12 repos | 358,621 stars
-   11. PHP                  |  19 repos | 355,322 stars
-   12. Jupyter Notebook     |   4 repos | 294,557 stars
-   13. Vue                  |  10 repos | 239,873 stars
-   14. C#                   |   5 repos | 229,423 stars
-   15. Svelte               |   5 repos | 212,099 stars
+Top Sectors (Early-Stage):
+  Unknown                           1 deals ($25.0M)
+  Open Source AI                    1 deals ($415.0M)
 
-================================================================================
+Top Countries (Early-Stage):
+  Unknown                      1 deals ($25.0M)
+  France                       1 deals ($415.0M)
 
-🔥 TOP 20 EARLY-STAGE ROUNDS (Últimos 12 meses)
---------------------------------------------------------------------------------
-
- 1. Superorganism
-    💰 $25.00M | VC Funding | N/A | None | 2026-01-13
-    📄 1 paper(s) relacionado(s) no ArXiv
-
- 2. Converge Bio
-    💰 $25.00M | Series A | N/A | None | 2026-01-13
-    📄 1 paper(s) relacionado(s) no ArXiv
-
- 3. Flutterwave
-    💰 $25.00M | Acquisition | N/A | None | 2026-01-05
-    📄 1 paper(s) relacionado(s) no ArXiv
-
-
-================================================================================
-
-💡 INSIGHTS ESTRATÉGICOS
---------------------------------------------------------------------------------
-
-🎯 OPORTUNIDADES:
-
-   • Other: Apenas 3 startups
-     → Oportunidade de entrar em mercado não saturado
-     → Ticket médio $25.00M indica validação inicial
-
-🌍 HUBS EMERGENTES:
-
-   • None: 3 deals
-     → Hub emergente para 
-
+RECENT NOTABLE DEALS:
+----------------------------------------------------------------------
+ 1. Superorganism                  $    25.0M | VC Funding | N/A | Unknown
+ 2. Converge Bio                   $    25.0M | Series A | N/A | Unknown
+ 3. Eleven                         $   330.0M | VC Funding | N/A | USA
+ 4. Deepgram                       $   130.0M | Series C | N/A | Unknown
+ 5. Flutterwave                    $    25.0M | Acquisition | N/A | Unknown
+ 6. Can                            undisclosed | VC Funding | N/A | Unknown
+ 7. Mom Clock                      undisclosed | Product Launch | iOS, Health & F | Unknown
+ 8. Brief My Meeting               undisclosed | Product Launch | Productivity, M | Unknown
+ 9. BizCard                        undisclosed | Product Launch | Hardware, Artif | Unknown
+10. Giselle                        undisclosed | Product Launch | Productivity, O | Unknown
+11. Typeless for iOS               undisclosed | Product Launch | iOS, Productivi | Unknown
+12. Super Agents by ClickUp        undisclosed | Product Launch | Productivity, A | Unknown
+13. /agent by Firecrawl            undisclosed | Product Launch | Developer Tools | Unknown
+14. Surgeflow                      undisclosed | Product Launch | Browser Extensi | Unknown
+15. ConnectMachine                 undisclosed | Product Launch | Android, iOS, A | Unknown
 
 ================================================================================
-Gerado por Sofia Pulse - Early-Stage Deep Dive
+3. TECH STACK SIGNALS (GitHub Trending)
+================================================================================
+
+LANGUAGES BY POPULARITY:
+------------------------------------------------------------
+Language                  Repos     Total Stars
+------------------------------------------------------------
+TypeScript                  180       4,925,550
+Python                      138       3,006,653
+JavaScript                   53       1,937,187
+Go                           20         881,887
+Java                         24         774,147
+C++                          11         646,247
+Rust                         18         502,125
+HTML                         13         472,096
+Markdown                      1         453,367
+C                            12         358,621
+PHP                          19         355,322
+Jupyter Notebook              4         294,557
+Vue                          10         239,873
+C#                            5         229,423
+Svelte                        5         212,099
+
+TOP TRENDING REPOSITORIES:
+----------------------------------------------------------------------
+ 1. codecrafters-io/build-your-own-x       453,367 stars | Markdown
+    Master programming by recreating your fa...
+ 2. freeCodeCamp/freeCodeCamp              435,839 stars | TypeScript
+    freeCodeCamp.org's open-source codebase ...
+ 3. sindresorhus/awesome                   428,910 stars | N/A
+    😎 Awesome lists about all kinds of inter...
+ 4. EbookFoundation/free-programming-bo    380,161 stars | Python
+    :books: Freely available programming boo...
+ 5. kamranahmedse/developer-roadmap        347,200 stars | TypeScript
+    Interactive roadmaps, guides and other e...
+ 6. vinta/awesome-python                   278,132 stars | Python
+    An opinionated list of awesome Python fr...
+ 7. awesome-selfhosted/awesome-selfhost    268,079 stars | N/A
+    A list of Free Software network services...
+ 8. facebook/react                         242,235 stars | JavaScript
+    The library for web and native user inte...
+ 9. TheAlgorithms/Python                   216,666 stars | Python
+    All Algorithms implemented in Python...
+10. torvalds/linux                         214,011 stars | C
+    Linux kernel source tree...
+
+================================================================================
+4. RESEARCH PIPELINE (ArXiv)
+================================================================================
+
+RECENT AI/ML RESEARCH:
+----------------------------------------------------------------------
+ 1. APEX-SWE...
+    Category: cs.AI | Date: 2026-01-13
+ 2. Multi-Preconditioned LBFGS for Training Finite-Basis PINNs...
+    Category: cs.LG | Date: 2026-01-13
+ 3. RMBRec: Robust Multi-Behavior Recommendation towards Target ...
+    Category: cs.LG | Date: 2026-01-13
+ 4. Provably Safe Reinforcement Learning using Entropy Regulariz...
+    Category: cs.LG | Date: 2026-01-13
+ 5. RAVEN: Erasing Invisible Watermarks via Novel View Synthesis...
+    Category: cs.CV | Date: 2026-01-13
+ 6. MemRec: Collaborative Memory-Augmented Agentic Recommender S...
+    Category: cs.AI | Date: 2026-01-13
+ 7. Reasoning Matters for 3D Visual Grounding...
+    Category: cs.AI | Date: 2026-01-13
+ 8. Uncovering Political Bias in Large Language Models using Par...
+    Category: cs.AI | Date: 2026-01-13
+ 9. Pervasive Annotation Errors Break Text-to-SQL Benchmarks and...
+    Category: cs.AI | Date: 2026-01-13
+10. Translating Light-Sheet Microscopy Images to Virtual H&amp;E...
+    Category: cs.AI | Date: 2026-01-13
+
+RESEARCH CATEGORIES:
+----------------------------------------
+  cs.AI                        14 papers
+  cs.LG                         5 papers
+  cs.CV                         1 papers
+
+================================================================================
+5. STRATEGIC INSIGHTS
+================================================================================
+
+EMERGING GEOGRAPHIC HUBS (outside USA):
+--------------------------------------------------
+  Sweden: 2 deals
+
+TECH STACK INSIGHTS:
+--------------------------------------------------
+  Dominant: TypeScript, Python, JavaScript, Go, Java
+  -> Skills in demand for startups
+
+FOR FOUNDERS:
+--------------------------------------------------
+  - Check emerging sectors for less competition
+  - Geographic hubs outside USA may offer advantages
+  - Tech stack: align with trending technologies
+
+FOR INVESTORS:
+--------------------------------------------------
+  - Early-stage sectors with 2-5 deals = validated but not crowded
+  - Watch research pipeline for next wave of startups
+  - Geographic diversification opportunities
+
+FOR TALENT:
+--------------------------------------------------
+  - Learn trending languages/frameworks from GitHub data
+  - Follow funded sectors for job opportunities
+  - Research papers indicate future skill demands
+
+================================================================================
+Report complete.
 ================================================================================
