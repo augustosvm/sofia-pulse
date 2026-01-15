@@ -539,7 +539,11 @@ def main():
     print("Generating report...")
     report = generate_report(overview, all_rounds, tech_stack, top_repos, papers)
 
-    print(report)
+    # Print with safe encoding for Windows terminals
+    try:
+        print(report)
+    except UnicodeEncodeError:
+        print(report.encode('ascii', errors='replace').decode('ascii'))
 
     # Save
     output_file = 'analytics/early-stage-latest.txt'
