@@ -14,6 +14,7 @@
  */
 
 import type { FundingCollectorConfig } from '../collectors/funding-collector.js';
+import { extractCountry } from '../shared/country-extractor.js';
 
 // ============================================================================
 // Y COMBINATOR COMPANIES
@@ -113,11 +114,20 @@ export const productHunt: FundingCollectorConfig = {
 
     return posts.map((edge: any) => {
       const post = edge.node;
+
+      // Extract country using NLP from name, tagline, and website
+      const detectedCountry = extractCountry({
+        title: post.name,
+        description: post.tagline,
+        website: post.website,
+        defaultCountry: 'USA', // Most PH products are US-based
+      });
+
       return {
         company_name: post.name,
         round_type: 'Product Launch',
         sector: post.topics?.edges?.map((t: any) => t.node.name).join(', ').slice(0, 255) || null,
-        country: null, // ProductHunt doesn't provide location
+        country: detectedCountry,
         website: post.website || null,
         description: post.tagline?.slice(0, 500) || null,
         announced_date: post.createdAt ? new Date(post.createdAt) : null,
@@ -270,11 +280,19 @@ export const techcrunch: FundingCollectorConfig = {
           }
         }
 
+        // Extract country using NLP from title and description
+        const detectedCountry = extractCountry({
+          title: title,
+          description: description,
+          defaultCountry: 'USA', // TechCrunch primarily covers US companies
+        });
+
         return {
           company_name: companyName,
           round_type: roundType,
           amount_usd: amountUsd,
           announced_date: announcedDate,
+          country: detectedCountry,
           source: 'techcrunch',
           metadata: {
             article_title: title.slice(0, 500),

@@ -14,6 +14,8 @@
 
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
+import { extractCountry } from './shared/country-extractor.js';
+import { normalizeLocation } from './shared/geo-helpers.js';
 
 dotenv.config();
 
@@ -32,6 +34,7 @@ interface FundingRound {
   announced_date: Date | null;
   article_title: string;
   article_link: string;
+  country: string;
 }
 
 const FUNDING_KEYWORDS = [
@@ -186,6 +189,13 @@ function parseRSSFeed(xmlData: string): FundingRound[] {
       }
     }
 
+    // Extract country using NLP
+    const detectedCountry = extractCountry({
+      title: title,
+      description: description,
+      defaultCountry: 'USA', // TechCrunch primarily covers US companies
+    });
+
     fundingRounds.push({
       company_name: companyName,
       round_type: roundType,
@@ -193,6 +203,7 @@ function parseRSSFeed(xmlData: string): FundingRound[] {
       announced_date: announcedDate,
       article_title: title.slice(0, 500),
       article_link: link,
+      country: detectedCountry,
     });
   }
 
@@ -222,16 +233,33 @@ async function saveToDatabase(fundingRounds: FundingRound[]): Promise<number> {
           organizationId = orgResult.rows[0]?.id || null;
         }
 
-        // Insert funding round
+        // Normalize country to get country_id
+        let countryId: number | null = null;
+        if (round.country) {
+          try {
+            const normalized = await normalizeLocation(pool, {
+              country: round.country,
+              state: null,
+              city: null,
+            });
+            countryId = normalized.countryId;
+          } catch (error) {
+            // Could not normalize, will use string only
+          }
+        }
+
+        // Insert funding round with country_id
         await client.query(
           `INSERT INTO sofia.funding_rounds (
             company_name, organization_id, round_type, amount_usd,
-            announced_date, country, source, collected_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+            announced_date, country, country_id, source, collected_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
           ON CONFLICT (company_name, round_type, announced_date)
           DO UPDATE SET
             amount_usd = COALESCE(EXCLUDED.amount_usd, sofia.funding_rounds.amount_usd),
             organization_id = COALESCE(EXCLUDED.organization_id, sofia.funding_rounds.organization_id),
+            country = COALESCE(EXCLUDED.country, sofia.funding_rounds.country),
+            country_id = COALESCE(EXCLUDED.country_id, sofia.funding_rounds.country_id),
             collected_at = NOW()`,
           [
             round.company_name,
@@ -239,13 +267,14 @@ async function saveToDatabase(fundingRounds: FundingRound[]): Promise<number> {
             round.round_type,
             round.amount_usd,
             round.announced_date,
-            'USA', // TechCrunch primarily covers US companies
+            round.country,
+            countryId,
             'techcrunch',
           ]
         );
 
         saved++;
-        console.log(`  ✅ ${round.company_name} - ${round.round_type}${round.amount_usd ? ` ($${(round.amount_usd / 1_000_000).toFixed(1)}M)` : ''}`);
+        console.log(`  ✅ ${round.company_name} - ${round.round_type}${round.amount_usd ? ` ($${(round.amount_usd / 1_000_000).toFixed(1)}M)` : ''} [${round.country}]`);
       } catch (error: any) {
         console.error(`  ❌ Error saving ${round.company_name}: ${error.message}`);
       }
