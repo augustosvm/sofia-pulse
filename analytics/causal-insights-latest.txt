@@ -1,16 +1,16 @@
 ================================================================================
 SOFIA PULSE - CAUSAL INSIGHTS (Machine Learning Enhanced)
 ================================================================================
-Generated: 2026-01-14 16:51:40
+Generated: 2026-01-14 21:26:52
 
 ================================================================================
 1. DATA OVERVIEW
 ================================================================================
 
 Available Data:
-  Funding Rounds: 609
-    Date Range: 2005-06-15 to 2026-01-13
-    Total Capital: $33.31B
+  Funding Rounds: 612
+    Date Range: 2005-06-15 to 2026-01-14
+    Total Capital: $34.85B
   GitHub Repos: 618
     Total Stars: 17,643,834
   Research Papers: 1,027
@@ -86,7 +86,7 @@ Fintech                             102            $750.0M           $7.4M
 
 GEOGRAPHIC DISTRIBUTION:
 --------------------------------------------------
-  USA                  10183 deals ($27289.0M)
+  USA                  10218 deals ($29039.0M)
   Singapore                1 deals ($2000.0M)
   Sweden                   2 deals ($2000.0M)
   Brazil                   1 deals ($750.0M)
@@ -95,7 +95,7 @@ GEOGRAPHIC DISTRIBUTION:
 
 MONTHLY TREND (recent):
 --------------------------------------------------
-  2026-01:    7 deals, $535.0M
+  2026-01:   10 deals, $2080.0M
   2025-12:   26 deals, N/A
   2025-11:   10 deals, $2750.0M
   2025-10:    8 deals, $11265.0M

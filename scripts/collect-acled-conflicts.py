@@ -82,7 +82,7 @@ def get_access_token():
         return None
 
 
-def fetch_acled_events(token, days_back=30):
+def fetch_acled_events(token, days_back=7):
     """Fetch recent ACLED events"""
 
     # Calculate date range
@@ -94,9 +94,14 @@ def fetch_acled_events(token, days_back=30):
     end_str = end_date.strftime("%Y-%m-%d")
 
     print(f"\n🔍 Fetching ACLED events from {start_str} to {end_str}...")
+    print(f"   Using Email: {ACLED_EMAIL}")
+    print(f"   Using Key: {ACLED_PASSWORD[:2]}...{ACLED_PASSWORD[-2:]} (Length: {len(ACLED_PASSWORD)})")
 
+    # Use email/key auth (legacy/direct access)
     params = {
-        "limit": 5000,  # Max per request
+        "email": ACLED_EMAIL,
+        "key": ACLED_PASSWORD,  # Using the stored password as the API key
+        "limit": 5000, 
         "event_date": start_str,
         "event_date_where": ">=",
     }
@@ -104,7 +109,10 @@ def fetch_acled_events(token, days_back=30):
     try:
         response = requests.get(
             ACLED_API_URL,
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            },
             params=params,
             timeout=60,
         )
@@ -271,18 +279,8 @@ def main():
     print("🌍 ACLED - Armed Conflict Location & Event Data")
     print("=" * 70)
 
-    # Get access token
-    token = get_access_token()
-    if not token:
-        print("\n❌ Cannot proceed without access token")
-        print("   Register at: https://acleddata.com/user/register")
-        print("   Then add credentials to .env:")
-        print("   ACLED_EMAIL=your_email@example.com")
-        print("   ACLED_PASSWORD=your_password")
-        return
-
-    # Fetch events
-    events = fetch_acled_events(token, days_back=30)
+    # Fetch events (using direct auth configured in function)
+    events = fetch_acled_events(None, days_back=7)
 
     if not events:
         print("\n⚠️  No events collected")

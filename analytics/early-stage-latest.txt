@@ -1,7 +1,7 @@
 ================================================================================
 EARLY-STAGE DEEP DIVE - Sofia Pulse
 ================================================================================
-Generated: 2026-01-14 16:46:55
+Generated: 2026-01-14 21:27:39
 
 ================================================================================
 1. DATA OVERVIEW (Full Historical Range)
@@ -9,12 +9,12 @@ Generated: 2026-01-14 16:46:55
 
 FUNDING DATA:
 --------------------------------------------------
-  Total Rounds: 609
+  Total Rounds: 612
   Seed/Angel (<$10M): 0
   Early-Stage (<$50M): 3
   YC Companies: 0
-  Total Capital: $33.31B
-  Date Range: 2005-06-15 to 2026-01-13
+  Total Capital: $34.85B
+  Date Range: 2005-06-15 to 2026-01-14
 
 GITHUB DATA:
 --------------------------------------------------
@@ -38,9 +38,9 @@ FUNDING BY STAGE:
 Stage              Deals      Total Funding        Avg Deal
 ----------------------------------------------------------------------
 Series A               2            $440.0M         $220.0M
-Series B               4           $1700.0M         $425.0M
+Series B               5           $1787.0M         $357.4M
 Series C               5          $17030.0M        $3406.0M
-Series C+              9           $6050.0M         $672.2M
+Series C+             11           $7508.0M         $682.5M
 Series D+              9           $8089.0M         $898.8M
 Unknown              580                N/A             N/A
 
@@ -52,26 +52,26 @@ Top Sectors (Early-Stage):
   Open Source AI                    1 deals ($415.0M)
 
 Top Countries (Early-Stage):
-  Unknown                      1 deals ($25.0M)
+  USA                          1 deals ($25.0M)
   France                       1 deals ($415.0M)
 
 RECENT NOTABLE DEALS:
 ----------------------------------------------------------------------
- 1. Superorganism                  $    25.0M | VC Funding | N/A | Unknown
- 2. Converge Bio                   $    25.0M | Series A | N/A | Unknown
- 3. Eleven                         $   330.0M | VC Funding | N/A | USA
- 4. Deepgram                       $   130.0M | Series C | N/A | Unknown
- 5. Flutterwave                    $    25.0M | Acquisition | N/A | Unknown
- 6. Can                            undisclosed | VC Funding | N/A | Unknown
- 7. Mom Clock                      undisclosed | Product Launch | iOS, Health & F | Unknown
- 8. Brief My Meeting               undisclosed | Product Launch | Productivity, M | Unknown
- 9. BizCard                        undisclosed | Product Launch | Hardware, Artif | Unknown
-10. Giselle                        undisclosed | Product Launch | Productivity, O | Unknown
-11. Typeless for iOS               undisclosed | Product Launch | iOS, Productivi | Unknown
-12. Super Agents by ClickUp        undisclosed | Product Launch | Productivity, A | Unknown
-13. /agent by Firecrawl            undisclosed | Product Launch | Developer Tools | Unknown
-14. Surgeflow                      undisclosed | Product Launch | Browser Extensi | Unknown
-15. ConnectMachine                 undisclosed | Product Launch | Android, iOS, A | Unknown
+ 1. Bill Gates                     $    87.0M | Series B | N/A | USA
+ 2. Robotics                       $  1400.0M | VC Funding | N/A | USA
+ 3. How Witness                    $    58.0M | VC Funding | N/A | USA
+ 4. Superorganism                  $    25.0M | VC Funding | N/A | USA
+ 5. Converge Bio                   $    25.0M | Series A | N/A | USA
+ 6. Eleven                         $   330.0M | VC Funding | N/A | USA
+ 7. Deepgram                       $   130.0M | Series C | N/A | USA
+ 8. Flutterwave                    $    25.0M | Acquisition | N/A | USA
+ 9. Can                            undisclosed | VC Funding | N/A | USA
+10. Mom Clock                      undisclosed | Product Launch | iOS, Health & F | USA
+11. Brief My Meeting               undisclosed | Product Launch | Productivity, M | USA
+12. BizCard                        undisclosed | Product Launch | Hardware, Artif | USA
+13. Giselle                        undisclosed | Product Launch | Productivity, O | USA
+14. Typeless for iOS               undisclosed | Product Launch | iOS, Productivi | USA
+15. Super Agents by ClickUp        undisclosed | Product Launch | Productivity, A | USA
 
 ================================================================================
 3. TECH STACK SIGNALS (GitHub Trending)

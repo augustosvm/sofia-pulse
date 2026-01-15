@@ -41,7 +41,10 @@ async function runPythonScript(config: PythonCollectorConfig): Promise<void> {
     console.log('='.repeat(50));
 
     return new Promise((resolve, reject) => {
-        const pythonProcess = spawn('python3', [config.script], {
+        // Detect python command (python3 on Linux, python on Windows/some environments)
+        const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+
+        const pythonProcess = spawn(pythonCmd, [config.script], {
             stdio: 'inherit', // Pipe logs directly to console
         });
 
