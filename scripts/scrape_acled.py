@@ -5,7 +5,7 @@ import sys
 
 # Credentials
 EMAIL = "augusto@tiespecialistas.com.br"
-PASSWORD = "75August!@"
+PASSWORD = os.getenv("ACLED_PASSWORD")
 
 # URLs
 BASE_URL = "https://acleddata.com"

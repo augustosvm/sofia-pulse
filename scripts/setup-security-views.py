@@ -13,7 +13,7 @@ DB_CONFIG = {
     "host": os.getenv("POSTGRES_HOST", "91.98.158.19"),
     "port": int(os.getenv("POSTGRES_PORT", "5432")),
     "user": os.getenv("POSTGRES_USER", "sofia"),
-    "password": os.getenv("POSTGRES_PASSWORD", "SofiaPulse2025Secure@DB"),
+    "password": os.getenv("POSTGRES_PASSWORD"),
     "database": os.getenv("POSTGRES_DB", "sofia_db")
 }
 
