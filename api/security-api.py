@@ -25,7 +25,11 @@ app.add_middleware(
 
 # Database connection
 def get_db():
+    # Try current dir first, then parent dir
     env_file = Path(".env")
+    if not env_file.exists():
+        env_file = Path("../.env")
+    
     if env_file.exists():
         with open(env_file, encoding='utf-8') as f:
             for line in f:
