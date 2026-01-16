@@ -108,35 +108,87 @@ async def get_security_map(
     # FIXED: Pagination by zoom level
     limit = 10000 if zoom and zoom >= 10 else 5000 if zoom and zoom >= 6 else 1000
     
-    query = f"""
+    # Query based on view type
+    # For GEO view:
+    # - Global/Regional (ACLED): Must have lat/lon
+    # - Local (BRASIL_*): Can have NULL lat/lon (client will use centroids) if zoom is high enough or country selected
+    
+    # Base query
+    query = """
         SELECT 
+            event_id,
+            event_time_start as date,
+            country_name as country,
+            country_code,
+            city as location,
+            admin1,
             latitude,
             longitude,
             source,
-            severity_norm,
-            country_code,
-            country_name,
-            event_count,
+            event_type,
             fatalities,
+            sub_event_type,
+            notes,
+            severity_norm,
             coverage_score_global,
             coverage_score_local,
-            coverage_scope,
-            event_time_start,
-            admin1,
-            city
+            coverage_scope
         FROM sofia.security_observations
-        WHERE {where_clause}
-          AND latitude IS NOT NULL
-          AND longitude IS NOT NULL
-        ORDER BY severity_norm DESC
-        LIMIT %s
+        WHERE event_time_start >= CURRENT_DATE - INTERVAL '90 days'
     """
     
-    params.append(limit)
-    cur.execute(query, params)
+    # Determine if we should include local data
+    include_local = (zoom and zoom >= 8) or (country and country.upper() == 'BR')
+    
+    filters = []
+    query_params = [] # Use a new list for params for this new query structure
+    
+    # Coverage Scope Logic
+    if include_local:
+        # Global comparable (ACLED) OR Local (BRASIL_*)
+        # Note: For Global, we require lat/lon. For Local, we accept NULL lat/lon.
+        filters.append("""
+            (
+                (coverage_scope = 'global_comparable' AND latitude IS NOT NULL AND longitude IS NOT NULL)
+                OR
+                (coverage_scope = 'local_only')
+            )
+        """)
+    else:
+        # Only global comparable with lat/lon
+        filters.append("coverage_scope = 'global_comparable'")
+        filters.append("latitude IS NOT NULL")
+        filters.append("longitude IS NOT NULL")
+        
+    if country: # Use the original 'country' parameter
+        filters.append("country_code = %s")
+        query_params.append(country.upper())
+        
+    if bbox:
+        try:
+            w, s, e, n = map(float, bbox.split(','))
+            filters.append("latitude BETWEEN %s AND %s")
+            filters.append("longitude BETWEEN %s AND %s")
+            query_params.extend([s, n, w, e])
+        except:
+            raise HTTPException(status_code=400, detail="Invalid bbox format. Use: w,s,e,n")
+
+    if filters:
+        query += " AND " + " AND ".join(filters)
+        
+    query_params.append(limit)
+    
+    # print(f"Executing Map Query: {query} | Params: {query_params}") # Debug
+        
+    cur.execute(query + " ORDER BY event_time_start DESC LIMIT %s", tuple(query_params))
+    rows = cur.fetchall()
     
     features = []
-    for row in cur.fetchall():
+    for row in rows:
+        # Calculate severity (simplified for map points)
+        # ACLED/Global usually has fatalities. Local might have different metrics.
+        severity_norm = float(row['severity_norm']) if row['severity_norm'] else 0
+        
         # FIXED: Coverage chosen by coverage_scope, not source
         coverage = row['coverage_score_global'] if row['coverage_scope'] == 'global_comparable' else row['coverage_score_local']
         
@@ -151,24 +203,30 @@ async def get_security_map(
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [float(row['longitude']), float(row['latitude'])]
+                "coordinates": [float(row['longitude']), float(row['latitude'])] if row['longitude'] and row['latitude'] else None
             },
             "properties": {
-                "source": row['source'],
-                "severity_norm": float(row['severity_norm']) if row['severity_norm'] else 0,
-                "country_code": row['country_code'],
-                "country_name": row['country_name'],
-                "event_count": row['event_count'],
+                "id": row['event_id'],
+                "countryName": row['country'],
+                "countryCode": row['country_code'],
+                "latitude": row['latitude'], # Can be None for local
+                "longitude": row['longitude'], # Can be None for local
+                "location": row['location'],
+                "admin1": row['admin1'], # Important for local fallback
+                "incidents": 1, # Individual event
                 "fatalities": row['fatalities'] or 0,
+                "severityNorm": severity_norm,
+                "riskLevel": "Moderate", # Dynamiccalc would be better but expensive here
+                "topEventType": row['event_type'],
+                "windowDays": 90,
+                "dataSource": row['source'],
+                "asOfDate": row['date'].isoformat() if row['date'] else None,
                 "coverage_score": float(coverage) if coverage else 0,
                 "coverage_scope": row['coverage_scope'],
-                "event_date": row['event_time_start'].isoformat() if row['event_time_start'] else None,
-                "admin1": row['admin1'],
-                "city": row['city'],
                 "warning": warning
             }
         })
-    
+        
     cur.close()
     conn.close()
     
