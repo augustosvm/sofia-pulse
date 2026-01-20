@@ -204,7 +204,8 @@ export class ResearchPapersInserter {
         if (!authorName || authorName === 'Unknown') continue;
 
         try {
-          // 1. Get or Create Person ID
+          // 1. Get or Create Person ID (Idempotent)
+          // Uses normalized name logic inside insertPerson
           await this.personsInserter.insertPerson({
             full_name: authorName,
             type: 'author',
@@ -218,11 +219,13 @@ export class ResearchPapersInserter {
 
           if (personId) {
             // 2. Link in junction table
+            // Uses author_name_raw and handles order
             await db.query(`
-              INSERT INTO sofia.paper_authors (paper_id, person_id, author_order, affiliation_at_publication)
+              INSERT INTO sofia.paper_authors (paper_id, person_id, author_order, author_name_raw)
               VALUES ($1, $2, $3, $4)
-              ON CONFLICT (paper_id, person_id) DO NOTHING
-            `, [paperId, personId, order++, paper.author_institutions?.[0] || null]);
+              ON CONFLICT (paper_id, person_id, author_order) 
+              DO UPDATE SET author_name_raw = EXCLUDED.author_name_raw
+            `, [paperId, personId, order++, authorName]);
           }
         } catch (error) {
           console.error(`Failed to link author ${authorName} to paper ${paperId}:`, error);

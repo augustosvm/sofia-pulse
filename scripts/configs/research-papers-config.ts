@@ -202,13 +202,17 @@ export const openAlexBrazilPapers: ResearchPapersConfig = {
   rateLimit: 1000,
 
   parseResponse: async (data: any) => {
-    // Reutiliza a lógica do openAlexPapers, mas marcando como source 'openalex' 
-    // ou 'openalex_brazil' conforme preferência de segmentação. 
-    // Usaremos 'openalex' para manter a tabela unificada, mas podemos adicionar flags.
+    // Reutiliza a lógica do openAlexPapers
     const papers = await openAlexPapers.parseResponse(data, process.env);
+
     return papers.map(p => ({
       ...p,
-      source: 'openalex_brazil' as const, // Marcamos explicitamente como Brazil para rastreamento
+      source: 'openalex_brazil' as const, // Marcamos explicitamente 
+      // Enhance university mapping for Brazilian papers if possible
+      data: {
+        ...p.data,
+        source: 'openalex_brazil'
+      }
     }));
   },
 
@@ -232,53 +236,69 @@ export const bdtdPapers: ResearchPapersConfig = {
   parseResponse: async (data: string) => {
     const papers: PaperData[] = [];
 
-    // OAI-PMH XML parsing via regex
+    // OAI-PMH XML parsing via regex (Robust)
     const records = data.match(/<record>([\s\S]*?)<\/record>/g) || [];
 
     for (const record of records) {
+      if (record.includes('<header status="deleted">')) continue;
+
       const metadata = record.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1] || '';
 
+      // Extract fields with robust regex avoiding tags
+      const extractField = (tag: string) => {
+        const regex = new RegExp(`<${tag}>(.*?)<\/${tag}>`, 'i');
+        return metadata.match(regex)?.[1]?.trim() || '';
+      };
+
+      const extractList = (tag: string) => {
+        const regex = new RegExp(`<${tag}>(.*?)<\/${tag}>`, 'gi');
+        const matches = metadata.match(regex) || [];
+        return matches.map(m => m.replace(new RegExp(`<[\/]?${tag}>`, 'gi'), '').trim());
+      };
+
       const source_id = record.match(/<identifier>(.*?)<\/identifier>/)?.[1] || '';
-      const title = metadata.match(/<dc:title>([\s\S]*?)<\/dc:title>/)?.[1]?.trim() || '';
+      const title = extractField('dc:title');
+      const authors = extractList('dc:creator');
+      const abstract = extractField('dc:description');
+      const dateStr = extractField('dc:date');
+      const language = extractField('dc:language') || 'pt';
+      const publisher = extractField('dc:publisher');
 
-      // Authors
-      const authorMatches = metadata.match(/<dc:creator>([\s\S]*?)<\/dc:creator>/g) || [];
-      const authors = authorMatches.map(a => a.replace(/<[\/]?dc:creator>/g, '').trim());
+      // Infer University from Publisher or Description
+      let university = publisher;
+      if (!university && abstract.toLowerCase().includes('universidade')) {
+        // Simple heuristic if not explicit
+        const uniMatch = abstract.match(/(Universidade\s+[^,.]+)/i);
+        if (uniMatch) university = uniMatch[1];
+      }
 
-      // Abstract/Description
-      const abstract = metadata.match(/<dc:description>([\s\S]*?)<\/dc:description>/)?.[1]?.trim() || '';
+      // Extract Year
+      const pubYear = parseInt(dateStr.substring(0, 4)) || new Date().getFullYear();
 
-      // Date
-      const dateMatch = metadata.match(/<dc:date>(.*?)<\/dc:date>/)?.[1] || '';
-      const pubYear = parseInt(dateMatch.substring(0, 4)) || 2024;
+      // Open Access (Generally yes for BDTD)
+      const is_open_access = true;
 
-      // Language
-      const language = metadata.match(/<dc:language>(.*?)<\/dc:language>/)?.[1] || 'pt';
-
-      // Publisher (usually the university)
-      const university = metadata.match(/<dc:publisher>([\s\S]*?)<\/dc:publisher>/)?.[1]?.trim() || 'Desconhecida';
-
-      // Subject/Keywords
-      const subjectMatches = metadata.match(/<dc:subject>([\s\S]*?)<\/dc:subject>/g) || [];
-      const keywords = subjectMatches.map(s => s.replace(/<[\/]?dc:subject>/g, '').trim());
+      // Filter out empty records
+      if (!title) continue;
 
       papers.push({
         source: 'bdtd',
         source_id,
         title,
         authors,
-        published_date: dateMatch,
+        published_date: dateStr,
         data: {
           title,
           abstract,
-          university,
-          publication_date: dateMatch,
+          university: university || null,
+          publication_date: dateStr,
           publication_year: pubYear,
           authors,
-          keywords,
+          keywords: extractList('dc:subject'),
           language,
-          is_open_access: true,
-          source: 'bdtd'
+          is_open_access,
+          source: 'bdtd',
+          publisher
         },
       });
     }
@@ -314,42 +334,51 @@ export const scieloPapers: ResearchPapersConfig = {
     const records = data.match(/<record>([\s\S]*?)<\/record>/g) || [];
 
     for (const record of records) {
+      if (record.includes('<header status="deleted">')) continue;
+
       const metadata = record.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1] || '';
 
-      const source_id = record.match(/<identifier>(.*?)<\/identifier>/)?.[1] || '';
-      const title = metadata.match(/<dc:title>([\s\S]*?)<\/dc:title>/)?.[1]?.trim() || '';
+      const extractField = (tag: string) => {
+        const regex = new RegExp(`<${tag}>(.*?)<\/${tag}>`, 'i');
+        return metadata.match(regex)?.[1]?.trim() || '';
+      };
 
-      // Authors
-      const authorMatches = metadata.match(/<dc:creator>([\s\S]*?)<\/dc:creator>/g) || [];
-      const authors = authorMatches.map(a => a.replace(/<[\/]?dc:creator>/g, '').trim());
+      const extractList = (tag: string) => {
+        const regex = new RegExp(`<${tag}>(.*?)<\/${tag}>`, 'gi');
+        const matches = metadata.match(regex) || [];
+        return matches.map(m => m.replace(new RegExp(`<[\/]?${tag}>`, 'gi'), '').trim());
+      };
 
-      // Abstract
-      const abstract = metadata.match(/<dc:description>([\s\S]*?)<\/dc:description>/)?.[1]?.trim() || '';
+      const source_id = `scielo:${record.match(/<identifier>(.*?)<\/identifier>/)?.[1] || ''}`;
+      const title = extractField('dc:title');
+      const authors = extractList('dc:creator');
+      const abstract = extractField('dc:description');
+      const dateStr = extractField('dc:date');
+      const publisher = extractField('dc:publisher');
+      const language = extractField('dc:language');
 
-      // Date
-      const dateMatch = metadata.match(/<dc:date>(.*?)<\/dc:date>/)?.[1] || '';
+      // Identifier/URL
+      const identifierUrl = extractList('dc:identifier').find(id => id.startsWith('http')) || null;
 
-      // Journal (Publisher in SCIELO terms)
-      const journal = metadata.match(/<dc:publisher>([\s\S]*?)<\/dc:publisher>/)?.[1]?.trim() || '';
-
-      // Language
-      const language = metadata.match(/<dc:language>(.*?)<\/dc:language>/)?.[1] || 'pt';
+      if (!title) continue;
 
       papers.push({
         source: 'scielo' as const,
-        source_id: `scielo:${source_id}`,
+        source_id,
         title,
         authors,
-        published_date: dateMatch,
+        published_date: dateStr,
         data: {
           title,
           abstract,
-          journal,
-          publication_date: dateMatch,
+          journal: publisher, // SciELO publishers are usually journals
+          publication_date: dateStr,
           authors,
           language,
           is_open_access: true,
-          source: 'scielo'
+          source: 'scielo',
+          pdf_url: identifierUrl,
+          url: identifierUrl
         },
       });
     }

@@ -134,226 +134,262 @@ export class ResearchPapersCollector {
       referenced_works_count: paper.data.referenced_works_count,
       is_breakthrough: paper.data.is_breakthrough,
     });
+  });
+}
+
+  /**
+   * Probes an OAI-PMH endpoint to check availability
+   * Returns true if accessible, false otherwise
+   */
+  private async probeOAI(url: string, headers: Record<string, string>): Promise < boolean > {
+  try {
+    // Create Identify URL
+    const probeUrl = url.replace(/verb=[^&]+/, 'verb=Identify').replace(/&metadataPrefix=[^&]+/, '');
+    console.log(`   📡 Probing OAI Endpoint: ${probeUrl}`);
+
+    const response = await axios.get(probeUrl, {
+      headers: { ...headers, 'Accept': 'application/xml' },
+      timeout: 10000,
+      validateStatus: (status) => status < 500 // Accept 403 to detect WAF explicitly if needed
+    });
+
+    if(response.status === 200 && response.data.includes('<Identify>')) {
+  console.log(`   ✅ OAI Probe Successful`);
+  return true;
+}
+
+if (response.status === 403 || response.status === 429) {
+  console.warn(`   ⛔ OAI Probe Blocked (Status ${response.status}) - Skipping execution to avoid ban.`);
+  return false;
+}
+
+console.warn(`   ⚠️ OAI Probe returned unexpected status/content: ${response.status}`);
+return false;
+
+    } catch (error: any) {
+  console.warn(`   ❌ OAI Probe Failed: ${error.message}`);
+  return false;
+}
   }
 
   /**
    * Executa um collector baseado em sua configuração
    */
-  async collect(config: ResearchPapersConfig): Promise<{
-    success: boolean;
-    collected: number;
-    errors: number;
-    duration: number;
-  }> {
-    const startTime = Date.now();
+  async collect(config: ResearchPapersConfig): Promise < {
+  success: boolean;
+  collected: number;
+  errors: number;
+  duration: number;
+} > {
+  const startTime = Date.now();
 
-    console.log('');
-    console.log('='.repeat(70));
-    console.log(`📚 ${config.displayName}`);
-    if (config.description) {
-      console.log(`   ${config.description}`);
+  console.log('');
+  console.log('='.repeat(70));
+  console.log(`📚 ${config.displayName}`);
+  if(config.description) {
+  console.log(`   ${config.description}`);
+}
+console.log('='.repeat(70));
+console.log('');
+
+let collected = 0;
+let errors = 0;
+let runId: number | null = null;
+
+try {
+  // Start tracking
+  const hostname = require('os').hostname();
+  const result = await this.pool.query(
+    'SELECT sofia.start_collector_run($1, $2) as run_id',
+    [config.name, hostname]
+  );
+  runId = result.rows[0]?.run_id;
+  console.log(`🔍 Run ID: ${runId}`);
+  console.log('');
+
+  // 1. Preparar URL
+  const url = typeof config.url === 'function'
+    ? config.url(process.env)
+    : config.url;
+
+  // 2. Preparar headers
+  let headers: Record<string, string> = {
+    'User-Agent': 'Sofia-Pulse-Collector/2.0',
+  };
+
+  if (config.headers) {
+    const configHeaders = typeof config.headers === 'function'
+      ? config.headers(process.env)
+      : config.headers;
+    headers = { ...headers, ...configHeaders };
+  }
+
+  // 3. Fazer request (com rate limiting se especificado)
+  console.log(`🔍 Fetching from API...`);
+  console.log(`   URL: ${url.substring(0, 100)}${url.length > 100 ? '...' : ''}`);
+
+  let response;
+  const requestConfig: AxiosRequestConfig = {
+    headers,
+    timeout: config.timeout || 30000,
+    validateStatus: (status) => status >= 200 && status < 500,
+  };
+
+  if (config.rateLimit && typeof config.rateLimit === 'string' && config.rateLimit in rateLimiters) {
+    // Usa rate limiter específico
+    response = await rateLimiters[config.rateLimit as keyof typeof rateLimiters].get(url, requestConfig);
+  } else {
+    // Request direto (com delay opcional)
+    if (config.rateLimit && typeof config.rateLimit === 'number') {
+      await this.delay(config.rateLimit);
     }
-    console.log('='.repeat(70));
-    console.log('');
+    response = await axios.get(url, requestConfig);
+  }
 
-    let collected = 0;
-    let errors = 0;
-    let runId: number | null = null;
+  if (response.status !== 200) {
+    throw new Error(`API returned status ${response.status}`);
+  }
 
+  console.log(`   ✅ Response received (${response.status})`);
+  console.log('');
+
+  // 4. Parsear resposta
+  console.log(`🔄 Parsing response...`);
+  const papers = await config.parseResponse(response.data, process.env);
+  console.log(`   ✅ Parsed ${papers.length} papers`);
+  console.log('');
+
+  // 5. Inserir no banco
+  console.log(`💾 Inserting into database...`);
+  for (const paper of papers) {
     try {
-      // Start tracking
-      const hostname = require('os').hostname();
-      const result = await this.pool.query(
-        'SELECT sofia.start_collector_run($1, $2) as run_id',
-        [config.name, hostname]
-      );
-      runId = result.rows[0]?.run_id;
-      console.log(`🔍 Run ID: ${runId}`);
-      console.log('');
-
-      // 1. Preparar URL
-      const url = typeof config.url === 'function'
-        ? config.url(process.env)
-        : config.url;
-
-      // 2. Preparar headers
-      let headers: Record<string, string> = {
-        'User-Agent': 'Sofia-Pulse-Collector/2.0',
-      };
-
-      if (config.headers) {
-        const configHeaders = typeof config.headers === 'function'
-          ? config.headers(process.env)
-          : config.headers;
-        headers = { ...headers, ...configHeaders };
-      }
-
-      // 3. Fazer request (com rate limiting se especificado)
-      console.log(`🔍 Fetching from API...`);
-      console.log(`   URL: ${url.substring(0, 100)}${url.length > 100 ? '...' : ''}`);
-
-      let response;
-      const requestConfig: AxiosRequestConfig = {
-        headers,
-        timeout: config.timeout || 30000,
-        validateStatus: (status) => status >= 200 && status < 500,
-      };
-
-      if (config.rateLimit && typeof config.rateLimit === 'string' && config.rateLimit in rateLimiters) {
-        // Usa rate limiter específico
-        response = await rateLimiters[config.rateLimit as keyof typeof rateLimiters].get(url, requestConfig);
-      } else {
-        // Request direto (com delay opcional)
-        if (config.rateLimit && typeof config.rateLimit === 'number') {
-          await this.delay(config.rateLimit);
-        }
-        response = await axios.get(url, requestConfig);
-      }
-
-      if (response.status !== 200) {
-        throw new Error(`API returned status ${response.status}`);
-      }
-
-      console.log(`   ✅ Response received (${response.status})`);
-      console.log('');
-
-      // 4. Parsear resposta
-      console.log(`🔄 Parsing response...`);
-      const papers = await config.parseResponse(response.data, process.env);
-      console.log(`   ✅ Parsed ${papers.length} papers`);
-      console.log('');
-
-      // 5. Inserir no banco
-      console.log(`💾 Inserting into database...`);
-      for (const paper of papers) {
-        try {
-          await this.insertPaper(paper);
-          collected++;
-        } catch (error: any) {
-          console.error(`   ❌ Error inserting ${paper.title}:`, error.message);
-          errors++;
-        }
-      }
-
-      console.log(`   ✅ Inserted ${collected} papers`);
-      if (errors > 0) {
-        console.log(`   ⚠️  ${errors} errors during insertion`);
-      }
-
+      await this.insertPaper(paper);
+      collected++;
     } catch (error: any) {
-      console.error('');
-      console.error(`❌ Collection failed:`, error.message);
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 403) {
-          console.error('   💡 Hint: Check if API key is set in .env');
-        } else if (error.response?.status === 429) {
-          console.error('   💡 Hint: Rate limit exceeded, try again later');
-        }
-      }
-
-      // Finish tracking (failed)
-      if (runId) {
-        await this.pool.query(
-          'SELECT sofia.finish_collector_run($1, $2, $3, $4, $5, $6)',
-          [runId, 'failed', 0, 1, error.message, error.stack]
-        );
-      }
-
-      return {
-        success: false,
-        collected: 0,
-        errors: 1,
-        duration: Date.now() - startTime,
-      };
+      console.error(`   ❌ Error inserting ${paper.title}:`, error.message);
+      errors++;
     }
+  }
 
-    const duration = Date.now() - startTime;
+  console.log(`   ✅ Inserted ${collected} papers`);
+  if (errors > 0) {
+    console.log(`   ⚠️  ${errors} errors during insertion`);
+  }
 
-    // Finish tracking (success)
-    if (runId) {
-      await this.pool.query(
-        'SELECT sofia.finish_collector_run($1, $2, $3, $4)',
-        [runId, 'success', collected, errors]
-      );
+} catch (error: any) {
+  console.error('');
+  console.error(`❌ Collection failed:`, error.message);
+
+  if (axios.isAxiosError(error)) {
+    if (error.response?.status === 403) {
+      console.error('   💡 Hint: Check if API key is set in .env');
+    } else if (error.response?.status === 429) {
+      console.error('   💡 Hint: Rate limit exceeded, try again later');
     }
+  }
 
-    console.log('');
-    console.log('='.repeat(70));
-    console.log(`✅ Collection complete!`);
-    console.log(`   Run ID: ${runId}`);
-    console.log(`   Collected: ${collected} papers`);
-    console.log(`   Errors: ${errors}`);
-    console.log(`   Duration: ${(duration / 1000).toFixed(2)}s`);
-    console.log('='.repeat(70));
-    console.log('');
+  // Finish tracking (failed)
+  if (runId) {
+    await this.pool.query(
+      'SELECT sofia.finish_collector_run($1, $2, $3, $4, $5, $6)',
+      [runId, 'failed', 0, 1, error.message, error.stack]
+    );
+  }
 
-    return {
-      success: true,
-      collected,
-      errors,
-      duration,
-    };
+  return {
+    success: false,
+    collected: 0,
+    errors: 1,
+    duration: Date.now() - startTime,
+  };
+}
+
+const duration = Date.now() - startTime;
+
+// Finish tracking (success)
+if (runId) {
+  await this.pool.query(
+    'SELECT sofia.finish_collector_run($1, $2, $3, $4)',
+    [runId, 'success', collected, errors]
+  );
+}
+
+console.log('');
+console.log('='.repeat(70));
+console.log(`✅ Collection complete!`);
+console.log(`   Run ID: ${runId}`);
+console.log(`   Collected: ${collected} papers`);
+console.log(`   Errors: ${errors}`);
+console.log(`   Duration: ${(duration / 1000).toFixed(2)}s`);
+console.log('='.repeat(70));
+console.log('');
+
+return {
+  success: true,
+  collected,
+  errors,
+  duration,
+};
   }
 
   /**
    * Executa múltiplos collectors em sequência
    */
-  async collectAll(configs: ResearchPapersConfig[]): Promise<void> {
-    console.log('');
-    console.log('🚀 Running all research papers collectors...');
-    console.log(`   Total: ${configs.length} collectors`);
-    console.log('');
+  async collectAll(configs: ResearchPapersConfig[]): Promise < void> {
+  console.log('');
+  console.log('🚀 Running all research papers collectors...');
+  console.log(`   Total: ${configs.length} collectors`);
+  console.log('');
 
-    const results = [];
+  const results = [];
 
-    for (const config of configs) {
-      const result = await this.collect(config);
-      results.push({ config: config.name, ...result });
+  for(const config of configs) {
+    const result = await this.collect(config);
+    results.push({ config: config.name, ...result });
 
-      // Pequeno delay entre collectors
-      await this.delay(1000);
-    }
+    // Pequeno delay entre collectors
+    await this.delay(1000);
+  }
 
     // Summary
     console.log('');
-    console.log('='.repeat(70));
-    console.log('📊 SUMMARY');
-    console.log('='.repeat(70));
+  console.log('='.repeat(70));
+  console.log('📊 SUMMARY');
+  console.log('='.repeat(70));
 
-    const successful = results.filter(r => r.success).length;
-    const failed = results.filter(r => !r.success).length;
-    const totalCollected = results.reduce((sum, r) => sum + r.collected, 0);
-    const totalErrors = results.reduce((sum, r) => sum + r.errors, 0);
-    const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
+  const successful = results.filter(r => r.success).length;
+  const failed = results.filter(r => !r.success).length;
+  const totalCollected = results.reduce((sum, r) => sum + r.collected, 0);
+  const totalErrors = results.reduce((sum, r) => sum + r.errors, 0);
+  const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
 
-    console.log('');
-    console.log(`✅ Successful: ${successful}/${configs.length}`);
-    console.log(`❌ Failed: ${failed}/${configs.length}`);
-    console.log(`📚 Total papers: ${totalCollected}`);
-    console.log(`⚠️  Total errors: ${totalErrors}`);
-    console.log(`⏱️  Total duration: ${(totalDuration / 1000).toFixed(2)}s`);
-    console.log('');
+  console.log('');
+  console.log(`✅ Successful: ${successful}/${configs.length}`);
+  console.log(`❌ Failed: ${failed}/${configs.length}`);
+  console.log(`📚 Total papers: ${totalCollected}`);
+  console.log(`⚠️  Total errors: ${totalErrors}`);
+  console.log(`⏱️  Total duration: ${(totalDuration / 1000).toFixed(2)}s`);
+  console.log('');
 
-    if (failed > 0) {
-      console.log('Failed collectors:');
-      results
-        .filter(r => !r.success)
-        .forEach(r => console.log(`   - ${r.config}`));
-      console.log('');
-    }
+  if(failed > 0) {
+  console.log('Failed collectors:');
+  results
+    .filter(r => !r.success)
+    .forEach(r => console.log(`   - ${r.config}`));
+  console.log('');
+}
   }
 
   /**
    * Fecha conexões
    */
-  async close(): Promise<void> {
-    await this.pool.end();
-  }
+  async close(): Promise < void> {
+  await this.pool.end();
+}
 
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  private delay(ms: number): Promise < void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 }
 
 // ============================================================================
