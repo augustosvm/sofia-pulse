@@ -62,7 +62,7 @@ async function fetchGDELTEvents(): Promise<GDELTEvent[]> {
 
   const events: GDELTEvent[] = [];
 
-  for (const keyword of keywords.slice(0, 3)) { // Limit to avoid rate limits
+  for (const keyword of keywords) { // Process all keywords
     const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(keyword)}&mode=artlist&format=json&maxrecords=50&startdatetime=${dateStr}000000&enddatetime=${dateStr}235959`;
 
     try {
@@ -97,7 +97,7 @@ async function fetchGDELTEvents(): Promise<GDELTEvent[]> {
         }
       }
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3500));
     } catch (error: any) {
       console.error(`Error fetching GDELT for ${keyword}:`, error.message);
     }
@@ -106,7 +106,7 @@ async function fetchGDELTEvents(): Promise<GDELTEvent[]> {
   return events;
 }
 
-async function insertEvent(client: Client, event: GDELTEvent): Promise<void> {
+async function insertEvent(client: Client, event: GDELTEvent): Promise<number> {
   const query = `
     INSERT INTO sofia.gdelt_events (
       event_id, event_date, actor1_name, actor1_country, actor2_name, actor2_country,
@@ -114,10 +114,11 @@ async function insertEvent(client: Client, event: GDELTEvent): Promise<void> {
       action_geo_country, source_url, categories, is_tech_related, is_market_relevant
     )
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-    ON CONFLICT (event_id) DO NOTHING;
+    ON CONFLICT (event_id) DO NOTHING
+    RETURNING event_id;
   `;
 
-  await client.query(query, [
+  const result = await client.query(query, [
     event.event_id,
     event.event_date,
     event.actor1_name,
@@ -136,6 +137,8 @@ async function insertEvent(client: Client, event: GDELTEvent): Promise<void> {
     event.is_tech_related,
     event.is_market_relevant,
   ]);
+
+  return result.rowCount || 0;
 }
 
 async function main() {
@@ -158,10 +161,12 @@ async function main() {
     console.log(`   ✅ Fetched ${events.length} events`);
 
     console.log('💾 Inserting into database...');
+    let insertedCount = 0;
     for (const event of events) {
-      await insertEvent(client, event);
+      const inserted = await insertEvent(client, event);
+      insertedCount += inserted;
     }
-    console.log(`✅ ${events.length} events inserted`);
+    console.log(`✅ Inserted ${insertedCount} new events (${events.length - insertedCount} duplicates skipped)`);
 
     const summary = await client.query(`
       SELECT COUNT(*) as total,
