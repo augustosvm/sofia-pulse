@@ -116,6 +116,46 @@ echo ""
 
 python3 scripts/collect-ipea-api.py || echo "⚠️  IPEA collection failed"
 
+echo ""
+echo "⏳ Waiting 10s before next API..."
+sleep 10
+
+################################################################################
+# 5. CNI Indicators (Monthly)
+################################################################################
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "📊 5. CNI - Confederação Nacional da Indústria"
+echo "════════════════════════════════════════════════════════════════"
+echo ""
+echo "Data: Industrial indicators (production, sales, market sentiment)"
+echo "Frequency: Monthly (5th of each month)"
+echo "URL: https://industriabrasileira.portaldaindustria.com.br/"
+echo ""
+
+python3 scripts/collect-cni-indicators.py || echo "⚠️  CNI collection failed"
+
+echo ""
+echo "⏳ Waiting 10s before next API..."
+sleep 10
+
+################################################################################
+# 6. FIESP Industrial Indicators (Monthly)
+################################################################################
+
+echo ""
+echo "════════════════════════════════════════════════════════════════"
+echo "📊 6. FIESP - Federação das Indústrias do Estado de São Paulo"
+echo "════════════════════════════════════════════════════════════════"
+echo ""
+echo "Data: Sensor FIESP (sentiment) + INA (industrial activity index)"
+echo "Frequency: Monthly (1st of each month)"
+echo "URL: https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/"
+echo ""
+
+python3 scripts/collect-fiesp-data.py || echo "⚠️  FIESP collection failed"
+
 ################################################################################
 # SUMMARY
 ################################################################################
@@ -132,6 +172,8 @@ echo "  1. ✅ BACEN SGS - 7 series (Selic, Dólar, IPCA, etc)"
 echo "  2. ✅ IBGE - 6 indicators (PIB, Desemprego, Produção)"
 echo "  3. ⚠️  MDIC ComexStat - DISABLED (API endpoint changed)"
 echo "  4. ✅ IPEA - 10 series (historical data)"
+echo "  5. ✅ CNI - 6 industrial indicators"
+echo "  6. ✅ FIESP - 532 records (Sensor + INA)"
 echo ""
 echo "💡 NEW INSIGHTS POSSIBLE:"
 echo ""

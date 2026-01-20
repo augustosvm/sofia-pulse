@@ -89,124 +89,144 @@ async function collectAdzunaJobs() {
             console.log(`\n🌍 Collecting from ${country.name}...`);
 
             // Coletar para cada keyword (para maximizar cobertura)
-            for (const keyword of TECH_KEYWORDS.slice(0, 3)) { // Limitar a 3 keywords por país para não estourar rate limit
-                try {
-                    const url = `https://api.adzuna.com/v1/api/jobs/${country.code}/search/1`;
-                    const response = await axios.get<AdzunaResponse>(url, {
-                        params: {
-                            app_id: ADZUNA_APP_ID,
-                            app_key: ADZUNA_API_KEY,
-                            what: keyword,
-                            results_per_page: 20, // Limitar para não estourar rate limit
-                        },
-                        timeout: 15000
-                    });
+            for (const keyword of TECH_KEYWORDS) {
+                console.log(`\n🔍 Searching for "${keyword}"...`);
 
-                    const jobs = response.data.results || [];
-                    console.log(`   ${keyword}: ${jobs.length} jobs`);
+                let page = 1;
+                let hasMore = true;
+                let consecutiveErrors = 0;
 
-                    for (const job of jobs) {
-                        try {
-                            // Extract location details
-                            // Adzuna API format varies by country:
-                            // USA: ["US", "State", "County", "City"] (4 elements)
-                            // UK: ["UK", "City"] (2 elements)
-                            // France: ["France", "Region", "Dept", "Arr", "City"] (4-5 elements)
-                            // Brazil: ["Brasil"] (1 element - country only)
-                            const location = job.location.display_name;
-                            const areaLength = job.location.area.length;
+                while (hasMore && page <= 50) { // Safety cap of 50 pages (1000 jobs per keyword)
+                    try {
+                        const url = `https://api.adzuna.com/v1/api/jobs/${country.code}/search/${page}`;
+                        const response = await axios.get<AdzunaResponse>(url, {
+                            params: {
+                                app_id: ADZUNA_APP_ID,
+                                app_key: ADZUNA_API_KEY,
+                                what: keyword,
+                                results_per_page: 50, // Max allowed by Adzuna
+                            },
+                            timeout: 15000
+                        });
 
-                            let city = null;
-                            let state = null;
+                        const jobs = response.data.results || [];
 
-                            if (areaLength === 1) {
-                                // Only country (e.g., Brazil: ["Brasil"])
-                                city = null;
-                                state = null;
-                            } else if (areaLength === 2) {
-                                // Country + City (e.g., UK: ["UK", "London"])
-                                city = job.location.area[1];
-                                state = null;
-                            } else if (areaLength >= 3) {
-                                // Multiple levels - last is city, second might be state
-                                city = job.location.area[areaLength - 1]; // Last element
-                                state = job.location.area[1]; // Second element (state/region)
-                            }
-
-                            const countryName = country.name; // Use mapped country name
-
-                            // Normalize geographic data
-                            const { countryId, stateId, cityId } = await normalizeLocation(pool, {
-                                country: countryName,
-                                state: state,
-                                city: city
-                            });
-
-                            // Get or create organization
-                            const organizationId = await getOrCreateOrganization(
-                                pool,
-                                job.company.display_name,
-                                null,
-                                location,
-                                countryName,
-                                'adzuna'
-                            );
-
-                            await pool.query(`
-                INSERT INTO sofia.jobs (
-                    organization_id,
-                  job_id, platform, title, company,
-                  location, city, state, country,
-                  country_id, state_id, city_id,
-                  description, posted_date, url,
-                  salary_min, salary_max, salary_currency, salary_period,
-                  employment_type, search_keyword, collected_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
-                ON CONFLICT (job_id, platform) DO UPDATE SET
-                  collected_at = NOW(),
-                  description = EXCLUDED.description,
-                  organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
-                  salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
-                  salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
-              `, [
-                                organizationId,
-                                job.id,
-                                'adzuna',
-                                job.title,
-                                job.company.display_name,
-                                location,
-                                city,
-                                state,
-                                countryName,
-                                countryId,
-                                stateId,
-                                cityId,
-                                job.description,
-                                new Date(job.created),
-                                job.redirect_url,
-                                job.salary_min || null,
-                                job.salary_max || null,
-                                'USD', // Adzuna normaliza para USD
-                                'yearly',
-                                job.contract_type?.toLowerCase() || 'full-time',
-                                keyword
-                            ]);
-
-                            totalCollected++;
-
-                        } catch (err: any) {
-                            console.error(`   ❌ Error inserting job ${job.id}:`, err.message);
+                        if (jobs.length === 0) {
+                            hasMore = false;
+                            break;
                         }
-                    }
 
-                    // Rate limiting: aguardar 1s entre requests
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                        console.log(`   Page ${page}: ${jobs.length} jobs`);
 
-                } catch (error: any) {
-                    if (axios.isAxiosError(error)) {
-                        console.error(`   ❌ API Error for "${keyword}": ${error.response?.status} ${error.message}`);
-                    } else {
-                        console.error(`   ❌ Error for "${keyword}":`, error.message);
+                        for (const job of jobs) {
+                            try {
+                                // Extract location details
+                                // Adzuna API format varies by country:
+                                // USA: ["US", "State", "County", "City"] (4 elements)
+                                // UK: ["UK", "City"] (2 elements)
+                                // France: ["France", "Region", "Dept", "Arr", "City"] (4-5 elements)
+                                // Brazil: ["Brasil"] (1 element - country only)
+                                const location = job.location.display_name;
+                                const areaLength = job.location.area.length;
+
+                                let city = null;
+                                let state = null;
+
+                                if (areaLength === 1) {
+                                    // Only country (e.g., Brazil: ["Brasil"])
+                                    city = null;
+                                    state = null;
+                                } else if (areaLength === 2) {
+                                    // Country + City (e.g., UK: ["UK", "London"])
+                                    city = job.location.area[1];
+                                    state = null;
+                                } else if (areaLength >= 3) {
+                                    // Multiple levels - last is city, second might be state
+                                    city = job.location.area[areaLength - 1]; // Last element
+                                    state = job.location.area[1]; // Second element (state/region)
+                                }
+
+                                const countryName = country.name; // Use mapped country name
+
+                                // Normalize geographic data
+                                const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                                    country: countryName,
+                                    state: state,
+                                    city: city
+                                });
+
+                                // Get or create organization
+                                const organizationId = await getOrCreateOrganization(
+                                    pool,
+                                    job.company.display_name,
+                                    null,
+                                    location,
+                                    countryName,
+                                    'adzuna'
+                                );
+
+                                await pool.query(`
+                                INSERT INTO sofia.jobs (
+                                    job_id, platform, source, title, company,
+                                    raw_location, raw_city, raw_state, country, country_id, state_id, city_id, remote_type,
+                                    url, search_keyword, organization_id, collected_at
+                                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+                                ON CONFLICT (job_id) DO UPDATE SET
+                                    collected_at = NOW(),
+                                    source = EXCLUDED.source,
+                                    organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+                                    country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                                    state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+                                    city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
+                            `, [
+                                    `adzuna-${job.id}`, // job_id
+                                    'adzuna', // platform
+                                    'adzuna', // source
+                                    job.title, // title
+                                    job.company.display_name, // company
+                                    location, // raw_location
+                                    city, // raw_city
+                                    state, // raw_state
+                                    countryName, // country
+                                    countryId, // country_id
+                                    stateId, // state_id
+                                    cityId, // city_id
+                                    'remote', // remote_type (placeholder, Adzuna doesn't explicitly provide this)
+                                    job.redirect_url, // url
+                                    keyword, // search_keyword
+                                    organizationId // organization_id
+                                ]);
+
+                                totalCollected++;
+
+                            } catch (err: any) {
+                                if (err.code !== '23505') {
+                                    console.error(`   ❌ Error inserting job ${job.id}:`, err.message);
+                                }
+                            }
+                        }
+
+                        // Rate limiting: aguardar 1s entre requests
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        page++;
+                        consecutiveErrors = 0;
+
+                    } catch (error: any) {
+                        consecutiveErrors++;
+                        if (axios.isAxiosError(error) && error.response?.status === 400) {
+                            // End of results or invalid page
+                            hasMore = false;
+                        } else if (consecutiveErrors >= 3) {
+                            console.error(`   ❌ Too many errors for "${keyword}", skipping...`);
+                            hasMore = false;
+                        } else {
+                            if (axios.isAxiosError(error)) {
+                                console.error(`   ❌ API Error for "${keyword}" p${page}: ${error.response?.status} ${error.message}`);
+                            } else {
+                                console.error(`   ❌ Error for "${keyword}" p${page}:`, error.message);
+                            }
+                            await new Promise(resolve => setTimeout(resolve, 5000)); // Backoff
+                        }
                     }
                 }
             }

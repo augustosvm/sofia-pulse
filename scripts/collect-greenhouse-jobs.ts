@@ -166,7 +166,7 @@ function parseLocation(location: string): { city: string | null; state: string |
   return { city, state, country };
 }
 
-async function collectGreenhouseJobs(): Promise<void> {
+export async function collectGreenhouseJobs(): Promise<void> {
   console.log('🏢 Greenhouse Jobs Collector');
   console.log('='.repeat(60));
   console.log(`📋 ${TECH_COMPANIES.length} companies to scrape`);
@@ -328,5 +328,7 @@ async function collectGreenhouseJobs(): Promise<void> {
   }
 }
 
-// Run
-collectGreenhouseJobs().catch(console.error);
+// Run if executed directly
+if (require.main === module) {
+  collectGreenhouseJobs().catch(console.error);
+}

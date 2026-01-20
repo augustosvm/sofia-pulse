@@ -4,6 +4,10 @@
   "description": "Sofia Pulse - Multi-source intelligence platform collecting data from 11+ sources globally",
   "main": "index.js",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "collect:cardboard": "tsx scripts/collect-cardboard-production.ts",
     "collect:cardboard:demo": "tsx scripts/collect-cardboard-production.ts --dry-run",
     "collect:wipo-china": "tsx scripts/collect-wipo-china-patents.ts",
@@ -75,16 +79,29 @@
     "@types/node": "^20.10.0",
     "axios": "^1.6.2",
     "cheerio": "^1.0.0-rc.12",
+    "clsx": "^2.1.0",
     "dotenv": "^16.3.1",
+    "framer-motion": "^10.16.16",
+    "lucide-react": "^0.303.0",
+    "maplibre-gl": "^5.16.0",
+    "next": "^14.0.4",
     "pg": "^8.11.3",
     "puppeteer": "^24.34.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.2.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   },
   "devDependencies": {
-    "@types/pg": "^8.10.9"
+    "@types/pg": "^8.10.9",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19"
   },
   "engines": {
     "node": ">=18.0.0",

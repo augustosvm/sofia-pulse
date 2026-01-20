@@ -17,6 +17,9 @@ COLLECTORS=(
     "stackoverflow"
     "himalayas"
     "remoteok"
+    "arbeitnow"
+    "greenhouse"
+    "catho"
     "ai-companies"
     "universities"
     "ngos"
@@ -58,11 +61,19 @@ for collector in "${COLLECTORS[@]}"; do
     
     # Run collector and capture output
     if timeout 300 npx tsx scripts/collect.ts "$collector" > "$TEMP_OUTPUT" 2>&1; then
-        # Extract insert count from output
+        # Extract insert count from output (multiple patterns)
         INSERTS=$(grep -oP '✅ Inserted \K\d+' "$TEMP_OUTPUT" | head -1)
         if [ -z "$INSERTS" ]; then
-            # Try alternative patterns
+            INSERTS=$(grep -oP '✅ Saved \K\d+' "$TEMP_OUTPUT" | head -1)
+        fi
+        if [ -z "$INSERTS" ]; then
+            INSERTS=$(grep -oP '✅ Collected: \K\d+' "$TEMP_OUTPUT" | head -1)
+        fi
+        if [ -z "$INSERTS" ]; then
             INSERTS=$(grep -oP 'Inserted: \K\d+' "$TEMP_OUTPUT" | head -1)
+        fi
+        if [ -z "$INSERTS" ]; then
+            INSERTS=$(grep -oP '\K\d+ novos registros' "$TEMP_OUTPUT" | grep -oP '^\d+' | head -1)
         fi
         if [ -z "$INSERTS" ]; then
             INSERTS="?"

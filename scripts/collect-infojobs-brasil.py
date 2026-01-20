@@ -43,7 +43,7 @@ KEYWORDS = [
 def get_access_token():
     """Obtém token OAuth2 do InfoJobs"""
     if not INFOJOBS_CLIENT_ID or not INFOJOBS_CLIENT_SECRET:
-        print("⚠️  INFOJOBS_CLIENT_ID e INFOJOBS_CLIENT_SECRET não configurados")
+        print("[WARN] INFOJOBS_CLIENT_ID e INFOJOBS_CLIENT_SECRET nao configurados")
         return None
 
     auth_url = "https://www.infojobs.com.br/oauth/authorize"
@@ -109,16 +109,16 @@ def collect_infojobs():
                         }
                     )
 
-                print(f"✅ InfoJobs: {len(job_list)} vagas para '{keyword}'")
+                print(f"[OK] InfoJobs: {len(job_list)} vagas para '{keyword}'")
             elif response.status_code == 401:
-                print(f"⚠️  InfoJobs: Requer autenticação OAuth2")
+                print(f"[WARN]  InfoJobs: Requer autenticação OAuth2")
                 print(f"   Registre-se em: https://developer.infojobs.net/")
                 break
             else:
-                print(f"⚠️  InfoJobs: {response.status_code} para '{keyword}'")
+                print(f"[WARN]  InfoJobs: {response.status_code} para '{keyword}'")
 
         except Exception as e:
-            print(f"❌ InfoJobs erro para '{keyword}': {str(e)[:50]}")
+            print(f"[ERROR] InfoJobs erro para '{keyword}': {str(e)[:50]}")
 
     return jobs
 
@@ -180,7 +180,7 @@ def save_to_db(jobs):
             )
             saved += 1
         except Exception as e:
-            print(f"⚠️  Erro ao salvar: {str(e)[:50]}")
+            print(f"[WARN]  Erro ao salvar: {str(e)[:50]}")
 
     conn.commit()
     conn.close()
@@ -189,9 +189,9 @@ def save_to_db(jobs):
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("🇧🇷 INFOJOBS BRASIL")
+    print("INFOJOBS BRASIL")
     print("=" * 70)
-    print("⚠️  NOTA: InfoJobs requer OAuth2")
+    print("[WARN]  NOTA: InfoJobs requer OAuth2")
     print("   1. Registre-se em: https://developer.infojobs.net/")
     print("   2. Crie uma aplicação")
     print("   3. Adicione INFOJOBS_CLIENT_ID e INFOJOBS_CLIENT_SECRET no .env")
@@ -200,10 +200,10 @@ if __name__ == "__main__":
     jobs = collect_infojobs()
 
     if jobs:
-        print(f"\n💾 Salvando {len(jobs)} vagas...")
+        print(f"\n[DATA] Salvando {len(jobs)} vagas...")
         saved = save_to_db(jobs)
-        print(f"\n✅ Total salvo: {saved} vagas")
+        print(f"\n[OK] Total salvo: {saved} vagas")
     else:
-        print("\n⚠️  Nenhuma vaga coletada. Configure OAuth2 primeiro.")
+        print("\n[WARN]  Nenhuma vaga coletada. Configure OAuth2 primeiro.")
 
     print("=" * 70)

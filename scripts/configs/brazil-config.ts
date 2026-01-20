@@ -31,11 +31,20 @@ export const fiespData: BrazilCollectorConfig = {
     name: 'fiesp-data',
     displayName: '🏭 FIESP Industrial Indicators',
     scriptPath: 'scripts/collect-fiesp-data.py',
-    schedule: '0 10 1 * *', // Monthly on the 1st day at 07:00 BRT (10:00 UTC)
+    schedule: '0 9 1 * *', // Monthly on the 1st day at 06:00 BRT (09:00 UTC)
     description: 'Industrial Sentiment (Sensor) and Activity (INA) indexes',
+};
+
+export const cniIndicators: BrazilCollectorConfig = {
+    name: 'cni-indicators',
+    displayName: '🏭 CNI Industrial Indicators',
+    scriptPath: 'scripts/collect-cni-indicators.py',
+    schedule: '0 9 5 * *', // Monthly on the 5th day at 06:00 BRT (09:00 UTC)
+    description: 'CNI industrial indicators (production, sales, market sentiment)',
 };
 
 export const collectors = {
     'mdic-regional': mdicRegional,
     'fiesp-data': fiespData,
+    'cni-indicators': cniIndicators,
 };

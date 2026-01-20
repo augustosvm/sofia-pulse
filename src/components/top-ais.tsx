@@ -130,7 +130,7 @@ export function TopAIs() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-slate-400 text-sm">
-                    {value.toLocaleString()} {getMetricLabel()}
+                    {value.toLocaleString('pt-BR')} {getMetricLabel()}
                   </span>
                   <div className={`
                     flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full

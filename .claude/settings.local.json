@@ -103,7 +103,22 @@
       "Bash(taskkill:*)",
       "Bash(netstat:*)",
       "Bash(ss:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(kill:*)",
+      "Bash(pkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pip3 install:*)",
+      "Bash(PGPASSWORD=SofiaPulse2025Secure@DB psql:*)",
+      "Bash(/dev/null ls *.config.* *.json)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(git stash:*)",
+      "Bash(xargs:*)",
+      "Bash(head:*)",
+      "Bash(lsof:*)",
+      "Bash(killall:*)",
+      "Bash(fuser:*)",
+      "Bash(dir:*)",
+      "Bash(C:Python313python.exe collect-cni-indicators.py)"
     ]
   }
 }

@@ -21,23 +21,25 @@ load_dotenv()
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 API_URL = "https://serpapi.com/search"
 
-# Keywords focadas em Brasil
+# Keywords focadas em Brasil (Unificado)
 KEYWORDS = [
-    "Engenheiro de Software Brasil",
-    "Desenvolvedor Python Brasil",
-    "Data Scientist Brasil",
-    "DevOps Engineer Brasil",
-    "Frontend Developer Brasil",
-    "Backend Developer Brasil",
-    "Full Stack Developer Brasil",
-    "Mobile Developer Brasil",
-    "QA Engineer Brasil",
-    "Tech Lead Brasil",
-    "Engineering Manager Brasil",
-    "Product Manager Brasil",
-    "Arquiteto de Software Brasil",
-    "DBA Brasil",
-    "Analista de Dados Brasil",
+    "Engenheiro de Software",
+    "Desenvolvedor Python",
+    "Data Scientist",
+    "DevOps Engineer",
+    "Frontend Developer",
+    "Backend Developer",
+    "Full Stack Developer",
+    "Mobile Developer",
+    "QA Engineer",
+    "Tech Lead",
+    "Engineering Manager",
+    "Product Manager",
+    "Arquiteto de Software",
+    "DBA",
+    "Business Intelligence",
+    "Analista de Segurança",
+    "Cybersecurity"
 ]
 
 
@@ -46,49 +48,73 @@ def collect_google_jobs_serpapi():
     jobs = []
 
     for keyword in KEYWORDS:
-        try:
-            params = {
-                "engine": "google_jobs",
-                "q": keyword,
-                "location": "Brazil",
-                "hl": "pt",
-                "gl": "br",
-                "api_key": SERPAPI_KEY,
-            }
+        start = 0
+        has_more = True
+        consecutive_errors = 0
+        
+        # Paginação: Google Jobs results geralmente vêm em páginas de 10
+        # Cap de 5 páginas (50 jobs) por keyword para manter dentro do limite de 100 searches/mês free 
+        # (se tivermos plano pago, podemos aumentar)
+        # SerpApi cobra 1 search por página
+        pages_limit = 5 
+        
+        while has_more and start < (pages_limit * 10):
+            try:
+                params = {
+                    "engine": "google_jobs",
+                    "q": keyword,
+                    "location": "Brazil",
+                    "hl": "pt",
+                    "gl": "br",
+                    "start": start, # Paginação
+                    "api_key": SERPAPI_KEY,
+                }
 
-            response = requests.get(API_URL, params=params, timeout=15)
+                response = requests.get(API_URL, params=params, timeout=15)
 
-            if response.status_code == 200:
-                data = response.json()
-                job_list = data.get("jobs_results", [])
+                if response.status_code == 200:
+                    data = response.json()
+                    job_list = data.get("jobs_results", [])
+                    
+                    if not job_list or len(job_list) == 0:
+                        has_more = False
+                        break
 
-                for job in job_list:
-                    # Converter data relativa para None
-                    posted_date = job.get("detected_extensions", {}).get("posted_at")
-                    if posted_date and ("há" in str(posted_date) or "ago" in str(posted_date)):
-                        posted_date = None  # Ignorar datas relativas
+                    for job in job_list:
+                        # Converter data relativa para None
+                        posted_date = job.get("detected_extensions", {}).get("posted_at")
+                        if posted_date and ("há" in str(posted_date) or "ago" in str(posted_date)):
+                            posted_date = None  # Ignorar datas relativas
 
-                    jobs.append(
-                        {
-                            "job_id": f"googlejobs-{hash(job.get('job_id', job.get('link')))}",
-                            "title": job.get("title"),
-                            "company": job.get("company_name"),
-                            "location": job.get("location"),
-                            "description": job.get("description", "")[:1000],
-                            "url": job.get("share_url", job.get("link")),
-                            "platform": "googlejobs",
-                            "posted_date": posted_date,
-                            "employment_type": job.get("detected_extensions", {}).get("schedule_type"),
-                            "search_keyword": keyword,
-                        }
-                    )
+                        jobs.append(
+                            {
+                                "job_id": f"googlejobs-{hash(job.get('job_id', job.get('link')))}",
+                                "title": job.get("title"),
+                                "company": job.get("company_name"),
+                                "location": job.get("location"),
+                                "description": job.get("description", "")[:1000],
+                                "url": job.get("share_url", job.get("link")),
+                                "platform": "googlejobs",
+                                "source": "googlejobs",
+                                "posted_date": posted_date,
+                                "employment_type": job.get("detected_extensions", {}).get("schedule_type"),
+                                "search_keyword": keyword,
+                            }
+                        )
 
-                print(f"✅ Google Jobs: {len(job_list)} vagas para '{keyword}'")
-            else:
-                print(f"⚠️  Google Jobs: {response.status_code} para '{keyword}'")
+                    print(f"✅ Google Jobs: {len(job_list)} vagas para '{keyword}' (Página {start//10})")
+                    start += 10 # Next page
+                    
+                    # Check if there is a next page token or links (SerpApi usually returns all if available or next link)
+                    # Simple default is increment start.
+                    
+                else:
+                    print(f"⚠️  Google Jobs: {response.status_code} para '{keyword}'")
+                    has_more = False
 
-        except Exception as e:
-            print(f"❌ Google Jobs erro para '{keyword}': {str(e)[:50]}")
+            except Exception as e:
+                print(f"❌ Google Jobs erro para '{keyword}': {str(e)[:50]}")
+                has_more = False
 
     return jobs
 
@@ -121,11 +147,12 @@ def save_to_db(jobs):
             cur.execute(
                 """
                 INSERT INTO sofia.jobs (
-                    job_id, title, company, location, city, country, country_id, city_id, description, url,
-                    platform, posted_date, employment_type, search_keyword, collected_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    job_id, title, company, raw_location, raw_city, country, country_id, city_id, description, url,
+                    platform, source, posted_date, employment_type, search_keyword, collected_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (job_id) DO UPDATE SET
                     title = EXCLUDED.title,
+                    source = EXCLUDED.source,
                     description = EXCLUDED.description,
                     country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
                     city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
@@ -143,6 +170,7 @@ def save_to_db(jobs):
                     job["description"],
                     job["url"],
                     job["platform"],
+                    job["source"],
                     job["posted_date"],
                     job["employment_type"],
                     job["search_keyword"],

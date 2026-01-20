@@ -58,7 +58,7 @@ def init_db(conn):
 
     conn.commit()
     cursor.close()
-    print("✅ Table sofia.cni_industrial_indicators initialized")
+    print("[OK] Table sofia.cni_industrial_indicators initialized")
 
 
 def fetch_json(url: str, retries: int = 3) -> Dict:
@@ -75,7 +75,7 @@ def fetch_json(url: str, retries: int = 3) -> Dict:
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"   ⚠️  Attempt {attempt+1}/{retries} failed: {e}")
+            print(f"   [WARN] Attempt {attempt+1}/{retries} failed: {e}")
             time.sleep(5)
 
     return {}
@@ -110,7 +110,7 @@ def save_indicator(conn, slug, title, raw_val, period, source, raw_obj):
         conn.commit()
         return 1
     except Exception as e:
-        print(f"   ❌ Error inserting {slug}: {e}")
+        print(f"   [ERROR] Error inserting {slug}: {e}")
         conn.rollback()
         return 0
     finally:
@@ -119,22 +119,22 @@ def save_indicator(conn, slug, title, raw_val, period, source, raw_obj):
 
 def main():
     print("================================================================================")
-    print("🏭 CNI Industrial Indicators Collector")
+    print("CNI Industrial Indicators Collector")
     print("================================================================================")
-    print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("")
 
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         init_db(conn)
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
+        print(f"[ERROR] Database connection failed: {e}")
         return
 
     total_inserted = 0
 
     # 1. Process Cards Endpoint
-    print(f"📡 Fetching Cards: {ENDPOINTS['cards']}")
+    print(f"[API] Fetching Cards: {ENDPOINTS['cards']}")
     data_cards = fetch_json(ENDPOINTS["cards"])
 
     if data_cards and isinstance(data_cards, list):
@@ -163,7 +163,7 @@ def main():
 
     # 2. Process Featured Endpoint
     # From curl: {"items": [{"slug": "producao", "title": "...", "measurement": "%" ...}]}
-    print(f"📡 Fetching Featured: {ENDPOINTS['featured']}")
+    print(f"[API] Fetching Featured: {ENDPOINTS['featured']}")
     data_feat = fetch_json(ENDPOINTS["featured"])
 
     if data_feat and "items" in data_feat:
@@ -180,7 +180,7 @@ def main():
             inserted = save_indicator(conn, slug, title, str(val), "Featured", "featured", item)
             total_inserted += inserted
 
-    print(f"\n✅ Finished. Total indicators saved: {total_inserted}")
+    print(f"\n[OK] Finished. Total indicators saved: {total_inserted}")
     conn.close()
 
 

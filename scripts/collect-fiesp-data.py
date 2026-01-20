@@ -70,12 +70,12 @@ def init_db(conn):
 
     conn.commit()
     cursor.close()
-    print("✅ Database tables initialized (sofia.fiesp_ina, sofia.fiesp_sensor)")
+    print("[OK] Database tables initialized (sofia.fiesp_ina, sofia.fiesp_sensor)")
 
 
 def get_excel_links(url: str, max_retries: int = 3) -> Dict[str, str]:
     """Scrape FIESP page for latest Excel links for Sensor and INA"""
-    print(f"🔍 Scanning {url} for Excel files...")
+    print(f"[SCAN] Scanning {url} for Excel files...")
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
@@ -112,21 +112,21 @@ def get_excel_links(url: str, max_retries: int = 3) -> Dict[str, str]:
 
             return links
         except requests.exceptions.Timeout:
-            print(f"   ⏱️  Timeout on attempt {attempt+1}/{max_retries}")
+            print(f"   [TIME]  Timeout on attempt {attempt+1}/{max_retries}")
             if attempt < max_retries - 1:
                 wait_time = 30 * (2**attempt)
-                print(f"   🔄 Retrying in {wait_time}s...")
+                print(f"   [RETRY] Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
         except Exception as e:
-            print(f"   ❌ Error on attempt {attempt+1}/{max_retries}: {type(e).__name__}: {e}")
+            print(f"   [ERROR] Error on attempt {attempt+1}/{max_retries}: {type(e).__name__}: {e}")
             if attempt < max_retries - 1:
                 wait_time = 30 * (2**attempt)
-                print(f"   🔄 Retrying in {wait_time}s...")
+                print(f"   [RETRY] Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
 
-    print(f"❌ Failed to scrape FIESP after {max_retries} attempts")
+    print(f"[ERROR] Failed to scrape FIESP after {max_retries} attempts")
     return {}
 
 
@@ -146,7 +146,7 @@ def clean_num(n):
 
 def download_and_parse_sensor(conn, url: str):
     """Download and process Sensor FIESP Excel"""
-    print(f"📡 Downloading Sensor: {url}")
+    print(f"[API] Downloading Sensor: {url}")
     max_retries = 3
     resp = None
 
@@ -156,19 +156,19 @@ def download_and_parse_sensor(conn, url: str):
             resp.raise_for_status()
             break
         except requests.exceptions.Timeout:
-            print(f"   ⏱️  Download timeout on attempt {attempt+1}/{max_retries}")
+            print(f"   [TIME]  Download timeout on attempt {attempt+1}/{max_retries}")
             if attempt < max_retries - 1:
                 wait_time = 30 * (2**attempt)
-                print(f"   🔄 Retrying in {wait_time}s...")
+                print(f"   [RETRY] Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
-                print(f"   ❌ Failed to download Sensor after {max_retries} attempts")
+                print(f"   [ERROR] Failed to download Sensor after {max_retries} attempts")
                 return
         except Exception as e:
-            print(f"   ❌ Download error: {type(e).__name__}: {e}")
+            print(f"   [ERROR] Download error: {type(e).__name__}: {e}")
             if attempt < max_retries - 1:
                 wait_time = 30 * (2**attempt)
-                print(f"   🔄 Retrying in {wait_time}s...")
+                print(f"   [RETRY] Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
                 return
@@ -194,7 +194,7 @@ def download_and_parse_sensor(conn, url: str):
                 header_row_idx = idx
                 break
 
-        print(f"   🎯 Detected Header Row: {header_row_idx}")
+        print(f"   [INFO] Detected Header Row: {header_row_idx}")
 
         if header_row_idx != -1:
             df = pd.read_excel(file_path, header=header_row_idx)
@@ -219,7 +219,7 @@ def download_and_parse_sensor(conn, url: str):
         inserted_count = 0
 
         # Debug Column Map
-        print(f"   🔍 Column Map: {col_map}")
+        print(f"   [DEBUG] Column Map: {col_map}")
 
         for index, row in df.iterrows():
             try:
@@ -227,7 +227,7 @@ def download_and_parse_sensor(conn, url: str):
 
                 # Debug first few rows
                 if index < 5:
-                    print(f"   👉 Row {index} Period Raw: {period_raw} (Type: {type(period_raw)})")
+                    print(f"   [DEBUG] Row {index} Period Raw: {period_raw} (Type: {type(period_raw)})")
 
                 # Date parsing: Usually "nov/25" or datetime object
                 period_date = None
@@ -272,10 +272,10 @@ def download_and_parse_sensor(conn, url: str):
                 continue
 
         conn.commit()
-        print(f"   ✅ Processed {inserted_count} Sensor records.")
+        print(f"   [OK] Processed {inserted_count} Sensor records.")
 
     except Exception as e:
-        print(f"❌ Error processing Sensor: {e}")
+        print(f"[ERROR] Error processing Sensor: {e}")
 
 
 def parse_pt_date(date_str: str) -> Optional[datetime.date]:
@@ -312,7 +312,7 @@ def parse_pt_date(date_str: str) -> Optional[datetime.date]:
 
 def download_and_parse_ina(conn, url: str):
     """Download and process INA Excel"""
-    print(f"📡 Downloading INA: {url}")
+    print(f"[API] Downloading INA: {url}")
     max_retries = 3
     resp = None
 
@@ -322,19 +322,19 @@ def download_and_parse_ina(conn, url: str):
             resp.raise_for_status()
             break
         except requests.exceptions.Timeout:
-            print(f"   ⏱️  Download timeout on attempt {attempt+1}/{max_retries}")
+            print(f"   [TIME]  Download timeout on attempt {attempt+1}/{max_retries}")
             if attempt < max_retries - 1:
                 wait_time = 30 * (2**attempt)
-                print(f"   🔄 Retrying in {wait_time}s...")
+                print(f"   [RETRY] Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
-                print(f"   ❌ Failed to download INA after {max_retries} attempts")
+                print(f"   [ERROR] Failed to download INA after {max_retries} attempts")
                 return
         except Exception as e:
-            print(f"   ❌ Download error: {type(e).__name__}: {e}")
+            print(f"   [ERROR] Download error: {type(e).__name__}: {e}")
             if attempt < max_retries - 1:
                 wait_time = 30 * (2**attempt)
-                print(f"   🔄 Retrying in {wait_time}s...")
+                print(f"   [RETRY] Retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
                 return
@@ -344,7 +344,7 @@ def download_and_parse_ina(conn, url: str):
         with open(file_path, "wb") as f:
             f.write(resp.content)
 
-        print("   ✅ INA downloaded. Parsing...")
+        print("   [OK] INA downloaded. Parsing...")
 
         # Read Excel with header=1 (Row 2 in Excel is header)
         df = pd.read_excel(file_path, header=1)
@@ -425,35 +425,35 @@ def download_and_parse_ina(conn, url: str):
                 )
                 inserted_count += 1
             except Exception:
-                # print(f"      ❌ Error inserting row {period_raw}: {e}")
+                # print(f"      [ERROR] Error inserting row {period_raw}: {e}")
                 conn.rollback()
                 continue
 
         conn.commit()
-        print(f"   ✅ Processed {inserted_count} INA records.")
+        print(f"   [OK] Processed {inserted_count} INA records.")
 
     except Exception as e:
-        print(f"❌ Error processing INA: {e}")
+        print(f"[ERROR] Error processing INA: {e}")
         conn.rollback()
 
 
 def main():
     print("================================================================================")
-    print("🏭 FIESP Data Collector")
+    print("FIESP Data Collector")
     print("================================================================================")
 
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         init_db(conn)
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
+        print(f"[ERROR] Database connection failed: {e}")
         return
 
     links = get_excel_links(FIESP_BASE_URL)
 
     # Fallback/Enhancement: Check specific sub-pages if not found on main index
     if "ina" not in links:
-        print("⚠️ INA not found on main page, checking sub-page...")
+        print("[WARN] INA not found on main page, checking sub-page...")
         ina_links = get_excel_links(
             "https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/levantamento-de-conjuntura/"
         )
@@ -461,16 +461,16 @@ def main():
             links["ina"] = ina_links["ina"]
 
     if "sensor" not in links:
-        print("⚠️ Sensor not found on main page, checking sub-page...")
+        print("[WARN] Sensor not found on main page, checking sub-page...")
         sensor_links = get_excel_links("https://www.fiesp.com.br/indices-pesquisas-e-publicacoes/sensor-fiesp/")
         if "sensor" in sensor_links:
             links["sensor"] = sensor_links["sensor"]
 
     if not links:
-        print("❌ Still no links found. Debugging HTML content...")
+        print("[ERROR] Still no links found. Debugging HTML content...")
         # (Optional) Dump HTML to file for inspection if needed
     else:
-        print(f"🔗 Found links: {links}")
+        print(f"[INFO] Found links: {links}")
 
     if "sensor" in links:
         download_and_parse_sensor(conn, links["sensor"])
@@ -486,7 +486,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"❌ Fatal error: {e}")
+        print(f"[ERROR] Fatal error: {e}")
         try:
             conn = psycopg2.connect(**DB_CONFIG)
             cursor = conn.cursor()
@@ -501,6 +501,6 @@ if __name__ == "__main__":
 
             alert_collector_failed(COLLECTOR_NAME, str(e))
         except Exception as alert_e:
-            print(f"⚠️  Could not send alert: {alert_e}")
+            print(f"[WARN]  Could not send alert: {alert_e}")
 
         sys.exit(1)

@@ -1,0 +1,20 @@
+JOBS PER SOURCE REPORT
+========================================
+unknown                        :  13882
+greenhouse                     :    852
+adzuna                         :    766
+themuse                        :    107
+findwork                       :     97
+arbeitnow                      :     96
+remoteok                       :     45
+landingjobs                    :     36
+usajobs                        :     33
+jobicy                         :     23
+linkedin                       :     12
+remotive                       :     12
+jooble                         :      1
+workingnomads                  :      1
+----------------------------------------
+TOTAL                          :  15963
+
+Normalized (Geo-ID)            :   5531 / 15963

@@ -192,131 +192,148 @@ async function collectJoobleJobs() {
             const keywords = KEYWORDS_BY_LANG[lang] || KEYWORDS_BY_LANG['en'];
 
             // Limit keywords per country to avoid rate limits (500 requests/day total)
-            const keywordsToUse = keywords.slice(0, 3);
+            const keywordsToUse = keywords; // Removed .slice limit
 
             for (const keyword of keywordsToUse) {
-                try {
-                    // Jooble API endpoint (single global endpoint)
-                    const url = `${JOOBLE_API_URL}/${JOOBLE_API_KEY}`;
+                console.log(`\n🔍 Searching for "${keyword}" in ${country.name}...`);
+                let page = 1;
+                let hasMore = true;
+                let consecutiveErrors = 0;
 
-                    const response = await axios.post<JoobleResponse>(url, {
-                        keywords: keyword,
-                        location: country.location,
-                        page: 1
-                    }, {
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        timeout: 30000
-                    });
+                while (hasMore && page <= 50) { // Safety cap
+                    try {
+                        // Jooble API endpoint (single global endpoint)
+                        const url = `${JOOBLE_API_URL}/${JOOBLE_API_KEY}`;
 
-                    const jobs = response.data.jobs || [];
-                    console.log(`   📋 ${keyword}: ${jobs.length} jobs`);
-                    totalCollected += jobs.length;
+                        const response = await axios.post<JoobleResponse>(url, {
+                            keywords: keyword,
+                            location: country.location,
+                            page: page
+                        }, {
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            timeout: 30000
+                        });
 
-                    for (const job of jobs) {
-                        try {
-                            // Generate unique job ID
-                            const jobId = job.id || `jooble-${Buffer.from(job.link).toString('base64').substring(0, 32)}`;
+                        const jobs = response.data.jobs || [];
+                        if (jobs.length === 0) {
+                            hasMore = false;
+                            break;
+                        }
 
-                            // Parse location
-                            const { countryId, stateId, cityId, city, state } = await normalizeLocation(
-                                pool,
-                                job.location || '',
-                                country.name
-                            );
+                        console.log(`   📋 ${keyword} (Page ${page}): ${jobs.length} jobs`);
+                        totalCollected += jobs.length;
 
-                            // Get or create organization
-                            const organizationId = job.company ?
-                                await getOrCreateOrganization(pool, job.company, country.name) : null;
+                        for (const job of jobs) {
+                            try {
+                                // Generate unique job ID
+                                const jobId = job.id || `jooble-${Buffer.from(job.link).toString('base64').substring(0, 32)}`;
 
-                            // Parse salary
-                            const salary = parseSalary(job.salary);
+                                // Parse location string to get city/state candidates if possible
+                                // Simple heuristic: "City, State" or "City"
+                                let city = null;
+                                let state = null;
+                                const locParts = (job.location || '').split(',');
+                                if (locParts.length > 0) city = locParts[0].trim();
+                                if (locParts.length > 1) state = locParts[1].trim();
 
-                            // Detect job attributes
-                            const remoteType = detectRemoteType(job.title, job.snippet);
-                            const seniority = detectSeniority(job.title);
-                            const skills = extractSkills(`${job.title} ${job.snippet}`);
-                            const sector = detectSector(job.title, job.snippet);
+                                // Normalize geographic data
+                                // geo-helpers signature: normalizeLocation(pool, {country, state, city})
+                                const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                                    country: country.name,
+                                    state: state,
+                                    city: city
+                                });
 
-                            // Parse date
-                            let postedDate = null;
-                            if (job.updated) {
-                                const parsed = new Date(job.updated);
-                                if (!isNaN(parsed.getTime())) {
-                                    postedDate = parsed.toISOString().split('T')[0];
+                                // Get or create organization
+                                const organizationId = job.company ?
+                                    await getOrCreateOrganization(pool, job.company, country.name) : null;
+
+                                // Parse salary
+                                const salary = parseSalary(job.salary);
+
+                                // Detect job attributes
+                                const remoteType = detectRemoteType(job.title, job.snippet);
+                                const seniority = detectSeniority(job.title);
+                                const skills = extractSkills(`${job.title} ${job.snippet}`);
+                                const sector = detectSector(job.title, job.snippet);
+
+                                // Parse date
+                                let postedDate = null;
+                                if (job.updated) {
+                                    const parsed = new Date(job.updated);
+                                    if (!isNaN(parsed.getTime())) {
+                                        postedDate = parsed.toISOString().split('T')[0];
+                                    }
+                                }
+
+                                await pool.query(`
+                                    INSERT INTO sofia.jobs (
+                                        job_id, platform, source, title, company,
+                                        raw_location, raw_city, raw_state, country, country_id, state_id, city_id,
+                                        description,
+                                        salary_min, salary_max, salary_currency, salary_period,
+                                        remote_type, employment_type, seniority_level,
+                                        url, search_keyword, organization_id, collected_at
+                                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())
+                                    ON CONFLICT (job_id) DO UPDATE SET
+                                        collected_at = NOW(),
+                                        source = EXCLUDED.source,
+                                        organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+                                        country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                                        state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+                                        city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
+                                `, [
+                                    jobId,
+                                    'jooble',
+                                    'jooble',
+                                    job.title?.substring(0, 500) || 'Unknown',
+                                    job.company?.substring(0, 255) || null,
+                                    job.location?.substring(0, 255) || null, // raw_location
+                                    city, // raw_city
+                                    state, // raw_state
+                                    country.name,
+                                    countryId,
+                                    stateId,
+                                    cityId,
+                                    job.snippet?.substring(0, 10000) || null,
+                                    salary.min,
+                                    salary.max,
+                                    salary.currency,
+                                    salary.period,
+                                    remoteType,
+                                    job.type || 'full-time',
+                                    seniority,
+                                    job.link,
+                                    keyword,
+                                    organizationId
+                                ]);
+
+                                totalSaved++;
+                            } catch (error: any) {
+                                // Ignore duplicate errors
+                                if (error.code !== '23505') {
+                                    console.error(`   ⚠️ Error saving job: ${error.message}`);
                                 }
                             }
+                        }
 
-                            await pool.query(`
-                                INSERT INTO sofia.jobs (
-                                    job_id, title, company, location, city, state, country,
-                                    country_id, state_id, city_id,
-                                    url, platform, organization_id,
-                                    description, salary_min, salary_max, salary_currency, salary_period,
-                                    remote_type, seniority_level, employment_type, skills_required, sector,
-                                    posted_date, collected_at
-                                )
-                                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW())
-                                ON CONFLICT (job_id, platform) DO UPDATE SET
-                                    title = EXCLUDED.title,
-                                    location = EXCLUDED.location,
-                                    description = EXCLUDED.description,
-                                    salary_min = EXCLUDED.salary_min,
-                                    salary_max = EXCLUDED.salary_max,
-                                    salary_currency = EXCLUDED.salary_currency,
-                                    salary_period = EXCLUDED.salary_period,
-                                    remote_type = EXCLUDED.remote_type,
-                                    seniority_level = EXCLUDED.seniority_level,
-                                    skills_required = EXCLUDED.skills_required,
-                                    sector = EXCLUDED.sector,
-                                    organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
-                                    country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
-                                    state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
-                                    city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
-                                    posted_date = EXCLUDED.posted_date,
-                                    collected_at = NOW()
-                            `, [
-                                jobId,
-                                job.title?.substring(0, 500) || 'Unknown',
-                                job.company?.substring(0, 255) || null,
-                                job.location?.substring(0, 255) || null,
-                                city,
-                                state,
-                                country.name,
-                                countryId,
-                                stateId,
-                                cityId,
-                                job.link,
-                                'jooble',
-                                organizationId,
-                                job.snippet?.substring(0, 10000) || null,
-                                salary.min,
-                                salary.max,
-                                salary.currency,
-                                salary.period,
-                                remoteType,
-                                seniority,
-                                job.type || 'full-time',
-                                skills.length > 0 ? `{${skills.join(',')}}` : null,
-                                sector,
-                                postedDate
-                            ]);
+                        // Rate limiting - 2 second delay between requests
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        page++;
+                        consecutiveErrors = 0;
 
-                            totalSaved++;
-                        } catch (error: any) {
-                            // Ignore duplicate errors
-                            if (error.code !== '23505') {
-                                console.error(`   ⚠️ Error saving job: ${error.message}`);
-                            }
+                    } catch (error: any) {
+                        consecutiveErrors++;
+                        if (consecutiveErrors >= 3) {
+                            console.error(`   ❌ Too many errors for "${keyword}", skipping...`);
+                            hasMore = false;
+                        } else {
+                            console.error(`   ❌ Error fetching ${keyword} p${page}: ${error.message}`);
+                            await new Promise(resolve => setTimeout(resolve, 5000));
                         }
                     }
-
-                    // Rate limiting - 2 second delay between requests
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-
-                } catch (error: any) {
-                    console.error(`   ❌ Error fetching ${keyword}: ${error.message}`);
                 }
             }
         }

@@ -102,12 +102,21 @@ async function collectTheMuseJobs() {
     const pool = new Pool(dbConfig);
 
     let totalCollected = 0;
+
+    // The Muse uses specific categories (Strict list)
+    // We use a broader list to cover more tech jobs
     const categories = [
         'Software Engineering',
         'Data Science',
         'Product',
         'Design',
+        'UX',
+        'IT',
+        'Computer Science',
         'Engineering',
+        'Project Management',
+        'Cybersecurity',
+        'DevOps'
     ];
 
     for (const category of categories) {
@@ -116,150 +125,160 @@ async function collectTheMuseJobs() {
 
             let page = 0;
             let hasMore = true;
+            let consecutiveErrors = 0;
 
-            while (hasMore && page < 5) { // Max 5 pages per category
-                const response = await axios.get<{ results: MuseJob[] }>(THE_MUSE_API, {
-                    params: {
-                        category: category,
-                        page: page,
-                        descending: true
-                    },
-                    timeout: 10000
-                });
+            // Page loop (The Muse limits to 20 per page)
+            // Cap at 50 pages to avoid infinite loops (1000 jobs per category)
+            while (hasMore && page < 50) {
+                try {
+                    // console.log(`   Fetching page ${page}...`);
+                    const response = await axios.get<{ results: MuseJob[] }>(THE_MUSE_API, {
+                        params: {
+                            category: category,
+                            page: page,
+                            descending: true
+                        },
+                        timeout: 10000
+                    });
 
-                const jobs = response.data?.results || [];
+                    const jobs = response.data?.results || [];
 
-                if (jobs.length === 0) {
-                    hasMore = false;
-                    break;
-                }
+                    if (jobs.length === 0) {
+                        hasMore = false;
+                        break;
+                    }
 
-                console.log(`   Page ${page + 1}: ${jobs.length} jobs`);
+                    console.log(`   Page ${page}: ${jobs.length} jobs`);
 
-                for (const job of jobs) {
-                    try {
-                        // Extract location
-                        const location = job.locations[0]?.name || 'Remote';
-                        const locationParts = location.split(',').map(s => s.trim());
-                        const city = locationParts[0] || null;
-                        let state: string | null = null;
+                    for (const job of jobs) {
+                        try {
+                            // Extract location
+                            const location = job.locations[0]?.name || 'Remote';
+                            const locationParts = location.split(',').map(s => s.trim());
+                            const city = locationParts[0] || null;
+                            let state: string | null = null;
 
-                        // Determine country and state
-                        let country = 'United States'; // Default for TheMuse (primarily US jobs)
-                        if (locationParts.length > 1) {
-                            const lastPart = locationParts[locationParts.length - 1];
-                            // Check if last part is a US state code
-                            if (US_STATES.has(lastPart.toUpperCase())) {
-                                state = lastPart;
+                            // Determine country and state
+                            let country = 'United States'; // Default for TheMuse (primarily US jobs)
+                            if (locationParts.length > 1) {
+                                const lastPart = locationParts[locationParts.length - 1];
+                                // Check if last part is a US state code
+                                if (US_STATES.has(lastPart.toUpperCase())) {
+                                    state = lastPart;
+                                    country = 'United States';
+                                } else {
+                                    country = lastPart; // Assume it's a country name
+                                }
+                            } else if (location && US_STATES.has(location.toUpperCase())) {
+                                // Single part is a US state code
+                                state = location;
                                 country = 'United States';
-                            } else {
-                                country = lastPart; // Assume it's a country name
+                            } else if (!/remote|flexible|anywhere/i.test(location)) {
+                                // Single part, not a state, not remote → might be a country
+                                country = location;
                             }
-                        } else if (location && US_STATES.has(location.toUpperCase())) {
-                            // Single part is a US state code
-                            state = location;
-                            country = 'United States';
-                        } else if (!/remote|flexible|anywhere/i.test(location)) {
-                            // Single part, not a state, not remote → might be a country
-                            country = location;
+
+                            // Detect remote
+                            const isRemote = /remote|anywhere|flexible/i.test(location);
+                            const remoteType = isRemote ? 'remote' : 'onsite';
+
+                            // Extract seniority
+                            const seniorityLevel = job.levels[0]?.short_name || null;
+
+                            // Extract skills from tags and categories
+                            const skills = [
+                                ...job.tags,
+                                ...job.categories.map(c => c.name)
+                            ].filter(s => s.length > 0);
+
+                            // Extract salary from description
+                            const salary = extractSalaryFromDescription(job.contents);
+
+                            // Normalize geographic data
+                            const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                                country: country,
+                                state: state,
+                                city: city
+                            });
+
+                            // Get or create organization
+                            const organizationId = await getOrCreateOrganization(
+                                pool,
+                                job.company.name,
+                                null,
+                                location,
+                                country,
+                                'themuse'
+                            );
+
+                            await pool.query(`
+                                INSERT INTO sofia.jobs (
+                                    job_id, platform, source, title, company,
+                                    raw_location, raw_city, raw_state, country, country_id, state_id, city_id,
+                                    description, remote_type, employment_type, seniority_level,
+                                    url, search_keyword, organization_id, collected_at
+                                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
+                                ON CONFLICT (job_id) DO UPDATE SET
+                                    collected_at = NOW(),
+                                    source = EXCLUDED.source,
+                                    organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+                                    country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                                    state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+                                    city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
+                            `, [
+                                job.id.toString(),
+                                'themuse',
+                                'themuse',
+                                job.name,
+                                job.company.name,
+                                location,
+                                city,
+                                state,
+                                country,
+                                countryId,
+                                stateId,
+                                cityId,
+                                remoteType,
+                                job.contents,
+                                new Date(job.publication_date),
+                                job.refs.landing_page,
+                                salary.min,
+                                salary.max,
+                                salary.currency,
+                                salary.period,
+                                seniorityLevel,
+                                skills.length > 0 ? skills : null,
+                                category,
+                                organizationId
+                            ]);
+
+                            totalCollected++;
+
+                        } catch (error: any) {
+                            if (error.code !== '23505') { // Ignore unique constraint violations
+                                console.error(`   ❌ Error saving job ${job.name}:`, error.message);
+                            }
                         }
+                    }
 
-                        // Detect remote
-                        const isRemote = /remote|anywhere|flexible/i.test(location);
-                        const remoteType = isRemote ? 'remote' : 'onsite';
+                    page++;
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // Rate limit
+                    consecutiveErrors = 0;
 
-                        // Extract seniority
-                        const seniorityLevel = job.levels[0]?.short_name || null;
-
-                        // Extract skills from tags and categories
-                        const skills = [
-                            ...job.tags,
-                            ...job.categories.map(c => c.name)
-                        ].filter(s => s.length > 0);
-
-                        // Extract salary from description
-                        const salary = extractSalaryFromDescription(job.contents);
-
-                        // Normalize geographic data
-                        const { countryId, stateId, cityId } = await normalizeLocation(pool, {
-                            country: country,
-                            state: state,
-                            city: city
-                        });
-
-                        // Get or create organization
-                        const organizationId = await getOrCreateOrganization(
-                            pool,
-                            job.company.name,
-                            null,
-                            location,
-                            country,
-                            'themuse'
-                        );
-
-                        await pool.query(`
-              INSERT INTO sofia.jobs (
-                job_id, platform, title, company,
-                location, city, state, country, country_id, state_id, city_id, remote_type,
-                description, posted_date, url,
-                salary_min, salary_max, salary_currency, salary_period,
-                seniority_level, skills_required, search_keyword,
-                organization_id, collected_at
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
-              ON CONFLICT (job_id, platform) DO UPDATE SET
-                collected_at = NOW(),
-                description = EXCLUDED.description,
-                organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
-                country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
-                state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
-                city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
-                salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
-                salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
-            `, [
-                            job.id.toString(),
-                            'themuse',
-                            job.name,
-                            job.company.name,
-                            location,
-                            city,
-                            state,
-                            country,
-                            countryId,
-                            stateId,
-                            cityId,
-                            remoteType,
-                            job.contents,
-                            new Date(job.publication_date),
-                            job.refs.landing_page,
-                            salary.min,
-                            salary.max,
-                            salary.currency,
-                            salary.period,
-                            seniorityLevel,
-                            skills.length > 0 ? skills : null,
-                            category,
-                            organizationId
-                        ]);
-
-                        totalCollected++;
-
-                    } catch (err) {
-                        console.error(`   ❌ Error inserting job ${job.id}:`, err.message);
+                } catch (error: any) {
+                    consecutiveErrors++;
+                    if (consecutiveErrors >= 3) {
+                        // console.error(`   ❌ Too many errors for "${category}", skipping...`);
+                        hasMore = false;
+                    } else {
+                        // console.error(`   ❌ Error fetching p${page}:`, error.message);
+                        await new Promise(resolve => setTimeout(resolve, 3000));
                     }
                 }
-
-                page++;
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limit
             }
-
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error(`   ❌ API Error: ${error.response?.status} ${error.message}`);
-            } else {
-                console.error(`   ❌ Error:`, error.message);
-            }
-        }
+        } catch (e) { }
     }
+    // ... code continues ...
 
     // Statistics
     const stats = await pool.query(`

@@ -25,6 +25,10 @@ from typing import Dict, Optional, List, Tuple
 import sys
 import os
 import re
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # ============================================================================
 # Configuration
@@ -63,14 +67,17 @@ MAX_RETRIES = 3
 RETRY_BACKOFF = 2
 POLITE_DELAY = 2  # seconds between datasets
 
-# Datasets
+# Datasets - ONLY REGIONAL (country-level already collected)
 DATASETS = [
-    {"slug": "political-violence-country-year", "url": "https://acleddata.com/aggregated/number-political-violence-events-country-year", "aggregation_level": "country-year", "region": "Global"},
-    {"slug": "political-violence-country-month-year", "url": "https://acleddata.com/aggregated/number-political-violence-events-country-month-year", "aggregation_level": "country-month-year", "region": "Global"},
-    {"slug": "demonstrations-country-year", "url": "https://acleddata.com/aggregated/number-demonstration-events-country-year", "aggregation_level": "country-year", "region": "Global"},
-    {"slug": "civilian-targeting-country-year", "url": "https://acleddata.com/aggregated/number-events-targeting-civilians-country-year", "aggregation_level": "country-year", "region": "Global"},
-    {"slug": "fatalities-country-year", "url": "https://acleddata.com/aggregated/number-reported-fatalities-country-year", "aggregation_level": "country-year", "region": "Global"},
-    {"slug": "civilian-fatalities-country-year", "url": "https://acleddata.com/aggregated/number-reported-civilian-fatalities-direct-targeting-country-year", "aggregation_level": "country-year", "region": "Global"},
+    # SKIP: Already collected successfully
+    # {"slug": "political-violence-country-year", ...},
+    # {"slug": "political-violence-country-month-year", ...},  # Failed: month parsing
+    # {"slug": "demonstrations-country-year", ...},
+    # {"slug": "civilian-targeting-country-year", ...},
+    # {"slug": "fatalities-country-year", ...},
+    # {"slug": "civilian-fatalities-country-year", ...},
+
+    # REGIONAL ONLY:
     {"slug": "aggregated-europe-central-asia", "url": "https://acleddata.com/aggregated/aggregated-data-europe-and-central-asia", "aggregation_level": "regional", "region": "Europe and Central Asia"},
     {"slug": "aggregated-us-canada", "url": "https://acleddata.com/aggregated/aggregated-data-united-states-canada", "aggregation_level": "regional", "region": "United States and Canada"},
     {"slug": "aggregated-latin-america-caribbean", "url": "https://acleddata.com/aggregated/aggregated-data-latin-america-caribbean", "aggregation_level": "regional", "region": "Latin America and Caribbean"},
@@ -371,20 +378,54 @@ def insert_country_month_year(conn, df: pd.DataFrame, slug: str, hash: str):
 def insert_regional(conn, df: pd.DataFrame, slug: str, hash: str, region: str):
     df = df.copy()
     df.columns = [to_snake_case(c) for c in df.columns]
+
+    # Replace NaN with None for JSON compatibility
+    df = df.where(pd.notna(df), None)
+
     records = []
     for _, row in df.iterrows():
+        # Extract year/month/week from WEEK column (datetime)
+        week_date = None
+        year_val = None
+        month_val = None
+        week_str = None
+
+        if 'week' in row and row['week'] is not None:
+            week_date = pd.to_datetime(row['week'])
+            year_val = int(week_date.year)
+            month_val = int(week_date.month)
+            # Extract ISO week number (1-53)
+            week_str = int(week_date.isocalendar().week)
+
+        # Build metadata dict, excluding known columns
+        # Convert to Python natives for JSON compatibility
+        metadata_keys = {'country', 'admin1', 'admin2', 'year', 'month', 'week', 'events',
+                        'fatalities', 'event_type', 'disorder_type', 'centroid_latitude', 'centroid_longitude'}
+        metadata = {}
+        for k, v in row.items():
+            if k not in metadata_keys:
+                # Convert pandas types to Python natives
+                if pd.isna(v):
+                    metadata[k] = None
+                elif isinstance(v, (pd.Timestamp, datetime)):
+                    metadata[k] = v.isoformat()
+                elif isinstance(v, (int, float, str, bool)):
+                    metadata[k] = v
+                else:
+                    metadata[k] = str(v)
+
         records.append((
             slug, region, row.get('country'), row.get('admin1'), row.get('admin2'),
-            int(row['year']) if 'year' in row and pd.notna(row['year']) else None,
-            int(row['month']) if 'month' in row and pd.notna(row['month']) else None,
-            int(row['week']) if 'week' in row and pd.notna(row['week']) else None,
-            None, None,
-            float(row['centroid_latitude']) if 'centroid_latitude' in row and pd.notna(row['centroid_latitude']) else None,
-            float(row['centroid_longitude']) if 'centroid_longitude' in row and pd.notna(row['centroid_longitude']) else None,
-            int(row['events']) if 'events' in row and pd.notna(row['events']) else None,
-            int(row['fatalities']) if 'fatalities' in row and pd.notna(row['fatalities']) else None,
+            year_val,
+            month_val,
+            week_str,
+            None, None,  # date_range_start, date_range_end
+            float(row['centroid_latitude']) if row.get('centroid_latitude') is not None else None,
+            float(row['centroid_longitude']) if row.get('centroid_longitude') is not None else None,
+            int(row['events']) if row.get('events') is not None else None,
+            int(row['fatalities']) if row.get('fatalities') is not None else None,
             row.get('event_type'), row.get('disorder_type'),
-            Json({k: v for k, v in row.items() if k not in ['country', 'admin1', 'admin2', 'year', 'month', 'week', 'events', 'fatalities', 'event_type', 'disorder_type', 'centroid_latitude', 'centroid_longitude']}),
+            Json(metadata),
             hash, datetime.now(timezone.utc)
         ))
     with conn.cursor() as cur:

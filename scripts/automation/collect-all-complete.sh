@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# Sofia Pulse - COMPLETE Collection (ALL 56 Collectors)
+# Sofia Pulse - COMPLETE Collection (ALL 58 Collectors)
 ################################################################################
 #
 # Runs ALL collectors with:
@@ -84,7 +84,7 @@ run_collector() {
 }
 
 echo "════════════════════════════════════════════════════════════════"
-echo "🚀 SOFIA PULSE - COMPLETE COLLECTION (ALL 55 COLLECTORS)"
+echo "🚀 SOFIA PULSE - COMPLETE COLLECTION (ALL 58 COLLECTORS)"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 echo "⏱️  Started: $(date '+%Y-%m-%d %H:%M:%S %Z')"
@@ -214,18 +214,20 @@ run_collector "Women Brazil" "python3 scripts/collect-women-brazil.py"
 run_collector "Central Banks Women" "python3 scripts/collect-central-banks-women.py"
 
 ################################################################################
-# GROUP 7: BRAZIL OFFICIAL DATA - 6 collectors
+# GROUP 7: BRAZIL OFFICIAL DATA - 8 collectors
 ################################################################################
 
 echo ""
 echo "════════════════════════════════════════════════════════════════"
-echo "🇧🇷 GROUP 7: BRAZIL OFFICIAL DATA - 6 collectors"
+echo "🇧🇷 GROUP 7: BRAZIL OFFICIAL DATA - 8 collectors"
 echo "════════════════════════════════════════════════════════════════"
 
 run_collector "BACEN Central Bank" "python3 scripts/collect-bacen-sgs.py"
 run_collector "IBGE Official Data" "python3 scripts/collect-ibge-api.py"
 run_collector "IPEA Economic Data" "python3 scripts/collect-ipea-api.py"
 run_collector "MDIC ComexStat Trade" "python3 scripts/collect-mdic-comexstat.py"
+run_collector "CNI Industrial Indicators" "python3 scripts/collect-cni-indicators.py"
+run_collector "FIESP Industrial Data" "python3 scripts/collect-fiesp-data.py"
 run_collector "Brazil Ministries" "python3 scripts/collect-brazil-ministries.py"
 run_collector "Brazil Security 27 States" "python3 scripts/collect-brazil-security.py"
 

@@ -103,124 +103,152 @@ async function collectUSAJobs() {
 
     try {
         // Coletar para cada ocupação tech
+        // Coletar para cada ocupação tech
         for (const occupation of TECH_OCCUPATIONS) {
             console.log(`\n🔍 Collecting occupation code ${occupation}...`);
 
-            try {
-                const response = await axios.get<USAJobsResponse>(USAJOBS_API, {
-                    params: {
-                        JobCategoryCode: occupation,
-                        ResultsPerPage: 100
-                    },
-                    headers: {
-                        'Host': 'data.usajobs.gov',
-                        'User-Agent': USAJOBS_EMAIL,
-                        'Authorization-Key': USAJOBS_API_KEY
-                    },
-                    timeout: 15000
-                });
+            let page = 1;
+            let hasMore = true;
+            let consecutiveErrors = 0;
 
-                const items = response.data.SearchResult?.SearchResultItems || [];
-                console.log(`   Found: ${items.length} jobs`);
+            // USAJOBS uses 'Page' parameter (1-based)
+            // It has a hard limit of 25000 total results, but we likely won't hit that with occupation codes alone
+            while (hasMore && page <= 50) {
+                try {
+                    //   console.log(`   Fetching page ${page}...`);
 
-                for (const item of items) {
-                    try {
-                        const job = item.MatchedObjectDescriptor;
+                    const response = await axios.get<USAJobsResponse>(USAJOBS_API, {
+                        params: {
+                            JobCategoryCode: occupation,
+                            ResultsPerPage: 100, // Max 500 allowed? usually 100
+                            Page: page
+                        },
+                        headers: {
+                            'Host': 'data.usajobs.gov',
+                            'User-Agent': USAJOBS_EMAIL,
+                            'Authorization-Key': USAJOBS_API_KEY
+                        },
+                        timeout: 20000
+                    });
 
-                        // Extract salary
-                        const salary = job.PositionRemuneration?.[0];
-                        const salaryMin = salary ? parseFloat(salary.MinimumRange.replace(/,/g, '')) : null;
-                        const salaryMax = salary ? parseFloat(salary.MaximumRange.replace(/,/g, '')) : null;
-                        const salaryPeriod = salary?.RateIntervalCode === 'PA' ? 'yearly' : 'hourly';
+                    const items = response.data.SearchResult?.SearchResultItems || [];
 
-                        // Extract location
-                        const location = job.PositionLocation?.[0];
-                        const city = location?.CityName || null;
-                        const state = location?.LocationName?.split(', ')[1] || null; // Extract state from "City, ST"
-                        const locationDisplay = job.PositionLocationDisplay || 'Washington, DC';
-
-                        // Determine if remote
-                        const offeringTypes = job.PositionOfferingType?.map(t => t.Name) || [];
-                        const isRemote = offeringTypes.some(t => /remote/i.test(t));
-                        const remoteType = isRemote ? 'remote' : 'onsite';
-
-                        // Employment type
-                        const schedules = job.PositionSchedule?.map(s => s.Name) || [];
-                        const employmentType = schedules.some(s => /full.time/i.test(s)) ? 'full-time' : 'part-time';
-
-                        // Normalize geographic data
-                        const { countryId, stateId, cityId } = await normalizeLocation(pool, {
-                            country: 'United States',
-                            state: state,
-                            city: city
-                        });
-
-                        // Get or create organization
-                        const organizationId = await getOrCreateOrganization(
-                            pool,
-                            job.OrganizationName,
-                            null,
-                            locationDisplay,
-                            'United States',
-                            'usajobs'
-                        );
-
-                        await pool.query(`
-              INSERT INTO sofia.jobs (
-                job_id, platform, title, company,
-                location, city, state, country, country_id, state_id, city_id, remote_type,
-                description, posted_date, url,
-                salary_min, salary_max, salary_currency, salary_period,
-                employment_type, search_keyword, organization_id, collected_at
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
-              ON CONFLICT (job_id, platform) DO UPDATE SET
-                collected_at = NOW(),
-                description = EXCLUDED.description,
-                organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
-                country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
-                state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
-                salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
-                salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
-            `, [
-                            item.MatchedObjectId,
-                            'usajobs',
-                            job.PositionTitle,
-                            job.OrganizationName,
-                            locationDisplay,
-                            city,
-                            state,
-                            'United States',
-                            countryId,
-                            stateId,
-                            cityId,
-                            remoteType,
-                            job.UserArea?.Details?.JobSummary || '',
-                            new Date(job.PublicationStartDate),
-                            job.PositionURI,
-                            salaryMin,
-                            salaryMax,
-                            'USD',
-                            salaryPeriod,
-                            employmentType,
-                            `occupation-${occupation}`,
-                            organizationId
-                        ]);
-
-                        totalCollected++;
-
-                    } catch (err: any) {
-                        console.error(`   ❌ Error inserting job ${item.MatchedObjectId}:`, err.message);
+                    if (items.length === 0) {
+                        hasMore = false;
+                        break;
                     }
-                }
 
-                // Rate limiting: aguardar 1s entre requests
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                    console.log(`   Page ${page}: Found ${items.length} jobs`);
 
-            } catch (error: any) {
-                if (axios.isAxiosError(error)) {
-                    console.error(`   ❌ API Error for occupation ${occupation}: ${error.response?.status} ${error.message}`);
-                } else {
-                    console.error(`   ❌ Error for occupation ${occupation}:`, error.message);
+                    for (const item of items) {
+                        try {
+                            const job = item.MatchedObjectDescriptor;
+
+                            // Extract salary
+                            const salary = job.PositionRemuneration?.[0];
+                            const salaryMin = salary ? parseFloat(salary.MinimumRange.replace(/,/g, '')) : null;
+                            const salaryMax = salary ? parseFloat(salary.MaximumRange.replace(/,/g, '')) : null;
+                            const salaryPeriod = salary?.RateIntervalCode === 'PA' ? 'yearly' : 'hourly';
+
+                            // Extract location
+                            const location = job.PositionLocation?.[0];
+                            const city = location?.CityName || null;
+                            const state = location?.LocationName?.split(', ')[1] || null; // Extract state from "City, ST"
+                            const locationDisplay = job.PositionLocationDisplay || 'Washington, DC';
+
+                            // Determine if remote
+                            const offeringTypes = job.PositionOfferingType?.map(t => t.Name) || [];
+                            const isRemote = offeringTypes.some(t => /remote/i.test(t));
+                            const remoteType = isRemote ? 'remote' : 'onsite';
+
+                            // Employment type
+                            const schedules = job.PositionSchedule?.map(s => s.Name) || [];
+                            const employmentType = schedules.some(s => /full.time/i.test(s)) ? 'full-time' : 'part-time';
+
+                            // Normalize geographic data
+                            const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                                country: 'United States',
+                                state: state,
+                                city: city
+                            });
+
+                            // Get or create organization
+                            const organizationId = await getOrCreateOrganization(
+                                pool,
+                                job.OrganizationName,
+                                null,
+                                locationDisplay,
+                                'United States',
+                                'usajobs'
+                            );
+
+                            await pool.query(`
+                  INSERT INTO sofia.jobs (
+                    job_id, platform, source, title, company,
+                    raw_location, raw_city, raw_state, country, country_id, state_id, city_id, remote_type,
+                    description, posted_date, url,
+                    salary_min, salary_max, salary_currency, salary_period,
+                    employment_type, search_keyword, organization_id, collected_at
+                  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())
+                  ON CONFLICT (job_id) DO UPDATE SET
+                    collected_at = NOW(),
+                    source = EXCLUDED.source,
+                    description = EXCLUDED.description,
+                    organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+                    country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                    state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+                    city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
+                    salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
+                    salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max)
+                `, [
+                                item.MatchedObjectId,
+                                'usajobs',
+                                'usajobs',
+                                job.PositionTitle,
+                                job.OrganizationName,
+                                locationDisplay,
+                                city,
+                                state,
+                                'United States',
+                                countryId,
+                                stateId,
+                                cityId,
+                                remoteType,
+                                job.UserArea?.Details?.JobSummary || '',
+                                new Date(job.PublicationStartDate),
+                                job.PositionURI,
+                                salaryMin,
+                                salaryMax,
+                                'USD',
+                                salaryPeriod,
+                                employmentType,
+                                `occupation-${occupation}`,
+                                organizationId
+                            ]);
+
+                            totalCollected++;
+
+                        } catch (err: any) {
+                            if (err.code !== '23505') {
+                                console.error(`   ❌ Error inserting job ${item.MatchedObjectId}:`, err.message);
+                            }
+                        }
+                    }
+
+                    // Rate limiting: aguardar 1s entre requests
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    page++;
+                    consecutiveErrors = 0;
+
+                } catch (error: any) {
+                    consecutiveErrors++;
+                    if (consecutiveErrors >= 3) {
+                        console.error(`   ❌ Too many errors for occupation ${occupation}, skipping...`);
+                        hasMore = false;
+                    } else {
+                        console.error(`   ❌ Error for occupation ${occupation} p${page}:`, error.message);
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                    }
                 }
             }
         }

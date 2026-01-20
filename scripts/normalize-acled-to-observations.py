@@ -119,12 +119,12 @@ print(f"OK Inserted {inserted:,} ACLED observations")
 # Update country codes
 print("\nUpdating country codes...")
 cur.execute("""
-    UPDATE sofia.security_observations o
-    SET country_code = c.iso_alpha2
-    FROM sofia.dim_country c
-    WHERE o.source = 'ACLED'
-      AND o.country_code IS NULL
-      AND LOWER(o.country_name) = LOWER(c.name)
+    UPDATE sofia.security_observations
+    SET country_code = c.country_code_iso2
+    FROM sofia.dim_country AS c
+    WHERE sofia.security_observations.source = 'ACLED'
+      AND sofia.security_observations.country_code IS NULL
+      AND LOWER(sofia.security_observations.country_name) = LOWER(c.country_name_en)
 """)
 print(f"Updated {cur.rowcount:,} country codes")
 

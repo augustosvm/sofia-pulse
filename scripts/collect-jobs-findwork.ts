@@ -10,6 +10,7 @@ import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import { normalizeLocation } from './shared/geo-helpers.js';
 import { getOrCreateOrganization } from './shared/org-helpers.js';
+import { getKeywordsByLanguage } from './shared/keywords-config.js';
 
 dotenv.config();
 
@@ -52,116 +53,143 @@ async function collectFindworkJobs() {
 
     let totalCollected = 0;
 
-    for (const query of SEARCH_QUERIES) {
+    // Use centralized keywords (English) because findwork is global/English
+    const englishKeywords = getKeywordsByLanguage('en');
+
+    for (const query of englishKeywords) {
         try {
-            console.log(`\n🔍 Query: "${query}"...`);
+            // Format query for URL (spaces to dashes)
+            const formattedQuery = query.toLowerCase().replace(/\s+/g, '-');
+            console.log(`\n🔍 Query: "${formattedQuery}" (original: "${query}")...`);
 
-            // Findwork doesn't have a public API, but we can parse the job listings page
-            // Alternative: use RSS feed or scrape carefully
-            const response = await axios.get(
-                `https://findwork.dev/${query}-jobs`,
-                {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (compatible; Sofia-Pulse-Jobs-Collector/1.0)',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-                    },
-                    timeout: 15000
-                }
-            );
+            // Findwork URL structure: /[keyword]-jobs
+            // Supports simple pagination with ?page=2 usually (Django)
+            let page = 1;
+            let hasMore = true;
+            let consecutiveErrors = 0;
 
-            // Simple regex parsing (findwork has clean HTML structure)
-            const jobPattern = /href="\/([A-Za-z0-9]+)\/([^"]+)"/g;
-            const jobs: Array<{ id: string; slug: string }> = [];
-
-            let match;
-            while ((match = jobPattern.exec(response.data)) !== null && jobs.length < 20) {
-                const [_, id, slug] = match;
-                // Filter out non-job links
-                if (id.length >= 5 && id.length <= 10 && !slug.includes('/')) {
-                    jobs.push({ id, slug });
-                }
-            }
-
-            console.log(`   Found: ${jobs.length} jobs`);
-
-            for (const job of jobs) {
+            while (hasMore && page <= 5) { // Cap at 5 pages per keyword (approx 100 jobs)
                 try {
-                    // Extract location from slug (e.g., "senior-developer-at-company")
-                    const parts = job.slug.split('-at-');
-                    const title = parts[0]?.replace(/-/g, ' ') || 'Tech Position';
-                    const company = parts[1]?.replace(/-/g, ' ') || 'Unknown';
+                    const url = `https://findwork.dev/${formattedQuery}-jobs/` + (page > 1 ? `?page=${page}` : '');
 
-                    // Findwork is primarily remote jobs, but location may vary
-                    // Default to Remote for now
-                    const location = 'Remote';
-                    const country = null; // Remote jobs - no specific country
-                    const city = null;
-
-                    // Normalize geographic data (will be NULL for remote)
-                    const { countryId, stateId, cityId } = await normalizeLocation(pool, {
-                        country: country,
-                        state: null,
-                        city: city
+                    const response = await axios.get(url, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (compatible; Sofia-Pulse/1.0)',
+                            'Accept': 'text/html'
+                        },
+                        timeout: 10000
                     });
 
-                    // Get or create organization
-                    const organizationId = await getOrCreateOrganization(
-                        pool,
-                        company,
-                        null,
-                        location,
-                        country,
-                        'findwork'
-                    );
+                    const jobPattern = /href="\/([A-Za-z0-9]+)\/([^"]+)"/g;
+                    const jobs: Array<{ id: string; slug: string }> = [];
 
-                    await pool.query(`
-                        INSERT INTO sofia.jobs (
-                            job_id, platform, title, company,
-                            location, city, state, country, country_id, state_id, city_id, remote_type,
-                            url, search_keyword, organization_id, collected_at
-                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
-                        ON CONFLICT (job_id, platform) DO UPDATE SET
-                            collected_at = NOW(),
-                            organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
-                            country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
-                            state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
-                            city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
-                    `, [
-                        `findwork-${job.id}`,
-                        'findwork',
-                        title,
-                        company,
-                        location,
-                        city,
-                        null, // state
-                        country,
-                        countryId,
-                        stateId,
-                        cityId,
-                        'remote',
-                        `https://findwork.dev/${job.id}/${job.slug}`,
-                        query,
-                        organizationId
-                    ]);
+                    let match;
+                    // Collect all matches on the page
+                    while ((match = jobPattern.exec(response.data)) !== null) {
+                        const [_, id, slug] = match;
+                        if (id.length >= 5 && id.length <= 10 && !slug.includes('/')) {
+                            jobs.push({ id, slug });
+                        }
+                    }
 
-                    totalCollected++;
+                    if (jobs.length === 0) {
+                        hasMore = false;
+                        break;
+                    }
 
-                } catch (err: any) {
-                    console.error(`   ❌ Error inserting job ${job.id}:`, err.message);
+                    console.log(`   Page ${page}: Found ${jobs.length} jobs`);
+
+                    for (const job of jobs) {
+                        try {
+                            // Extract location from slug (e.g., "senior-developer-at-company")
+                            const parts = job.slug.split('-at-');
+                            const title = parts[0]?.replace(/-/g, ' ') || 'Tech Position';
+                            const company = parts[1]?.replace(/-/g, ' ') || 'Unknown';
+
+                            // Findwork is primarily remote jobs
+                            const location = 'Remote';
+                            const country = 'United States'; // Fallback
+                            const city = null;
+
+                            // Normalize geographic data
+                            const { countryId, stateId, cityId } = await normalizeLocation(pool, {
+                                country: country,
+                                state: null,
+                                city: city
+                            });
+
+                            // Get or create organization
+                            const organizationId = await getOrCreateOrganization(
+                                pool,
+                                company,
+                                null,
+                                location,
+                                country,
+                                'findwork'
+                            );
+
+                            await pool.query(`
+                                INSERT INTO sofia.jobs (
+                                    job_id, platform, source, title, company,
+                                    raw_location, raw_city, raw_state, country, country_id, state_id, city_id, remote_type,
+                                    url, search_keyword, organization_id, collected_at
+                                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+                                ON CONFLICT (job_id) DO UPDATE SET
+                                    collected_at = NOW(),
+                                    source = EXCLUDED.source,
+                                    organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
+                                    country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
+                                    state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
+                                    city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id)
+                            `, [
+                                `findwork-${job.id}`,
+                                'findwork',
+                                'findwork',
+                                title,
+                                company,
+                                location,
+                                city,
+                                null, // state
+                                country,
+                                countryId,
+                                stateId,
+                                cityId,
+                                'remote',
+                                `https://findwork.dev/${job.id}/${job.slug}`,
+                                query,
+                                organizationId
+                            ]);
+
+                            totalCollected++;
+
+                        } catch (err: any) {
+                            if (err.code !== '23505') {
+                                console.error(`   ❌ Error inserting  ${job.id}:`, err.message);
+                            }
+                        }
+                    }
+
+                    page++;
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    consecutiveErrors = 0;
+
+                } catch (error: any) {
+                    consecutiveErrors++;
+                    if (axios.isAxiosError(error) && error.response?.status === 404) {
+                        hasMore = false; // Page not found = end of results
+                    } else if (consecutiveErrors >= 3) {
+                        // console.error(`   ❌ Too many errors for "${query}", skipping...`);
+                        hasMore = false;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                    }
                 }
             }
 
-            // Rate limit: 2 seconds between queries
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
         } catch (error: any) {
-            if (axios.isAxiosError(error)) {
-                console.error(`   ❌ Error: ${error.response?.status || error.code} ${error.message}`);
-            } else {
-                console.error(`   ❌ Error:`, error.message);
-            }
+            console.error(`Error processing query ${query}`, error);
         }
-    }
+    } // End of for loop
 
     // Statistics
     const stats = await pool.query(`

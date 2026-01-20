@@ -88,6 +88,12 @@ SOFIA_DIR=/home/ubuntu/sofia-pulse
 0 9 * * 1 cd $SOFIA_DIR && bash run-migration-nih-fix.sh >> /var/log/sofia/migrations.log 2>&1
 
 # ============================================================================
+# 09:30 UTC (06:30 BRT) - EDITORIAL INTELLIGENCE (StackExchange, Docker, PWC)
+# ============================================================================
+
+30 9 * * * cd $SOFIA_DIR && npx tsx scripts/run-all-intelligence.ts >> /var/log/sofia/intelligence.log 2>&1
+
+# ============================================================================
 # 10:00 UTC (07:00 BRT) - GITHUB (Rate Limited)
 # ============================================================================
 

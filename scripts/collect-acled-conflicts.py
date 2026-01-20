@@ -82,8 +82,8 @@ def get_access_token():
         return None
 
 
-def fetch_acled_events(token, days_back=7):
-    """Fetch recent ACLED events"""
+def fetch_acled_events(token, days_back=90):
+    """Fetch ALL ACLED events globally using pagination"""
 
     # Calculate date range
     end_date = datetime.now()
@@ -93,48 +93,71 @@ def fetch_acled_events(token, days_back=7):
     start_str = start_date.strftime("%Y-%m-%d")
     end_str = end_date.strftime("%Y-%m-%d")
 
-    print(f"\n🔍 Fetching ACLED events from {start_str} to {end_str}...")
+    print(f"\n🔍 Fetching ALL ACLED events from {start_str} to {end_str}...")
     print(f"   Using Email: {ACLED_EMAIL}")
-    print(f"   Using Key: {ACLED_PASSWORD[:2]}...{ACLED_PASSWORD[-2:]} (Length: {len(ACLED_PASSWORD)})")
 
-    # Use email/key auth (legacy/direct access)
-    params = {
-        "email": ACLED_EMAIL,
-        "key": ACLED_PASSWORD,  # Using the stored password as the API key
-        "limit": 5000, 
-        "event_date": start_str,
-        "event_date_where": ">=",
-    }
+    all_events = []
+    page = 1
+    page_size = 5000
+    
+    while True:
+        print(f"\n   📄 Page {page} (offset {(page-1)*page_size})...")
+        
+        params = {
+            "email": ACLED_EMAIL,
+            "key": ACLED_PASSWORD,
+            "limit": page_size,
+            "page": page,
+            "event_date": start_str,
+            "event_date_where": ">=",
+        }
 
-    try:
-        response = requests.get(
-            ACLED_API_URL,
-            headers={
-                "Content-Type": "application/json",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-            },
-            params=params,
-            timeout=60,
-        )
+        try:
+            response = requests.get(
+                ACLED_API_URL,
+                headers={
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                },
+                params=params,
+                timeout=120,
+            )
 
-        if response.status_code == 200:
-            data = response.json()
+            if response.status_code == 200:
+                data = response.json()
 
-            if data.get("success"):
-                events = data.get("data", [])
-                print(f"✅ Fetched {len(events)} events")
-                return events
+                if data.get("success"):
+                    events = data.get("data", [])
+                    if not events:
+                        print(f"      ✅ No more events (total: {len(all_events)})")
+                        break
+                    
+                    all_events.extend(events)
+                    print(f"      ✅ {len(events)} events (total: {len(all_events)})")
+                    
+                    # If we got less than page_size, we're done
+                    if len(events) < page_size:
+                        break
+                    
+                    page += 1
+                    
+                    # Safety limit to avoid infinite loop
+                    if page > 50:
+                        print("      ⚠️ Reached page limit (50)")
+                        break
+                else:
+                    print(f"      ⚠️ API error: {data}")
+                    break
             else:
-                print(f"❌ API returned error")
-                print(f"   Response: {data}")
-                return []
-        else:
-            print(f"❌ HTTP {response.status_code}: {response.text[:500]}")
-            return []
+                print(f"      ❌ HTTP {response.status_code}: {response.text[:200]}")
+                break
 
-    except Exception as e:
-        print(f"❌ Error fetching events: {e}")
-        return []
+        except Exception as e:
+            print(f"      ❌ Error: {e}")
+            break
+
+    print(f"\n✅ Total fetched: {len(all_events)} events")
+    return all_events
 
 
 def save_to_database(events):
@@ -279,8 +302,18 @@ def main():
     print("🌍 ACLED - Armed Conflict Location & Event Data")
     print("=" * 70)
 
-    # Fetch events (using direct auth configured in function)
-    events = fetch_acled_events(None, days_back=7)
+    # Get access token
+    token = get_access_token()
+    if not token:
+        print("\n❌ Cannot proceed without access token")
+        print("   Register at: https://acleddata.com/user/register")
+        print("   Then add credentials to .env:")
+        print("   ACLED_EMAIL=your_email@example.com")
+        print("   ACLED_PASSWORD=your_password")
+        return
+
+    # Fetch events (últimos 90 dias para ter dados substanciais)
+    events = fetch_acled_events(token, days_back=90)
 
     if not events:
         print("\n⚠️  No events collected")
