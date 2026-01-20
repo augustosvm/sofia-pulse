@@ -163,9 +163,10 @@ export class ResearchPapersInserter {
         is_open_access = COALESCE(EXCLUDED.is_open_access, sofia.research_papers.is_open_access),
         collected_at = NOW(),
         updated_at = NOW()
+      RETURNING id
     `;
 
-    await db.query(query, [
+    const result = await db.query(query, [
       paper.title,
       paper.abstract || null,
       paper.authors || null,
@@ -192,6 +193,42 @@ export class ResearchPapersInserter {
       paper.referenced_works_count || 0,
       paper.is_breakthrough !== undefined ? paper.is_breakthrough : false,
     ]);
+
+    const paperId = result.rows[0]?.id;
+
+    // INSERT INTO JUNCTION TABLE (paper_authors)
+    // This satisfies the requirement: "The author must be author_id"
+    if (this.insertAuthors && paperId && paper.authors && paper.authors.length > 0) {
+      let order = 0;
+      for (const authorName of paper.authors) {
+        if (!authorName || authorName === 'Unknown') continue;
+
+        try {
+          // 1. Get or Create Person ID
+          await this.personsInserter.insertPerson({
+            full_name: authorName,
+            type: 'author',
+            data_sources: [paper.source],
+            country: paper.author_countries?.[0],
+            primary_affiliation: paper.author_institutions?.[0],
+            metadata: { last_paper_id: paperId }
+          }, client);
+
+          const personId = await this.personsInserter.getPersonId(authorName);
+
+          if (personId) {
+            // 2. Link in junction table
+            await db.query(`
+              INSERT INTO sofia.paper_authors (paper_id, person_id, author_order, affiliation_at_publication)
+              VALUES ($1, $2, $3, $4)
+              ON CONFLICT (paper_id, person_id) DO NOTHING
+            `, [paperId, personId, order++, paper.author_institutions?.[0] || null]);
+          }
+        } catch (error) {
+          console.error(`Failed to link author ${authorName} to paper ${paperId}:`, error);
+        }
+      }
+    }
   }
 
   /**
