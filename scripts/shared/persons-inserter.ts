@@ -74,37 +74,25 @@ export class PersonsInserter {
       .replace(/\s+/g, ' ');        // Collapse multiple spaces
   }
 
-  /**
-   * Insert person into unified persons table
-   */
+  * Insert person into unified persons table(UPSERT)
+  * Returns the person ID
+  */
   async insertPerson(
     person: PersonData,
-    client?: PoolClient
-  ): Promise<void> {
+    client ?: PoolClient
+  ): Promise < number > {
     const db = client || this.pool;
 
     // Validate required fields
-    if (!person.full_name || !person.type) {
-      throw new Error('Missing required fields: full_name, type');
-    }
+    if(!person.full_name || !person.type) {
+  throw new Error('Missing required fields: full_name, type');
+}
 
-    const normalized_name = this.normalizeName(person.full_name);
+const normalized_name = this.normalizeName(person.full_name);
 
-    // Check if person already exists
-    const checkQuery = `
-      SELECT id FROM sofia.persons
-      WHERE normalized_name = $1
-      LIMIT 1
-    `;
-    const existing = await db.query(checkQuery, [normalized_name]);
-
-    if (existing.rows.length > 0) {
-      // Person already exists, skip (or could update)
-      return;
-    }
-
-    // Insert new person
-    const query = `
+// Try insert with ON CONFLICT DO UPDATE to ensure we get an ID
+// We use a CTE or simple ON CONFLICT RETURNING
+const query = `
       INSERT INTO sofia.persons (
         full_name,
         normalized_name,
@@ -123,66 +111,75 @@ export class PersonsInserter {
         last_updated
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+      ON CONFLICT (normalized_name) DO UPDATE SET
+        last_updated = NOW(),
+        -- Update simple fields if they are null in DB but present in new data
+        orcid_id = COALESCE(sofia.persons.orcid_id, EXCLUDED.orcid_id),
+        country = COALESCE(sofia.persons.country, EXCLUDED.country),
+        primary_affiliation = COALESCE(sofia.persons.primary_affiliation, EXCLUDED.primary_affiliation)
+      RETURNING id
     `;
 
-    await db.query(query, [
-      person.full_name,
-      normalized_name,
-      person.type,
-      person.orcid_id || null,
-      person.h_index || 0,
-      person.total_citations || 0,
-      person.total_papers || 0,
-      person.gender || null,
-      person.country || null,
-      person.city || null,
-      person.primary_affiliation || null,
-      person.data_sources || [],
-      person.metadata ? JSON.stringify(person.metadata) : null,
-    ]);
+const result = await db.query(query, [
+  person.full_name,
+  normalized_name,
+  person.type,
+  person.orcid_id || null,
+  person.h_index || 0,
+  person.total_citations || 0,
+  person.total_papers || 0,
+  person.gender || null,
+  person.country || null,
+  person.city || null,
+  person.primary_affiliation || null,
+  person.data_sources || [],
+  person.metadata ? JSON.stringify(person.metadata) : null,
+]);
+
+return result.rows[0].id;
   }
 
   /**
    * Batch insert persons (with transaction)
    */
-  async batchInsert(persons: PersonData[]): Promise<void> {
-    const client = await this.pool.connect();
-    try {
-      await client.query('BEGIN');
-      for (const person of persons) {
-        await this.insertPerson(person, client);
-      }
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+  async batchInsert(persons: PersonData[]): Promise < void> {
+  const client = await this.pool.connect();
+  try {
+    await client.query('BEGIN');
+    for(const person of persons) {
+      await this.insertPerson(person, client);
     }
+      await client.query('COMMIT');
+  } catch(error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
   }
+}
 
   /**
    * Get person ID by name (for creating relationships)
    */
-  async getPersonId(full_name: string): Promise<number | null> {
-    const normalized_name = this.normalizeName(full_name);
+  async getPersonId(full_name: string): Promise < number | null > {
+  const normalized_name = this.normalizeName(full_name);
 
-    const query = `
+  const query = `
       SELECT id
       FROM sofia.persons
       WHERE normalized_name = $1
       LIMIT 1
     `;
 
-    const result = await this.pool.query(query, [normalized_name]);
-    return result.rows.length > 0 ? result.rows[0].id : null;
-  }
+  const result = await this.pool.query(query, [normalized_name]);
+  return result.rows.length > 0 ? result.rows[0].id : null;
+}
 
   /**
    * Get statistics by type
    */
-  async getStats(): Promise<any[]> {
-    const query = `
+  async getStats(): Promise < any[] > {
+  const query = `
       SELECT
         type,
         COUNT(*) as total_persons,
@@ -197,22 +194,22 @@ export class PersonsInserter {
       ORDER BY total_persons DESC;
     `;
 
-    const result = await this.pool.query(query);
-    return result.rows;
-  }
+  const result = await this.pool.query(query);
+  return result.rows;
+}
 
   /**
    * Get recent persons by type
    */
-  async getRecentPersons(type?: PersonType, days: number = 30, limit: number = 100): Promise<any[]> {
-    const whereClause = type
-      ? `WHERE type = $1 AND first_seen >= CURRENT_DATE - INTERVAL '${days} days'`
-      : `WHERE first_seen >= CURRENT_DATE - INTERVAL '${days} days'`;
+  async getRecentPersons(type ?: PersonType, days: number = 30, limit: number = 100): Promise < any[] > {
+  const whereClause = type
+    ? `WHERE type = $1 AND first_seen >= CURRENT_DATE - INTERVAL '${days} days'`
+    : `WHERE first_seen >= CURRENT_DATE - INTERVAL '${days} days'`;
 
-    const params = type ? [type, limit] : [limit];
-    const paramIndex = type ? 2 : 1;
+  const params = type ? [type, limit] : [limit];
+  const paramIndex = type ? 2 : 1;
 
-    const query = `
+  const query = `
       SELECT
         id,
         full_name,
@@ -230,9 +227,9 @@ export class PersonsInserter {
       LIMIT $${paramIndex};
     `;
 
-    const result = await this.pool.query(query, params);
-    return result.rows;
-  }
+  const result = await this.pool.query(query, params);
+  return result.rows;
+}
 }
 
 // ============================================================================

@@ -3,9 +3,8 @@
 -- Description: Creates a junction table to link research_papers to persons (authors).
 --              This allows strict referential integrity and richer author metadata.
 
--- Drop table if exists to ensure schema alignment (dev/recovery phase)
-DROP TABLE IF EXISTS sofia.paper_authors;
-
+-- Removed DROP TABLE as requested (Surgical Fix)
+-- Ensure table exists
 CREATE TABLE IF NOT EXISTS sofia.paper_authors (
     paper_id INTEGER NOT NULL REFERENCES sofia.research_papers(id) ON DELETE CASCADE,
     person_id INTEGER NOT NULL REFERENCES sofia.persons(id) ON DELETE CASCADE,
@@ -13,8 +12,13 @@ CREATE TABLE IF NOT EXISTS sofia.paper_authors (
     author_name_raw TEXT, -- Nome exato como aparece neste paper
     created_at TIMESTAMPTZ DEFAULT NOW(),
     
-    -- Composite PK allowing strict ordering management
-    PRIMARY KEY (paper_id, person_id, author_order)
+    -- Constraint 1: Strict ordering per paper
+    -- Handles duplicates by forcing uniqueness on (paper, order)
+    CONSTRAINT unique_paper_author_order UNIQUE (paper_id, author_order),
+
+    -- Constraint 2: One person per paper (usually desired, unless author listed twice?)
+    -- Assuming one person shouldn't be listed twice on same paper for normalization
+    CONSTRAINT unique_paper_person UNIQUE (paper_id, person_id)
 );
 
 -- Index for fast lookups by person (Profile View)

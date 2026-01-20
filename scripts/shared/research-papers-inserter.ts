@@ -198,15 +198,16 @@ export class ResearchPapersInserter {
 
     // INSERT INTO JUNCTION TABLE (paper_authors)
     // This satisfies the requirement: "The author must be author_id"
+    // INSERT INTO JUNCTION TABLE (paper_authors)
+    // This satisfies the requirement: "The author must be author_id"
     if (this.insertAuthors && paperId && paper.authors && paper.authors.length > 0) {
       let order = 0;
       for (const authorName of paper.authors) {
         if (!authorName || authorName === 'Unknown') continue;
 
         try {
-          // 1. Get or Create Person ID (Idempotent)
-          // Uses normalized name logic inside insertPerson
-          await this.personsInserter.insertPerson({
+          // 1. Upsert Person & Get ID (Atomic)
+          const personId = await this.personsInserter.insertPerson({
             full_name: authorName,
             type: 'author',
             data_sources: [paper.source],
@@ -215,16 +216,20 @@ export class ResearchPapersInserter {
             metadata: { last_paper_id: paperId }
           }, client);
 
-          const personId = await this.personsInserter.getPersonId(authorName);
-
           if (personId) {
             // 2. Link in junction table
-            // Uses author_name_raw and handles order
+            // Uses author_name_raw, handles order and strict uniqueness
+            // Using ON CONFLICT on the constraint we defined (paper_id, author_order)
+            // or (paper_id, person_id) depending on what we want to prioritize.
+            // The requirement asked for UNIQUE(paper_id, author_order) AND UNIQUE(paper_id, person_id).
+            // We'll safely insert, ignoring conflicts if the link already exists.
             await db.query(`
               INSERT INTO sofia.paper_authors (paper_id, person_id, author_order, author_name_raw)
               VALUES ($1, $2, $3, $4)
-              ON CONFLICT (paper_id, person_id, author_order) 
-              DO UPDATE SET author_name_raw = EXCLUDED.author_name_raw
+              ON CONFLICT (paper_id, person_id) 
+              DO UPDATE SET 
+                 author_order = EXCLUDED.author_order, 
+                 author_name_raw = EXCLUDED.author_name_raw
             `, [paperId, personId, order++, authorName]);
           }
         } catch (error) {
