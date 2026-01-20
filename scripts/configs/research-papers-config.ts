@@ -189,6 +189,179 @@ export const openAlexPapers: ResearchPapersConfig = {
 };
 
 // ============================================================================
+// OPENALEX BRAZIL RESEARCH PAPERS
+// ============================================================================
+
+export const openAlexBrazilPapers: ResearchPapersConfig = {
+  name: 'openalex_brazil',
+  displayName: '🇧🇷 OpenAlex Brazil Research',
+  description: 'Papers de instituições brasileiras - foco em impacto e visibilidade nacional',
+
+  url: 'https://api.openalex.org/works?filter=institutions.country_code:br,from_publication_date:2024-01-01&sort=cited_by_count:desc&per-page=200&mailto=augustosvm@gmail.com',
+
+  rateLimit: 1000,
+
+  parseResponse: async (data: any) => {
+    // Reutiliza a lógica do openAlexPapers, mas marcando como source 'openalex' 
+    // ou 'openalex_brazil' conforme preferência de segmentação. 
+    // Usaremos 'openalex' para manter a tabela unificada, mas podemos adicionar flags.
+    const papers = await openAlexPapers.parseResponse(data, process.env);
+    return papers.map(p => ({
+      ...p,
+      source: 'openalex_brazil' as const, // Marcamos explicitamente como Brazil para rastreamento
+    }));
+  },
+
+  schedule: '0 8 * * 2', // Terça às 8h
+  allowWithoutAuth: true,
+};
+
+// ============================================================================
+// BDTD - Brazilian Digital Library of Theses and Dissertations
+// ============================================================================
+
+export const bdtdPapers: ResearchPapersConfig = {
+  name: 'bdtd',
+  displayName: '🎓 BDTD - Teses e Dissertações (Brasil)',
+  description: 'Repositório nacional do IBICT - 1M+ teses e dissertações brasileiras',
+
+  url: 'https://bdtd.ibict.br/vufind/OAI/Server?verb=ListRecords&metadataPrefix=oai_dc',
+
+  rateLimit: 2000,
+
+  parseResponse: async (data: string) => {
+    const papers: PaperData[] = [];
+
+    // OAI-PMH XML parsing via regex
+    const records = data.match(/<record>([\s\S]*?)<\/record>/g) || [];
+
+    for (const record of records) {
+      const metadata = record.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1] || '';
+
+      const source_id = record.match(/<identifier>(.*?)<\/identifier>/)?.[1] || '';
+      const title = metadata.match(/<dc:title>([\s\S]*?)<\/dc:title>/)?.[1]?.trim() || '';
+
+      // Authors
+      const authorMatches = metadata.match(/<dc:creator>([\s\S]*?)<\/dc:creator>/g) || [];
+      const authors = authorMatches.map(a => a.replace(/<[\/]?dc:creator>/g, '').trim());
+
+      // Abstract/Description
+      const abstract = metadata.match(/<dc:description>([\s\S]*?)<\/dc:description>/)?.[1]?.trim() || '';
+
+      // Date
+      const dateMatch = metadata.match(/<dc:date>(.*?)<\/dc:date>/)?.[1] || '';
+      const pubYear = parseInt(dateMatch.substring(0, 4)) || 2024;
+
+      // Language
+      const language = metadata.match(/<dc:language>(.*?)<\/dc:language>/)?.[1] || 'pt';
+
+      // Publisher (usually the university)
+      const university = metadata.match(/<dc:publisher>([\s\S]*?)<\/dc:publisher>/)?.[1]?.trim() || 'Desconhecida';
+
+      // Subject/Keywords
+      const subjectMatches = metadata.match(/<dc:subject>([\s\S]*?)<\/dc:subject>/g) || [];
+      const keywords = subjectMatches.map(s => s.replace(/<[\/]?dc:subject>/g, '').trim());
+
+      papers.push({
+        source: 'bdtd',
+        source_id,
+        title,
+        authors,
+        published_date: dateMatch,
+        data: {
+          title,
+          abstract,
+          university,
+          publication_date: dateMatch,
+          publication_year: pubYear,
+          authors,
+          keywords,
+          language,
+          is_open_access: true,
+          source: 'bdtd'
+        },
+      });
+    }
+
+    return papers;
+  },
+
+  schedule: '0 8 1 * *', // Mensal
+  allowWithoutAuth: true,
+};
+
+// ============================================================================
+// SCIELO - Scientific Electronic Library Online
+// ============================================================================
+
+export const scieloPapers: ResearchPapersConfig = {
+  name: 'scielo',
+  displayName: '🔬 SciELO - América Latina',
+  description: 'Artigos acadêmicos de acesso aberto da América Latina, Caribe, Espanha e Portugal',
+
+  url: 'https://www.scielo.br/oai/scielo-oai.php?verb=ListRecords&metadataPrefix=oai_dc',
+
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+  },
+
+  rateLimit: 2000,
+
+  parseResponse: async (data: string) => {
+    const papers: PaperData[] = [];
+
+    // SciELO OAI-PMH XML parsing (similar to BDTD)
+    const records = data.match(/<record>([\s\S]*?)<\/record>/g) || [];
+
+    for (const record of records) {
+      const metadata = record.match(/<metadata>([\s\S]*?)<\/metadata>/)?.[1] || '';
+
+      const source_id = record.match(/<identifier>(.*?)<\/identifier>/)?.[1] || '';
+      const title = metadata.match(/<dc:title>([\s\S]*?)<\/dc:title>/)?.[1]?.trim() || '';
+
+      // Authors
+      const authorMatches = metadata.match(/<dc:creator>([\s\S]*?)<\/dc:creator>/g) || [];
+      const authors = authorMatches.map(a => a.replace(/<[\/]?dc:creator>/g, '').trim());
+
+      // Abstract
+      const abstract = metadata.match(/<dc:description>([\s\S]*?)<\/dc:description>/)?.[1]?.trim() || '';
+
+      // Date
+      const dateMatch = metadata.match(/<dc:date>(.*?)<\/dc:date>/)?.[1] || '';
+
+      // Journal (Publisher in SCIELO terms)
+      const journal = metadata.match(/<dc:publisher>([\s\S]*?)<\/dc:publisher>/)?.[1]?.trim() || '';
+
+      // Language
+      const language = metadata.match(/<dc:language>(.*?)<\/dc:language>/)?.[1] || 'pt';
+
+      papers.push({
+        source: 'scielo' as const,
+        source_id: `scielo:${source_id}`,
+        title,
+        authors,
+        published_date: dateMatch,
+        data: {
+          title,
+          abstract,
+          journal,
+          publication_date: dateMatch,
+          authors,
+          language,
+          is_open_access: true,
+          source: 'scielo'
+        },
+      });
+    }
+
+    return papers;
+  },
+
+  schedule: '0 8 1 * *',
+  allowWithoutAuth: true,
+};
+
+// ============================================================================
 // NIH GRANTS (placeholder - precisa de API key)
 // ============================================================================
 
@@ -226,6 +399,9 @@ export const nihGrants: ResearchPapersConfig = {
 export const researchPapersCollectors: Record<string, ResearchPapersConfig> = {
   arxiv: arxivAIPapers,
   openalex: openAlexPapers,
+  openalex_brazil: openAlexBrazilPapers,
+  bdtd: bdtdPapers,
+  scielo: scieloPapers,
   // nih: nihGrants, // Comentado até implementar
 };
 

@@ -99,7 +99,7 @@ async function collectAdzunaJobs() {
                 while (hasMore && page <= 50) { // Safety cap of 50 pages (1000 jobs per keyword)
                     try {
                         const url = `https://api.adzuna.com/v1/api/jobs/${country.code}/search/${page}`;
-                        const response = await axios.get<AdzunaResponse>(url, {
+                        const response = await axios.get<any>(url, {
                             params: {
                                 app_id: ADZUNA_APP_ID,
                                 app_key: ADZUNA_API_KEY,
@@ -108,6 +108,17 @@ async function collectAdzunaJobs() {
                             },
                             timeout: 15000
                         });
+
+                        // Check for Adzuna specific error messages in 200 OK responses
+                        if (response.data && (
+                            response.data.exception === 'QuotaExceededException' ||
+                            JSON.stringify(response.data).toLowerCase().includes('limit violation') ||
+                            JSON.stringify(response.data).toLowerCase().includes('above 100%')
+                        )) {
+                            console.error(`\n⛔ CRITICAL ADZUNA ERROR: Quota Exceeded detected in response body.`);
+                            console.error(`   Message: ${JSON.stringify(response.data)}`);
+                            process.exit(0);
+                        }
 
                         const jobs = response.data.results || [];
 

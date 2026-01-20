@@ -22,7 +22,7 @@ import { PersonsInserter } from './persons-inserter';
 export interface ResearchPaperData {
   // Required fields
   title: string;
-  source: 'arxiv' | 'openalex' | 'bdtd';
+  source: 'arxiv' | 'openalex' | 'bdtd' | 'scielo' | 'openalex_brazil' | 'nih';
   source_id: string; // arxiv_id, openalex_id, thesis_id
 
   // Common fields

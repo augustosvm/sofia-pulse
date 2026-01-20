@@ -41,7 +41,14 @@ async function runCollector(collector: { name: string; script: string }) {
         // Timer para matar o processo se demorar muito
         const timeout = setTimeout(() => {
             console.error(`\n⏰ TIMEOUT: ${collector.name} excedeu ${TIMEOUT_MS / 1000}s. Encerrando processo...`);
-            child.kill(); // Envia SIGTERM
+
+            if (process.platform === 'win32') {
+                // No Windows, child.kill() as vezes não mata sub-processos. taskkill é mais agressivo.
+                spawn('taskkill', ['/pid', child.pid?.toString() || '', '/f', '/t'], { shell: true });
+            } else {
+                child.kill('SIGKILL');
+            }
+
             resolve({ name: collector.name, success: false, error: 'Timeout exceeded' });
         }, TIMEOUT_MS);
 

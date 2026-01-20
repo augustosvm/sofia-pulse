@@ -33,7 +33,7 @@ dotenv.config();
 
 export interface PaperData {
   // Source (UPDATED: unified table)
-  source: 'arxiv' | 'openalex' | 'nih' | 'bdtd';
+  source: 'arxiv' | 'openalex' | 'nih' | 'bdtd' | 'scielo' | 'openalex_brazil';
 
   // Common fields (all papers have these)
   source_id: string;    // arxiv_id, openalex_id, grant_id, thesis_id
