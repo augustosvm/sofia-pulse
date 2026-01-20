@@ -326,11 +326,23 @@ async function collectJoobleJobs() {
 
                     } catch (error: any) {
                         consecutiveErrors++;
+
+                        if (axios.isAxiosError(error)) {
+                            const status = error.response?.status;
+                            // KILL SWITCH: Exit immediately if quota exceeded or auth failed
+                            if (status === 429 || status === 401 || status === 402 || status === 403) {
+                                console.error(`\n⛔ CRITICAL API ERROR: ${status} - Quota Exceeded or Auth Failed.`);
+                                console.error('   Exiting collector to save resources.');
+                                process.exit(0);
+                            }
+                        }
+
                         if (consecutiveErrors >= 3) {
                             console.error(`   ❌ Too many errors for "${keyword}", skipping...`);
                             hasMore = false;
                         } else {
-                            console.error(`   ❌ Error fetching ${keyword} p${page}: ${error.message}`);
+                            const msg = error.message;
+                            console.error(`   ❌ Error fetching ${keyword} p${page}: ${msg}`);
                             await new Promise(resolve => setTimeout(resolve, 5000));
                         }
                     }

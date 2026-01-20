@@ -32,20 +32,32 @@ async function runCollector(collector: { name: string; script: string }) {
             ? [`scripts/${collector.script}`]
             : ['tsx', `scripts/${collector.script}`];
 
+        // Timeout de 10 minutos por coletor para evitar deadlocks
+        const TIMEOUT_MS = 10 * 60 * 1000;
+
         // Use shell: true for wider compatibility on Windows
         const child = spawn(cmd, args, { stdio: 'inherit', shell: true });
 
+        // Timer para matar o processo se demorar muito
+        const timeout = setTimeout(() => {
+            console.error(`\n⏰ TIMEOUT: ${collector.name} excedeu ${TIMEOUT_MS / 1000}s. Encerrando processo...`);
+            child.kill(); // Envia SIGTERM
+            resolve({ name: collector.name, success: false, error: 'Timeout exceeded' });
+        }, TIMEOUT_MS);
+
         child.on('close', (code) => {
+            clearTimeout(timeout);
             if (code === 0) {
                 console.log(`✅ ${collector.name} concluído`);
                 resolve({ name: collector.name, success: true, error: null });
             } else {
-                console.error(`❌ ${collector.name} falhou com código ${code}`);
+                console.error(`❌ ${collector.name} falhou com código ${code || 'killed'}`);
                 resolve({ name: collector.name, success: false, error: `Exit code ${code}` });
             }
         });
 
         child.on('error', (err) => {
+            clearTimeout(timeout);
             console.error(`❌ ${collector.name} erro de execução:`, err);
             resolve({ name: collector.name, success: false, error: err });
         });

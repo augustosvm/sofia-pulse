@@ -15,6 +15,9 @@ fi
 OUTPUT=$(npx tsx scripts/collect.ts "$COLLECTOR_NAME" 2>&1)
 EXIT_CODE=$?
 
+# Reset counts to avoid variable leakage from previous runs if source-d
+INSERTS=""
+
 # Extract insert count from output (try multiple patterns)
 # Pattern 1: "Collected: 123" or "Total collected: 123"
 INSERTS=$(echo "$OUTPUT" | grep -oP "(Total\s+)?[Cc]ollected:\s*\K\d+" | tail -1)

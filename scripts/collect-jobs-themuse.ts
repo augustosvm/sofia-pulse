@@ -267,6 +267,17 @@ async function collectTheMuseJobs() {
 
                 } catch (error: any) {
                     consecutiveErrors++;
+
+                    if (axios.isAxiosError(error)) {
+                        const status = error.response?.status;
+                        // KILL SWITCH
+                        if (status === 429 || status === 401 || status === 403) {
+                            console.error(`\n⛔ CRITICAL API ERROR: ${status} - Quota Exceeded or Auth Failed.`);
+                            console.error('   Exiting collector to save resources.');
+                            process.exit(0);
+                        }
+                    }
+
                     if (consecutiveErrors >= 3) {
                         // console.error(`   ❌ Too many errors for "${category}", skipping...`);
                         hasMore = false;

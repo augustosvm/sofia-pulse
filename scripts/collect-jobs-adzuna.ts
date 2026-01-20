@@ -213,19 +213,31 @@ async function collectAdzunaJobs() {
 
                     } catch (error: any) {
                         consecutiveErrors++;
-                        if (axios.isAxiosError(error) && error.response?.status === 400) {
-                            // End of results or invalid page
-                            hasMore = false;
-                        } else if (consecutiveErrors >= 3) {
+                        if (axios.isAxiosError(error)) {
+                            const status = error.response?.status;
+
+                            // KILL SWITCH: Exit immediately if quota exceeded or auth failed
+                            if (status === 429 || status === 401 || status === 402 || status === 403) {
+                                console.error(`\n⛔ CRITICAL API ERROR: ${status} - Quota Exceeded or Auth Failed.`);
+                                console.error('   Exiting collector to save resources.');
+                                process.exit(0); // Exit successfully to avoid blocking pipeline
+                            }
+
+                            if (status === 400) {
+                                // End of results or invalid page
+                                hasMore = false;
+                            } else {
+                                console.error(`   ❌ API Error for "${keyword}" p${page}: ${status} ${error.message}`);
+                                await new Promise(resolve => setTimeout(resolve, 5000)); // Backoff
+                            }
+                        } else {
+                            console.error(`   ❌ Error for "${keyword}" p${page}:`, error.message);
+                            await new Promise(resolve => setTimeout(resolve, 5000)); // Backoff
+                        }
+
+                        if (consecutiveErrors >= 3) {
                             console.error(`   ❌ Too many errors for "${keyword}", skipping...`);
                             hasMore = false;
-                        } else {
-                            if (axios.isAxiosError(error)) {
-                                console.error(`   ❌ API Error for "${keyword}" p${page}: ${error.response?.status} ${error.message}`);
-                            } else {
-                                console.error(`   ❌ Error for "${keyword}" p${page}:`, error.message);
-                            }
-                            await new Promise(resolve => setTimeout(resolve, 5000)); // Backoff
                         }
                     }
                 }

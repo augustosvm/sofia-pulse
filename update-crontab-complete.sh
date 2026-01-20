@@ -116,23 +116,15 @@ SOFIA_DIR=/home/ubuntu/sofia-pulse
 0 11 * * 1-5 cd $SOFIA_DIR && source venv-analytics/bin/activate && python3 scripts/collect-producthunt-api.py >> /var/log/sofia/producthunt.log 2>&1
 
 # ============================================================================
-# 12:00 UTC (09:00 BRT) - JOBS COLLECTORS (Part 1 - Brazil)
+# 12:00 UTC (09:00 BRT) - JOB COLLECTORS ORCHESTRATOR
 # ============================================================================
-
-0 12 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-catho-final.ts >> /var/log/sofia/catho.log 2>&1
-20 12 * * 1-5 cd $SOFIA_DIR && source venv-analytics/bin/activate && python3 scripts/collect-infojobs-brasil.py >> /var/log/sofia/infojobs.log 2>&1
-40 12 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-linkedin-jobs.ts >> /var/log/sofia/linkedin.log 2>&1
+# Runs all job collectors sequentially with timeouts and error handling
+# Includes: Catho, InfoJobs, LinkedIn, Adzuna, Jooble, TheMuse, GitHub, USAJobs, etc.
+0 12 * * * cd $SOFIA_DIR && npx tsx scripts/run-all-job-collectors.ts >> /var/log/sofia/jobs-orchestrator.log 2>&1
 
 # ============================================================================
-# 13:00 UTC (10:00 BRT) - JOBS COLLECTORS (Part 2 - Global)
+# 13:00 UTC (10:00 BRT) - TechCrunch & Funding
 # ============================================================================
-
-0 13 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-jobs-github.ts >> /var/log/sofia/jobs-github.log 2>&1
-10 13 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-jobs-usajobs.ts >> /var/log/sofia/jobs-usajobs.log 2>&1
-20 13 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-jobs-weworkremotely.ts >> /var/log/sofia/jobs-weworkremotely.log 2>&1
-30 13 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-jobs-themuse.ts >> /var/log/sofia/jobs-themuse.log 2>&1
-40 13 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-jobs-findwork.ts >> /var/log/sofia/jobs-findwork.log 2>&1
-50 13 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-jobs-adzuna.ts >> /var/log/sofia/jobs-adzuna.log 2>&1
 
 # TechCrunch Funding
 0 13 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-techcrunch-funding.ts >> /var/log/sofia/techcrunch.log 2>&1
