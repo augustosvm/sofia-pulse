@@ -118,10 +118,18 @@ async function scrapeCatho(keywords: string[]) {
     for (const keyword of keywords) {
       console.log(`   📋 ${keyword}`);
 
-      await page.goto(`https://www.catho.com.br/vagas/${keyword.toLowerCase().replace(/\s+/g, '-')}/`, {
-        waitUntil: 'networkidle0',
-        timeout: 60000,
-      });
+      try {
+        await page.goto(`https://www.catho.com.br/vagas/${keyword.toLowerCase().replace(/\s+/g, '-')}/`, {
+          waitUntil: 'domcontentloaded',
+          timeout: 90000,
+        });
+      } catch (error: any) {
+        if (error.name === 'TimeoutError') {
+          console.log(`      ⚠️  Timeout - pulando keyword`);
+          continue;
+        }
+        throw error;
+      }
 
       await delay(8000);
 
@@ -277,16 +285,17 @@ export async function collectCathoJobs() {
     try {
       await pool.query(
         `INSERT INTO sofia.jobs (
-           job_id, title, company, location, city, state, country, country_id, state_id, city_id,
-           url, platform, organization_id,
+           job_id, title, company, raw_location, raw_city, raw_state, country, country_id, state_id, city_id,
+           url, platform, source, organization_id,
            description, salary_min, salary_max, salary_currency, salary_period,
            remote_type, seniority_level, employment_type, skills_required, sector,
            posted_date, collected_at
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, CURRENT_DATE, NOW())
-         ON CONFLICT (job_id, platform) DO UPDATE SET
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, CURRENT_DATE, NOW())
+         ON CONFLICT (job_id) DO UPDATE SET
            title = EXCLUDED.title,
-           location = EXCLUDED.location,
+           raw_location = EXCLUDED.raw_location,
+           source = EXCLUDED.source,
            description = EXCLUDED.description,
            salary_min = EXCLUDED.salary_min,
            salary_max = EXCLUDED.salary_max,
@@ -303,7 +312,7 @@ export async function collectCathoJobs() {
            collected_at = NOW()`,
         [
           jobId, job.title, job.company, job.location, city, state, 'Brazil', countryId, stateId, cityId,
-          job.url, 'catho', organizationId,
+          job.url, 'catho', 'catho', organizationId,
           job.description, salaryMin, salaryMax, 'BRL', salaryPeriod,
           remoteType, seniority, 'full-stack', skills, sector
         ]
@@ -320,7 +329,5 @@ export async function collectCathoJobs() {
   await pool.end();
 }
 
-// Run standalone if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  collectCathoJobs().catch(console.error);
-}
+// Always run when script is executed
+collectCathoJobs().catch(console.error);

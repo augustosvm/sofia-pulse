@@ -16,6 +16,7 @@
 import puppeteer from 'puppeteer';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
+import { getKeywordsByLanguage } from './shared/keywords-config';
 import { normalizeLocation, getOrCreateCity } from './shared/geo-helpers.js';
 import { getOrCreateOrganization } from './shared/org-helpers.js';
 
@@ -29,13 +30,8 @@ const dbConfig = {
   database: process.env.POSTGRES_DB || 'sofia_db',
 };
 
-// Keywords tech em português
-const KEYWORDS = [
-  'desenvolvedor', 'programador', 'engenheiro de software', 'analista de sistemas',
-  'frontend', 'backend', 'fullstack', 'devops', 'data scientist', 'data engineer',
-  'qa', 'mobile', 'react', 'java', 'python', 'node', 'cloud', 'aws', 'azure',
-  'segurança da informação', 'tech lead', 'scrum master',
-];
+// Use unified keywords in Portuguese (Brazil)
+const KEYWORDS = getKeywordsByLanguage('pt');
 
 // Brazilian states
 const BRAZILIAN_STATES: Record<string, string> = {
@@ -188,7 +184,7 @@ async function scrapeInfoJobs(keyword: string): Promise<InfoJobsJob[]> {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
 
     // Wait for job listings to load
-    await page.waitForSelector('[data-qa="vacancy-item"], .ij-Box-root, .vacante', { timeout: 10000 }).catch(() => {});
+    await page.waitForSelector('[data-qa="vacancy-item"], .ij-Box-root, .vacante', { timeout: 10000 }).catch(() => { });
 
     // Extract job data
     const jobsData = await page.evaluate(() => {
@@ -303,17 +299,18 @@ async function collectInfoJobsBrasil(): Promise<void> {
 
           await pool.query(`
             INSERT INTO sofia.jobs (
-              job_id, title, company, location, city, state, country,
+              job_id, title, company, raw_location, raw_city, raw_state, country,
               country_id, state_id, city_id,
-              url, platform, organization_id,
+              url, platform, source, organization_id,
               description, salary_min, salary_max, salary_currency, salary_period,
               remote_type, seniority_level, employment_type, skills_required, sector,
               collected_at
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())
-            ON CONFLICT (job_id, platform) DO UPDATE SET
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW())
+            ON CONFLICT (job_id) DO UPDATE SET
               title = EXCLUDED.title,
-              location = EXCLUDED.location,
+              raw_location = EXCLUDED.raw_location,
+              source = EXCLUDED.source,
               description = EXCLUDED.description,
               salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
               salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max),
@@ -339,6 +336,7 @@ async function collectInfoJobsBrasil(): Promise<void> {
             cityId,
             job.url,
             'infojobs-br',
+            'infojobs',
             organizationId,
             job.description?.substring(0, 10000) || null,
             salaryMin,
