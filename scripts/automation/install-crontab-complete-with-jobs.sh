@@ -1,7 +1,7 @@
 #!/bin/bash
 ################################################################################
-# Sofia Pulse - Install COMPLETE Crontab (ALL 55 Data Collectors + 7 Job Collectors)
-# Total: 62 collectors
+# Sofia Pulse - Install COMPLETE Crontab (ALL 55 Data Collectors + 9 Job Collectors)
+# Total: 64 collectors
 ################################################################################
 
 set -e
@@ -221,7 +221,9 @@ SOFIA_DIR=${SOFIA_DIR}
 50 21 * * 1-5 cd \$SOFIA_DIR && source venv/bin/activate && python3 scripts/collect-rapidapi-activejobs.py >> /var/log/sofia/jobs-activejobs-3.log 2>&1
 52 21 * * 1-5 cd \$SOFIA_DIR && source venv/bin/activate && python3 scripts/collect-rapidapi-linkedin.py >> /var/log/sofia/jobs-linkedin.log 2>&1
 54 21 * * 1-5 cd \$SOFIA_DIR && source venv/bin/activate && python3 scripts/collect-serpapi-googlejobs.py >> /var/log/sofia/jobs-googlejobs.log 2>&1
-56 21 * * 1-5 cd \$SOFIA_DIR && source venv/bin/activate && python3 scripts/collect-theirstack-api.py >> /var/log/sofia/jobs-theirstack.log 2>&1
+56 21 * * 1-5 cd $SOFIA_DIR && source venv/bin/activate && python3 scripts/collect-theirstack-api.py >> /var/log/sofia/jobs-theirstack.log 2>&1
+58 21 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-catho-final.ts >> /var/log/sofia/jobs-catho.log 2>&1
+59 21 * * 1-5 cd $SOFIA_DIR && npx tsx scripts/collect-infojobs-brasil.ts >> /var/log/sofia/jobs-infojobs.log 2>&1
 
 # ============================================================================
 # 22:00 UTC (19:00 BRT) - ANALYTICS + EMAIL (After all collection done)
