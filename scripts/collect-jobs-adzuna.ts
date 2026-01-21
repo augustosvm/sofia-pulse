@@ -39,6 +39,18 @@ const COUNTRIES = [
     { code: 'sg', name: 'Singapore' },
 ];
 
+// Rate limiting: limite diário de chamadas (máx Adzuna free tier: 250/dia)
+const MAX_DAILY_CALLS = 220; // Buffer de 30 chamadas para safety
+let apiCallCount = 0;
+
+function checkApiLimit(): boolean {
+    if (apiCallCount >= MAX_DAILY_CALLS) {
+        console.log(`\n⚠️ RATE LIMIT: Reached ${MAX_DAILY_CALLS} API calls. Stopping to preserve quota.`);
+        return false;
+    }
+    return true;
+}
+
 // Usar keywords centralizadas em inglês
 const TECH_KEYWORDS = getKeywordsByLanguage('en');
 
@@ -97,8 +109,18 @@ async function collectAdzunaJobs() {
                 let consecutiveErrors = 0;
 
                 while (hasMore && page <= 50) { // Safety cap of 50 pages (1000 jobs per keyword)
+                    // Check API limit before each call
+                    if (!checkApiLimit()) {
+                        console.log(`\n📊 Total API calls made: ${apiCallCount}`);
+                        console.log(`   Jobs collected so far: ${totalCollected}`);
+                        hasMore = false;
+                        return totalCollected; // Exit immediately to preserve quota
+                    }
+
                     try {
                         const url = `https://api.adzuna.com/v1/api/jobs/${country.code}/search/${page}`;
+                        apiCallCount++; // Increment before call
+
                         const response = await axios.get<any>(url, {
                             params: {
                                 app_id: ADZUNA_APP_ID,
@@ -283,6 +305,10 @@ async function collectAdzunaJobs() {
     console.log(`   With salary: ${stats.rows[0].with_salary}`);
     if (stats.rows[0].avg_min) {
         console.log(`   Avg salary: $${stats.rows[0].avg_min.toLocaleString()} - $${stats.rows[0].avg_max.toLocaleString()}`);
+    }
+    console.log(`\n📈 API Usage: ${apiCallCount}/${MAX_DAILY_CALLS} calls (${Math.round(apiCallCount / MAX_DAILY_CALLS * 100)}%)`);
+    if (apiCallCount >= MAX_DAILY_CALLS) {
+        console.log('   ⚠️ Daily limit reached - remaining countries/keywords skipped');
     }
     console.log('='.repeat(60));
 
