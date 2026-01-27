@@ -62,15 +62,14 @@ def analyze_docker_security():
     # Get recent CVEs
     cur.execute("""
         SELECT
-            cve_id,
+            event_id,
             title,
             description,
             severity,
             published_date,
             affected_products
         FROM sofia.cybersecurity_events
-        WHERE event_type = 'vulnerability'
-          AND published_date >= NOW() - INTERVAL '30 days'
+        WHERE published_date >= NOW() - INTERVAL '30 days'
         ORDER BY published_date DESC
     """)
     cves = cur.fetchall()
@@ -98,8 +97,8 @@ def analyze_docker_security():
                 vulnerabilities_found.append({
                     'tech': img['tech'],
                     'pulls': img['pulls'],
-                    'cve_id': cve['cve_id'],
-                    'severity': cve['severity'],
+                    'cve_id': cve['event_id'],
+                    'severity': cve['severity'] or 'UNKNOWN',
                     'title': cve['title'],
                     'published': cve['published_date']
                 })
