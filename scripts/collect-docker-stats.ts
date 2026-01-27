@@ -134,8 +134,38 @@ async function collectDockerStats() {
         console.log(`✅ Collection complete. Updated ${totalUpdated} metrics.`);
         console.log('='.repeat(60));
 
+        // Get total records count
+        const countResult = await pool.query(`
+            SELECT COUNT(*) as total,
+                   COUNT(DISTINCT name) as unique_images,
+                   MAX(collected_at) as last_collected
+            FROM sofia.tech_trends
+            WHERE source = 'docker_hub'
+        `);
+        const stats = countResult.rows[0];
+
+        console.log('\n📊 DATABASE STATS:');
+        console.log(`   Total records: ${stats.total}`);
+        console.log(`   Unique images: ${stats.unique_images}`);
+        console.log(`   Last collected: ${stats.last_collected}`);
+        console.log('='.repeat(60));
+
+        // Return stats for notification
+        return {
+            success: true,
+            inserted: totalUpdated,
+            total_records: parseInt(stats.total),
+            unique_images: parseInt(stats.unique_images),
+            last_collected: stats.last_collected
+        };
+
     } catch (err: any) {
         console.error('❌ Fatal error:', err.message);
+        return {
+            success: false,
+            error: err.message,
+            inserted: totalUpdated
+        };
     } finally {
         await pool.end();
     }
@@ -143,7 +173,20 @@ async function collectDockerStats() {
 
 // Run standalone
 if (require.main === module) {
-    collectDockerStats().catch(console.error);
+    collectDockerStats()
+        .then(result => {
+            if (result && result.success) {
+                console.log(`\n🎉 SUCCESS: ${result.inserted} images updated`);
+                process.exit(0);
+            } else {
+                console.error(`\n❌ FAILED: ${result?.error || 'Unknown error'}`);
+                process.exit(1);
+            }
+        })
+        .catch(err => {
+            console.error('Fatal error:', err);
+            process.exit(1);
+        });
 }
 
 export { collectDockerStats };
