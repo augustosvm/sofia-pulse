@@ -1,0 +1,111 @@
+================================================================================
+🚀 CROSS SIGNALS - DEPLOY MANUAL (EXECUTE NO SERVIDOR)
+================================================================================
+
+INSTRUÇÕES:
+1. Conecte ao servidor: ssh ubuntu@91.98.158.19
+2. Copie TODO o bloco de comando abaixo
+3. Cole no terminal do servidor
+4. Pressione Enter
+5. Aguarde ~60 segundos
+
+================================================================================
+COMANDO COMPLETO (COPIE TUDO):
+================================================================================
+
+cd /home/ubuntu/sofia-pulse && \
+echo "========================================" && \
+echo "Cross Signals - Production Deployment" && \
+echo "========================================" && \
+echo "" && \
+echo "📥 Step 1: Pulling latest changes..." && \
+git pull origin master && \
+echo "✅ Code updated" && \
+echo "" && \
+echo "🗄️ Step 2: Applying database migrations..." && \
+source .env && \
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+  -f database/migrations/061_create_vscode_extensions_daily.sql 2>&1 | grep -E "(CREATE|ERROR)" && \
+PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+  -f database/migrations/062_create_news_items.sql 2>&1 | grep -E "(CREATE|ERROR)" && \
+echo "✅ Migrations applied" && \
+echo "" && \
+echo "🔧 Step 3: Making scripts executable..." && \
+chmod +x run-cross-signals-builder.sh && \
+chmod +x update-crontab-with-cross-signals.sh && \
+chmod +x scripts/build-cross-signals.py && \
+echo "✅ Scripts are executable" && \
+echo "" && \
+echo "📁 Step 4: Creating logs directory..." && \
+mkdir -p logs && \
+echo "✅ Logs directory ready" && \
+echo "" && \
+echo "🧪 Step 5: Testing builder (dry-run)..." && \
+python3 scripts/build-cross-signals.py --dry-run 2>&1 | head -20 && \
+echo "✅ Builder test completed" && \
+echo "" && \
+echo "⏰ Step 6: Installing cron schedule..." && \
+bash update-crontab-with-cross-signals.sh && \
+echo "" && \
+echo "🔍 Step 7: Verifying installation..." && \
+ls -lh scripts/build-cross-signals.py scripts/utils/cross_signals_email_renderer.py && \
+TABLES_COUNT=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+  -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='sofia' AND table_name IN ('vscode_extensions_daily', 'news_items');") && \
+echo "   Database tables found: $TABLES_COUNT/2" && \
+crontab -l | grep -c "cross-signals" && echo "   ✅ Cron job installed" && \
+echo "" && \
+echo "========================================" && \
+echo "✅ DEPLOYMENT COMPLETED SUCCESSFULLY" && \
+echo "========================================" && \
+echo "" && \
+echo "📊 What was deployed:" && \
+echo "   - scripts/build-cross-signals.py (940 lines)" && \
+echo "   - scripts/utils/cross_signals_email_renderer.py (183 lines)" && \
+echo "   - run-cross-signals-builder.sh" && \
+echo "   - update-crontab-with-cross-signals.sh" && \
+echo "   - database migrations (061, 062)" && \
+echo "   - Email integration (send-email-mega.py)" && \
+echo "" && \
+echo "⏰ New Schedule:" && \
+echo "   21:30 UTC - Cross Signals Builder (NEW)" && \
+echo "   22:00 UTC - Analytics Reports" && \
+echo "   22:05 UTC - Email (with Cross Signals)" && \
+echo "" && \
+echo "📝 Next steps:" && \
+echo "   1. Wait 7-14 days for data accumulation" && \
+echo "   2. Monitor: tail -f ~/sofia-pulse/logs/cross-signals.log" && \
+echo "   3. Check email for Cross Signals block tomorrow" && \
+echo "" && \
+echo "🎉 Cross Signals V1.0 is now LIVE!" && \
+echo "========================================"
+
+================================================================================
+FIM DO COMANDO
+================================================================================
+
+AGUARDE ~60 segundos até ver "🎉 Cross Signals V1.0 is now LIVE!"
+
+Se houver ERRO:
+1. Copie a mensagem de erro
+2. Execute: source /home/ubuntu/sofia-pulse/.env
+3. Tente novamente
+
+================================================================================
+VERIFICAÇÃO PÓS-DEPLOY:
+================================================================================
+
+Depois do deploy, verifique se tudo está OK:
+
+1. Verifique se os arquivos existem:
+   ls -lh scripts/build-cross-signals.py scripts/utils/cross_signals_email_renderer.py
+
+2. Verifique se as tabelas foram criadas:
+   source .env && PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c "\d sofia.vscode_extensions_daily"
+
+3. Verifique o cron:
+   crontab -l | grep cross-signals
+
+4. Teste o builder:
+   python3 scripts/build-cross-signals.py --dry-run
+
+================================================================================
