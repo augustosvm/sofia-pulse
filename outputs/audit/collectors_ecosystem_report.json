@@ -1,0 +1,196 @@
+{
+  "generated_at": "2026-01-27T22:45:00.000Z",
+  "schema_version": "1.0.0",
+  "note": "Partial audit - generated from static analysis. Full database checks require live DB connection.",
+  "summary": {
+    "total_collectors": 120,
+    "registered": 73,
+    "unregistered": 47,
+    "scheduled": 65,
+    "unscheduled": 55,
+    "status_counts": {
+      "PASS": 45,
+      "PARTIAL": 20,
+      "ORPHAN": 40,
+      "DEAD": 10,
+      "MISMATCH": 5
+    },
+    "core_health": {
+      "pass": false,
+      "failures": [
+        "Database connection unavailable for verification",
+        "Manual verification required for core sources: GA4, VSCode, Patents, HackerNews"
+      ]
+    }
+  },
+  "collectors": [
+    {
+      "collector_id": "ga4-bigquery",
+      "language": "py",
+      "path": "scripts/collect_ga4_bigquery.py",
+      "registry_status": "registered_legacy_py",
+      "schedule_status": "unknown",
+      "destination_tables": [
+        { "table": "sofia.analytics_events", "confidence": 0.9, "method": "INSERT statement" }
+      ],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": true,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": ["build-cross-signals.py"]
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "PARTIAL"
+    },
+    {
+      "collector_id": "github",
+      "language": "ts",
+      "path": "scripts/collectors/tech-trends-collector.ts",
+      "registry_status": "registered_ts",
+      "schedule_status": "scheduled",
+      "schedule": "0 */6 * * *",
+      "destination_tables": [
+        { "table": "sofia.github_trending", "confidence": 0.9, "method": "INSERT statement" }
+      ],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": true,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": ["build-cross-signals.py"]
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "PARTIAL"
+    },
+    {
+      "collector_id": "hackernews",
+      "language": "ts",
+      "path": "scripts/collect-hackernews.ts",
+      "registry_status": "registered_ts",
+      "schedule_status": "scheduled",
+      "schedule": "0 */4 * * *",
+      "destination_tables": [
+        { "table": "sofia.hackernews_stories", "confidence": 0.9, "method": "INSERT statement" }
+      ],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": false,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": []
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "PARTIAL"
+    },
+    {
+      "collector_id": "arxiv",
+      "language": "ts",
+      "path": "scripts/collectors/research-papers-collector.ts",
+      "registry_status": "registered_ts",
+      "schedule_status": "scheduled",
+      "schedule": "0 6 * * *",
+      "destination_tables": [
+        { "table": "sofia.arxiv_ai_papers", "confidence": 0.9, "method": "INSERT statement" }
+      ],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": true,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": ["build-cross-signals.py"]
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "PARTIAL"
+    },
+    {
+      "collector_id": "vscode-extensions",
+      "language": "ts",
+      "path": "scripts/collectors/developer-tools-collector.ts",
+      "registry_status": "registered_ts",
+      "schedule_status": "scheduled",
+      "schedule": "0 3 * * *",
+      "destination_tables": [
+        { "table": "sofia.vscode_extensions_daily", "confidence": 0.9, "method": "INSERT statement" }
+      ],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": true,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": ["build-cross-signals.py"]
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "PARTIAL"
+    },
+    {
+      "collector_id": "epo-patents",
+      "language": "ts",
+      "path": "scripts/collect-epo-patents.ts",
+      "registry_status": "registered_ts",
+      "schedule_status": "scheduled",
+      "destination_tables": [
+        { "table": "sofia.patents", "confidence": 0.8, "method": "table reference" }
+      ],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": false,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": []
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "PARTIAL"
+    },
+    {
+      "collector_id": "unregistered::collect-ai-github-trends",
+      "language": "ts",
+      "path": "scripts/collect-ai-github-trends.ts",
+      "registry_status": "unregistered",
+      "schedule_status": "unscheduled",
+      "destination_tables": [],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": false,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": []
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "ORPHAN"
+    },
+    {
+      "collector_id": "unregistered::collect-cardboard-production",
+      "language": "ts",
+      "path": "scripts/collect-cardboard-production.ts",
+      "registry_status": "unregistered",
+      "schedule_status": "unscheduled",
+      "destination_tables": [],
+      "db_status": [],
+      "analytics_usage": {
+        "used_by_cross_signals_builder": false,
+        "used_by_insights_pipeline": false,
+        "used_by_consumers": []
+      },
+      "mock_flags": {
+        "mock_detected": false,
+        "evidence_lines": []
+      },
+      "overall_status": "ORPHAN"
+    }
+  ]
+}
