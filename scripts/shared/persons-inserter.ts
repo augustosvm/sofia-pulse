@@ -74,13 +74,14 @@ export class PersonsInserter {
       .replace(/\s+/g, ' ');        // Collapse multiple spaces
   }
 
-  * Insert person into unified persons table(UPSERT)
+  /**
+   * Insert person into unified persons table(UPSERT)
   * Returns the person ID
   */
   async insertPerson(
     person: PersonData,
     client ?: PoolClient
-  ): Promise < number > {
+  ): Promise<number> {
     const db = client || this.pool;
 
     // Validate required fields

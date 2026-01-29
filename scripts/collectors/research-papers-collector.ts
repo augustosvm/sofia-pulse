@@ -134,14 +134,12 @@ export class ResearchPapersCollector {
       referenced_works_count: paper.data.referenced_works_count,
       is_breakthrough: paper.data.is_breakthrough,
     });
-  });
-}
-
+  }
   /**
    * Probes an OAI-PMH endpoint to check availability
    * Returns true if accessible, false otherwise
    */
-  private async probeOAI(url: string, headers: Record<string, string>): Promise < boolean > {
+  private async probeOAI(url: string, headers: Record<string, string>): Promise<boolean> {
   try {
     // Create Identify URL
     const probeUrl = url.replace(/verb=[^&]+/, 'verb=Identify').replace(/&metadataPrefix=[^&]+/, '');
