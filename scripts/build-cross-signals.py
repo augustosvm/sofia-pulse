@@ -57,7 +57,10 @@ def detect_source_availability(conn, window_start: datetime, window_end: datetim
     sources = []
 
     with conn.cursor() as cur:
-        # GA4 (analytics_events)
+        # GA4 (analytics_events) - event_timestamp is bigint (microseconds)
+        window_start_micros = int(window_start.timestamp() * 1_000_000)
+        window_end_micros = int(window_end.timestamp() * 1_000_000)
+
         cur.execute("""
             SELECT
                 COUNT(*) as records,
@@ -65,13 +68,23 @@ def detect_source_availability(conn, window_start: datetime, window_end: datetim
                 MAX(event_timestamp) as max_date
             FROM sofia.analytics_events
             WHERE event_timestamp >= %s AND event_timestamp < %s
-        """, (window_start, window_end))
+        """, (window_start_micros, window_end_micros))
         ga4 = cur.fetchone()
+
+        # Convert bigint microseconds back to datetime for ISO format
+        ga4_max_date = None
+        ga4_min_date = None
+        coverage_days = 0
+        if ga4['max_date']:
+            ga4_max_date = datetime.fromtimestamp(ga4['max_date'] / 1_000_000, tz=timezone.utc)
+            ga4_min_date = datetime.fromtimestamp(ga4['min_date'] / 1_000_000, tz=timezone.utc)
+            coverage_days = (ga4_max_date - ga4_min_date).days
+
         sources.append({
             'source_id': 'ga4',
             'status': 'ok' if ga4['records'] > 0 else 'offline',
-            'last_updated_at': ga4['max_date'].isoformat() if ga4['max_date'] else None,
-            'coverage_days': (ga4['max_date'] - ga4['min_date']).days if ga4['max_date'] else 0,
+            'last_updated_at': ga4_max_date.isoformat() if ga4_max_date else None,
+            'coverage_days': coverage_days,
             'records_count': ga4['records'],
             'notes': '' if ga4['records'] > 0 else 'No analytics events in window'
         })
