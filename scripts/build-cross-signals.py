@@ -112,10 +112,10 @@ def detect_source_availability(conn, window_start: datetime, window_end: datetim
         cur.execute("""
             SELECT
                 COUNT(*) as records,
-                MIN(date) as min_date,
-                MAX(date) as max_date
+                MIN(collected_at) as min_date,
+                MAX(collected_at) as max_date
             FROM sofia.github_trending
-            WHERE date >= %s::DATE AND date < %s::DATE
+            WHERE collected_at >= %s AND collected_at < %s
         """, (window_start, window_end))
         github = cur.fetchone()
         sources.append({
@@ -129,7 +129,7 @@ def detect_source_availability(conn, window_start: datetime, window_end: datetim
 
         # Patents (check existence, not date range since it's cumulative)
         try:
-            cur.execute("SELECT COUNT(*) as records FROM sofia.patents_applications LIMIT 1")
+            cur.execute("SELECT COUNT(*) as records FROM sofia.patents LIMIT 1")
             patents = cur.fetchone()
             sources.append({
                 'source_id': 'patents',
@@ -343,15 +343,15 @@ def detect_reactions_for_event(conn, event: Dict, window_start: datetime, window
         if topics:
             cur.execute("""
                 SELECT
-                    repo_name,
+                    full_name,
                     stars,
                     language,
                     description,
-                    date
+                    collected_at
                 FROM sofia.github_trending
-                WHERE date >= %s::DATE AND date < %s::DATE
+                WHERE collected_at >= %s AND collected_at < %s
                   AND (
-                    repo_name ILIKE ANY(%s::TEXT[])
+                    full_name ILIKE ANY(%s::TEXT[])
                     OR description ILIKE ANY(%s::TEXT[])
                     OR language ILIKE ANY(%s::TEXT[])
                   )
@@ -369,14 +369,14 @@ def detect_reactions_for_event(conn, event: Dict, window_start: datetime, window
                 reactions.append({
                     'source_id': 'github_trending',
                     'signal_type': 'activity',
-                    'metric_name': f"{row['repo_name']}_stars",
+                    'metric_name': f"{row['full_name']}_stars",
                     'value': row['stars'],
                     'window_days': 7,
                     'direction': 'up',
                     'evidence': [
                         {
                             'ref_type': 'github_repo',
-                            'ref_id': row['repo_name']
+                            'ref_id': row['full_name']
                         }
                     ],
                     'confidence': 0.80
