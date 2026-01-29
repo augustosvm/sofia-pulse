@@ -18,15 +18,19 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # === Configuration ===
 
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('DB_PORT', '5432')),
-    'dbname': os.getenv('DB_NAME', 'sofia'),
-    'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD', ''),
+    'host': os.getenv('DB_HOST', os.getenv('POSTGRES_HOST', 'localhost')),
+    'port': int(os.getenv('DB_PORT', os.getenv('POSTGRES_PORT', '5432'))),
+    'dbname': os.getenv('DB_NAME', os.getenv('POSTGRES_DB', 'sofia_db')),
+    'user': os.getenv('DB_USER', os.getenv('POSTGRES_USER', 'sofia')),
+    'password': os.getenv('DB_PASSWORD', os.getenv('POSTGRES_PASSWORD', '')),
 }
 
 OUTPUT_FILE = Path(__file__).parent.parent / 'outputs' / 'cross_signals.json'
