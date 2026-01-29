@@ -154,10 +154,10 @@ def detect_source_availability(conn, window_start: datetime, window_end: datetim
         cur.execute("""
             SELECT
                 COUNT(*) as records,
-                MIN(published) as min_date,
-                MAX(published) as max_date
+                MIN(published_date) as min_date,
+                MAX(published_date) as max_date
             FROM sofia.arxiv_ai_papers
-            WHERE published >= %s AND published < %s
+            WHERE published_date >= %s::DATE AND published_date < %s::DATE
         """, (window_start, window_end))
         arxiv = cur.fetchone()
         sources.append({
@@ -387,7 +387,7 @@ def detect_reactions_for_event(conn, event: Dict, window_start: datetime, window
             cur.execute("""
                 SELECT COUNT(*) as paper_count
                 FROM sofia.arxiv_ai_papers
-                WHERE published >= %s AND published < %s
+                WHERE published_date >= %s::DATE AND published_date < %s::DATE
                   AND (
                     title ILIKE ANY(%s::TEXT[])
                     OR abstract ILIKE ANY(%s::TEXT[])
