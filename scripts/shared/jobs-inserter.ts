@@ -92,7 +92,7 @@ export class JobsInserter {
     const query = `
       INSERT INTO sofia.jobs (
         job_id, platform, title, company, company_url,
-        location, city, country, country_id, city_id, remote_type,
+        raw_location, raw_city, country, country_id, city_id, remote_type,
         description, url, posted_date,
         salary_min, salary_max, salary_currency, salary_period,
         employment_type, skills_required, search_keyword,
@@ -105,7 +105,7 @@ export class JobsInserter {
         title = EXCLUDED.title,
         company = EXCLUDED.company,
         company_url = COALESCE(EXCLUDED.company_url, sofia.jobs.company_url),
-        location = EXCLUDED.location,
+        raw_location = EXCLUDED.raw_location,
         description = EXCLUDED.description,
         salary_min = COALESCE(EXCLUDED.salary_min, sofia.jobs.salary_min),
         salary_max = COALESCE(EXCLUDED.salary_max, sofia.jobs.salary_max),
