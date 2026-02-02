@@ -118,7 +118,19 @@
       "Bash(killall:*)",
       "Bash(fuser:*)",
       "Bash(dir:*)",
-      "Bash(C:Python313python.exe collect-cni-indicators.py)"
+      "Bash(C:Python313python.exe collect-cni-indicators.py)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git merge-base:*)",
+      "Bash(echo \"Timeout or error: $?\")",
+      "Bash(node --loader tsx scripts/audit-collectors-ecosystem.ts:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(wc -l outputs/audit/*.md outputs/audit/*.json)",
+      "Bash(wc:*)",
+      "Bash(for max in 50 25 20)",
+      "Bash(do echo \"Testing max=$max...\")",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
