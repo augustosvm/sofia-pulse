@@ -120,13 +120,14 @@ export const jetbrainsMarketplace: DeveloperToolCollectorConfig = {
   displayName: '🧰 JetBrains Marketplace',
   url: 'https://plugins.jetbrains.com/api/searchPlugins',
   params: {
-    max: 100,
+    max: 20, // API limit (rejects values > 20)
     orderBy: 'downloads',
     build: 'IU-233.11799.241', // Latest IntelliJ IDEA version
   },
   timeout: 30000,
   parseResponse: async (data) => {
-    const plugins = Array.isArray(data) ? data : [];
+    // API returns { plugins: [...] }, not just array
+    const plugins = Array.isArray(data?.plugins) ? data.plugins : [];
 
     return plugins.map((plugin: any) => ({
       tool_name: plugin.name,
