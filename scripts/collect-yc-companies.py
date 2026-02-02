@@ -165,7 +165,7 @@ def save_to_db(companies):
                     normalized_type,
                     company["announced_date"],  # NEW: Now has date!
                     "USA",
-                    company.get("tags", "")[:200],  # Limitar tamanho
+                    company.get("tags", "")[:100],  # Limitar a 100 chars (schema limit)
                     "yc_companies",
                 ),
             )
