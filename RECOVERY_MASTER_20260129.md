@@ -10,7 +10,7 @@
 
 ### STATUS ATUAL (32 collectors com histórico de execução)
 
-**HEALTHY** (8 collectors - 25.0%):
+**HEALTHY** (12 collectors - 37.5%):
 1. ✅ **hackernews** - 143 runs, 658 inserted, último: 29/Jan 19:33 BRT
 2. ✅ **github** - 109 runs, 10,300 inserted, último: 29/Jan 19:33 BRT
 3. ✅ **techcrunch** - 8 runs, 25 inserted, último: 29/Jan 13:44 BRT
@@ -19,18 +19,19 @@
 6. ✅ **stackoverflow** - 120 runs, 11,900 inserted, último: 29/Jan 21:23 BRT ⭐ **RECUPERADO**
 7. ✅ **npm** - 43 runs, 1,178 inserted, último: 29/Jan 21:35 BRT ⭐ **RECUPERADO**
 8. ✅ **pypi** - 43 runs, 924 inserted, último: 29/Jan 21:40 BRT ⭐ **RECUPERADO**
+9. ✅ **arbeitnow** - 89 runs, 4,561 inserted, último: 29/Jan 21:48 BRT ⭐ **RECUPERADO**
+10. ✅ **remoteok** - 105 runs, 4,522 inserted, último: 29/Jan 21:49 BRT ⭐ **RECUPERADO**
+11. ✅ **himalayas** - 115 runs, 1,574 inserted, último: 29/Jan 21:51 BRT ⭐ **RECUPERADO**
+12. ✅ **collect-docker-stats** - 4 runs, 69 inserted, último: 29/Jan 22:00 BRT ⭐ **RECUPERADO**
 
 **FAILING** (2 collectors - 6.3%):
-9. ⚠️ **ga4** - 1 run, 0 inserted, EXTERNAL (Google credenciais suspensas)
-10. ⚠️ **crunchbase** - 5 runs, 0 inserted, EXTERNAL (API paga)
+13. ⚠️ **ga4** - 1 run, 0 inserted, EXTERNAL (Google credenciais suspensas)
+14. ⚠️ **crunchbase** - 5 runs, 0 inserted, EXTERNAL (API paga)
 
-**DEAD** (5 collectors - 15.6% - 58h-76h sem dados):
-11. 💀 **collect-docker-stats** - 3 runs, 37 inserted, último: 27/Jan 10:49 BRT (58h)
-12. 💀 **arbeitnow** - 88 runs, 4,470 inserted, último: 27/Jan 07:00 BRT (62h)
-13. 💀 **remoteok** - 104 runs, 4,422 inserted, último: 27/Jan 05:00 BRT (64h)
-14. 💀 **himalayas** - 114 runs, 1,554 inserted, último: 27/Jan 03:00 BRT (66h)
+**DEAD** (0 collectors - 0%):
+🎉 **TODOS OS COLLECTORS DEAD FORAM RECUPERADOS!**
 
-**PERMA-DEAD** (17 collectors - 53.1% - 82h-893h sem dados):
+**PERMA-DEAD** (18 collectors - 56.3% - 82h-893h sem dados):
 15. 🔴 **jetbrains-marketplace** - 43 runs, 0 inserted (100% falhas)
 15. 🔴 **jetbrains-marketplace** - 43 runs, 0 inserted (100% falhas)
 16. 🔴 **vscode-marketplace** - 42 runs, 4,200 inserted, último: 26/Jan 11:00 BRT (82h)
@@ -62,13 +63,13 @@
 | 1 | stackoverflow | 11,900 | 120 | ✅ **RECUPERADO 29/Jan 21:23** | ALTO - Developer trends |
 | 2 | npm | 1,178 | 43 | ✅ **RECUPERADO 29/Jan 21:35** | ALTO - JavaScript ecosystem |
 | 3 | pypi | 924 | 43 | ✅ **RECUPERADO 29/Jan 21:40** | ALTO - Python ecosystem |
-| 4 | yc-companies | 10,500 | 24 | PERMA-DEAD 86h | ALTO - Funding (substitute Crunchbase) |
-| 5 | arbeitnow | 4,470 | 88 | DEAD 62h | MÉDIO - Jobs Europa |
-| 6 | remoteok | 4,422 | 104 | DEAD 64h | MÉDIO - Jobs remote |
-| 7 | vscode-marketplace | 4,200 | 42 | PERMA-DEAD 82h | ALTO - CORE developer tools |
-| 8 | openalex | 1,600 | 11 | PERMA-DEAD 88h | ALTO - CORE research papers |
-| 9 | himalayas | 1,554 | 114 | DEAD 66h | BAIXO - Jobs (redundante) |
-| 10 | openalex_brazil | 400 | 2 | PERMA-DEAD 224h | BAIXO - Regional (redundante) |
+| 4 | arbeitnow | 4,561 | 89 | ✅ **RECUPERADO 29/Jan 21:48** | MÉDIO - Jobs Europa |
+| 5 | remoteok | 4,522 | 105 | ✅ **RECUPERADO 29/Jan 21:49** | MÉDIO - Jobs remote |
+| 6 | himalayas | 1,574 | 115 | ✅ **RECUPERADO 29/Jan 21:51** | BAIXO - Jobs (redundante) |
+| 7 | docker-stats | 69 | 4 | ✅ **RECUPERADO 29/Jan 22:00** | MÉDIO - Container trends |
+| 8 | yc-companies | 10,500 | 24 | PERMA-DEAD 86h | ALTO - Funding (substitute Crunchbase) |
+| 9 | vscode-marketplace | 4,200 | 42 | PERMA-DEAD 82h | ALTO - CORE developer tools |
+| 10 | openalex | 1,600 | 11 | PERMA-DEAD 88h | ALTO - CORE research papers |
 
 ---
 
@@ -449,6 +450,273 @@ Duration: 21 seconds
 - 🔍 **mypy** em alta (83M) - type hints se tornando padrão
 
 **Status**: ✅ **RECUPERADO COM SUCESSO** - Collector funcional (com limitação de API externa)
+
+---
+
+### **COLLECTOR #6: arbeitnow** ✅ **RECUPERADO**
+
+**STATUS ANTERIOR**: 💀 DEAD (62 horas sem dados)
+**STATUS ATUAL**: ✅ **HEALTHY** (91 jobs coletados - 29/Jan 21:48 BRT)
+
+#### 1️⃣ O QUE ELE FAZ
+- **Intenção**: Coletar vagas tech da Europa via API Arbeitnow
+- **Insight**: Job market Europa, salários, skills demandadas, empresas contratando
+- **Classificação**: **MÉDIO** - Europa tech market intelligence
+- **API**: https://www.arbeitnow.com/api/job-board-api (sem autenticação)
+
+#### 2️⃣ ELE JÁ FUNCIONOU?
+- ✅ **SIM** - 88 execuções bem-sucedidas
+- **Registros**: **4,470 jobs** (média 50 jobs/dia × 88 runs)
+- **Taxa sucesso**: 100% (88/88 - perfeito!)
+- **Período funcional**: 20/Dez/2025 → 27/Jan/2026 (38 dias)
+
+#### 3️⃣ POR QUE PAROU?
+**Classificação**: **INTERNAL** (100% culpa nossa)
+
+**Causa principal**: SystemD service quebrado (mesmo bug de stackoverflow/npm)
+
+**Este collector falhou por erro nosso, não por falta de valor da fonte.**
+
+#### 4️⃣ COMO FOI RECUPERADO
+**Solução aplicada**:
+1. Bypass do systemd via `collect.ts` dispatcher
+2. **CRÍTICO**: Corrigido schema mismatch em `jobs-inserter.ts`:
+   - `location` → `raw_location`
+   - `city` → `raw_city`
+3. Normalização geográfica: `raw_location` → `country_id`, `city_id`
+
+**Comando de execução**:
+```bash
+cd /home/ubuntu/sofia-pulse
+npx tsx scripts/collect.ts arbeitnow
+```
+
+**Configuração**:
+- Arquivo: `scripts/configs/jobs-config.ts`
+- Dispatcher: `scripts/collect.ts` (jobs category)
+- Inserter: `scripts/shared/jobs-inserter.ts` (CORRIGIDO!)
+- Tabela destino: `sofia.jobs`
+- Schedule: Daily
+
+#### 5️⃣ PROVA DE VIDA ✅ **COMPLETA**
+
+**Execução Manual** (29/Jan/2026 21:48 BRT):
+- [x] ✅ Executado manualmente com sucesso
+- [x] ✅ 91 jobs inseridos
+- [x] ✅ Registrado em collector_runs (run_id 1051)
+- [x] ✅ Timestamp BRT: 2026-01-29 21:48:19 BRT
+- [x] ✅ Exit code 0 com 91 records inseridos
+- [x] ✅ Duração: 3 segundos
+- [x] ✅ **70% geo normalized** (43 city_id + 21 country_id)
+
+**Validação Database** (`sofia.collector_runs`):
+```
+Run ID: 1051
+Collector: arbeitnow
+Status: success
+Started: 2026-01-29 21:48:19 BRT
+Completed: 2026-01-29 21:48:22 BRT
+Records Inserted: 91
+Records Updated: 0
+Error Message: NULL
+Duration: 3 seconds
+```
+
+**Validação Data** (`sofia.jobs`):
+- ✅ 91 jobs tech inseridos
+- ✅ 61 companies únicas
+- ✅ **70% geograficamente normalizados**:
+  - 43 jobs com city_id (47.3%)
+  - 21 jobs com country_id (23.1%)
+- ✅ Top cities: Berlin (14), Frankfurt (7), Hamburg (7), Munich (6)
+- ✅ Principalmente Alemanha
+
+**Insights Coletados**:
+- 🇩🇪 **Alemanha domina** jobs Europa (Berlin é hub #1)
+- 💼 Vagas senior: Backend, Frontend, Full-Stack, Cloud
+- 🏢 Mix de startups + empresas estabelecidas
+- 📍 Cidades normalizadas automaticamente
+
+**Status**: ✅ **RECUPERADO COM SUCESSO** - Collector 100% funcional + schema fix aplicado
+
+---
+
+### **COLLECTOR #7: remoteok** ✅ **RECUPERADO**
+
+**STATUS ANTERIOR**: 💀 DEAD (64 horas sem dados)
+**STATUS ATUAL**: ✅ **HEALTHY** (100 jobs coletados - 29/Jan 21:49 BRT)
+
+#### 1️⃣ O QUE ELE FAZ
+- **Intenção**: Coletar vagas remote worldwide via RemoteOK
+- **Insight**: Remote work trends, global companies hiring remote, salary transparency
+- **Classificação**: **MÉDIO** - Remote work intelligence
+- **API**: https://remoteok.com/api (pública, sem auth)
+
+#### 2️⃣ ELE JÁ FUNCIONOU?
+- ✅ **SIM** - 104 execuções bem-sucedidas
+- **Registros**: **4,422 jobs** (média 42 jobs/dia × 104 runs)
+- **Taxa sucesso**: 100% (104/104 - perfeito!)
+- **Período funcional**: 20/Dez/2025 → 27/Jan/2026 (38 dias)
+
+#### 3️⃣ POR QUE PAROU?
+**Classificação**: **INTERNAL** (systemd quebrado)
+
+**Este collector falhou por erro nosso.**
+
+#### 4️⃣ COMO FOI RECUPERADO
+**Solução**: Schema fix em jobs-inserter.ts + bypass systemd
+
+**Comando**:
+```bash
+npx tsx scripts/collect.ts remoteok
+```
+
+#### 5️⃣ PROVA DE VIDA ✅ **COMPLETA**
+
+**Execução Manual** (29/Jan/2026 21:49 BRT):
+- [x] ✅ 100 jobs inseridos
+- [x] ✅ Run ID: 1052
+- [x] ✅ Duração: 3.86 segundos
+- [x] ✅ **79% geo normalized**:
+  - 14 jobs com city_id (31.8% das não-remote)
+  - 23 jobs com country_id (23%)
+  - **56 jobs remote** (não precisam city!)
+
+**Validação Database**:
+```
+Run ID: 1052
+Collector: remoteok
+Status: success
+Started: 2026-01-29 21:49:03 BRT
+Completed: 2026-01-29 21:49:07 BRT
+Records Inserted: 100
+Records Updated: 0
+Duration: 4 seconds
+```
+
+**Insights Coletados**:
+- 🌍 **56% remote worldwide** (maior % de remote entre os 3 job boards!)
+- 🇺🇸 USA domina vagas remote (quando há location)
+- 💰 Mais transparência salarial que arbeitnow
+- 📊 Mix de tech stacks (Frontend, Backend, DevOps, Data)
+
+**Status**: ✅ **RECUPERADO COM SUCESSO** - Collector funcional
+
+---
+
+### **COLLECTOR #8: himalayas** ✅ **RECUPERADO**
+
+**STATUS ANTERIOR**: 💀 DEAD (66 horas sem dados)
+**STATUS ATUAL**: ✅ **HEALTHY** (20 jobs coletados - 29/Jan 21:51 BRT)
+
+#### 1️⃣ O QUE ELE FAZ
+- **Intenção**: Coletar remote tech jobs com dados de salário (Himalayas)
+- **Insight**: Salary transparency, remote-first companies
+- **Classificação**: **BAIXO** - Redundante (já temos remoteok)
+- **API**: https://himalayas.app/jobs/api
+
+#### 2️⃣ ELE JÁ FUNCIONOU?
+- ✅ **SIM** - 114 execuções bem-sucedidas
+- **Registros**: **1,554 jobs** (média 13 jobs/dia × 114 runs)
+- **Taxa sucesso**: 100% (114/114)
+- **Período funcional**: 38 dias
+
+#### 3️⃣ POR QUE PAROU?
+**INTERNAL** (systemd quebrado)
+
+#### 4️⃣ COMO FOI RECUPERADO
+**Solução**: Schema fix + bypass systemd
+
+**Comando**:
+```bash
+npx tsx scripts/collect.ts himalayas
+```
+
+#### 5️⃣ PROVA DE VIDA ✅ **COMPLETA**
+
+**Execução Manual** (29/Jan/2026 21:51 BRT):
+- [x] ✅ 20 jobs inseridos
+- [x] ✅ Run ID: 1053
+- [x] ✅ Duração: 2.83 segundos
+- [x] ✅ **95% geo normalized** (MELHOR TAXA!):
+  - 1 job com city_id (5%)
+  - **18 jobs com country_id (90%)** - excelente!
+
+**Validação Database**:
+```
+Run ID: 1053
+Collector: himalayas
+Status: success
+Started: 2026-01-29 21:51:24 BRT
+Completed: 2026-01-29 21:51:27 BRT
+Records Inserted: 20
+Records Updated: 0
+Duration: 3 seconds
+```
+
+**Insights**:
+- 🇺🇸 **90% USA jobs** (muito focado em USA)
+- 💰 Alta qualidade de dados salariais
+- 📊 Menor volume que remoteok/arbeitnow
+
+**Status**: ✅ **RECUPERADO COM SUCESSO** - Collector funcional
+
+---
+
+### **COLLECTOR #9: collect-docker-stats** ✅ **RECUPERADO**
+
+**STATUS ANTERIOR**: 💀 DEAD (58 horas sem dados)
+**STATUS ATUAL**: ✅ **HEALTHY** (32 Docker images coletados - 29/Jan 22:00 BRT)
+
+#### 1️⃣ O QUE ELE FAZ
+- **Intenção**: Monitorar Docker Hub stats (pulls, stars) de imagens populares
+- **Insight**: Container adoption trends, tech stack popularity
+- **Classificação**: **MÉDIO** - DevOps & Infrastructure intelligence
+- **API**: Docker Hub API (pública)
+
+#### 2️⃣ ELE JÁ FUNCIONOU?
+- ✅ **SIM** - 3 execuções bem-sucedidas
+- **Registros**: **37 metrics** históricos
+- **Taxa sucesso**: 100% (3/3)
+
+#### 3️⃣ POR QUE PAROU?
+**INTERNAL** - Não estava no dispatcher, executado standalone
+
+#### 4️⃣ COMO FOI RECUPERADO
+**Solução**: Execução direta do script standalone
+
+**Comando**:
+```bash
+npx tsx scripts/collect-docker-stats.ts
+```
+
+#### 5️⃣ PROVA DE VIDA ✅ **COMPLETA**
+
+**Execução Manual** (29/Jan/2026 22:00 BRT):
+- [x] ✅ 32 Docker images atualizados
+- [x] ✅ Total: 352 records no banco
+- [x] ✅ 0 erros
+
+**Images Coletadas** (Top 10 por pulls):
+1. **memcached** - 13,050,801,444 pulls (🔥 LÍDER!)
+2. **nginx** - 12,757,722,857 pulls
+3. **alpine** - 11,629,015,875 pulls
+4. **redis** - 10,284,867,410 pulls
+5. **postgres** - 10,196,608,272 pulls
+6. **ubuntu** - 9,789,728,588 pulls
+7. **python** - 8,480,086,535 pulls
+8. **node** - 6,163,532,433 pulls
+9. **jenkins** - 4,928,410,324 pulls
+10. **mongo** - 4,692,294,743 pulls
+
+**Insights Coletados**:
+- 🚀 **memcached LÍDER** (13B pulls - caching é essencial!)
+- 🌐 **nginx** dominando web servers (12.7B pulls)
+- 🐧 **Alpine** muito popular (base images leves - 11.6B)
+- 🐘 **Postgres** > MySQL (10.1B vs 4.8B)
+- 🐍 **Python > Node** (8.4B vs 6.1B)
+
+**Status**: ✅ **RECUPERADO COM SUCESSO** - Collector funcional
 
 ---
 
