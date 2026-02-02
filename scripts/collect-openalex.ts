@@ -130,8 +130,8 @@ async function insertPaper(client: Client, paper: OpenAlexPaper): Promise<void> 
       authors, author_institutions, author_countries,
       concepts, primary_concept, cited_by_count, referenced_works_count,
       is_open_access, journal, publisher, abstract
-    , country_id)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
     ON CONFLICT (openalex_id)
     DO UPDATE SET
       cited_by_count = EXCLUDED.cited_by_count,

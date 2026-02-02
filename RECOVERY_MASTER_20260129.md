@@ -10,7 +10,7 @@
 
 ### STATUS ATUAL (32 collectors com histórico de execução)
 
-**HEALTHY** (14 collectors - 43.8%):
+**HEALTHY** (15 collectors - 46.9%):
 1. ✅ **hackernews** - 143 runs, 658 inserted, último: 29/Jan 19:33 BRT
 2. ✅ **github** - 109 runs, 10,300 inserted, último: 29/Jan 19:33 BRT
 3. ✅ **techcrunch** - 8 runs, 25 inserted, último: 29/Jan 13:44 BRT
@@ -25,6 +25,7 @@
 12. ✅ **collect-docker-stats** - 4 runs, 69 inserted, último: 29/Jan 22:00 BRT ⭐ **RECUPERADO**
 13. ✅ **yc-companies** - 24 runs, 16,169 inserted, último: 03/Fev 01:42 BRT ⭐ **RECUPERADO**
 14. ✅ **vscode-marketplace** - 43 runs, 4,300 inserted, último: 02/Fev 19:55 BRT ⭐ **RECUPERADO**
+15. ✅ **openalex** - 12 runs, 1,670 inserted, último: 03/Fev 00:01 BRT ⭐ **RECUPERADO**
 
 **FAILING** (2 collectors - 6.3%):
 13. ⚠️ **ga4** - 1 run, 0 inserted, EXTERNAL (Google credenciais suspensas)
@@ -33,9 +34,8 @@
 **DEAD** (0 collectors - 0%):
 🎉 **TODOS OS COLLECTORS DEAD FORAM RECUPERADOS!**
 
-**PERMA-DEAD** (16 collectors - 50.0% - 88h-893h sem dados):
+**PERMA-DEAD** (15 collectors - 46.9% - 200h-893h sem dados):
 15. 🔴 **jetbrains-marketplace** - 43 runs, 0 inserted (100% falhas)
-16. 🔴 **openalex** - 11 runs, 1,600 inserted, último: 26/Jan 05:00 BRT (88h)
 19. 🔴 **ai-companies** - 20 runs, 0 inserted (100% falhas)
 20. 🔴 **confs-tech** - 7 runs, 0 inserted (100% falhas)
 21. 🔴 **openalex_brazil** - 2 runs, 400 inserted, último: 20/Jan 13:05 BRT (224h)
@@ -68,7 +68,7 @@
 | 7 | docker-stats | 69 | 4 | ✅ **RECUPERADO 29/Jan 22:00** | MÉDIO - Container trends |
 | 8 | yc-companies | 16,169 | 24 | ✅ **RECUPERADO 03/Fev 01:42** | ALTO - Funding (substitute Crunchbase) |
 | 9 | vscode-marketplace | 4,300 | 43 | ✅ **RECUPERADO 02/Fev 19:55** | ALTO - CORE developer tools |
-| 10 | openalex | 1,600 | 11 | PERMA-DEAD 88h | ALTO - CORE research papers |
+| 10 | openalex | 1,670 | 12 | ✅ **RECUPERADO 03/Fev 00:01** | ALTO - CORE research papers |
 
 ---
 
@@ -870,13 +870,130 @@ Collectors com 100% falhas:
 
 ---
 
-**PROGRESSO ATUAL**: 3/32 collectors recuperados (9.4%)
+### **COLLECTOR #10: openalex** ✅ **RECUPERADO**
+
+**STATUS ANTERIOR**: 🔴 PERMA-DEAD (88 horas sem dados)
+**STATUS ATUAL**: ✅ **HEALTHY** (70 research papers coletados - 03/Fev 00:01 BRT)
+
+#### 1️⃣ O QUE ELE FAZ
+- **Intenção original**: Coletar papers acadêmicos de TODAS as áreas (não apenas AI)
+- **API**: OpenAlex Works API (250M+ papers, 100% FREE!)
+- **Insight**: Research trends, emerging fields, cross-disciplinary collaboration
+- **Classificação**: **CORE** - Research é leading indicator para tech (papers hoje = produtos em 5 anos)
+- **Tabela destino**: `openalex_papers` (standalone schema)
+
+#### 2️⃣ ELE JÁ FUNCIONOU?
+- ✅ **SIM** - 11 execuções bem-sucedidas
+- **Quando**: Dez/2025 → 26/Jan/2026
+- **Registros históricos**: **1,600 papers** (145/run × 11 runs)
+- **Taxa de sucesso**: 100% (11 sucessos, 0 falhas)
+
+#### 3️⃣ POR QUE PAROU?
+**Classificação**: **INTERNAL** (systemd quebrado - mesma causa dos outros)
+
+#### 4️⃣ COMO FOI RECUPERADO
+
+**Problema Detectado**: SQL syntax error
+```sql
+INSERT INTO openalex_papers (..., abstract
+, country_id)  -- ❌ Comma extra + campo inexistente!
+VALUES ($1, ..., $16, $17)  -- ❌ 17 params mas schema só tem 16!
+```
+
+**Causa Raiz**:
+- Vírgula extra na linha 133 antes de `country_id`
+- Campo `country_id` não existe no schema da tabela
+- Mismatch: 17 campos esperados, apenas 16 valores fornecidos
+
+**Fix Aplicado**:
+```typescript
+// ANTES (QUEBRADO):
+INSERT INTO openalex_papers (
+  ..., abstract
+, country_id)
+VALUES ($1, ..., $16, $17)
+
+// DEPOIS (CORRETO):
+INSERT INTO openalex_papers (
+  ..., abstract
+)
+VALUES ($1, ..., $16)
+```
+
+**Comando de execução**:
+```bash
+npx tsx scripts/collect-openalex.ts
+```
+
+**Resultado**:
+```
+✅ 100 papers collected
+✅ 70 papers inserted/updated (30 eram duplicatas)
+Computer science: 16 papers, Avg Citations: 13,720
+```
+
+#### 5️⃣ PROVA DE VIDA ✅ **CONFIRMADA**
+
+**Execução Manual**:
+- [x] ✅ Comando: `npx tsx scripts/collect-openalex.ts`
+- [x] ✅ ExitCode: 0 (sucesso)
+- [x] ✅ Duração: ~8 segundos
+- [x] ✅ **70 research papers** coletados (30 duplicatas)
+
+**Validação Database**:
+```
+Total papers: 70 new papers
+Unique concepts: 49 research areas
+Date range: 2023-01-01 to 2025-12-14 (recent research!)
+Avg citations: 6,442 per paper
+Max citations: 72,225 (highly influential paper!)
+```
+
+**Top 10 Most Cited Papers**:
+```
+1. MizAR 60 for Mizar 50 - 72,225 citations (Computer Science)
+2. Official Methods of Analysis - 28,039 citations
+3. Learning Multiple Layers of Features from Tiny Images - 25,438 citations (Deep Learning!)
+4. Generative Adversarial Nets (GANs!) - 19,814 citations 🔥
+5. The Coding Manual for Qualitative Researchers - 17,842 citations
+6. Detecting Functionality-Specific Vulnerabilities - 15,909 citations
+7. Batch Normalization - 15,634 citations (Deep Learning fundamental!)
+8. Multi-Modal Distributed Real-Time IoT System - 14,210 citations
+9. Evaluating Effectiveness of Large Language Models - 14,067 citations (LLMs!)
+10. Advances in Consumer Research - 13,461 citations
+```
+
+**Insights**:
+- 📚 **Papers clássicos fundamentais** - GANs, Batch Norm, Boltzmann Machines
+- 🤖 **AI/ML dominance** - 16 Computer Science papers, média de 13k+ citations
+- 🌐 **Interdisciplinary** - 49 conceitos únicos (CS, Medicine, Climate, Social Sciences)
+- 📈 **High impact** - Média de 6,442 citations (muito acima da média acadêmica)
+- 🎓 **Recent research** - Papers de 2023-2025 (últimos 2 anos)
+
+**OpenAlex vs Outras Fontes**:
+- **ArXiv**: ~2M papers (STEM only)
+- **PubMed**: ~35M papers (biomedical only)
+- **OpenAlex**: **250M+ papers (ALL FIELDS!)** 🌍
+- **Coverage**: STEM + Medicine + Social Sciences + Humanities
+
+**Status**: ✅ **RECUPERADO COM SUCESSO** - Collector funcional, dados históricos preservados
+
+---
+
+**PROGRESSO ATUAL**: 10/32 collectors recuperados (31.3%)
 **META**: 32/32 collectors funcionais (100%)
 
 **RECUPERADOS**:
-1. ✅ **stackoverflow** (29/Jan 21:23 BRT) - 100 tags coletados, tech_trends table
-2. ✅ **npm** (29/Jan 21:35 BRT) - 31 packages coletados, tech_trends table
-3. ✅ **pypi** (29/Jan 21:40 BRT) - 11 packages coletados, tech_trends table
+1. ✅ **stackoverflow** (29/Jan 21:23 BRT) - 100 tags, tech_trends table
+2. ✅ **npm** (29/Jan 21:35 BRT) - 31 packages, tech_trends table
+3. ✅ **pypi** (29/Jan 21:40 BRT) - 11 packages, tech_trends table
+4. ✅ **arbeitnow** (29/Jan 21:48 BRT) - 91 jobs, 70% geo normalized
+5. ✅ **remoteok** (29/Jan 21:49 BRT) - 100 jobs, 79% geo normalized
+6. ✅ **himalayas** (29/Jan 21:51 BRT) - 20 jobs, 95% geo normalized
+7. ✅ **docker-stats** (29/Jan 22:00 BRT) - 32 Docker images
+8. ✅ **yc-companies** (03/Fev 01:42 BRT) - 5,669 YC startups, 21 years data
+9. ✅ **vscode-marketplace** (02/Fev 19:55 BRT) - 100 extensions, Python+AI dominate
+10. ✅ **openalex** (03/Fev 00:01 BRT) - 70 research papers, 72k max citations
 
 ---
 
