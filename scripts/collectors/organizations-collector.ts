@@ -127,6 +127,31 @@ export class OrganizationsCollector {
         ? config.url(process.env)
         : config.url;
 
+      // Check if URL is null/undefined (fallback case)
+      if (!url) {
+        console.log('⚠️  URL is null - using parseResponse fallback');
+        console.log('');
+
+        // Call parseResponse with null data for fallback handling
+        const organizations = await config.parseResponse(null, process.env);
+        console.log(`   ✅ Parsed ${organizations.length} organizations (fallback)`);
+
+        // Finish tracking (success with 0 records)
+        if (runId) {
+          await this.pool.query(
+            'SELECT sofia.finish_collector_run($1, $2, $3, $4)',
+            [runId, 'success', 0, 0]
+          );
+        }
+
+        return {
+          success: true,
+          collected: 0,
+          errors: 0,
+          duration: Date.now() - startTime,
+        };
+      }
+
       // 2. Preparar headers
       let headers: Record<string, string> = {
         'User-Agent': 'Sofia-Pulse-Collector/2.0',
