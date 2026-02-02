@@ -338,65 +338,103 @@ export const universities: OrganizationsCollectorConfig = {
 export const ngos: OrganizationsCollectorConfig = {
   name: 'ngos',
   displayName: '🌍 Global NGOs Tracker',
-  description: 'Global NGOs from GlobalGiving API (9,000+ organizations)',
+  description: 'Global NGOs extracted from GlobalGiving projects (50k+ projects → unique orgs)',
 
-  // GlobalGiving API - Organizations endpoint
+  // GlobalGiving API - Projects endpoint
+  // Docs: https://www.globalgiving.org/api/
   // FREE API Key: https://www.globalgiving.org/api/keys/new/
   url: (env) => {
     const apiKey = env.GLOBALGIVING_API_KEY || '';
     if (!apiKey) {
-      console.warn('⚠️  GLOBALGIVING_API_KEY not set. Using fallback to empty data.');
+      console.warn('⚠️  GLOBALGIVING_API_KEY not set. Using fallback to world-ngos data.');
       return null as any; // Will trigger fallback in parseResponse
     }
-    return `https://api.globalgiving.org/api/public/projectservice/organizations?api_key=${apiKey}`;
+    // Projects endpoint (returns 50k+ projects with organization data)
+    return `https://api.globalgiving.org/api/public/projectservice/all/projects?api_key=${apiKey}`;
+  },
+
+  // Force JSON response (API defaults to XML)
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
   },
 
   parseResponse: async (data, env) => {
     // Fallback if API key missing
     if (!env.GLOBALGIVING_API_KEY) {
-      console.warn('⚠️  GLOBALGIVING_API_KEY missing. Returning empty data.');
+      console.warn('⚠️  GLOBALGIVING_API_KEY missing. Using fallback to world-ngos data.');
       console.warn('   Get FREE API key: https://www.globalgiving.org/api/keys/new/');
+      console.warn('   Note: world-ngos.py already provides 200 major NGOs.');
       return [];
     }
 
-    // Handle API response
-    if (!data || !data.organizations || !data.organizations.organization) {
-      console.warn('⚠️  No organizations found in API response');
+    // GlobalGiving returns XML, but axios with Accept: application/json gets JSON
+    // If data is string (XML), we need to parse it - but axios should auto-convert
+    if (typeof data === 'string') {
+      console.warn('⚠️  Received XML response (expected JSON). Check axios config.');
       return [];
     }
 
-    const orgs = Array.isArray(data.organizations.organization)
-      ? data.organizations.organization
-      : [data.organizations.organization];
+    // Handle API response (JSON format)
+    if (!data || !data.projects || !data.projects.project) {
+      console.warn('⚠️  No projects found in API response');
+      return [];
+    }
 
-    const ngos: OrganizationData[] = orgs.map((org: any) => ({
-      org_id: `globalgiving-${org.id}`,
-      name: org.name,
-      type: 'ngo' as const,
-      source: 'globalgiving',
-      industry: org.themes?.theme?.[0]?.name || 'Nonprofit',
-      location: org.city && org.country ? `${org.city}, ${org.country}` : org.country || undefined,
-      city: org.city || undefined,
-      country: org.country || undefined,
-      country_code: org.iso3166CountryCode || undefined,
-      website: org.url || undefined,
-      description: org.mission?.substring(0, 500) || undefined,
-      tags: org.themes?.theme ? org.themes.theme.map((t: any) => t.name) : [],
-      metadata: {
-        globalgiving_id: org.id,
-        logo_url: org.logoUrl,
-        mission: org.mission,
-        active_projects: org.activeProjects || 0,
-        total_donations: org.totalDonations || 0,
-        themes: org.themes?.theme || [],
-        url_full: org.url,
-        organization_type: org.type || 'ngo',
-        addressLine1: org.addressLine1,
-        addressLine2: org.addressLine2,
-        postal: org.postal,
-        iso3166CountryCode: org.iso3166CountryCode,
-      },
-    }));
+    const projects = Array.isArray(data.projects.project)
+      ? data.projects.project
+      : [data.projects.project];
+
+    console.log(`   📊 Found ${projects.length} projects from GlobalGiving`);
+
+    // Extract unique organizations from projects
+    const orgsMap = new Map<string, OrganizationData>();
+
+    for (const project of projects) {
+      // Use contact info as organization identifier
+      const orgName = project.organization?.name || project.contactTitle || 'Unknown Organization';
+      const orgId = `globalgiving-${orgName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+
+      // Skip if already processed
+      if (orgsMap.has(orgId)) continue;
+
+      // Extract organization data
+      const org: OrganizationData = {
+        org_id: orgId,
+        name: orgName,
+        type: 'ngo' as const,
+        source: 'globalgiving',
+        industry: project.themeName || project.themes?.theme?.[0]?.name || 'Nonprofit',
+        location: project.contactCity && project.contactCountry
+          ? `${project.contactCity}, ${project.contactCountry}`
+          : project.contactCountry || project.country || undefined,
+        city: project.contactCity || undefined,
+        country: project.contactCountry || project.country || undefined,
+        country_code: project.iso3166CountryCode || undefined,
+        website: project.contactUrl || undefined,
+        description: project.organization?.mission?.substring(0, 500) || project.summary?.substring(0, 500) || undefined,
+        tags: project.themes?.theme
+          ? (Array.isArray(project.themes.theme) ? project.themes.theme : [project.themes.theme]).map((t: any) => t.name)
+          : project.themeName ? [project.themeName] : [],
+        metadata: {
+          globalgiving_source: 'projects_endpoint',
+          contact_name: project.contactName,
+          contact_address: project.contactAddress,
+          contact_address2: project.contactAddress2,
+          contact_postal: project.contactPostal,
+          contact_state: project.contactState,
+          region: project.region,
+          sample_project_id: project.id,
+          sample_project_title: project.title,
+          themes: project.themes?.theme || [],
+        },
+      };
+
+      orgsMap.set(orgId, org);
+    }
+
+    const ngos = Array.from(orgsMap.values());
+    console.log(`   🏢 Extracted ${ngos.length} unique organizations`);
 
     return ngos;
   },
