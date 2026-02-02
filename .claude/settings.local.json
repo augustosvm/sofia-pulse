@@ -130,7 +130,8 @@
       "Bash(wc:*)",
       "Bash(for max in 50 25 20)",
       "Bash(do echo \"Testing max=$max...\")",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:bdtd.ibict.br)"
     ]
   }
 }
