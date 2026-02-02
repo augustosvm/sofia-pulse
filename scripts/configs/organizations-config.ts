@@ -338,131 +338,71 @@ export const universities: OrganizationsCollectorConfig = {
 export const ngos: OrganizationsCollectorConfig = {
   name: 'ngos',
   displayName: '🌍 Global NGOs Tracker',
-  description: 'Top humanitarian and advocacy organizations worldwide',
+  description: 'Global NGOs from GlobalGiving API (9,000+ organizations)',
 
-  // Mock data (em produção usaria APIs de NGO registries)
-  url: 'https://api.example.com/ngos', // Placeholder
+  // GlobalGiving API - Organizations endpoint
+  // FREE API Key: https://www.globalgiving.org/api/keys/new/
+  url: (env) => {
+    const apiKey = env.GLOBALGIVING_API_KEY || '';
+    if (!apiKey) {
+      console.warn('⚠️  GLOBALGIVING_API_KEY not set. Using fallback to empty data.');
+      return null as any; // Will trigger fallback in parseResponse
+    }
+    return `https://api.globalgiving.org/api/public/projectservice/organizations?api_key=${apiKey}`;
+  },
 
-  parseResponse: async (_, env) => {
-    // Mock data de NGOs reais
-    const ngos: OrganizationData[] = [
-      {
-        org_id: 'ngos-redcross',
-        name: 'International Red Cross',
-        type: 'ngo',
-        source: 'ngos',
-        industry: 'Humanitarian',
-        location: 'Geneva',
-        city: 'Geneva',
-        country: 'Switzerland',
-        country_code: 'CH',
-        founded_date: '1863-10-26',
-        website: 'https://www.icrc.org',
-        description: 'Humanitarian organization providing emergency assistance',
-        tags: ['Humanitarian', 'Emergency', 'Healthcare', 'Global'],
-        metadata: {
-          focus_areas: ['Emergency Response', 'Healthcare', 'Conflict Zones'],
-          beneficiaries: 100000000,
-          countries_active: 192,
-          volunteers: 450000,
-          annual_budget_usd: 2000000000,
-        },
+  parseResponse: async (data, env) => {
+    // Fallback if API key missing
+    if (!env.GLOBALGIVING_API_KEY) {
+      console.warn('⚠️  GLOBALGIVING_API_KEY missing. Returning empty data.');
+      console.warn('   Get FREE API key: https://www.globalgiving.org/api/keys/new/');
+      return [];
+    }
+
+    // Handle API response
+    if (!data || !data.organizations || !data.organizations.organization) {
+      console.warn('⚠️  No organizations found in API response');
+      return [];
+    }
+
+    const orgs = Array.isArray(data.organizations.organization)
+      ? data.organizations.organization
+      : [data.organizations.organization];
+
+    const ngos: OrganizationData[] = orgs.map((org: any) => ({
+      org_id: `globalgiving-${org.id}`,
+      name: org.name,
+      type: 'ngo' as const,
+      source: 'globalgiving',
+      industry: org.themes?.theme?.[0]?.name || 'Nonprofit',
+      location: org.city && org.country ? `${org.city}, ${org.country}` : org.country || undefined,
+      city: org.city || undefined,
+      country: org.country || undefined,
+      country_code: org.iso3166CountryCode || undefined,
+      website: org.url || undefined,
+      description: org.mission?.substring(0, 500) || undefined,
+      tags: org.themes?.theme ? org.themes.theme.map((t: any) => t.name) : [],
+      metadata: {
+        globalgiving_id: org.id,
+        logo_url: org.logoUrl,
+        mission: org.mission,
+        active_projects: org.activeProjects || 0,
+        total_donations: org.totalDonations || 0,
+        themes: org.themes?.theme || [],
+        url_full: org.url,
+        organization_type: org.type || 'ngo',
+        addressLine1: org.addressLine1,
+        addressLine2: org.addressLine2,
+        postal: org.postal,
+        iso3166CountryCode: org.iso3166CountryCode,
       },
-      {
-        org_id: 'ngos-msf',
-        name: 'Médecins Sans Frontières',
-        type: 'ngo',
-        source: 'ngos',
-        industry: 'Healthcare',
-        location: 'Geneva',
-        city: 'Geneva',
-        country: 'Switzerland',
-        country_code: 'CH',
-        founded_date: '1971-12-22',
-        website: 'https://www.msf.org',
-        description: 'International medical humanitarian organization',
-        tags: ['Healthcare', 'Emergency', 'Medical', 'Nobel Prize'],
-        metadata: {
-          focus_areas: ['Medical Care', 'Emergency Response', 'Epidemics'],
-          beneficiaries: 13000000,
-          countries_active: 70,
-          staff: 63000,
-          annual_budget_usd: 1700000000,
-          awards: ['Nobel Peace Prize 1999'],
-        },
-      },
-      {
-        org_id: 'ngos-greenpeace',
-        name: 'Greenpeace International',
-        type: 'ngo',
-        source: 'ngos',
-        industry: 'Environmental',
-        location: 'Amsterdam',
-        city: 'Amsterdam',
-        country: 'Netherlands',
-        country_code: 'NL',
-        founded_date: '1971-09-15',
-        website: 'https://www.greenpeace.org',
-        description: 'Environmental activism organization',
-        tags: ['Environment', 'Climate', 'Activism', 'Global'],
-        metadata: {
-          focus_areas: ['Climate Change', 'Oceans', 'Forests', 'Toxics'],
-          countries_active: 55,
-          members: 3000000,
-          annual_budget_usd: 350000000,
-        },
-      },
-      {
-        org_id: 'ngos-amnesty',
-        name: 'Amnesty International',
-        type: 'ngo',
-        source: 'ngos',
-        industry: 'Human Rights',
-        location: 'London',
-        city: 'London',
-        country: 'United Kingdom',
-        country_code: 'GB',
-        founded_date: '1961-07-01',
-        website: 'https://www.amnesty.org',
-        description: 'Global movement for human rights',
-        tags: ['Human Rights', 'Advocacy', 'Justice', 'Nobel Prize'],
-        metadata: {
-          focus_areas: ['Human Rights', 'Justice', 'Freedom of Expression'],
-          countries_active: 150,
-          members: 10000000,
-          annual_budget_usd: 300000000,
-          awards: ['Nobel Peace Prize 1977'],
-        },
-      },
-      {
-        org_id: 'ngos-oxfam',
-        name: 'Oxfam International',
-        type: 'ngo',
-        source: 'ngos',
-        industry: 'Development',
-        location: 'Nairobi',
-        city: 'Nairobi',
-        country: 'Kenya',
-        country_code: 'KE',
-        founded_date: '1942-01-01',
-        website: 'https://www.oxfam.org',
-        description: 'Global organization fighting poverty and injustice',
-        tags: ['Development', 'Poverty', 'Justice', 'Global'],
-        metadata: {
-          focus_areas: ['Poverty', 'Inequality', 'Climate Justice'],
-          beneficiaries: 19000000,
-          countries_active: 90,
-          staff: 10000,
-          annual_budget_usd: 1100000000,
-        },
-      },
-    ];
+    }));
 
     return ngos;
   },
 
   schedule: '0 8 1 * *', // Monthly on 1st at 8am
-  allowWithoutAuth: true,
+  allowWithoutAuth: false, // Requires API key
 };
 
 // ============================================================================
