@@ -24,7 +24,9 @@ import type { TechConferenceCollectorConfig } from '../collectors/tech-conferenc
 export const confsTech: TechConferenceCollectorConfig = {
   name: 'confs-tech',
   displayName: '🎤 Confs.tech',
-  url: 'https://raw.githubusercontent.com/tech-conferences/conference-data/main/conferences/2024.json',
+  // Repository structure changed in 2025: now organized by year folders with topic files
+  // Using 'general.json' for broader tech conference coverage
+  url: 'https://raw.githubusercontent.com/tech-conferences/conference-data/main/conferences/2026/general.json',
   timeout: 30000,
   parseResponse: async (data) => {
     const conferences = Array.isArray(data) ? data : [];
@@ -40,15 +42,15 @@ export const confsTech: TechConferenceCollectorConfig = {
     return upcoming.map((conf: any) => ({
       event_name: conf.name,
       event_type: 'conference',
-      category: conf.category || conf.topics?.[0] || 'Technology',
+      category: 'Technology', // New structure doesn't have category field
       start_date: conf.startDate,
       end_date: conf.endDate,
-      location_city: conf.city,
-      location_country: conf.country,
+      location_city: conf.city || null,
+      location_country: conf.country || null,
       is_online: conf.online || false,
       website_url: conf.url,
-      topics: conf.topics?.join(', ').slice(0, 255) || '',
-      description: conf.description?.slice(0, 500),
+      topics: '', // New structure doesn't have topics array
+      description: conf.description?.slice(0, 500) || null,
       source: 'confs-tech',
     }));
   },
