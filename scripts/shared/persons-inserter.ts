@@ -112,12 +112,14 @@ const query = `
         last_updated
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
-      ON CONFLICT (normalized_name) DO UPDATE SET
+      ON CONFLICT (full_name, primary_affiliation) DO UPDATE SET
         last_updated = NOW(),
         -- Update simple fields if they are null in DB but present in new data
         orcid_id = COALESCE(sofia.persons.orcid_id, EXCLUDED.orcid_id),
         country = COALESCE(sofia.persons.country, EXCLUDED.country),
-        primary_affiliation = COALESCE(sofia.persons.primary_affiliation, EXCLUDED.primary_affiliation)
+        h_index = GREATEST(sofia.persons.h_index, EXCLUDED.h_index),
+        total_citations = GREATEST(sofia.persons.total_citations, EXCLUDED.total_citations),
+        total_papers = GREATEST(sofia.persons.total_papers, EXCLUDED.total_papers)
       RETURNING id
     `;
 
