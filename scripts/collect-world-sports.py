@@ -293,6 +293,7 @@ def save_who_data(conn, records: List[Dict], indicator: Dict) -> int:
     )
 
     inserted = 0
+    errors = 0
 
     for record in records:
         value = record.get("NumericValue")
@@ -304,9 +305,9 @@ def save_who_data(conn, records: List[Dict], indicator: Dict) -> int:
             continue
 
         try:
-            # Normalize country
-            location = normalize_location(conn, {"country": country_code})
-            country_id = location["country_id"]
+            # FIX: Use 'country' variable, not undefined 'country_code'
+            location = normalize_location(conn, {"country": country})
+            country_id = location.get("country_id")
 
             cursor.execute(
                 """
@@ -328,7 +329,10 @@ def save_who_data(conn, records: List[Dict], indicator: Dict) -> int:
                 ),
             )
             inserted += 1
-        except:
+        except Exception as e:
+            errors += 1
+            if errors <= 3:  # Log first 3 errors only
+                print(f"      ERROR saving WHO record: {str(e)[:100]}")
             continue
 
     conn.commit()
@@ -345,6 +349,7 @@ def save_worldbank_data(conn, records: List[Dict], indicator_code: str, indicato
     cursor = conn.cursor()
 
     inserted = 0
+    errors = 0
 
     for record in records:
         value = record.get("value")
@@ -352,26 +357,35 @@ def save_worldbank_data(conn, records: List[Dict], indicator_code: str, indicato
             continue
 
         try:
+            # Normalize country
+            country_code = record.get("countryiso3code", record.get("country", {}).get("id"))
+            location = normalize_location(conn, {"country": country_code})
+            country_id = location.get("country_id")
+
             cursor.execute(
                 """
                 INSERT INTO sofia.world_sports_data (source, indicator_code, indicator_name, category, country_code, sex, year, value, country_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (source, indicator_code, country_code, sex, year)
-                DO UPDATE SET value = EXCLUDED.value
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
             """,
                 (
                     "World Bank",
                     indicator_code,
-                    indicator_info.get("name", "", country_id=EXCLUDED.country_id),
+                    indicator_info.get("name", ""),
                     indicator_info.get("category", "economic"),
-                    record.get("countryiso3code", record.get("country", {}).get("id")),
+                    country_code,
                     "BTSX",  # Both sexes for general indicators
                     int(record.get("date")) if record.get("date") else None,
                     float(value),
+                    country_id,
                 ),
             )
             inserted += 1
-        except:
+        except Exception as e:
+            errors += 1
+            if errors <= 3:  # Log first 3 errors only
+                print(f"      ERROR saving World Bank record: {str(e)[:100]}")
             continue
 
     conn.commit()
@@ -427,32 +441,45 @@ def main():
         print(f"    Fetched: {len(eurostat_data)} records")
         # Save Eurostat data
         cursor = conn.cursor()
+        eurostat_errors = 0
+        eurostat_saved = 0
         for r in eurostat_data:
             try:
+                # Normalize country (EU is not a country, use NULL)
+                location = normalize_location(conn, {"country": "EU"})
+                country_id = location.get("country_id")
+
                 cursor.execute(
                     """
                     INSERT INTO sofia.world_sports_data (source, indicator_code, indicator_name, category, country_code, sex, year, value, country_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (source, indicator_code, country_code, sex, year)
-                    DO UPDATE SET value = EXCLUDED.value
+                    DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
                 """,
                     (
                         "Eurostat",
-                        r.get("dataset", "", country_id=EXCLUDED.country_id),
+                        r.get("dataset", ""),
                         r.get("dataset_name", ""),
                         r.get("category", "participation"),
                         "EU",
                         "BTSX",
                         2022,
                         float(r.get("value", 0)),
+                        country_id,
                     ),
                 )
                 total_records += 1
-            except:
+                eurostat_saved += 1
+            except Exception as e:
+                eurostat_errors += 1
+                if eurostat_errors <= 3:  # Log first 3 errors only
+                    print(f"      ERROR saving Eurostat record: {str(e)[:100]}")
                 continue
         conn.commit()
         cursor.close()
-        print(f"    Saved records")
+        print(f"    Saved: {eurostat_saved} records")
+        if eurostat_errors > 0:
+            print(f"    Errors: {eurostat_errors}")
     print("")
 
     # 3. Socioeconomic Indicators
