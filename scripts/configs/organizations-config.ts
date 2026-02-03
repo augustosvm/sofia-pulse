@@ -190,7 +190,8 @@ export const universities: OrganizationsCollectorConfig = {
   description: 'Top research universities - QS/THE/ARWU rankings',
 
   // Mock data (em produção usaria QS/THE APIs)
-  url: 'https://api.example.com/universities', // Placeholder
+  // URL null triggers fallback to parseResponse with mock data
+  url: (env) => null as any,
 
   parseResponse: async (_, env) => {
     // Mock data baseado em rankings reais de 2024
