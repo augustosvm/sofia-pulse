@@ -157,20 +157,19 @@ export class NGOsCollector {
       const downloadResponse = await axios.get(downloadEndpoint, {
         timeout: 30000,
         validateStatus: (status) => status >= 200 && status < 500,
-        responseType: 'text', // Force text response
       });
 
       if (downloadResponse.status !== 200) {
         throw new Error(`API returned status ${downloadResponse.status}`);
       }
 
-      // Debug: log response type
-      console.log(`   Response type: ${typeof downloadResponse.data}`);
-      console.log(`   Response preview: ${String(downloadResponse.data).substring(0, 100)}...`);
+      // API returns JSON: {"download": {"url": "https://..."}}
+      const downloadData =
+        typeof downloadResponse.data === 'string'
+          ? JSON.parse(downloadResponse.data)
+          : downloadResponse.data;
 
-      // Parse XML to extract signed URL
-      const downloadXML = await parseStringPromise(String(downloadResponse.data));
-      const signedUrl = downloadXML.download?.url?.[0];
+      const signedUrl = downloadData?.download?.url;
 
       if (!signedUrl) {
         throw new Error('No signed URL found in API response');
