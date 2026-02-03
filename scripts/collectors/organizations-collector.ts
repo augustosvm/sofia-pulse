@@ -127,7 +127,7 @@ export class OrganizationsCollector {
         ? config.url(process.env)
         : config.url;
 
-      // Check if URL is null/undefined (fallback case)
+      // Check if URL is null/undefined (fallback case with mock/static data)
       if (!url) {
         console.log('⚠️  URL is null - using parseResponse fallback');
         console.log('');
@@ -135,20 +135,50 @@ export class OrganizationsCollector {
         // Call parseResponse with null data for fallback handling
         const organizations = await config.parseResponse(null, process.env);
         console.log(`   ✅ Parsed ${organizations.length} organizations (fallback)`);
+        console.log('');
 
-        // Finish tracking (success with 0 records)
+        // Insert into database (same as API-based flow)
+        console.log(`💾 Inserting into database...`);
+        for (const org of organizations) {
+          try {
+            await this.inserter.insertOrganization(org);
+            collected++;
+          } catch (error: any) {
+            console.error(`   ❌ Error inserting ${org.name}:`, error.message);
+            errors++;
+          }
+        }
+
+        console.log(`   ✅ Inserted ${collected} organizations`);
+        if (errors > 0) {
+          console.log(`   ⚠️  ${errors} errors during insertion`);
+        }
+
+        const duration = Date.now() - startTime;
+
+        // Finish tracking (success)
         if (runId) {
           await this.pool.query(
             'SELECT sofia.finish_collector_run($1, $2, $3, $4)',
-            [runId, 'success', 0, 0]
+            [runId, 'success', collected, errors]
           );
         }
 
+        console.log('');
+        console.log('='.repeat(70));
+        console.log(`✅ Collection complete (fallback mode)!`);
+        console.log(`   Run ID: ${runId}`);
+        console.log(`   Collected: ${collected} organizations`);
+        console.log(`   Errors: ${errors}`);
+        console.log(`   Duration: ${(duration / 1000).toFixed(2)}s`);
+        console.log('='.repeat(70));
+        console.log('');
+
         return {
           success: true,
-          collected: 0,
-          errors: 0,
-          duration: Date.now() - startTime,
+          collected,
+          errors,
+          duration,
         };
       }
 
