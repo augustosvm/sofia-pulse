@@ -37,6 +37,7 @@ import { runTechConferencesCLI } from './collectors/tech-conferences-collector.j
 import { runBrazilCLI } from './collectors/brazil-collector.js';
 import { runIndustrySignalsCLI } from './collectors/industry-signals-collector.js';
 import { runPythonBridgeCLI } from './collectors/python-bridge-collector.js';
+import { NGOsCollector } from './collectors/ngos-collector.js';
 import { collectGreenhouseJobs } from './collect-greenhouse-jobs.js';
 import { collectCathoJobs } from './collect-catho-final.js';
 import { collectCurrencyRates } from './collect-currency-rates.js';
@@ -144,6 +145,21 @@ async function main() {
     // Verifica se é jobs collector
     if (collectorName in jobsCollectors) {
       await runJobsCLI(jobsCollectors);
+      return;
+    }
+
+    // Special case: NGOs (standalone bulk download collector)
+    if (collectorName === 'ngos') {
+      const collector = new NGOsCollector();
+      try {
+        const result = await collector.collect();
+        if (!result.success || result.saved === 0) {
+          process.exit(1);
+        }
+        process.exit(0);
+      } finally {
+        await collector.close();
+      }
       return;
     }
 
