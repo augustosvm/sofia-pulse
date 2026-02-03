@@ -131,7 +131,15 @@
       "Bash(for max in 50 25 20)",
       "Bash(do echo \"Testing max=$max...\")",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:bdtd.ibict.br)"
+      "WebFetch(domain:bdtd.ibict.br)",
+      "Bash(timeout 10 curl:*)",
+      "WebFetch(domain:www.globalgiving.org)",
+      "Bash(xargs curl -s)",
+      "Bash(timeout 180 python3:*)",
+      "Bash(for f in scripts/collect-*.py)",
+      "Bash(do if grep -A1 \"except Exception:\" \"$f\")",
+      "Bash(! grep -B5 \"except Exception:\" \"$f\")",
+      "Bash(then echo \"$f\" fi done)"
     ]
   }
 }
