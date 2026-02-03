@@ -70,75 +70,131 @@ interface EPOPatent {
 // DATABASE FUNCTIONS
 // ============================================================================
 
-async function createTableIfNotExists(client: Client): Promise<void> {
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS epo_patents (
-      id SERIAL PRIMARY KEY,
-      application_number VARCHAR(50) UNIQUE,
-      title TEXT NOT NULL,
-      applicant VARCHAR(255),
-      applicant_country VARCHAR(100),
-      inventors TEXT[],
-      ipc_classification VARCHAR(50)[],
-      filing_date DATE,
-      publication_date DATE,
-      abstract TEXT,
-      status VARCHAR(50),
-      technology_field VARCHAR(100),
-      designated_states VARCHAR(10)[],
-      collected_at TIMESTAMP DEFAULT NOW()
-    );
 
-    -- Indexes
-    CREATE INDEX IF NOT EXISTS idx_epo_applicant
-      ON epo_patents(applicant);
+// ============================================================================
+// DATABASE FUNCTIONS
+// ============================================================================
 
-    CREATE INDEX IF NOT EXISTS idx_epo_country
-      ON epo_patents(applicant_country);
+function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-');  // Replace multiple - with single -
+}
 
-    CREATE INDEX IF NOT EXISTS idx_epo_filing_date
-      ON epo_patents(filing_date DESC);
+async function ensureOrganization(client: Client, name: string, country?: string): Promise<number> {
+  // Try to find by name
+  const findQuery = `SELECT id FROM sofia.organizations WHERE name = $1 LIMIT 1`;
+  const findRes = await client.query(findQuery, [name]);
 
-    CREATE INDEX IF NOT EXISTS idx_epo_tech_field
-      ON epo_patents(technology_field);
+  if (findRes.rows.length > 0) {
+    return findRes.rows[0].id;
+  }
 
-    CREATE INDEX IF NOT EXISTS idx_epo_ipc
-      ON epo_patents USING GIN(ipc_classification);
+  // Insert if not exists
+  const orgId = slugify(name) + '-' + Math.floor(Math.random() * 10000); // Simple uniqueness for mock
+  const insertQuery = `
+    INSERT INTO sofia.organizations (name, normalized_name, organization_id, created_at)
+    VALUES ($1, $2, $3, NOW())
+    RETURNING id
   `;
+  const insertRes = await client.query(insertQuery, [name, name.toLowerCase(), orgId]);
+  return insertRes.rows[0].id;
+}
 
-  await client.query(createTableQuery);
-  console.log('✅ Table epo_patents ready');
+async function ensurePerson(client: Client, fullName: string): Promise<number> {
+  const findQuery = `SELECT id FROM sofia.persons WHERE full_name = $1 LIMIT 1`;
+  const findRes = await client.query(findQuery, [fullName]);
+
+  if (findRes.rows.length > 0) {
+    return findRes.rows[0].id;
+  }
+
+  const insertQuery = `
+    INSERT INTO sofia.persons (full_name, normalized_name, first_seen)
+    VALUES ($1, $2, NOW())
+    RETURNING id
+  `;
+  const insertRes = await client.query(insertQuery, [fullName, fullName.toLowerCase()]);
+  return insertRes.rows[0].id;
 }
 
 async function insertPatent(client: Client, patent: EPOPatent): Promise<void> {
+  // 1. Insert Patent
   const insertQuery = `
-    INSERT INTO epo_patents (
-      application_number, title, applicant, applicant_country,
-      inventors, ipc_classification, filing_date, publication_date,
-      abstract, status, technology_field, designated_states
+    INSERT INTO sofia.patents (
+      source, patent_number, title, abstract, 
+      ipc_classification, filing_date, publication_date,
+      status, technology_field, country_code,
+      inventors_count, collected_at, updated_at
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    ON CONFLICT (application_number)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+    ON CONFLICT (source, patent_number)
     DO UPDATE SET
       status = EXCLUDED.status,
-      collected_at = NOW();
+      updated_at = NOW()
+    RETURNING id;
   `;
 
-  await client.query(insertQuery, [
-    patent.application_number,
-    patent.title,
-    patent.applicant,
-    patent.applicant_country,
-    patent.inventors,
-    patent.ipc_classification,
-    patent.filing_date,
-    patent.publication_date,
-    patent.abstract,
-    patent.status,
-    patent.technology_field || null,
-    patent.designated_states || [],
+  const res = await client.query(insertQuery, [
+    'EPO',                        // source
+    patent.application_number,    // patent_number
+    patent.title,                 // title
+    patent.abstract,              // abstract
+    patent.ipc_classification,    // ipc_classification
+    patent.filing_date,           // filing_date
+    patent.publication_date,      // publication_date
+    patent.status,                // status
+    patent.technology_field,      // technology_field
+    patent.applicant_country,     // country_code
+    patent.inventors.length,      // inventors_count
   ]);
+
+  const patentId = res.rows[0].id;
+
+  // 2. Link Applicant (Organization)
+  if (patent.applicant) {
+    const orgId = await ensureOrganization(client, patent.applicant, patent.applicant_country);
+
+    // Check if link exists
+    const checkLink = await client.query(
+      `SELECT id FROM sofia.patent_applicants WHERE patent_id = $1 AND organization_id = $2`,
+      [patentId, orgId]
+    );
+
+    if (checkLink.rowCount === 0) {
+      await client.query(
+        `INSERT INTO sofia.patent_applicants (patent_id, organization_id, is_assignee, created_at) VALUES ($1, $2, true, NOW())`,
+        [patentId, orgId]
+      );
+    }
+  }
+
+  // 3. Link Inventors (Persons)
+  if (patent.inventors && patent.inventors.length > 0) {
+    let order = 1;
+    for (const inventorName of patent.inventors) {
+      const personId = await ensurePerson(client, inventorName);
+
+      const checkLink = await client.query(
+        `SELECT id FROM sofia.patent_inventors WHERE patent_id = $1 AND person_id = $2`,
+        [patentId, personId]
+      );
+
+      if (checkLink.rowCount === 0) {
+        await client.query(
+          `INSERT INTO sofia.patent_inventors (patent_id, person_id, inventor_order, is_primary, created_at) VALUES ($1, $2, $3, $4, NOW())`,
+          [patentId, personId, order, order === 1]
+        );
+      }
+      order++;
+    }
+  }
 }
+
 
 // ============================================================================
 // COLLECTORS
@@ -341,7 +397,7 @@ async function collectEPOPatents(): Promise<EPOPatent[]> {
 // MAIN FUNCTION
 // ============================================================================
 
-async function main() {
+async function runEPOCollector() {
   console.log('🚀 Sofia Pulse - EPO Patents Collector');
   console.log('='.repeat(60));
   console.log('');
@@ -360,7 +416,7 @@ async function main() {
     await client.connect();
     console.log('✅ Connected to PostgreSQL');
 
-    await createTableIfNotExists(client);
+    // await createTableIfNotExists(client); // Unified table exists
 
     console.log('');
     console.log('📊 Collecting patents...');
@@ -385,8 +441,9 @@ async function main() {
       SELECT
         technology_field,
         COUNT(*) as patent_count,
-        array_agg(DISTINCT applicant_country) as countries
-      FROM epo_patents
+        array_agg(DISTINCT country_code) as countries
+      FROM sofia.patents
+      WHERE source = 'EPO'
       GROUP BY technology_field
       ORDER BY patent_count DESC;
     `;
@@ -396,14 +453,14 @@ async function main() {
     summary.rows.forEach((row) => {
       console.log(`   ${row.technology_field}:`);
       console.log(`      Patents: ${row.patent_count}`);
-      console.log(`      Countries: ${row.countries.join(', ')}`);
+      console.log(`      Countries: ${row.countries ? row.countries.join(', ') : 'N/A'}`);
       console.log('');
     });
 
     console.log('✅ Collection complete!');
   } catch (error) {
     console.error('❌ Error:', error);
-    process.exit(1);
+    throw error; // Let caller handle
   } finally {
     await client.end();
   }
@@ -512,7 +569,7 @@ if (require.main === module) {
   if (isDryRun) {
     dryRun().catch(console.error);
   } else {
-    main().catch((error) => {
+    runEPOCollector().catch((error) => {
       if (error.code === 'ECONNREFUSED') {
         console.log('');
         console.log('⚠️  Database connection failed!');
@@ -527,4 +584,4 @@ if (require.main === module) {
   }
 }
 
-export { collectEPOPatents, dryRun };
+export { collectEPOPatents, runEPOCollector, dryRun };

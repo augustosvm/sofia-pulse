@@ -18,6 +18,7 @@ Os seguintes scripts foram removidos do repositório em 03/02/2026 pois violavam
 
 - `test-brazil-patents.py`
 - `scripts/test-bigquery-simple.py`
+- `scripts/collect-basedosdados-brazil.py`
 
 **NUNCA RESTAURE ESSES ARQUIVOS SEM APROVAÇÃO EXPLÍCITA.**
 

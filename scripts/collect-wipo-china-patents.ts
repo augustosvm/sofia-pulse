@@ -72,74 +72,117 @@ interface WIPOPatent {
 // DATABASE FUNCTIONS
 // ============================================================================
 
-async function createTableIfNotExists(client: Client): Promise<void> {
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS wipo_china_patents (
-      id SERIAL PRIMARY KEY,
-      application_number VARCHAR(50) UNIQUE,
-      title TEXT NOT NULL,
-      title_cn TEXT,
-      applicant VARCHAR(255),
-      inventors TEXT[],
-      ipc_classification VARCHAR(50)[],
-      filing_date DATE,
-      publication_date DATE,
-      abstract TEXT,
-      abstract_cn TEXT,
-      status VARCHAR(50),
-      technology_field VARCHAR(100),
-      collected_at TIMESTAMP DEFAULT NOW()
-    );
 
-    -- Indexes para queries rápidas
-    CREATE INDEX IF NOT EXISTS idx_wipo_applicant
-      ON wipo_china_patents(applicant);
+// ============================================================================
+// DATABASE FUNCTIONS
+// ============================================================================
 
-    CREATE INDEX IF NOT EXISTS idx_wipo_filing_date
-      ON wipo_china_patents(filing_date DESC);
+function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+}
 
-    CREATE INDEX IF NOT EXISTS idx_wipo_tech_field
-      ON wipo_china_patents(technology_field);
+async function ensureOrganization(client: Client, name: string): Promise<number> {
+  const findQuery = `SELECT id FROM sofia.organizations WHERE name = $1 LIMIT 1`;
+  const findRes = await client.query(findQuery, [name]);
 
-    CREATE INDEX IF NOT EXISTS idx_wipo_ipc
-      ON wipo_china_patents USING GIN(ipc_classification);
+  if (findRes.rows.length > 0) return findRes.rows[0].id;
+
+  const orgId = slugify(name) + '-' + Math.floor(Math.random() * 10000);
+  const insertQuery = `
+    INSERT INTO sofia.organizations (name, normalized_name, organization_id, created_at)
+    VALUES ($1, $2, $3, NOW())
+    RETURNING id
   `;
+  const insertRes = await client.query(insertQuery, [name, name.toLowerCase(), orgId]);
+  return insertRes.rows[0].id;
+}
 
-  await client.query(createTableQuery);
-  console.log('✅ Table wipo_china_patents ready');
+async function ensurePerson(client: Client, fullName: string): Promise<number> {
+  const findQuery = `SELECT id FROM sofia.persons WHERE full_name = $1 LIMIT 1`;
+  const findRes = await client.query(findQuery, [fullName]);
+
+  if (findRes.rows.length > 0) return findRes.rows[0].id;
+
+  const insertQuery = `
+    INSERT INTO sofia.persons (full_name, normalized_name, first_seen)
+    VALUES ($1, $2, NOW())
+    RETURNING id
+  `;
+  const insertRes = await client.query(insertQuery, [fullName, fullName.toLowerCase()]);
+  return insertRes.rows[0].id;
 }
 
 async function insertPatent(client: Client, patent: WIPOPatent): Promise<void> {
   const insertQuery = `
-    INSERT INTO wipo_china_patents (
-      application_number, title, title_cn, applicant, inventors,
+    INSERT INTO sofia.patents (
+      source, patent_number, title, abstract, 
       ipc_classification, filing_date, publication_date,
-      abstract, abstract_cn, status, technology_field
+      status, technology_field, country_code,
+      inventors_count, collected_at, updated_at
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    ON CONFLICT (application_number)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+    ON CONFLICT (source, patent_number)
     DO UPDATE SET
-      title = EXCLUDED.title,
-      applicant = EXCLUDED.applicant,
       status = EXCLUDED.status,
-      collected_at = NOW();
+      updated_at = NOW()
+    RETURNING id;
   `;
 
-  await client.query(insertQuery, [
-    patent.application_number,
-    patent.title,
-    patent.title_cn || null,
-    patent.applicant,
-    patent.inventors,
-    patent.ipc_classification,
-    patent.filing_date,
-    patent.publication_date,
-    patent.abstract,
-    patent.abstract_cn || null,
-    patent.status,
-    patent.technology_field || null,
+  const res = await client.query(insertQuery, [
+    'WIPO',                       // source
+    patent.application_number,    // patent_number
+    patent.title,                 // title
+    patent.abstract,              // abstract
+    patent.ipc_classification,    // ipc_classification
+    patent.filing_date,           // filing_date
+    patent.publication_date,      // publication_date
+    patent.status,                // status
+    patent.technology_field,      // technology_field
+    'CN',                         // country_code
+    patent.inventors.length,      // inventors_count
   ]);
+
+  const patentId = res.rows[0].id;
+
+  if (patent.applicant) {
+    const orgId = await ensureOrganization(client, patent.applicant);
+    const checkLink = await client.query(
+      `SELECT id FROM sofia.patent_applicants WHERE patent_id = $1 AND organization_id = $2`,
+      [patentId, orgId]
+    );
+    if (checkLink.rowCount === 0) {
+      await client.query(
+        `INSERT INTO sofia.patent_applicants (patent_id, organization_id, is_assignee, created_at) VALUES ($1, $2, true, NOW())`,
+        [patentId, orgId]
+      );
+    }
+  }
+
+  if (patent.inventors && patent.inventors.length > 0) {
+    let order = 1;
+    for (const inventorName of patent.inventors) {
+      const personId = await ensurePerson(client, inventorName);
+      const checkLink = await client.query(
+        `SELECT id FROM sofia.patent_inventors WHERE patent_id = $1 AND person_id = $2`,
+        [patentId, personId]
+      );
+      if (checkLink.rowCount === 0) {
+        await client.query(
+          `INSERT INTO sofia.patent_inventors (patent_id, person_id, inventor_order, is_primary, created_at) VALUES ($1, $2, $3, $4, NOW())`,
+          [patentId, personId, order, order === 1]
+        );
+      }
+      order++;
+    }
+  }
 }
+
 
 // ============================================================================
 // COLLECTORS
@@ -335,7 +378,7 @@ async function collectWIPOPatents(): Promise<WIPOPatent[]> {
 // MAIN FUNCTION
 // ============================================================================
 
-async function main() {
+async function runWIPOCollector() {
   console.log('🚀 Sofia Pulse - WIPO China Patents Collector');
   console.log('='.repeat(60));
   console.log('');
@@ -354,7 +397,7 @@ async function main() {
     await client.connect();
     console.log('✅ Connected to PostgreSQL');
 
-    await createTableIfNotExists(client);
+    // await createTableIfNotExists(client); // Unified table exists
 
     console.log('');
     console.log('📊 Collecting patents...');
@@ -378,9 +421,9 @@ async function main() {
     const summaryQuery = `
       SELECT
         technology_field,
-        COUNT(*) as patent_count,
-        array_agg(DISTINCT applicant) as top_applicants
-      FROM wipo_china_patents
+        COUNT(*) as patent_count
+      FROM sofia.patents
+      WHERE source = 'WIPO'
       GROUP BY technology_field
       ORDER BY patent_count DESC;
     `;
@@ -390,7 +433,7 @@ async function main() {
     summary.rows.forEach((row) => {
       console.log(`   ${row.technology_field}:`);
       console.log(`      Patents: ${row.patent_count}`);
-      console.log(`      Top Applicants: ${row.top_applicants.slice(0, 3).join(', ')}`);
+      // console.log(`      Top Applicants: ${row.top_applicants.slice(0, 3).join(', ')}`); // removed as applicant not in simple query
       console.log('');
     });
 
@@ -405,7 +448,7 @@ async function main() {
     console.log('✅ Collection complete!');
   } catch (error) {
     console.error('❌ Error:', error);
-    process.exit(1);
+    throw error;
   } finally {
     await client.end();
   }
@@ -506,7 +549,7 @@ if (require.main === module) {
   if (isDryRun) {
     dryRun().catch(console.error);
   } else {
-    main().catch((error) => {
+    runWIPOCollector().catch((error) => {
       if (error.code === 'ECONNREFUSED') {
         console.log('');
         console.log('⚠️  Database connection failed!');
@@ -521,4 +564,4 @@ if (require.main === module) {
   }
 }
 
-export { collectWIPOPatents, dryRun };
+export { collectWIPOPatents, runWIPOCollector, dryRun };
