@@ -406,15 +406,19 @@ export class NGOsCollector {
       }
     });
 
+    // Normalized name (legacy column - same as organization_id)
+    const normalizedName = orgId;
+
     // INSERT/UPSERT
     const query = `
       INSERT INTO sofia.organizations (
-        organization_id, name, type, country_id, city_id, metadata
+        organization_id, name, normalized_name, type, country_id, city_id, metadata
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (organization_id)
       DO UPDATE SET
         name = EXCLUDED.name,
+        normalized_name = EXCLUDED.normalized_name,
         type = EXCLUDED.type,
         country_id = EXCLUDED.country_id,
         city_id = EXCLUDED.city_id,
@@ -424,6 +428,7 @@ export class NGOsCollector {
     await this.pool.query(query, [
       orgId,
       name,
+      normalizedName,
       'ngo',
       countryId,
       cityId,
