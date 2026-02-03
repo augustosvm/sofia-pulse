@@ -84,10 +84,11 @@ export class OrganizationsInserter {
     // Normalizar nome para usar como chave única
     const normalizedName = org.org_id || this.normalizeName(org.name);
 
-    // Resolve country to country_id
+    // Resolve country to country_id (create if not exists)
     let countryId: number | null = null;
     if (org.country || org.country_code) {
-      const countryResult = await db.query(
+      // Try to find existing country
+      let countryResult = await db.query(
         `SELECT id FROM sofia.countries
          WHERE common_name = $1
             OR iso_alpha2 = $2
@@ -96,29 +97,61 @@ export class OrganizationsInserter {
          LIMIT 1`,
         [org.country || '', org.country_code || '']
       );
+
       if (countryResult.rows.length > 0) {
         countryId = countryResult.rows[0].id;
+      } else if (org.country) {
+        // Country doesn't exist - create it
+        const insertResult = await db.query(
+          `INSERT INTO sofia.countries (common_name, iso_alpha2, iso_alpha3)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (common_name) DO UPDATE SET common_name = EXCLUDED.common_name
+           RETURNING id`,
+          [
+            org.country,
+            org.country_code?.substring(0, 2) || null,
+            org.country_code?.substring(0, 3) || null,
+          ]
+        );
+        countryId = insertResult.rows[0].id;
       }
     }
 
-    // Resolve city to city_id (only if country_id exists)
+    // Resolve city to city_id (create if not exists, only if country_id exists)
     let cityId: number | null = null;
     if (org.city && countryId) {
-      const cityResult = await db.query(
+      // Try to find existing city
+      let cityResult = await db.query(
         `SELECT id FROM sofia.cities
          WHERE name = $1 AND country_id = $2
          LIMIT 1`,
         [org.city, countryId]
       );
+
       if (cityResult.rows.length > 0) {
         cityId = cityResult.rows[0].id;
+      } else {
+        // City doesn't exist - create it
+        // Note: cities table has UNIQUE constraint on (name, state_id, country_id)
+        // We use state_id = NULL since we don't have state info from most sources
+        const insertResult = await db.query(
+          `INSERT INTO sofia.cities (name, state_id, country_id)
+           VALUES ($1, NULL, $2)
+           ON CONFLICT (name, state_id, country_id) DO UPDATE
+           SET name = EXCLUDED.name
+           RETURNING id`,
+          [org.city, countryId]
+        );
+        cityId = insertResult.rows[0].id;
       }
     }
 
-    // Colocar campos extras no metadata (exceto os que foram normalizados)
+    // organization_id is now a proper column (not in metadata)
+    const organizationId = org.org_id || normalizedName;
+
+    // Colocar campos extras no metadata (exceto os que foram normalizados: country_id, city_id, organization_id)
     const fullMetadata = {
       ...(org.metadata || {}),
-      org_id: org.org_id,
       source: org.source,
       industry: org.industry,
       location: org.location,
@@ -140,12 +173,13 @@ export class OrganizationsInserter {
 
     const query = `
       INSERT INTO sofia.organizations (
-        name, normalized_name, type, country_id, city_id, metadata
+        organization_id, name, normalized_name, type, country_id, city_id, metadata
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
-      ON CONFLICT (normalized_name)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (organization_id)
       DO UPDATE SET
         name = EXCLUDED.name,
+        normalized_name = EXCLUDED.normalized_name,
         type = EXCLUDED.type,
         country_id = EXCLUDED.country_id,
         city_id = EXCLUDED.city_id,
@@ -153,6 +187,7 @@ export class OrganizationsInserter {
     `;
 
     await db.query(query, [
+      organizationId,
       org.name,
       normalizedName,
       org.type,
