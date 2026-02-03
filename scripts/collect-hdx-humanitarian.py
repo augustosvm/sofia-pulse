@@ -126,6 +126,7 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
     )
 
     inserted = 0
+    errors = 0
 
     for dataset in datasets:
         try:
@@ -138,6 +139,10 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
                 if group.get("name"):
                     countries.append(group.get("name").upper()[:3])
 
+            # Note: country_id normalization would require geo_helpers.normalize_location
+            # For now, set to NULL (datasets span multiple countries)
+            country_id = None
+
             cursor.execute(
                 """
                 INSERT INTO sofia.hdx_humanitarian_data (dataset_id, dataset_name, title, organization, source, tags, country_codes,
@@ -147,10 +152,11 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
                 DO UPDATE SET
                     date_modified = EXCLUDED.date_modified,
                     num_resources = EXCLUDED.num_resources,
-                    total_downloads = EXCLUDED.total_downloads
+                    total_downloads = EXCLUDED.total_downloads,
+                    country_id = EXCLUDED.country_id
             """,
                 (
-                    dataset.get("id", "", country_id=EXCLUDED.country_id),
+                    dataset.get("id", ""),
                     dataset.get("name", ""),
                     dataset.get("title", ""),
                     dataset.get("organization", {}).get("name", source),
@@ -164,10 +170,14 @@ def save_to_database(conn, datasets: List[Dict], source: str) -> int:
                     dataset.get("methodology", ""),
                     dataset.get("notes", "")[:500] if dataset.get("notes") else "",
                     f"https://data.humdata.org/dataset/{dataset.get('name', '')}",
+                    country_id,
                 ),
             )
             inserted += 1
-        except Exception:
+        except Exception as e:
+            errors += 1
+            if errors <= 3:  # Log first 3 errors only
+                print(f"      ❌ ERROR inserting dataset {dataset.get('id', 'unknown')[:20]}: {str(e)[:100]}")
             continue
 
     conn.commit()
