@@ -71,6 +71,7 @@ export class OrganizationsInserter {
   /**
    * Insere organização na tabela sofia.organizations
    * ADAPTADO para schema atual: (id, name, normalized_name, type, source_id, metadata, created_at)
+   * NORMALIZED: Resolve city/country/state to foreign key IDs
    */
   async insertOrganization(org: OrganizationData, client?: PoolClient): Promise<void> {
     const db = client || this.pool;
@@ -83,16 +84,44 @@ export class OrganizationsInserter {
     // Normalizar nome para usar como chave única
     const normalizedName = org.org_id || this.normalizeName(org.name);
 
-    // Colocar TODOS os campos extras no metadata
+    // Resolve country to country_id
+    let countryId: number | null = null;
+    if (org.country || org.country_code) {
+      const countryResult = await db.query(
+        `SELECT id FROM sofia.countries
+         WHERE common_name = $1
+            OR iso_alpha2 = $2
+            OR iso_alpha3 = $2
+            OR UPPER(common_name) = UPPER($1)
+         LIMIT 1`,
+        [org.country || '', org.country_code || '']
+      );
+      if (countryResult.rows.length > 0) {
+        countryId = countryResult.rows[0].id;
+      }
+    }
+
+    // Resolve city to city_id (only if country_id exists)
+    let cityId: number | null = null;
+    if (org.city && countryId) {
+      const cityResult = await db.query(
+        `SELECT id FROM sofia.cities
+         WHERE name = $1 AND country_id = $2
+         LIMIT 1`,
+        [org.city, countryId]
+      );
+      if (cityResult.rows.length > 0) {
+        cityId = cityResult.rows[0].id;
+      }
+    }
+
+    // Colocar campos extras no metadata (exceto os que foram normalizados)
     const fullMetadata = {
       ...(org.metadata || {}),
       org_id: org.org_id,
       source: org.source,
       industry: org.industry,
       location: org.location,
-      city: org.city,
-      country: org.country,
-      country_code: org.country_code,
       founded_date: org.founded_date,
       website: org.website,
       description: org.description,
@@ -111,13 +140,15 @@ export class OrganizationsInserter {
 
     const query = `
       INSERT INTO sofia.organizations (
-        name, normalized_name, type, metadata
+        name, normalized_name, type, country_id, city_id, metadata
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (normalized_name)
       DO UPDATE SET
         name = EXCLUDED.name,
         type = EXCLUDED.type,
+        country_id = EXCLUDED.country_id,
+        city_id = EXCLUDED.city_id,
         metadata = sofia.organizations.metadata || EXCLUDED.metadata
     `;
 
@@ -125,6 +156,8 @@ export class OrganizationsInserter {
       org.name,
       normalizedName,
       org.type,
+      countryId,
+      cityId,
       JSON.stringify(fullMetadata),
     ]);
   }
