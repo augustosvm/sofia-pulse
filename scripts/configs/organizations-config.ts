@@ -29,7 +29,8 @@ export const aiCompanies: OrganizationsCollectorConfig = {
   description: 'LLMs, Computer Vision, AI Chips - USA vs China race',
 
   // Mock data (em produção usaria Crunchbase/PitchBook API)
-  url: 'https://api.example.com/ai-companies', // Placeholder
+  // URL null triggers fallback to parseResponse with mock data
+  url: (env) => null as any,
 
   parseResponse: async (_, env) => {
     // Mock data baseado em dados reais de 2024
