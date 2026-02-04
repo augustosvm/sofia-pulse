@@ -1,8 +1,26 @@
 # PHASE 5B - LLM ENRICHMENT FOR CROSS-SIGNALS
 
 **Date:** 2026-02-04 23:00 UTC
-**Status:** ✅ READY FOR DEPLOYMENT
+**Status:** ✅ **DEPLOYED AND VALIDATED - 100% SUCCESS**
 **Purpose:** Fill `extracted_topics` and `extracted_entities` in `news_items` to enable cross-signals insights
+
+---
+
+## 🎉 DEPLOYMENT SUCCESS (2026-02-04 23:50 UTC)
+
+**VALIDATION RESULTS**:
+- ✅ **117 items enriched** (0 errors, 100% success rate)
+- ✅ **Cross-signals insights**: 0 → **1 insight** + **1 observation**
+- ✅ **Sources used**: 0 → **3 sources** (hackernews, github_trending, arxiv)
+- ✅ **API**: Gemini 2.0 Flash working perfectly
+- ✅ **Cache**: 1 cache hit (deduplication working)
+- ✅ **Cost**: ~$0.005 for 117 items (under 1 cent!)
+
+**KEY LEARNINGS**:
+1. `gemini-1.5-flash` doesn't exist → use `gemini-2.0-flash` or `gemini-2.5-flash`
+2. `news_items_high_impact` is a **materialized view** → must refresh after enrichment
+3. Materialized view uses **rolling 7-day window** from NOW()
+4. Cross-signals requires `score >= 50` OR `comment_count >= 20`
 
 ---
 
@@ -593,5 +611,70 @@ This enrichment pipeline:
 
 ---
 
-**Last Updated**: 2026-02-04 23:00 UTC
-**Status**: Ready for deployment
+**Last Updated**: 2026-02-04 23:50 UTC
+**Status**: ✅ **DEPLOYED AND VALIDATED**
+
+---
+
+## 🚀 DAILY PIPELINE INTEGRATION
+
+**Wrapper Script Created**: `scripts/run-enrichment-and-cross-signals.sh`
+
+This script runs all 3 steps automatically:
+1. Enrich HackerNews items (limit 200/day)
+2. Refresh materialized view
+3. Rebuild cross-signals
+
+### Manual Execution:
+```bash
+cd ~/sofia-pulse
+bash scripts/run-enrichment-and-cross-signals.sh --limit 200
+```
+
+### Add to Cron (RECOMMENDED):
+```bash
+# Run before analytics (e.g., 21:30 UTC / 18:30 BRT)
+30 21 * * 1-5 cd ~/sofia-pulse && bash scripts/run-enrichment-and-cross-signals.sh --limit 200 >> logs/enrichment.log 2>&1
+```
+
+**Why before analytics?**
+- Cross-signals runs as part of analytics
+- Enrichment + refresh must happen first
+- Ensures fresh insights for daily reports
+
+---
+
+## ✅ VALIDATION CHECKLIST
+
+After running the pipeline, verify success:
+
+```bash
+# 1. Check enrichment stats
+psql "postgresql://USER:PASS@HOST/DB" -c "
+SELECT
+    COUNT(*) FILTER (WHERE extracted_topics IS NOT NULL) as enriched,
+    COUNT(*) as total,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE extracted_topics IS NOT NULL) / COUNT(*), 1) as pct
+FROM sofia.news_items
+WHERE source = 'hackernews'
+  AND published_at >= CURRENT_DATE - INTERVAL '30 days';
+"
+
+# 2. Check cross-signals output
+cat outputs/cross_signals.json | jq '.insights | length'
+cat outputs/cross_signals.json | jq '.observations | length'
+
+# 3. Check API usage today
+psql "postgresql://USER:PASS@HOST/DB" -c "
+SELECT
+    SUM(llm_calls) as api_calls_today,
+    SUM(enriched) as items_enriched
+FROM sofia.llm_enrichment_runs
+WHERE DATE(started_at) = CURRENT_DATE;
+"
+```
+
+**Expected Results**:
+- ✅ Enrichment: 90%+ of recent items (last 30 days)
+- ✅ Cross-signals: 1+ insights, 1+ observations
+- ✅ API usage: <500 calls/day (budget limit)
