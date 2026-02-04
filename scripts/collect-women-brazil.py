@@ -208,6 +208,7 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
     )
 
     inserted = 0
+    errors = 0
 
     for record in records:
         if not isinstance(record, dict):
@@ -226,15 +227,16 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
             unit = record.get("MN", record.get("unidade", ""))
 
             # Normalize Brazil (region is state)
-            location = (normalize_location(conn, {"country": "Brazil", "state": region}),)
-            country_id = location["country_id"]
+            location = normalize_location(conn, {"country": "Brazil", "state": region})
+            country_id = location.get("country_id")
 
             cursor.execute(
-                """,
+                """
                 INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (source, indicator_code, region, period, sex),
-                DO UPDATE SET value = EXCLUDED.value            """,
+                ON CONFLICT (source, indicator_code, region, period, sex)
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
+            """,
                 (
                     "IBGE",
                     table_id,
@@ -249,7 +251,10 @@ def save_ibge_to_database(conn, records: List[Dict], table_id: str, table_info: 
                 ),
             )
             inserted += 1
-        except Exception:
+        except Exception as e:
+            errors += 1
+            if errors <= 3:
+                print(f"      ERROR (IBGE): {str(e)[:100]}")
             continue
 
     conn.commit()
@@ -286,7 +291,12 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
     """
     )
 
+    # Normalize Brazil once (all IPEA data is Brazil-level)
+    location = normalize_location(conn, {"country": "Brazil"})
+    country_id = location.get("country_id")
+
     inserted = 0
+    errors = 0
 
     for record in records:
         value = record.get("VALVALOR")
@@ -303,11 +313,11 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
                 continue
 
             cursor.execute(
-                """,
+                """
                 INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (source, indicator_code, region, period, sex)
-                DO UPDATE SET value = EXCLUDED.value
+                DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
             """,
                 (
                     "IPEA",
@@ -323,7 +333,10 @@ def save_ipea_to_database(conn, records: List[Dict], series_code: str, series_in
                 ),
             )
             inserted += 1
-        except Exception:
+        except Exception as e:
+            errors += 1
+            if errors <= 3:
+                print(f"      ERROR (IPEA): {str(e)[:100]}")
             continue
 
     conn.commit()
@@ -425,15 +438,21 @@ def main():
         print(f"    Fetched: {len(records)} records")
         # Save using IPEA function
         cursor = conn.cursor()
+
+        # Normalize Brazil once
+        location = normalize_location(conn, {"country": "Brazil"})
+        country_id = location.get("country_id")
+
+        datasus_errors = 0
         for r in records:
             if r.get("value"):
                 try:
                     cursor.execute(
-                        """,
+                        """
                         INSERT INTO sofia.women_brazil_data (source, indicator_code, indicator_name, category, region, period, sex, value, unit, country_id)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (source, indicator_code, region, period, sex)
-                        DO UPDATE SET value = EXCLUDED.value
+                        DO UPDATE SET value = EXCLUDED.value, country_id = EXCLUDED.country_id
                     """,
                         (
                             "World Bank",
@@ -449,7 +468,10 @@ def main():
                         ),
                     )
                     total_records += 1
-                except:
+                except Exception as e:
+                    datasus_errors += 1
+                    if datasus_errors <= 3:
+                        print(f"      ERROR (DataSUS): {str(e)[:100]}")
                     pass
         conn.commit()
         cursor.close()
