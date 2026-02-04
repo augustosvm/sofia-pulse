@@ -80,7 +80,4 @@ export const collectors: Record<string, PythonCollectorConfig> = {
 
     // --- AI & MACHINE LEARNING ---
     'ai-huggingface-models': { name: 'ai-huggingface-models', description: 'HuggingFace Model Trends', script: 'scripts/collect-ai-huggingface-models.py', schedule: '0 6 * * *', category: 'tech' },
-
-    // --- BRAZIL DATA ---
-    'basedosdados-brazil': { name: 'basedosdados-brazil', description: 'Base dos Dados Brasil (Open Data)', script: 'scripts/collect-basedosdados-brazil.py', schedule: '0 7 * * *', category: 'economic' },
 };

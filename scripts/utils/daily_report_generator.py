@@ -159,7 +159,7 @@ class DailyReportGenerator:
             "hkex",
         ]
         weekly = ["women-", "sports-", "asia-universities", "central-banks-women"]
-        monthly = ["socioeconomic", "religion", "ngos", "drugs", "wb-gender", "basedosdados"]
+        monthly = ["socioeconomic", "religion", "ngos", "drugs", "wb-gender"]
 
         groups = {"hourly": [], "daily": [], "weekly": [], "monthly": [], "other": []}
 
