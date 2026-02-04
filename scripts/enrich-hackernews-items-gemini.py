@@ -38,12 +38,9 @@ DB_CONFIG = {
 
 # Gemini configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 GEMINI_DAILY_CALL_LIMIT = int(os.getenv("GEMINI_DAILY_CALL_LIMIT", "500"))
 PROMPT_VERSION = "v1"
-
-# Gemini API endpoint
-GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
 
 
 def create_cache_key(title: str, url: str) -> str:
@@ -132,6 +129,9 @@ def call_gemini(title: str, url: str, text_content: Optional[str] = None) -> Opt
         }
     """
 
+    # Build API URL
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+
     # Truncate text_content if too long
     snippet = ""
     if text_content:
@@ -180,7 +180,7 @@ Rules:
 
     try:
         response = requests.post(
-            GEMINI_API_URL,
+            api_url,
             json=payload,
             timeout=30,
             headers={"Content-Type": "application/json"}
@@ -189,7 +189,7 @@ Rules:
         if response.status_code == 429:
             print(f"      ⚠️  Rate limit hit, retrying in 5s...")
             time.sleep(5)
-            response = requests.post(GEMINI_API_URL, json=payload, timeout=30)
+            response = requests.post(api_url, json=payload, timeout=30)
 
         response.raise_for_status()
 
