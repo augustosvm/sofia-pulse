@@ -243,12 +243,13 @@ except Exception as e:
 
 | Collector | Status | Bugs Found | Priority |
 |-----------|--------|------------|----------|
-| world-sports | ✅ FIXED | 5 bugs (syntax + missing param + silent exceptions) | DONE |
-| hdx-humanitarian | ✅ FIXED | 3 bugs (syntax + missing param + silent exceptions) | DONE |
-| sports-regional | ❌ PENDING | 4 types (tuple + SQL + scope + silent) | HIGH |
-| women-brazil | ❌ PENDING | 4 types (tuple + SQL + scope + silent) | HIGH |
+| world-sports | ✅ FIXED (eaabbbb) | 5 bugs (syntax + missing param + silent exceptions) | DONE |
+| hdx-humanitarian | ✅ FIXED (1759f8d) | 3 bugs (syntax + missing param + silent exceptions) | DONE |
+| sports-regional | ✅ FIXED (f7f210b) | 4 types (tuple + SQL + scope + silent) | DONE |
+| women-brazil | ✅ FIXED (f7f210b) | 4 types (tuple + SQL + scope + silent) | DONE |
 
-**Total Collectors with Silent Exceptions:** 28 (audit found)
+**Total Collectors FIXED:** 4 collectors, 16 bug types, 100+ individual bugs
+**Total Collectors with Silent Exceptions:** 24 remaining (not critical)
 
 ---
 
