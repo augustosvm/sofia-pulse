@@ -426,7 +426,7 @@ def detect_reactions_for_event(conn, event: Dict, window_start: datetime, window
                         fr.amount_usd,
                         fr.round_type,
                         fr.announced_date,
-                        fr.investor_names
+                        fr.investors
                     FROM sofia.funding_rounds fr
                     LEFT JOIN sofia.organizations o ON fr.organization_id = o.id
                     WHERE fr.announced_date >= %s::DATE AND fr.announced_date < %s::DATE
