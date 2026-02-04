@@ -8,12 +8,19 @@
 
 ## 🚨 REGRA ABSOLUTA
 
-> **"Nada pode fazer consulta no BigQuery. Só o GA4 pode baixar os dados que estão lá."**
+> **"Não pode usar BigQuery do Google."**
+>
+> **Exceção:** "BigQuery interno, usando nossas ferramentas pode."
 
-### **Interpretação:**
-1. ❌ **PROIBIDO:** Qualquer script/collector fazer queries SQL no BigQuery (datasets públicos ou próprios)
-2. ✅ **PERMITIDO:** GA4 scripts podem baixar dados do BigQuery (dataset `analytics_*` próprio)
+### **Interpretação FINAL:**
+1. ❌ **PROIBIDO:** Queries em BigQuery PÚBLICO (datasets de terceiros: `bigquery-public-data.*`, `patents-public-data.*`, etc.)
+2. ✅ **PERMITIDO:** Queries em BigQuery INTERNO (nosso projeto, nossos dados: `analytics_*`, dados próprios)
 3. ✅ **PERMITIDO:** Usar APIs REST externas, mock data, ou downloads diretos (não via BigQuery)
+
+### **Por que essa distinção?**
+- **BigQuery PÚBLICO:** Cobra por TB scanned, pode custar milhares de dólares
+- **BigQuery INTERNO:** Nossos dados próprios, custo previsível e controlado
+- **GA4 Export:** Google exporta automaticamente GA4 para BigQuery (`analytics_*`), não tem API REST equivalente
 
 ---
 
