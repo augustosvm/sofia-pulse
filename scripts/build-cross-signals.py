@@ -432,13 +432,15 @@ def detect_reactions_for_event(conn, event: Dict, window_start: datetime, window
                     WHERE fr.announced_date >= %s::DATE AND fr.announced_date < %s::DATE
                       AND (
                         o.name ILIKE ANY(%s::TEXT[])
-                        OR fr.description ILIKE ANY(%s::TEXT[])
+                        OR fr.company_name ILIKE ANY(%s::TEXT[])
+                        OR fr.sector ILIKE ANY(%s::TEXT[])
                       )
                     ORDER BY fr.amount_usd DESC NULLS LAST
                     LIMIT 3
                 """, (
                     window_start,
                     window_end,
+                    ['%' + term + '%' for term in search_terms if term],
                     ['%' + term + '%' for term in search_terms if term],
                     ['%' + term + '%' for term in search_terms if term]
                 ))
