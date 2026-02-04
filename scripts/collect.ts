@@ -41,10 +41,10 @@ import { NGOsCollector } from './collectors/ngos-collector.js';
 import { collectGreenhouseJobs } from './collect-greenhouse-jobs.js';
 import { collectCathoJobs } from './collect-catho-final.js';
 import { collectCurrencyRates } from './collect-currency-rates.js';
-import { collectEPOPatents } from './collect-epo-patents.js';
+import { runEPOCollector } from './collect-epo-patents.js';
 import { collectGitGuardianIncidents } from './collect-gitguardian-incidents.js';
 import { collectHKEXipos } from './collect-hkex-ipos.js';
-import { collectWIPOPatents } from './collect-wipo-china-patents.js';
+import { runWIPOCollector } from './collect-wipo-china-patents.js';
 
 import { collectors as techTrendsCollectors } from './configs/tech-trends-config.js';
 import { researchPapersCollectors } from './configs/research-papers-config.js';
@@ -225,7 +225,7 @@ async function main() {
 
     // Special case: EPO Patents (European Patent Office)
     if (collectorName === 'epo-patents') {
-      await collectEPOPatents();
+      await runEPOCollector();
       return;
     }
 
@@ -243,7 +243,7 @@ async function main() {
 
     // Special case: WIPO China Patents (World Intellectual Property Org)
     if (collectorName === 'wipo-china-patents') {
-      await collectWIPOPatents();
+      await runWIPOCollector();
       return;
     }
 
