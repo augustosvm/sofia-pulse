@@ -139,7 +139,11 @@
       "Bash(for f in scripts/collect-*.py)",
       "Bash(do if grep -A1 \"except Exception:\" \"$f\")",
       "Bash(! grep -B5 \"except Exception:\" \"$f\")",
-      "Bash(then echo \"$f\" fi done)"
+      "Bash(then echo \"$f\" fi done)",
+      "Bash(source .env)",
+      "Bash('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyA4EbO-HmToN-3U52a_ZJPYcXdXmWb8YFI' )",
+      "Bash('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCsZ6RJDDXEf3OT5wMz2HJezk1a3J8hxIo' )",
+      "Bash('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCsZ6RJDDXEf3OT5wMz2HJezk1a3J8hxIo' )"
     ]
   }
 }

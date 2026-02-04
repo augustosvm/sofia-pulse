@@ -134,7 +134,7 @@ SELECT COUNT(*) FROM sofia.llm_enrichment_runs;
 ```bash
 # Add to .env file
 GEMINI_API_KEY=your_api_key_here
-GEMINI_MODEL=gemini-2.0-flash-exp  # or gemini-1.5-flash
+GEMINI_MODEL=gemini-2.0-flash  # or gemini-2.5-flash
 GEMINI_DAILY_CALL_LIMIT=500
 ```
 
