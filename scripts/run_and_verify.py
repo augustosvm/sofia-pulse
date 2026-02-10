@@ -101,12 +101,20 @@ def execute_batch(collectors_config, group_name, trace, max_parallel=3):
     return results
 
 
+def format_saved(saved_value):
+    """Formata valor saved (NULL -> UNKNOWN)."""
+    if saved_value is None:
+        return "UNKNOWN"
+    return str(saved_value)
+
+
 def build_whatsapp_message(trace_id, audit_data, gate_status, max_offenders=12):
-    """Compõe mensagem WhatsApp operacional."""
+    """Compõe mensagem WhatsApp operacional com 4 listas obrigatórias."""
     summary = audit_data["summary"]
     failed = audit_data.get("failed", [])
     empty = audit_data.get("empty", [])
     succeeded = audit_data.get("succeeded", [])
+    missing = audit_data.get("missing", [])
 
     # Header
     status_emoji = "✅" if gate_status["healthy"] else "🚨"
@@ -117,38 +125,82 @@ def build_whatsapp_message(trace_id, audit_data, gate_status, max_offenders=12):
     message += f"Janela: BRT {time.strftime('%Y-%m-%d %H:%M')}\n\n"
 
     message += f"*Gate (Required+GA4):* {gate_emoji}\n"
-    message += f"*Resumo Execução (ALL):* Expected={summary['expected']} | Ran={summary['ran']} | OK={summary['succeeded']} | Failed={summary['failed']} | Empty={summary['empty']} | Missing={summary['missing']}\n\n"
+    message += f"*Esperado vs Rodado:* {summary['expected']} esperados | {summary['ran']} rodaram\n"
+    message += f"*Resumo:* OK={summary['succeeded']} | Vazios={summary['empty']} | Falhas={summary['failed']} | Não rodaram={summary['missing']}\n\n"
 
-    # Top Falhas
-    if failed:
-        message += f"*Top Falhas (máx {min(8, len(failed))})
-:*\n"
-        for f in failed[:8]:
-            error_code = f.get("error_code", "UNKNOWN")
-            message += f"• {f['collector_id']} — `{error_code}`\n"
-        if len(failed) > 8:
-            message += f"... e {len(failed) - 8} mais\n"
-        message += "\n"
+    # ===== 4 LISTAS OBRIGATÓRIAS =====
 
-    # Top Vazios
-    if empty:
-        message += f"*Top Vazios (máx {min(5, len(empty))}):*\n"
-        for e in empty[:5]:
-            saved = e.get("saved", 0)
-            expected_min = e.get("expected_min", 1)
-            message += f"• {e['collector_id']} — saved={saved} (min={expected_min})\n"
-        if len(empty) > 5:
-            message += f"... e {len(empty) - 5} mais\n"
-        message += "\n"
-
-    # Top Sucessos
+    # 1. SUCESSOS (saved > 0)
+    message += f"*1️⃣ SUCESSOS (saved > 0):* {len(succeeded)}\n"
     if succeeded:
-        message += f"*Top Sucessos (máx {min(5, len(succeeded))}):*\n"
-        for s in succeeded[:5]:
-            saved = s.get("saved", 0)
-            message += f"• {s['collector_id']} — saved={saved}\n"
+        shown = 0
+        for s in succeeded:
+            if shown >= 5:
+                break
+            collector_id = s['collector_id']
+            saved = s.get("saved")
+            duration_ms = s.get("duration_ms", 0)
+            message += f"• {collector_id} — saved={format_saved(saved)} ({duration_ms}ms)\n"
+            shown += 1
+
         if len(succeeded) > 5:
             message += f"... e {len(succeeded) - 5} mais\n"
+    else:
+        message += "• Nenhum\n"
+    message += "\n"
+
+    # 2. VAZIOS (rodou mas saved == 0 ou saved < expected_min)
+    message += f"*2️⃣ VAZIOS (saved == 0 ou < min):* {len(empty)}\n"
+    if empty:
+        shown = 0
+        for e in empty:
+            if shown >= 5:
+                break
+            collector_id = e['collector_id']
+            saved = e.get("saved")
+            expected_min = e.get("expected_min", 1)
+            message += f"• {collector_id} — saved={format_saved(saved)} (min={expected_min})\n"
+            shown += 1
+
+        if len(empty) > 5:
+            message += f"... e {len(empty) - 5} mais\n"
+    else:
+        message += "• Nenhum\n"
+    message += "\n"
+
+    # 3. FALHAS (error_code presente)
+    message += f"*3️⃣ FALHAS (com error_code):* {len(failed)}\n"
+    if failed:
+        shown = 0
+        for f in failed:
+            if shown >= 8:
+                break
+            collector_id = f['collector_id']
+            error_code = f.get("error_code", "UNKNOWN")
+            message += f"• {collector_id} — `{error_code}`\n"
+            shown += 1
+
+        if len(failed) > 8:
+            message += f"... e {len(failed) - 8} mais\n"
+    else:
+        message += "• Nenhum\n"
+    message += "\n"
+
+    # 4. NÃO RODARAM (missing)
+    message += f"*4️⃣ NÃO RODARAM (missing):* {len(missing)}\n"
+    if missing:
+        shown = 0
+        for m in missing:
+            if shown >= 5:
+                break
+            collector_id = m['collector_id']
+            message += f"• {collector_id}\n"
+            shown += 1
+
+        if len(missing) > 5:
+            message += f"... e {len(missing) - 5} mais\n"
+    else:
+        message += "• Nenhum\n"
 
     return message
 
@@ -169,6 +221,7 @@ def main():
     wpp_to = os.environ.get("SOFIA_WPP_TO", "admin")
     max_offenders = int(os.environ.get("SOFIA_MAX_OFFENDERS", "12"))
     execution_set_mode = os.environ.get("SOFIA_EXECUTION_SET_MODE", "all")
+    audit_since_hours = int(os.environ.get("SOFIA_AUDIT_SINCE_HOURS", "3"))
 
     # 1. Sync expected set (opcional)
     if sync_expected:
@@ -249,7 +302,7 @@ def main():
     expected_collectors = all_collector_ids if verify_all else None
     audit_result = run("runs.audit", {
         "expected_collectors": expected_collectors,
-        "since_hours": 2,  # Últimas 2 horas (acabou de rodar)
+        "since_hours": audit_since_hours,  # Configurável via SOFIA_AUDIT_SINCE_HOURS (default 3)
         "include_succeeded": True,
         "include_details": False
     }, trace_id=trace)
