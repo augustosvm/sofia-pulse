@@ -22,6 +22,8 @@ def execute(trace_id, actor, dry_run, params, context):
     try:
         audit_date = params.get("date", str(date.today()))
         include_details = params.get("include_details", False)
+        include_succeeded = params.get("include_succeeded", True)  # Default true para relatórios completos
+        since_hours = params.get("since_hours")  # Opcional: últimas N horas ao invés de dia inteiro
         expected_collectors = params.get("expected_collectors")  # Lista opcional de collector_ids
         conn = psycopg2.connect(DB_URL); cur = conn.cursor()
 
@@ -40,19 +42,29 @@ def execute(trace_id, actor, dry_run, params, context):
             expected = {r[0]: {"path": r[1], "min_records": r[2], "allow_empty": r[3]} for r in cur.fetchall()}
 
         # 2. Runs do dia (timezone Brasil: America/Sao_Paulo)
-        # Calcula janela: date_trunc('day', now() at time zone 'America/Sao_Paulo')
-        cur.execute("""
-            WITH day_bounds AS (
-                SELECT
-                    date_trunc('day', %s::timestamp at time zone 'America/Sao_Paulo') AS start_br,
-                    date_trunc('day', %s::timestamp at time zone 'America/Sao_Paulo') + interval '1 day' AS end_br
-            )
-            SELECT collector_name, ok, fetched, saved, error_code, error_message, duration_ms
-            FROM sofia.collector_runs, day_bounds
-            WHERE (started_at at time zone 'America/Sao_Paulo') >= day_bounds.start_br
-              AND (started_at at time zone 'America/Sao_Paulo') < day_bounds.end_br
-            ORDER BY started_at DESC
-        """, (audit_date, audit_date))
+        # Se since_hours fornecido, usa janela de horas; caso contrário, usa dia inteiro
+        if since_hours:
+            # Modo: últimas N horas
+            cur.execute("""
+                SELECT collector_name, ok, fetched, saved, error_code, error_message, duration_ms
+                FROM sofia.collector_runs
+                WHERE started_at >= NOW() - interval '%s hours'
+                ORDER BY started_at DESC
+            """, (since_hours,))
+        else:
+            # Modo: dia inteiro (timezone Brasil)
+            cur.execute("""
+                WITH day_bounds AS (
+                    SELECT
+                        date_trunc('day', %s::timestamp at time zone 'America/Sao_Paulo') AS start_br,
+                        date_trunc('day', %s::timestamp at time zone 'America/Sao_Paulo') + interval '1 day' AS end_br
+                )
+                SELECT collector_name, ok, fetched, saved, error_code, error_message, duration_ms
+                FROM sofia.collector_runs, day_bounds
+                WHERE (started_at at time zone 'America/Sao_Paulo') >= day_bounds.start_br
+                  AND (started_at at time zone 'America/Sao_Paulo') < day_bounds.end_br
+                ORDER BY started_at DESC
+            """, (audit_date, audit_date))
         runs = cur.fetchall()
         cur.close(); conn.close()
 
@@ -98,15 +110,23 @@ def execute(trace_id, actor, dry_run, params, context):
             "missing": len(missing), "empty": len(empty_list),
         }
 
+        # Preparar listas conforme flags
+        succeeded_output = []
+        if include_succeeded:
+            if include_details:
+                succeeded_output = succeeded
+            else:
+                succeeded_output = [{"collector_id": s["collector_id"], "saved": s.get("saved", 0), "duration_ms": s.get("duration_ms", 0)} for s in succeeded]
+
         data = {
-            "date": audit_date,
+            "date": audit_date if not since_hours else "last_{}_hours".format(since_hours),
             "summary": summary,
             "health_check": health_check,
             "healthy": healthy,
             "missing": missing,
-            "succeeded": succeeded if include_details else [{"collector_id": s["collector_id"], "saved": s.get("saved", 0)} for s in succeeded],
+            "succeeded": succeeded_output,
             "failed": failed_list if include_details else [{"collector_id": f["collector_id"], "error_code": f.get("error_code")} for f in failed_list],
-            "empty": empty_list if include_details else [{"collector_id": z["collector_id"]} for z in empty_list],
+            "empty": empty_list if include_details else [{"collector_id": z["collector_id"], "saved": z.get("saved", 0), "expected_min": z.get("expected_min", 1)} for z in empty_list],
         }
 
         warnings = []

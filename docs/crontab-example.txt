@@ -1,11 +1,11 @@
-# Sofia Pulse — Crontab Example (v2 - Mass Activation + GA4)
+# Sofia Pulse — Crontab Example (v3 - PASSO 8.1: Run & Verify)
 #
 # Setup:
 # 1. Edit this file with your paths
 # 2. Install: crontab -e
 # 3. Add these lines (adjust paths)
 #
-# IMPORTANT: Set DATABASE_URL and WHATSAPP_ADMIN_NUMBER before running
+# IMPORTANT: Set DATABASE_URL and WHATSAPP vars before running
 
 # Environment variables (adjust as needed)
 DATABASE_URL=postgresql://sofia:sofia123strong@localhost:5432/sofia_db
@@ -15,30 +15,62 @@ WHATSAPP_ADMIN_NUMBER=5527988024062
 WHATSAPP_ENABLED=true
 
 # ================================
-# Sync Expected Set (Weekly - Sunday 23:00 BRT)
+# PASSO 8.1: Execução + Verificação Imediata
 # ================================
-# Re-generates expected set from inventory (applies denylist)
-# Run weekly to pick up new collectors automatically
-0 23 * * 0 cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/sync_expected_set.py >> /var/log/sofia/sync.log 2>&1
+# Fluxo completo:
+# 1. Sync expected set (23:40 BRT) - Atualiza lista de collectors diariamente
+# 2. Daily pipeline (23:55 BRT) - Executa collectors em lotes
+# 3. Run & Verify (00:05 BRT) - Verifica imediatamente + WhatsApp com prova
 
 # ================================
-# Daily Pipeline v3 (23:55 BRT)
+# 1. Sync Expected Set (23:40 BRT - DIÁRIO)
+# ================================
+# Re-generates expected set from inventory (applies denylist)
+# Run DAILY to pick up new collectors automatically (não apenas semanal)
+# Atualiza config/daily_expected_collectors.json com todos collectors ativos
+40 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/sync_expected_set.py >> /var/log/sofia/sync.log 2>&1
+
+# ================================
+# 2. Daily Pipeline v3 (23:55 BRT)
 # ================================
 # Runs collectors in batches with priorities + normalization + insights:
-# - Phase 1: Required (bacen-sgs, ibge-api, ipea-api)
-# - Phase 2: GA4 (with budget.guard - OBRIGATÓRIO)
-# - Phase 3: Other (tech, research, jobs, etc - best-effort)
+# - Phase 1: Required (bacen-sgs, ibge-api, ipea-api) - sequencial
+# - Phase 2: GA4 (with budget.guard) - paralelo max 2
+# - Phase 3: Best-effort (tech, research, jobs, patents, other) - paralelo max 3
 # - Phase 4: Normalize & Aggregate (research papers + entities)
-# - Phase 5: Generate Insights (real insights from normalized data)
-# Exit 1 if required collectors unhealthy
+# - Phase 5: Generate Insights (real insights from normalized data + WhatsApp)
+# Exit 1 if required+GA4 unhealthy (health gate)
 55 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/daily_pipeline.py >> /var/log/sofia/daily_pipeline.log 2>&1
 
 # ================================
-# Notify Unhealthy WhatsApp (23:57 BRT)
+# 3. Run & Verify - VERIFICAÇÃO IMEDIATA + WHATSAPP (00:05 BRT)
+# ================================
+# NOVO: Executa collectors + verifica imediatamente + manda WhatsApp
+# Garante que você recebe notificação com PROVA OBJETIVA:
+#   - Ran/Succeeded/Failed/Missing/Empty
+#   - Lista curta dos offenders (Top 8 falhas, Top 5 vazios, Top 5 sucessos)
+# WhatsApp SEMPRE envia (1x por execução, sem spam)
+# Exit 0 se health gate ok (required+GA4), exit 1 se unhealthy
+#
+# Env vars opcionais:
+#   SOFIA_PIPELINE_SYNC_EXPECTED=false (já rodou em 23:40)
+#   SOFIA_PIPELINE_VERIFY_ALL=true (verifica todos collectors)
+#   SOFIA_WPP_ALWAYS_NOTIFY=true (sempre notifica)
+#   SOFIA_WPP_TO=admin
+#   SOFIA_MAX_OFFENDERS=12
+5 0 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" WHATSAPP_API_URL="$WHATSAPP_API_URL" WHATSAPP_ADMIN_NUMBER="$WHATSAPP_ADMIN_NUMBER" WHATSAPP_ENABLED="$WHATSAPP_ENABLED" SOFIA_PIPELINE_SYNC_EXPECTED=false SOFIA_PIPELINE_VERIFY_ALL=true SOFIA_WPP_ALWAYS_NOTIFY=true python3 scripts/run_and_verify.py >> /var/log/sofia/run_verify.log 2>&1
+
+# ================================
+# Notify Unhealthy (OPCIONAL - 23:57 BRT)
 # ================================
 # Sends WhatsApp alert if required collectors unhealthy
+# OPCIONAL: Se você quiser alerta separado ANTES do run_and_verify
+# Modos:
+#   --gate (default): Apenas required+GA4 (sem spam)
+#   --all: Relatório completo de execução
+# Dedupe: Máximo 1 alerta/dia por purpose (daily_gate, daily_all)
 # Always exit 0 (best-effort notification)
-57 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" WHATSAPP_API_URL="$WHATSAPP_API_URL" WHATSAPP_ADMIN_NUMBER="$WHATSAPP_ADMIN_NUMBER" WHATSAPP_ENABLED="$WHATSAPP_ENABLED" python3 scripts/notify_unhealthy.py >> /var/log/sofia/notify.log 2>&1
+# 57 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" WHATSAPP_API_URL="$WHATSAPP_API_URL" WHATSAPP_ADMIN_NUMBER="$WHATSAPP_ADMIN_NUMBER" WHATSAPP_ENABLED="$WHATSAPP_ENABLED" python3 scripts/notify_unhealthy.py --gate >> /var/log/sofia/notify.log 2>&1
 
 # ================================
 # GA4 Dedicated Run (Optional - 02:10 BRT)
@@ -48,17 +80,13 @@ WHATSAPP_ENABLED=true
 # 10 2 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 -c "from lib.skill_runner import run; import json; config_path='/path/to/sofia-pulse/config/daily_expected_collectors.json'; config=json.load(open(config_path)); ga4=[c['collector_id'] for c in config.get('groups',{}).get('ga4',[])]; [run('collect.run',{'collector_id':c}) for c in ga4]" >> /var/log/sofia/ga4.log 2>&1
 
 # ================================
-# Alternative: Combined (single cron job)
-# ================================
-# If you prefer, run pipeline + notify in sequence:
-# 55 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/daily_pipeline.py && WHATSAPP_API_URL="$WHATSAPP_API_URL" WHATSAPP_ADMIN_NUMBER="$WHATSAPP_ADMIN_NUMBER" python3 scripts/notify_unhealthy.py >> /var/log/sofia/pipeline.log 2>&1
-
-# ================================
 # Notes:
 # ================================
 # - Timezone: Cron runs in server timezone. If server is UTC, adjust times:
+#   23:40 BRT = 02:40 UTC (next day)
 #   23:55 BRT = 02:55 UTC (next day)
-#   Use: 55 2 * * * for UTC servers
+#   00:05 BRT = 03:05 UTC (same day)
+#   Use UTC times for UTC servers
 #
 # - Log rotation: Add to /etc/logrotate.d/sofia-pulse:
 #   /var/log/sofia/*.log {
@@ -75,14 +103,54 @@ WHATSAPP_ENABLED=true
 # - Budget control: GA4 uses budget.guard to prevent overruns
 #   Configure monthly limits in budget.guard skill
 #
-# - Parallel execution: Pipeline v2 runs collectors in parallel:
-#   - Required: max 1 (sequential)
-#   - GA4: max 2 (parallel)
-#   - Others: max 3 (parallel)
+# - Parallel execution: Pipeline v3 runs collectors in parallel:
+#   - Required: max 1 (sequential, health gate)
+#   - GA4: max 2 (parallel, health gate)
+#   - Others: max 3 (parallel, best-effort)
+#
+# - WhatsApp dedupe: run_and_verify.py sends 1x per execution (by trace_id)
+#   notify_unhealthy.py sends max 1x/day per purpose (daily_gate, daily_all)
 #
 # - Test locally first:
 #   cd /path/to/sofia-pulse
 #   source .venv/bin/activate
+#
+#   # Test sync
 #   DATABASE_URL="..." python3 scripts/sync_expected_set.py
+#
+#   # Test pipeline
 #   DATABASE_URL="..." python3 scripts/daily_pipeline.py
-#   DATABASE_URL="..." python3 scripts/notify_unhealthy.py
+#
+#   # Test run & verify
+#   DATABASE_URL="..." WHATSAPP_API_URL="..." WHATSAPP_ADMIN_NUMBER="..." \
+#     SOFIA_PIPELINE_SYNC_EXPECTED=false SOFIA_WPP_ALWAYS_NOTIFY=true \
+#     python3 scripts/run_and_verify.py
+#
+#   # Test notify (optional)
+#   DATABASE_URL="..." WHATSAPP_API_URL="..." WHATSAPP_ADMIN_NUMBER="..." \
+#     python3 scripts/notify_unhealthy.py --gate
+#
+# - Expected collectors: run_and_verify.py verifies ALL collectors in execution set
+#   Health gate: exit 1 only if required+GA4 unhealthy
+#   Best-effort failures: logged but don't fail pipeline
+#
+# - Execution flow example:
+#   23:40 - sync_expected_set.py → Updates config/daily_expected_collectors.json
+#   23:55 - daily_pipeline.py → Executes collectors + normalize + insights
+#   00:05 - run_and_verify.py → Verifies runs + sends WhatsApp with proof
+#
+# - WhatsApp message format (run_and_verify.py):
+#   ✅ Sofia Pulse - Execução & Verificação
+#   Trace: abc123de
+#   Janela: BRT 2025-12-10 00:05
+#
+#   Gate (Required+GA4): ✅ HEALTHY
+#   Resumo Execução (ALL): Expected=45 | Ran=42 | OK=40 | Failed=2 | Empty=0 | Missing=3
+#
+#   Top Falhas (máx 8):
+#   • github-trending — SOURCE_DOWN
+#   • hackernews-api — TIMEOUT
+#
+#   Top Sucessos (máx 5):
+#   • bacen-sgs — saved=150
+#   • ibge-api — saved=200
