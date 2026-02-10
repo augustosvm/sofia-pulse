@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Sofia Skills Kit - Sync Expected Set
 Sincroniza config/daily_expected_collectors.json com inventory (aplicando denylist).
