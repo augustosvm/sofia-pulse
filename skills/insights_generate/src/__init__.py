@@ -2,6 +2,7 @@
 """
 Sofia Skills Kit - insights.generate
 Generates real insights from normalized and aggregated data.
+HOTFIX 8.0a: Watermark persistence, zero logging, domains config
 """
 
 import json
@@ -13,10 +14,79 @@ import psycopg2
 import psycopg2.extras
 
 
+def load_domains_config():
+    """Load insights domains configuration."""
+    config_path = Path(__file__).resolve().parents[3] / "config" / "insights_domains.json"
+
+    if not config_path.exists():
+        # Fallback to default
+        return {"enabled_domains": ["research"], "domains": {"research": {"enabled": True, "best_effort": False}}}
+
+    with open(config_path, "r") as f:
+        return json.load(f)
+
+
+def get_watermark(cur, skill_name, domain):
+    """Get watermark from sofia.skill_state."""
+    cur.execute("""
+        SELECT last_processed_at
+        FROM sofia.skill_state
+        WHERE skill_name = %s AND domain = %s AND detector IS NULL
+    """, (skill_name, domain))
+
+    row = cur.fetchone()
+    return row['last_processed_at'] if row else None
+
+
+def update_watermark(cur, skill_name, domain, watermark):
+    """Update watermark in sofia.skill_state."""
+    cur.execute("""
+        INSERT INTO sofia.skill_state (skill_name, domain, detector, last_processed_at, updated_at)
+        VALUES (%s, %s, NULL, %s, NOW())
+        ON CONFLICT (skill_name, domain, detector)
+        DO UPDATE SET last_processed_at = EXCLUDED.last_processed_at, updated_at = NOW()
+    """, (skill_name, domain, watermark))
+
+
 def generate_evidence_hash(evidence):
     """Generate SHA256 hash of evidence for deduplication."""
     evidence_str = json.dumps(evidence, sort_keys=True)
     return hashlib.sha256(evidence_str.encode()).hexdigest()
+
+
+def generate_status_insight(cur, domain, since=None):
+    """
+    Generate fallback 'Daily Status' insight when no anomalies detected.
+    Ensures site always has fresh content.
+    """
+    if domain == "research":
+        # Count recent papers
+        cur.execute("""
+            SELECT
+                COUNT(*) as total_papers,
+                COUNT(DISTINCT source) as sources,
+                MAX(publication_date) as latest_date
+            FROM sofia.research_papers
+            WHERE publication_date >= NOW() - INTERVAL '7 days'
+              AND (%(since)s IS NULL OR created_at > %(since)s)
+        """, {"since": since})
+
+        row = cur.fetchone()
+        if row and row['total_papers'] > 0:
+            return {
+                "title": f"Research Status: {row['total_papers']} papers esta semana",
+                "summary": f"Sofia indexou {row['total_papers']} papers de {row['sources']} fontes nos últimos 7 dias. Última publicação: {row['latest_date']:%Y-%m-%d}. Nenhuma anomalia detectada no período.",
+                "severity": "info",
+                "evidence": {
+                    "total_papers": row['total_papers'],
+                    "sources": row['sources'],
+                    "latest_date": str(row['latest_date']),
+                    "period_days": 7
+                },
+                "insight_type": "daily_status"
+            }
+
+    return None
 
 
 def detect_research_insights(cur, since=None):
@@ -25,7 +95,7 @@ def detect_research_insights(cur, since=None):
     Returns: [(title, summary, severity, evidence), ...]
     """
     insights = []
-    
+
     # Insight 1: Sudden growth in publications by organization
     cur.execute("""
         WITH recent_papers AS (
@@ -63,7 +133,7 @@ def detect_research_insights(cur, since=None):
         ORDER BY growth_factor DESC
         LIMIT 5
     """, {"since": since})
-    
+
     for row in cur.fetchall():
         insights.append({
             "title": f"Crescimento Anormal: {row['organization_name']}",
@@ -74,9 +144,10 @@ def detect_research_insights(cur, since=None):
                 "recent_papers": row['paper_count'],
                 "historical_avg": float(row['historical_avg']),
                 "growth_factor": float(row['growth_factor'])
-            }
+            },
+            "insight_type": "growth_spike_organization"
         })
-    
+
     # Insight 2: Breakthrough papers concentration
     cur.execute("""
         SELECT
@@ -91,7 +162,7 @@ def detect_research_insights(cur, since=None):
         HAVING COUNT(*) >= 2
         ORDER BY breakthrough_count DESC
     """, {"since": since})
-    
+
     for row in cur.fetchall():
         if row['breakthrough_count'] >= 3:
             insights.append({
@@ -102,9 +173,10 @@ def detect_research_insights(cur, since=None):
                     "source": row['source'],
                     "breakthrough_count": row['breakthrough_count'],
                     "percentage": float(row['percentage'])
-                }
+                },
+                "insight_type": "breakthrough_concentration"
             })
-    
+
     return insights
 
 
@@ -114,7 +186,7 @@ def detect_aggregation_insights(cur, since=None):
     Returns: [(title, summary, severity, evidence), ...]
     """
     insights = []
-    
+
     # Insight: Month-over-month growth in research_monthly
     cur.execute("""
         WITH monthly_totals AS (
@@ -124,12 +196,12 @@ def detect_aggregation_insights(cur, since=None):
                 publication_month,
                 total_papers,
                 LAG(total_papers) OVER (
-                    PARTITION BY source 
+                    PARTITION BY source
                     ORDER BY publication_year, publication_month
                 ) as prev_month_papers
             FROM sofia.facts_research_monthly
-            WHERE (publication_year * 100 + publication_month) >= 
-                  EXTRACT(YEAR FROM NOW() - INTERVAL '6 months')::int * 100 + 
+            WHERE (publication_year * 100 + publication_month) >=
+                  EXTRACT(YEAR FROM NOW() - INTERVAL '6 months')::int * 100 +
                   EXTRACT(MONTH FROM NOW() - INTERVAL '6 months')::int
         )
         SELECT
@@ -145,7 +217,7 @@ def detect_aggregation_insights(cur, since=None):
         ORDER BY growth_pct DESC
         LIMIT 3
     """)
-    
+
     for row in cur.fetchall():
         insights.append({
             "title": f"Crescimento Mensal: {row['source'].upper()}",
@@ -158,33 +230,29 @@ def detect_aggregation_insights(cur, since=None):
                 "current_papers": row['total_papers'],
                 "previous_papers": row['prev_month_papers'],
                 "growth_pct": float(row['growth_pct'])
-            }
+            },
+            "insight_type": "monthly_growth"
         })
-    
+
     return insights
 
 
 def execute(trace_id, actor, dry_run, params, context):
     """Execute insights generation."""
     start_time = time.time()
-    
+
+    # Load domains config
+    domains_config = load_domains_config()
+
     # Extract parameters
-    domains = params.get("domains", ["research"])  # Default: research only
-    since = params.get("since")  # Watermark
+    domains = params.get("domains", domains_config.get("enabled_domains", ["research"]))
+    since = params.get("since")  # Watermark from params (optional, overrides DB)
     dry_run_param = params.get("dry_run", False)
-    
-    # Convert since to datetime if string
-    since_dt = None
-    if since:
-        try:
-            since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
-        except:
-            since_dt = None
-    
+
     # Connect to database
     import os
     db_url = os.environ.get("DATABASE_URL")
-    
+
     if not db_url:
         return {
             "ok": False,
@@ -194,7 +262,7 @@ def execute(trace_id, actor, dry_run, params, context):
                 "retryable": False
             }]
         }
-    
+
     try:
         conn = psycopg2.connect(db_url)
         conn.autocommit = False
@@ -208,35 +276,91 @@ def execute(trace_id, actor, dry_run, params, context):
                 "retryable": True
             }]
         }
-    
+
     # Generate insights per domain
     all_insights = []
     by_domain = {}
     by_severity = {"info": 0, "warning": 0, "critical": 0}
-    
+    watermarks = {}
+
     try:
         for domain in domains:
+            domain_config = domains_config.get("domains", {}).get(domain, {})
+            best_effort = domain_config.get("best_effort", False)
+
+            # Get watermark from DB (if not provided in params)
+            since_dt = None
+            if since:
+                try:
+                    since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
+                except:
+                    since_dt = None
+            else:
+                # Get from DB
+                db_watermark = get_watermark(cur, "insights.generate", domain)
+                since_dt = db_watermark
+
             domain_insights = []
-            
-            if domain == "research":
-                # Detect from research_papers
-                domain_insights.extend(detect_research_insights(cur, since_dt))
-                # Detect from facts_research_monthly
-                domain_insights.extend(detect_aggregation_insights(cur, since_dt))
-            
-            # Add domain to each insight
-            for insight in domain_insights:
-                insight["domain"] = domain
-                insight["insight_type"] = insight.get("insight_type", "anomaly")
-                all_insights.append(insight)
-            
-            by_domain[domain] = len(domain_insights)
-        
+
+            try:
+                if domain == "research":
+                    # Detect from research_papers
+                    domain_insights.extend(detect_research_insights(cur, since_dt))
+                    # Detect from facts_research_monthly
+                    domain_insights.extend(detect_aggregation_insights(cur, since_dt))
+
+                # Add domain to each insight
+                for insight in domain_insights:
+                    insight["domain"] = domain
+                    if "insight_type" not in insight:
+                        insight["insight_type"] = "anomaly"
+                    all_insights.append(insight)
+
+                by_domain[domain] = len(domain_insights)
+
+                # Update watermark for this domain
+                watermarks[domain] = datetime.utcnow()
+
+            except Exception as e:
+                if not best_effort:
+                    raise  # Fail if domain is critical
+                else:
+                    print(f"  [insights.generate] Warning: {domain} failed (best-effort): {e}")
+                    by_domain[domain] = 0
+
+        # Log zero insights event
+        if not all_insights:
+            print(f"  [insights.generate] Zero insights generated")
+
+            # Log structured event
+            try:
+                from lib.skill_runner import run
+                run("logger.event", {
+                    "level": "info",
+                    "event": "insights.generate.zero",
+                    "skill": "insights.generate",
+                    "domains": domains,
+                    "since": str(since_dt) if since_dt else None,
+                    "reason": "no_anomalies_detected"
+                }, trace_id=trace_id)
+            except:
+                pass  # Best-effort logging
+
+            # Generate status fallback insights
+            if domains_config.get("global_settings", {}).get("generate_status_fallback", False):
+                for domain in domains:
+                    status_insight = generate_status_insight(cur, domain, since_dt)
+                    if status_insight:
+                        status_insight["domain"] = domain
+                        all_insights.append(status_insight)
+                        by_domain[domain] = by_domain.get(domain, 0) + 1
+                        print(f"  [insights.generate] Generated status fallback for {domain}")
+
         # Save insights to database (if not dry run)
         if not dry_run and not dry_run_param and all_insights:
             for insight in all_insights:
                 evidence_hash = generate_evidence_hash(insight["evidence"])
-                
+
                 try:
                     cur.execute("""
                         INSERT INTO sofia.insights (
@@ -258,19 +382,23 @@ def execute(trace_id, actor, dry_run, params, context):
                         "trace_id": trace_id,
                         "evidence_hash": evidence_hash
                     })
-                    
+
                     if cur.rowcount > 0:
                         by_severity[insight["severity"]] += 1
-                
+
                 except psycopg2.IntegrityError:
                     # Duplicate (evidence_hash already exists)
                     pass
-            
+
+            # Update watermarks
+            for domain, watermark in watermarks.items():
+                update_watermark(cur, "insights.generate", domain, watermark)
+
             conn.commit()
-        
+
         # Calculate new watermark
         new_watermark = datetime.utcnow().isoformat() + "Z"
-        
+
     except Exception as e:
         conn.rollback()
         return {
@@ -284,10 +412,10 @@ def execute(trace_id, actor, dry_run, params, context):
     finally:
         cur.close()
         conn.close()
-    
+
     # Calculate duration
     duration_ms = int((time.time() - start_time) * 1000)
-    
+
     # Return success
     return {
         "ok": True,
@@ -302,7 +430,7 @@ def execute(trace_id, actor, dry_run, params, context):
         },
         "meta": {
             "skill": "insights.generate",
-            "version": "1.0.0",
+            "version": "1.0a",
             "trace_id": trace_id,
             "duration_ms": duration_ms
         }

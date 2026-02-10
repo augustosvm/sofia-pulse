@@ -230,9 +230,18 @@ def main():
     print(f"[daily_pipeline] PHASE 5: Generate Insights")
     print(f"[daily_pipeline] ========================================")
 
-    print(f"[daily_pipeline] Running insights.generate...")
+    # Load domains from config
+    insights_config_path = Path(__file__).resolve().parents[1] / "config" / "insights_domains.json"
+    if insights_config_path.exists():
+        with open(insights_config_path, "r") as f:
+            insights_config = json.load(f)
+            enabled_domains = insights_config.get("enabled_domains", ["research"])
+    else:
+        enabled_domains = ["research"]
+
+    print(f"[daily_pipeline] Running insights.generate (domains={enabled_domains})...")
     insights_result = run("insights.generate", {
-        "domains": ["research"]  # Add more domains as they become active
+        "domains": enabled_domains
     }, trace_id=trace)
 
     if insights_result["ok"]:
@@ -258,21 +267,74 @@ def main():
             for domain, count in ins_data['by_domain'].items():
                 alert_message += f"• {domain}: {count}\n"
 
-            whatsapp_result = run("notify.whatsapp", {
-                "to": "admin",
-                "severity": "critical" if critical_count > 0 else "warning",
-                "title": alert_title,
-                "message": alert_message,
-                "summary": {
-                    "total_insights": total_insights,
-                    "critical": critical_count
-                }
-            }, trace_id=trace)
+            # Dedupe check: has this alert been sent today?
+            import hashlib
+            import os
+            import psycopg2
+            from datetime import datetime
 
-            if whatsapp_result["ok"]:
-                print(f"  ✅ WhatsApp alert sent")
-            else:
-                print(f"  ⚠️ WhatsApp alert failed: {whatsapp_result.get('errors', [])}")
+            message_hash = hashlib.sha256(alert_message.encode()).hexdigest()
+            db_url = os.environ.get("DATABASE_URL")
+
+            should_send = True
+            if db_url:
+                try:
+                    conn = psycopg2.connect(db_url)
+                    cur = conn.cursor()
+
+                    # Check if already sent today (BRT timezone)
+                    cur.execute("""
+                        SELECT 1 FROM sofia.notifications_sent
+                        WHERE date_brt = CURRENT_DATE
+                          AND channel = 'whatsapp'
+                          AND message_hash = %s
+                    """, (message_hash,))
+
+                    if cur.fetchone():
+                        print(f"  ⏭️  WhatsApp alert skipped (already sent today)")
+                        should_send = False
+                    else:
+                        # Record that we're sending
+                        cur.execute("""
+                            INSERT INTO sofia.notifications_sent (
+                                date_brt, channel, message_hash, recipient, severity,
+                                title, message_preview, trace_id
+                            )
+                            VALUES (
+                                CURRENT_DATE, 'whatsapp', %s, 'admin', %s,
+                                %s, %s, %s
+                            )
+                            ON CONFLICT (date_brt, channel, message_hash) DO NOTHING
+                        """, (
+                            message_hash,
+                            "critical" if critical_count > 0 else "warning",
+                            alert_title,
+                            alert_message[:200],
+                            trace
+                        ))
+                        conn.commit()
+
+                    cur.close()
+                    conn.close()
+                except Exception as e:
+                    print(f"  ⚠️  Dedupe check failed: {e}")
+
+            if should_send:
+                whatsapp_result = run("notify.whatsapp", {
+                    "to": "admin",
+                    "severity": "critical" if critical_count > 0 else "warning",
+                    "title": alert_title,
+                    "message": alert_message,
+                    "summary": {
+                        "total_insights": total_insights,
+                        "critical": critical_count
+                    }
+                }, trace_id=trace)
+
+                if whatsapp_result["ok"]:
+                    print(f"  ✅ WhatsApp alert sent")
+                else:
+                    print(f"  ⚠️ WhatsApp alert failed: {whatsapp_result.get('errors', [])}")
     else:
         print(f"  ⚠️ Insights generation failed: {insights_result.get('errors', [])}")
         # Don't fail pipeline if insights fail (best-effort)

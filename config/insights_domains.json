@@ -1,0 +1,100 @@
+{
+  "_comment": "Insights Domains Configuration - Which domains to generate insights for",
+  "_version": "1.0.0",
+  "_updated": "2025-12-10",
+
+  "enabled_domains": [
+    "research",
+    "tech",
+    "jobs",
+    "security",
+    "economy",
+    "ga4"
+  ],
+
+  "domains": {
+    "research": {
+      "enabled": true,
+      "description": "Academic research papers (ArXiv, OpenAlex, BDTD)",
+      "source_tables": ["sofia.research_papers", "sofia.facts_research_monthly"],
+      "detectors": [
+        "growth_spike_organization",
+        "breakthrough_concentration",
+        "monthly_growth"
+      ],
+      "min_data_threshold": 5
+    },
+
+    "tech": {
+      "enabled": true,
+      "description": "Technology trends (GitHub, StackOverflow, Docker, npm, pypi)",
+      "source_tables": ["sofia.github_trends", "sofia.stackoverflow_trends", "sofia.tech_packages"],
+      "detectors": [
+        "technology_spike",
+        "package_popularity",
+        "framework_trends"
+      ],
+      "min_data_threshold": 10,
+      "best_effort": true
+    },
+
+    "jobs": {
+      "enabled": true,
+      "description": "Job market trends",
+      "source_tables": ["sofia.job_postings", "sofia.facts_jobs_weekly"],
+      "detectors": [
+        "salary_changes",
+        "demand_spike",
+        "skill_trends"
+      ],
+      "min_data_threshold": 20,
+      "best_effort": true
+    },
+
+    "security": {
+      "enabled": true,
+      "description": "Security incidents and vulnerabilities",
+      "source_tables": ["sofia.security_incidents", "sofia.cybersecurity_incidents"],
+      "detectors": [
+        "incident_spike",
+        "vulnerability_trends",
+        "attack_patterns"
+      ],
+      "min_data_threshold": 5,
+      "best_effort": true
+    },
+
+    "economy": {
+      "enabled": true,
+      "description": "Economic indicators (BACEN, IBGE, IPEA)",
+      "source_tables": ["sofia.economic_indicators", "sofia.bacen_sgs_series"],
+      "detectors": [
+        "indicator_anomaly",
+        "correlation_changes",
+        "trend_reversals"
+      ],
+      "min_data_threshold": 10,
+      "best_effort": true
+    },
+
+    "ga4": {
+      "enabled": true,
+      "description": "Google Analytics 4 metrics",
+      "source_tables": ["sofia.ga4_analytics", "sofia.ga4_events"],
+      "detectors": [
+        "traffic_anomaly",
+        "engagement_changes",
+        "conversion_trends"
+      ],
+      "min_data_threshold": 100,
+      "best_effort": true
+    }
+  },
+
+  "global_settings": {
+    "best_effort_default": true,
+    "log_zero_insights": true,
+    "generate_status_fallback": true,
+    "watermark_enabled": true
+  }
+}
