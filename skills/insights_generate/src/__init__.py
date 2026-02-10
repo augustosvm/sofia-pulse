@@ -26,26 +26,42 @@ def load_domains_config():
         return json.load(f)
 
 
-def get_watermark(cur, skill_name, domain):
-    """Get watermark from sofia.skill_state."""
+def get_watermark(cur, skill_name, domain, detector=None):
+    """Get watermark from sofia.skill_state.
+
+    Args:
+        skill_name: Name of the skill
+        domain: Domain (research, tech, etc)
+        detector: Detector name (e.g., 'org_growth_spike') or None for domain-level watermark
+
+    Returns:
+        datetime or None
+    """
     cur.execute("""
         SELECT last_processed_at
         FROM sofia.skill_state
-        WHERE skill_name = %s AND domain = %s AND detector IS NULL
-    """, (skill_name, domain))
+        WHERE skill_name = %s AND domain = %s AND detector IS NOT DISTINCT FROM %s
+    """, (skill_name, domain, detector))
 
     row = cur.fetchone()
     return row['last_processed_at'] if row else None
 
 
-def update_watermark(cur, skill_name, domain, watermark):
-    """Update watermark in sofia.skill_state."""
+def update_watermark(cur, skill_name, domain, watermark, detector=None):
+    """Update watermark in sofia.skill_state.
+
+    Args:
+        skill_name: Name of the skill
+        domain: Domain (research, tech, etc)
+        watermark: Timestamp to set as last_processed_at
+        detector: Detector name or None for domain-level watermark
+    """
     cur.execute("""
         INSERT INTO sofia.skill_state (skill_name, domain, detector, last_processed_at, updated_at)
-        VALUES (%s, %s, NULL, %s, NOW())
+        VALUES (%s, %s, %s, %s, NOW())
         ON CONFLICT (skill_name, domain, detector)
         DO UPDATE SET last_processed_at = EXCLUDED.last_processed_at, updated_at = NOW()
-    """, (skill_name, domain, watermark))
+    """, (skill_name, domain, detector, watermark))
 
 
 def generate_evidence_hash(evidence):
@@ -56,8 +72,8 @@ def generate_evidence_hash(evidence):
 
 def generate_status_insight(cur, domain, since=None):
     """
-    Generate fallback 'Daily Status' insight when no anomalies detected.
-    Ensures site always has fresh content.
+    Generate fallback 'Heartbeat' insight when no anomalies detected.
+    Ensures site always has fresh content, deduped by week to avoid spam.
     """
     if domain == "research":
         # Count recent papers
@@ -65,7 +81,8 @@ def generate_status_insight(cur, domain, since=None):
             SELECT
                 COUNT(*) as total_papers,
                 COUNT(DISTINCT source) as sources,
-                MAX(publication_date) as latest_date
+                MAX(publication_date) as latest_date,
+                TO_CHAR(CURRENT_DATE, 'IYYY-IW') as week_key
             FROM sofia.research_papers
             WHERE publication_date >= NOW() - INTERVAL '7 days'
               AND (%(since)s IS NULL OR created_at > %(since)s)
@@ -81,9 +98,10 @@ def generate_status_insight(cur, domain, since=None):
                     "total_papers": row['total_papers'],
                     "sources": row['sources'],
                     "latest_date": str(row['latest_date']),
-                    "period_days": 7
+                    "period_days": 7,
+                    "week_key": row['week_key']  # Dedupe by week (e.g., "2025-W50")
                 },
-                "insight_type": "daily_status"
+                "insight_type": "heartbeat"  # Changed from "daily_status" to "heartbeat"
             }
 
     return None
@@ -309,16 +327,18 @@ def execute(trace_id, actor, dry_run, params, context):
                     # Detect from facts_research_monthly
                     domain_insights.extend(detect_aggregation_insights(cur, since_dt))
 
-                # Add domain to each insight
+                # Add domain and detector_name to each insight
                 for insight in domain_insights:
                     insight["domain"] = domain
                     if "insight_type" not in insight:
                         insight["insight_type"] = "anomaly"
+                    # detector_name is the insight_type (e.g., 'growth_spike_organization')
+                    insight["detector_name"] = insight["insight_type"]
                     all_insights.append(insight)
 
                 by_domain[domain] = len(domain_insights)
 
-                # Update watermark for this domain
+                # Track watermark for this domain (general)
                 watermarks[domain] = datetime.utcnow()
 
             except Exception as e:
@@ -390,9 +410,19 @@ def execute(trace_id, actor, dry_run, params, context):
                     # Duplicate (evidence_hash already exists)
                     pass
 
-            # Update watermarks
+            # Update watermarks (domain-level + detector-level)
             for domain, watermark in watermarks.items():
-                update_watermark(cur, "insights.generate", domain, watermark)
+                # Update domain-level watermark (global for domain)
+                update_watermark(cur, "insights.generate", domain, watermark, detector=None)
+
+                # Update detector-level watermarks (specific for each detector)
+                domain_detectors = set()
+                for insight in all_insights:
+                    if insight.get("domain") == domain and "detector_name" in insight:
+                        domain_detectors.add(insight["detector_name"])
+
+                for detector in domain_detectors:
+                    update_watermark(cur, "insights.generate", domain, watermark, detector=detector)
 
             conn.commit()
 

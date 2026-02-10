@@ -73,13 +73,13 @@ def apply_migration(cur, file_path, file_name):
 
 def main():
     print("[apply_migrations] Starting migration runner...")
-    
+
     # Check DATABASE_URL
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
         print("❌ DATABASE_URL not set")
         sys.exit(1)
-    
+
     # Connect to database
     try:
         conn = psycopg2.connect(db_url)
@@ -88,66 +88,88 @@ def main():
     except Exception as e:
         print(f"❌ Failed to connect: {e}")
         sys.exit(1)
-    
-    # Get migrations directory
-    project_root = Path(__file__).resolve().parents[1]
-    migrations_dir = project_root / "sql" / "migrations"
-    
-    if not migrations_dir.exists():
-        print(f"❌ Migrations directory not found: {migrations_dir}")
-        sys.exit(1)
-    
-    print(f"[apply_migrations] Migrations directory: {migrations_dir}")
-    
-    # Get applied migrations
-    applied = get_applied_migrations(cur)
-    print(f"[apply_migrations] Applied migrations: {len(applied)}")
-    
-    # Get pending migrations
-    pending = get_pending_migrations(migrations_dir, applied)
-    
-    if not pending:
-        print("\n✅ No pending migrations")
+
+    # Acquire advisory lock to prevent concurrent migrations
+    # Uses hashtext('sofia_schema_migrations') as lock ID
+    print("[apply_migrations] Acquiring advisory lock...")
+    try:
+        cur.execute("SELECT pg_advisory_lock(hashtext('sofia_schema_migrations'))")
+        conn.commit()
+        print("[apply_migrations] ✅ Lock acquired")
+    except Exception as e:
+        print(f"❌ Failed to acquire lock: {e}")
         cur.close()
         conn.close()
-        sys.exit(0)
-    
-    print(f"\n[apply_migrations] Pending migrations: {len(pending)}")
-    for number, file_name, _ in pending:
-        print(f"  - [{number:03d}] {file_name}")
-    
-    # Apply migrations
-    print(f"\n[apply_migrations] Applying migrations...")
-    
-    success_count = 0
-    for number, file_name, file_path in pending:
-        if apply_migration(cur, file_path, file_name):
-            success_count += 1
-            conn.commit()
+        sys.exit(1)
+
+    try:
+        # Get migrations directory
+        project_root = Path(__file__).resolve().parents[1]
+        migrations_dir = project_root / "sql" / "migrations"
+
+        if not migrations_dir.exists():
+            print(f"❌ Migrations directory not found: {migrations_dir}")
+            sys.exit(1)
+
+        print(f"[apply_migrations] Migrations directory: {migrations_dir}")
+
+        # Get applied migrations
+        applied = get_applied_migrations(cur)
+        print(f"[apply_migrations] Applied migrations: {len(applied)}")
+
+        # Get pending migrations
+        pending = get_pending_migrations(migrations_dir, applied)
+
+        if not pending:
+            print("\n✅ No pending migrations")
+            return 0
+
+        print(f"\n[apply_migrations] Pending migrations: {len(pending)}")
+        for number, file_name, _ in pending:
+            print(f"  - [{number:03d}] {file_name}")
+
+        # Apply migrations
+        print(f"\n[apply_migrations] Applying migrations...")
+
+        success_count = 0
+        for number, file_name, file_path in pending:
+            if apply_migration(cur, file_path, file_name):
+                success_count += 1
+                conn.commit()
+            else:
+                conn.rollback()
+                print(f"\n❌ Migration failed: {file_name}")
+                print(f"   Stopping migration process")
+                break
+
+        # Summary
+        print(f"\n[apply_migrations] ========================================")
+        print(f"[apply_migrations] SUMMARY")
+        print(f"[apply_migrations] ========================================")
+        print(f"  Total pending: {len(pending)}")
+        print(f"  Applied: {success_count}")
+        print(f"  Failed: {len(pending) - success_count}")
+
+        if success_count == len(pending):
+            print(f"\n✅ All migrations applied successfully")
+            return 0
         else:
-            conn.rollback()
-            print(f"\n❌ Migration failed: {file_name}")
-            print(f"   Stopping migration process")
-            break
-    
-    # Summary
-    print(f"\n[apply_migrations] ========================================")
-    print(f"[apply_migrations] SUMMARY")
-    print(f"[apply_migrations] ========================================")
-    print(f"  Total pending: {len(pending)}")
-    print(f"  Applied: {success_count}")
-    print(f"  Failed: {len(pending) - success_count}")
-    
-    if success_count == len(pending):
-        print(f"\n✅ All migrations applied successfully")
-    else:
-        print(f"\n⚠️ Some migrations failed")
-    
-    cur.close()
-    conn.close()
-    
-    sys.exit(0 if success_count == len(pending) else 1)
+            print(f"\n⚠️ Some migrations failed")
+            return 1
+
+    finally:
+        # Always release advisory lock before exit
+        try:
+            cur.execute("SELECT pg_advisory_unlock(hashtext('sofia_schema_migrations'))")
+            conn.commit()
+            print("[apply_migrations] 🔓 Lock released")
+        except Exception as e:
+            print(f"⚠️ Failed to release lock: {e}")
+
+        cur.close()
+        conn.close()
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    sys.exit(exit_code)

@@ -268,56 +268,75 @@ def main():
                 alert_message += f"• {domain}: {count}\n"
 
             # Dedupe check: has this alert been sent today?
+            # Critical alerts ALWAYS bypass dedupe
             import hashlib
             import os
             import psycopg2
             from datetime import datetime
 
             message_hash = hashlib.sha256(alert_message.encode()).hexdigest()
+            current_severity = "critical" if critical_count > 0 else "warning"
             db_url = os.environ.get("DATABASE_URL")
 
             should_send = True
-            if db_url:
+
+            # Critical alerts ALWAYS send (bypass dedupe)
+            if current_severity == "critical":
+                print(f"  🚨 Critical alert - bypassing dedupe")
+                should_send = True
+            elif db_url:
                 try:
                     conn = psycopg2.connect(db_url)
                     cur = conn.cursor()
 
-                    # Check if already sent today (BRT timezone)
+                    # Check if already sent today (BRT timezone) with same severity
+                    # Critical and warning have separate dedupe tracks
                     cur.execute("""
                         SELECT 1 FROM sofia.notifications_sent
                         WHERE date_brt = CURRENT_DATE
                           AND channel = 'whatsapp'
                           AND message_hash = %s
-                    """, (message_hash,))
+                          AND severity = %s
+                    """, (message_hash, current_severity))
 
                     if cur.fetchone():
-                        print(f"  ⏭️  WhatsApp alert skipped (already sent today)")
+                        print(f"  ⏭️  WhatsApp alert skipped (already sent today, severity={current_severity})")
                         should_send = False
-                    else:
-                        # Record that we're sending
-                        cur.execute("""
-                            INSERT INTO sofia.notifications_sent (
-                                date_brt, channel, message_hash, recipient, severity,
-                                title, message_preview, trace_id
-                            )
-                            VALUES (
-                                CURRENT_DATE, 'whatsapp', %s, 'admin', %s,
-                                %s, %s, %s
-                            )
-                            ON CONFLICT (date_brt, channel, message_hash) DO NOTHING
-                        """, (
-                            message_hash,
-                            "critical" if critical_count > 0 else "warning",
-                            alert_title,
-                            alert_message[:200],
-                            trace
-                        ))
-                        conn.commit()
 
                     cur.close()
                     conn.close()
                 except Exception as e:
                     print(f"  ⚠️  Dedupe check failed: {e}")
+
+            # Record notification if sending (after send to avoid locking out on failures)
+            if should_send and db_url:
+                try:
+                    conn = psycopg2.connect(db_url)
+                    cur = conn.cursor()
+
+                    cur.execute("""
+                        INSERT INTO sofia.notifications_sent (
+                            date_brt, channel, message_hash, recipient, severity,
+                            title, message_preview, trace_id
+                        )
+                        VALUES (
+                            CURRENT_DATE, 'whatsapp', %s, 'admin', %s,
+                            %s, %s, %s
+                        )
+                        ON CONFLICT (date_brt, channel, message_hash) DO NOTHING
+                    """, (
+                        message_hash,
+                        current_severity,
+                        alert_title,
+                        alert_message[:200],
+                        trace
+                    ))
+                    conn.commit()
+
+                    cur.close()
+                    conn.close()
+                except Exception as e:
+                    print(f"  ⚠️  Failed to record notification: {e}")
 
             if should_send:
                 whatsapp_result = run("notify.whatsapp", {
