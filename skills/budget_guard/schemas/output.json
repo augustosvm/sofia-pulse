@@ -1,0 +1,1 @@
+{"type":"object","properties":{"allowed":{"type":"boolean"},"reason":{"type":"string"},"current_cost":{"type":"number"},"limit_cost":{"type":"number"},"remaining":{"type":"number"}}}

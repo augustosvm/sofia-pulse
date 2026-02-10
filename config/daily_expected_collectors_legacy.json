@@ -1,0 +1,21 @@
+{
+  "_comment": "Legacy format (deprecated, use groups instead)",
+  "collectors": [
+    "bacen-sgs",
+    "ibge-api",
+    "ipea-api",
+    "ga4-analytics",
+    "ga4-events",
+    "cybersecurity",
+    "github-trends",
+    "hackernews",
+    "npm-packages",
+    "pypi-packages",
+    "openalex",
+    "research-papers",
+    "brazil-security",
+    "commodity-prices",
+    "currency-rates",
+    "gdelt"
+  ]
+}

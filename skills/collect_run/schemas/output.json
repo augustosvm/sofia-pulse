@@ -1,0 +1,1 @@
+{"type":"object","properties":{"run_id":{"type":"string"},"collector_name":{"type":"string"},"fetched":{"type":"integer"},"saved":{"type":"integer"},"skipped":{"type":"integer"},"duration_ms":{"type":"integer"},"exit_code":{"type":"integer"}}}

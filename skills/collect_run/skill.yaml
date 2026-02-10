@@ -1,0 +1,9 @@
+name: collect.run
+version: "1.0.0"
+description: "Executa collector existente, registra run em collector_runs."
+layer: domain
+dependencies: {db: true, network: true, llm: false, filesystem: true}
+permissions: {write_db: true, call_external_api: true}
+limits: {timeout_ms: 300000, max_retries: 2, backoff_ms: 5000}
+idempotent: true
+cost: {report_estimate: true}

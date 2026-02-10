@@ -1,0 +1,8 @@
+name: budget.guard
+version: "1.0.0"
+description: "Bloqueia execução quando custo acumulado excede limite. Block por padrão."
+layer: governance
+dependencies: {db: true, network: false, llm: false}
+permissions: {write_db: true, call_external_api: false}
+limits: {timeout_ms: 5000, max_retries: 0}
+idempotent: true

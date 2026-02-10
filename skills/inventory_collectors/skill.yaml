@@ -1,0 +1,8 @@
+name: inventory.collectors
+version: "1.0.0"
+description: "Lista, valida e gerencia inventário de collectors. Anti-entropia."
+layer: governance
+dependencies: {db: true, network: false, llm: false, filesystem: true}
+permissions: {write_db: true, call_external_api: false}
+limits: {timeout_ms: 30000, max_retries: 0}
+idempotent: true

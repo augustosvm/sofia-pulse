@@ -1,0 +1,86 @@
+# Sofia Pulse — Crontab Example (v2 - Mass Activation + GA4)
+#
+# Setup:
+# 1. Edit this file with your paths
+# 2. Install: crontab -e
+# 3. Add these lines (adjust paths)
+#
+# IMPORTANT: Set DATABASE_URL and WHATSAPP_ADMIN_NUMBER before running
+
+# Environment variables (adjust as needed)
+DATABASE_URL=postgresql://sofia:sofia123strong@localhost:5432/sofia_db
+SOFIA_LOG_DIR=/var/log/sofia
+WHATSAPP_API_URL=http://localhost:3001/send
+WHATSAPP_ADMIN_NUMBER=5527988024062
+WHATSAPP_ENABLED=true
+
+# ================================
+# Sync Expected Set (Weekly - Sunday 23:00 BRT)
+# ================================
+# Re-generates expected set from inventory (applies denylist)
+# Run weekly to pick up new collectors automatically
+0 23 * * 0 cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/sync_expected_set.py >> /var/log/sofia/sync.log 2>&1
+
+# ================================
+# Daily Pipeline v2 (23:55 BRT)
+# ================================
+# Runs collectors in batches with priorities:
+# - Phase 1: Required (bacen-sgs, ibge-api, ipea-api)
+# - Phase 2: GA4 (with budget.guard)
+# - Phase 3: Other (tech, research, jobs, etc - best-effort)
+# Exit 1 if required collectors unhealthy
+55 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/daily_pipeline.py >> /var/log/sofia/daily_pipeline.log 2>&1
+
+# ================================
+# Notify Unhealthy WhatsApp (23:57 BRT)
+# ================================
+# Sends WhatsApp alert if required collectors unhealthy
+# Always exit 0 (best-effort notification)
+57 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" WHATSAPP_API_URL="$WHATSAPP_API_URL" WHATSAPP_ADMIN_NUMBER="$WHATSAPP_ADMIN_NUMBER" WHATSAPP_ENABLED="$WHATSAPP_ENABLED" python3 scripts/notify_unhealthy.py >> /var/log/sofia/notify.log 2>&1
+
+# ================================
+# GA4 Dedicated Run (Optional - 02:10 BRT)
+# ================================
+# Optional: Run GA4 collectors separately at low-traffic time
+# Uncomment if GA4 needs more than 900s timeout or separate budget
+# 10 2 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 -c "from lib.skill_runner import run; import json; config_path='/path/to/sofia-pulse/config/daily_expected_collectors.json'; config=json.load(open(config_path)); ga4=[c['collector_id'] for c in config.get('groups',{}).get('ga4',[])]; [run('collect.run',{'collector_id':c}) for c in ga4]" >> /var/log/sofia/ga4.log 2>&1
+
+# ================================
+# Alternative: Combined (single cron job)
+# ================================
+# If you prefer, run pipeline + notify in sequence:
+# 55 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/daily_pipeline.py && WHATSAPP_API_URL="$WHATSAPP_API_URL" WHATSAPP_ADMIN_NUMBER="$WHATSAPP_ADMIN_NUMBER" python3 scripts/notify_unhealthy.py >> /var/log/sofia/pipeline.log 2>&1
+
+# ================================
+# Notes:
+# ================================
+# - Timezone: Cron runs in server timezone. If server is UTC, adjust times:
+#   23:55 BRT = 02:55 UTC (next day)
+#   Use: 55 2 * * * for UTC servers
+#
+# - Log rotation: Add to /etc/logrotate.d/sofia-pulse:
+#   /var/log/sofia/*.log {
+#     daily
+#     rotate 30
+#     compress
+#     missingok
+#     notifempty
+#   }
+#
+# - Email alerts: Cron sends email to root by default if job fails (exit 1)
+#   Set MAILTO=your-email@example.com at top of crontab for custom recipient
+#
+# - Budget control: GA4 uses budget.guard to prevent overruns
+#   Configure monthly limits in budget.guard skill
+#
+# - Parallel execution: Pipeline v2 runs collectors in parallel:
+#   - Required: max 1 (sequential)
+#   - GA4: max 2 (parallel)
+#   - Others: max 3 (parallel)
+#
+# - Test locally first:
+#   cd /path/to/sofia-pulse
+#   source .venv/bin/activate
+#   DATABASE_URL="..." python3 scripts/sync_expected_set.py
+#   DATABASE_URL="..." python3 scripts/daily_pipeline.py
+#   DATABASE_URL="..." python3 scripts/notify_unhealthy.py

@@ -1,0 +1,8 @@
+name: runs.audit
+version: "1.0.0"
+description: "Auditoria de runs: o que rodou, falhou, não rodou, gerou zero. Sem LLM."
+layer: governance
+dependencies: {db: true, network: false, llm: false}
+permissions: {write_db: false, call_external_api: false}
+limits: {timeout_ms: 30000, max_retries: 0}
+idempotent: true

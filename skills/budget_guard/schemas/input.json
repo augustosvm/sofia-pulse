@@ -1,0 +1,1 @@
+{"type":"object","properties":{"scope":{"type":"string","enum":["day","job","project"]},"scope_id":{"type":"string"},"estimated_cost":{"type":"number"},"provider":{"type":"string"}},"required":["scope","scope_id","estimated_cost"]}

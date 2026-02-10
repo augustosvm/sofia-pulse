@@ -1,0 +1,1 @@
+{"type":"object","properties":{"normalized":{"type":"array"},"failed":{"type":"array"},"stats":{"type":"object","properties":{"total":{"type":"integer"},"success":{"type":"integer"},"failed":{"type":"integer"}}}}}

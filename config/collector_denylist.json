@@ -1,0 +1,23 @@
+{
+  "_comment": "Denylist: bloqueio de collectors (allowlist tem precedência)",
+
+  "blocked_collectors": [
+    "*bigquery*",
+    "patents-bigquery-*"
+  ],
+
+  "blocked_paths_contains": [
+    "bigquery"
+  ],
+
+  "allow_collectors": [
+    "ga4-*"
+  ],
+
+  "_rules": [
+    "1. blocked_collectors: wildcards permitidos (* = qualquer string)",
+    "2. blocked_paths_contains: bloqueio por substring no path",
+    "3. allow_collectors: SEMPRE permitidos (override denylist)",
+    "4. Precedência: allow > deny (GA4 permitido mesmo com 'bigquery' no path)"
+  ]
+}

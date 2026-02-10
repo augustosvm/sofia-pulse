@@ -1,0 +1,292 @@
+{
+  "_comment": "Normalization Registry - Declarative rules for data normalization",
+  "_version": "1.0.0",
+  "_updated": "2025-12-09",
+
+  "domains": {
+    "research": {
+      "description": "Academic research papers from multiple sources",
+      "enabled": true,
+      "target_table": "sofia.research_papers",
+      "sources": [
+        {
+          "source_id": "arxiv",
+          "table": "sofia.arxiv_ai_papers",
+          "collector_id": "research-papers",
+          "field_mapping": {
+            "title": "title",
+            "abstract": "abstract",
+            "authors": "authors",
+            "keywords": "keywords",
+            "publication_date": "published_date",
+            "publication_year": "EXTRACT(YEAR FROM published_date)::int",
+            "source": "'arxiv'",
+            "source_id": "arxiv_id",
+            "pdf_url": "pdf_url",
+            "primary_category": "primary_category",
+            "categories": "categories",
+            "is_open_access": "true",
+            "author_countries": "author_countries",
+            "is_breakthrough": "is_breakthrough",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        },
+        {
+          "source_id": "openalex",
+          "table": "sofia.openalex_papers",
+          "collector_id": "openalex",
+          "field_mapping": {
+            "title": "title",
+            "abstract": "abstract",
+            "authors": "authors",
+            "keywords": "concepts",
+            "publication_date": "publication_date",
+            "publication_year": "publication_year",
+            "source": "'openalex'",
+            "source_id": "openalex_id",
+            "doi": "doi",
+            "primary_category": "primary_concept",
+            "categories": "concepts",
+            "is_open_access": "is_open_access",
+            "journal": "journal",
+            "publisher": "publisher",
+            "author_institutions": "author_institutions",
+            "author_countries": "author_countries",
+            "cited_by_count": "cited_by_count",
+            "referenced_works_count": "referenced_works_count",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        },
+        {
+          "source_id": "bdtd",
+          "table": "sofia.bdtd_theses",
+          "collector_id": "bdtd",
+          "field_mapping": {
+            "title": "title",
+            "abstract": "abstract",
+            "authors": "CASE WHEN author IS NOT NULL THEN ARRAY[author] ELSE NULL END",
+            "keywords": "keywords",
+            "publication_year": "publication_year",
+            "source": "'bdtd'",
+            "source_id": "thesis_id",
+            "pdf_url": "pdf_url",
+            "area": "area",
+            "university": "university",
+            "program": "program",
+            "degree_type": "degree_type",
+            "language": "language",
+            "is_open_access": "true",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        }
+      ],
+      "update_strategy": "upsert",
+      "conflict_resolution": "DO UPDATE SET title = EXCLUDED.title, abstract = EXCLUDED.abstract, updated_at = NOW()"
+    },
+
+    "tech_packages": {
+      "description": "Technology packages from npm, pypi, GitHub",
+      "enabled": false,
+      "target_table": "sofia.tech_packages",
+      "sources": [
+        {
+          "source_id": "npm",
+          "table": "sofia.npm_packages",
+          "collector_id": "npm-packages",
+          "field_mapping": {
+            "name": "name",
+            "description": "description",
+            "version": "version",
+            "source": "'npm'",
+            "source_id": "name",
+            "downloads": "downloads",
+            "stars": "stars",
+            "repository_url": "repository_url",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        },
+        {
+          "source_id": "pypi",
+          "table": "sofia.pypi_packages",
+          "collector_id": "pypi-packages",
+          "field_mapping": {
+            "name": "name",
+            "description": "description",
+            "version": "version",
+            "source": "'pypi'",
+            "source_id": "name",
+            "downloads": "downloads",
+            "stars": "stars",
+            "repository_url": "repository_url",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        }
+      ],
+      "update_strategy": "upsert",
+      "conflict_resolution": "DO UPDATE SET version = EXCLUDED.version, downloads = EXCLUDED.downloads, updated_at = NOW()"
+    },
+
+    "security_incidents": {
+      "description": "Security incidents from multiple sources",
+      "enabled": false,
+      "target_table": "sofia.security_incidents",
+      "sources": [
+        {
+          "source_id": "cybersecurity",
+          "table": "sofia.cybersecurity_incidents",
+          "collector_id": "cybersecurity",
+          "field_mapping": {
+            "title": "title",
+            "description": "description",
+            "source": "'cybersecurity'",
+            "source_id": "incident_id",
+            "severity": "severity",
+            "incident_date": "incident_date",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        },
+        {
+          "source_id": "brazil-security",
+          "table": "sofia.brazil_security_incidents",
+          "collector_id": "brazil-security",
+          "field_mapping": {
+            "title": "title",
+            "description": "description",
+            "source": "'brazil-security'",
+            "source_id": "incident_id",
+            "severity": "severity",
+            "incident_date": "incident_date",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        }
+      ],
+      "update_strategy": "upsert",
+      "conflict_resolution": "DO UPDATE SET severity = EXCLUDED.severity, updated_at = NOW()"
+    },
+
+    "economic_indicators": {
+      "description": "Economic indicators from BACEN, IBGE, IPEA",
+      "enabled": false,
+      "target_table": "sofia.economic_indicators",
+      "sources": [
+        {
+          "source_id": "bacen",
+          "table": "sofia.bacen_sgs_series",
+          "collector_id": "bacen-sgs",
+          "field_mapping": {
+            "indicator_name": "series_name",
+            "indicator_code": "series_code",
+            "value": "value",
+            "date": "date",
+            "source": "'bacen'",
+            "source_id": "series_code",
+            "unit": "unit",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id", "date"]
+        }
+      ],
+      "update_strategy": "upsert",
+      "conflict_resolution": "DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()"
+    },
+
+    "global_events": {
+      "description": "Global events from GDELT, HackerNews",
+      "enabled": false,
+      "target_table": "sofia.global_events",
+      "sources": [
+        {
+          "source_id": "gdelt",
+          "table": "sofia.gdelt_events",
+          "collector_id": "gdelt",
+          "field_mapping": {
+            "title": "title",
+            "description": "description",
+            "source": "'gdelt'",
+            "source_id": "event_id",
+            "event_date": "event_date",
+            "url": "url",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        },
+        {
+          "source_id": "hackernews",
+          "table": "sofia.hackernews_stories",
+          "collector_id": "hackernews",
+          "field_mapping": {
+            "title": "title",
+            "description": "text",
+            "source": "'hackernews'",
+            "source_id": "story_id",
+            "event_date": "time",
+            "url": "url",
+            "collected_at": "collected_at"
+          },
+          "unique_key": ["source", "source_id"]
+        }
+      ],
+      "update_strategy": "upsert",
+      "conflict_resolution": "DO UPDATE SET title = EXCLUDED.title, updated_at = NOW()"
+    }
+  },
+
+  "aggregations": {
+    "research_monthly_summary": {
+      "description": "Monthly aggregation of research papers by source",
+      "enabled": true,
+      "domain": "research",
+      "source_table": "sofia.research_papers",
+      "target_table": "sofia.facts_research_monthly",
+      "grain": {
+        "source": "source",
+        "publication_year": "publication_year",
+        "publication_month": "EXTRACT(MONTH FROM publication_date)::int"
+      },
+      "metrics": {
+        "total_papers": "COUNT(*)",
+        "total_breakthrough": "COUNT(*) FILTER (WHERE is_breakthrough = true)",
+        "total_open_access": "COUNT(*) FILTER (WHERE is_open_access = true)",
+        "avg_citations": "AVG(cited_by_count)",
+        "top_categories": "ARRAY_AGG(DISTINCT primary_category) FILTER (WHERE primary_category IS NOT NULL)",
+        "unique_authors": "SUM(COALESCE(array_length(authors, 1), 0))",
+        "unique_countries": "SUM(COALESCE(array_length(author_countries, 1), 0))"
+      },
+      "filters": "publication_date IS NOT NULL",
+      "update_strategy": "replace"
+    },
+
+    "tech_packages_weekly": {
+      "description": "Weekly aggregation of tech packages",
+      "enabled": false,
+      "domain": "tech_packages",
+      "source_table": "sofia.tech_packages",
+      "target_table": "sofia.facts_tech_weekly",
+      "grain": ["source", "year", "week"],
+      "metrics": {
+        "total_packages": "COUNT(*)",
+        "total_downloads": "SUM(downloads)",
+        "avg_stars": "AVG(stars)"
+      },
+      "filters": "collected_at >= NOW() - INTERVAL '90 days'",
+      "update_strategy": "replace"
+    }
+  },
+
+  "meta": {
+    "normalization_modes": {
+      "full": "Process all data from source tables (backfill)",
+      "incremental": "Process only new data since last run (daily)",
+      "date_range": "Process data within specific date range (since/until)"
+    },
+    "supported_strategies": ["upsert", "append", "replace"],
+    "idempotency": "All normalizations use unique_key constraints to ensure deterministic results"
+  }
+}

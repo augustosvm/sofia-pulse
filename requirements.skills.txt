@@ -1,0 +1,17 @@
+# Sofia Pulse — Python dependencies for collectors (minimal)
+# Install: python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.skills.txt
+
+# Core HTTP
+requests>=2.31.0
+
+# Database
+psycopg2-binary>=2.9.9
+
+# Environment
+python-dotenv>=1.0.0
+
+# HTML parsing (usado por alguns collectors)
+beautifulsoup4>=4.12.0
+
+# Data manipulation (opcional, somente se collectors específicos usam)
+# pandas>=2.1.0

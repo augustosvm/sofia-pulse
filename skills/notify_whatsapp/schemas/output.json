@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["sent", "to"],
+  "properties": {
+    "sent": {
+      "type": "boolean",
+      "description": "True se mensagem foi enviada com sucesso"
+    },
+    "to": {
+      "type": "string",
+      "description": "Número de destino usado"
+    },
+    "api_status": {
+      "type": "integer",
+      "description": "HTTP status code da API WhatsApp"
+    },
+    "message_preview": {
+      "type": "string",
+      "description": "Preview dos primeiros 100 caracteres da mensagem enviada"
+    }
+  }
+}

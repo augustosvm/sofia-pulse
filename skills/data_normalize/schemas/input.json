@@ -1,0 +1,1 @@
+{"type":"object","properties":{"entity_type":{"type":"string"},"source":{"type":"string"},"records":{"type":"array","items":{"type":"object"}},"field_map":{"type":"object"}},"required":["entity_type","source","records"]}

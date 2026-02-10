@@ -1,0 +1,1 @@
+{"type":"object","properties":{"collectors":{"type":"array"},"validated":{"type":"integer"},"invalid":{"type":"integer"},"orphaned":{"type":"array"},"registered":{"type":"integer"}}}

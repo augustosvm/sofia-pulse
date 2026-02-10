@@ -1,0 +1,25 @@
+name: notify.whatsapp
+version: 1.0.0
+description: Envia notificações via WhatsApp usando API Baileys nativa
+category: notification
+
+# Dependências
+dependencies:
+  external:
+    - WhatsApp API (Baileys) rodando em WHATSAPP_API_URL
+
+permissions:
+  - http_outbound  # Para chamar API WhatsApp
+  - secrets_read   # Para ler WHATSAPP_API_URL, WHATSAPP_ADMIN_NUMBER
+
+# Configuração
+config:
+  timeout_ms: 10000
+  retries: 2
+  llm: false
+
+# Custo
+cost:
+  estimate: 0
+  unit: message
+  confidence: high

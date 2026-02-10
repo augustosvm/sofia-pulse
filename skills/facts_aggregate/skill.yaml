@@ -1,0 +1,45 @@
+name: facts.aggregate
+version: 1.0.0
+description: Aggregates normalized data into fact tables for analytics
+category: data
+author: sofia-pulse
+created: 2025-12-09
+
+metadata:
+  idempotent: true
+  deterministic: true
+  safe_retry: true
+  requires_database: true
+
+params:
+  aggregation:
+    type: string
+    required: true
+    description: Aggregation name (research_monthly_summary, tech_packages_weekly, etc)
+  mode:
+    type: string
+    required: false
+    default: incremental
+    enum: [full, incremental, date_range]
+    description: Aggregation mode (full=rebuild all, incremental=new data, date_range=specific period)
+  since:
+    type: string
+    required: false
+    description: Start date for date_range mode (YYYY-MM-DD)
+  until:
+    type: string
+    required: false
+    description: End date for date_range mode (YYYY-MM-DD)
+  dry_run:
+    type: boolean
+    required: false
+    default: false
+    description: Preview changes without applying
+
+output:
+  aggregation: Aggregation processed
+  mode: Mode used
+  total_records: Total records created/updated
+  grain_count: Number of unique grain combinations
+  duration_ms: Processing time in milliseconds
+  dry_run: Whether this was a dry run

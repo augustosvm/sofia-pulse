@@ -1,0 +1,51 @@
+name: data.normalize
+version: 1.0.0
+description: Normalizes data from multiple sources into canonical tables
+category: data
+author: sofia-pulse
+created: 2025-12-09
+
+metadata:
+  idempotent: true
+  deterministic: true
+  safe_retry: true
+  requires_database: true
+
+params:
+  domain:
+    type: string
+    required: true
+    description: Domain to normalize (research, tech_packages, etc)
+  mode:
+    type: string
+    required: false
+    default: incremental
+    enum: [full, incremental, date_range]
+    description: Normalization mode (full=backfill, incremental=new data, date_range=specific period)
+  since:
+    type: string
+    required: false
+    description: Start date for date_range mode (YYYY-MM-DD)
+  until:
+    type: string
+    required: false
+    description: End date for date_range mode (YYYY-MM-DD)
+  dry_run:
+    type: boolean
+    required: false
+    default: false
+    description: Preview changes without applying
+  source_filter:
+    type: string
+    required: false
+    description: Filter by specific source (arxiv, openalex, etc)
+
+output:
+  domain: Domain processed
+  mode: Mode used
+  total_processed: Total records processed
+  inserted: Records inserted
+  updated: Records updated
+  skipped: Records skipped
+  duration_ms: Processing time in milliseconds
+  dry_run: Whether this was a dry run

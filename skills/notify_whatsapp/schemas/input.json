@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["title", "message"],
+  "properties": {
+    "to": {
+      "type": "string",
+      "description": "Destinatário: 'admin' (usa WHATSAPP_ADMIN_NUMBER) ou número com DDD (ex: '5527988024062')",
+      "default": "admin"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warning", "critical"],
+      "description": "Severidade da notificação (afeta emoji no título)",
+      "default": "info"
+    },
+    "title": {
+      "type": "string",
+      "description": "Título da notificação (primeira linha em negrito)",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "message": {
+      "type": "string",
+      "description": "Corpo da mensagem",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "summary": {
+      "type": "object",
+      "description": "Dados estruturados opcionais para incluir na mensagem",
+      "additionalProperties": true
+    }
+  }
+}
