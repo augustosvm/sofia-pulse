@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["research", "tech", "jobs", "security", "economy"]
+      },
+      "description": "Domains to generate insights for"
+    },
+    "since": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Only process data newer than this watermark"
+    },
+    "dry_run": {
+      "type": "boolean",
+      "default": false,
+      "description": "Preview without saving"
+    }
+  }
+}

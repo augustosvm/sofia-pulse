@@ -1,0 +1,34 @@
+name: insights.generate
+version: 1.0.0
+description: Generates real insights from normalized and aggregated data
+category: analytics
+author: sofia-pulse
+created: 2025-12-09
+
+metadata:
+  idempotent: true
+  deterministic: false
+  safe_retry: true
+  requires_database: true
+
+params:
+  domains:
+    type: array
+    required: false
+    description: Domains to generate insights for (research, tech, jobs, security, economy). Empty = all enabled.
+  since:
+    type: string
+    required: false
+    description: Only process data newer than this watermark (ISO 8601 timestamp)
+  dry_run:
+    type: boolean
+    required: false
+    default: false
+    description: Preview insights without saving to database
+
+output:
+  insights_generated: Total insights generated
+  by_domain: Breakdown by domain
+  by_severity: Breakdown by severity (info, warning, critical)
+  watermark: New watermark timestamp for next run
+  duration_ms: Processing time

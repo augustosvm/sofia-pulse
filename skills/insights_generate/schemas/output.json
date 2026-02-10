@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "insights_generated": {
+      "type": "integer",
+      "description": "Total insights generated"
+    },
+    "by_domain": {
+      "type": "object",
+      "description": "Breakdown by domain"
+    },
+    "by_severity": {
+      "type": "object",
+      "description": "Breakdown by severity"
+    },
+    "watermark": {
+      "type": "string",
+      "format": "date-time",
+      "description": "New watermark for next run"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "description": "Processing time in milliseconds"
+    }
+  },
+  "required": ["insights_generated", "by_domain", "by_severity", "watermark", "duration_ms"]
+}

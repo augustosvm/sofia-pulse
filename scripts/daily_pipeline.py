@@ -225,7 +225,59 @@ def main():
     else:
         print(f"  ⚠️ Aggregation failed: {aggregate_result.get('errors', [])}")
 
-    # 7. Audit final (baseado apenas em required + ga4)
+    # 7. Generate Insights (PHASE 5)
+    print(f"\n[daily_pipeline] ========================================")
+    print(f"[daily_pipeline] PHASE 5: Generate Insights")
+    print(f"[daily_pipeline] ========================================")
+
+    print(f"[daily_pipeline] Running insights.generate...")
+    insights_result = run("insights.generate", {
+        "domains": ["research"]  # Add more domains as they become active
+    }, trace_id=trace)
+
+    if insights_result["ok"]:
+        ins_data = insights_result["data"]
+        print(f"  ✅ Insights generated: {ins_data['insights_generated']}")
+        print(f"     By severity: info={ins_data['by_severity']['info']}, warning={ins_data['by_severity']['warning']}, critical={ins_data['by_severity']['critical']}")
+
+        # Send WhatsApp alert if critical insights or high volume
+        critical_count = ins_data['by_severity'].get('critical', 0)
+        total_insights = ins_data['insights_generated']
+
+        if critical_count > 0 or total_insights >= 5:
+            print(f"  📱 Sending WhatsApp alert (critical={critical_count}, total={total_insights})...")
+
+            # Build alert message
+            alert_title = "🔔 Sofia Pulse - Insights Críticos" if critical_count > 0 else "📊 Sofia Pulse - Novos Insights"
+            alert_message = f"*Resumo Diário de Insights*\n\n"
+            alert_message += f"Total: {total_insights} insights gerados\n"
+            alert_message += f"• Info: {ins_data['by_severity']['info']}\n"
+            alert_message += f"• Warning: {ins_data['by_severity']['warning']}\n"
+            alert_message += f"• Critical: {ins_data['by_severity']['critical']}\n\n"
+            alert_message += f"Por domínio:\n"
+            for domain, count in ins_data['by_domain'].items():
+                alert_message += f"• {domain}: {count}\n"
+
+            whatsapp_result = run("notify.whatsapp", {
+                "to": "admin",
+                "severity": "critical" if critical_count > 0 else "warning",
+                "title": alert_title,
+                "message": alert_message,
+                "summary": {
+                    "total_insights": total_insights,
+                    "critical": critical_count
+                }
+            }, trace_id=trace)
+
+            if whatsapp_result["ok"]:
+                print(f"  ✅ WhatsApp alert sent")
+            else:
+                print(f"  ⚠️ WhatsApp alert failed: {whatsapp_result.get('errors', [])}")
+    else:
+        print(f"  ⚠️ Insights generation failed: {insights_result.get('errors', [])}")
+        # Don't fail pipeline if insights fail (best-effort)
+
+    # 8. Audit final (baseado apenas em required + ga4)
     required_collector_ids = []
     if "required" in groups:
         required_collector_ids.extend([c["collector_id"] for c in groups["required"]])
@@ -250,7 +302,7 @@ def main():
     print(f"[daily_pipeline] Audit summary: {json.dumps(summary)}")
     print(f"[daily_pipeline] Healthy (required only): {healthy}")
 
-    # 8. Log resultado
+    # 9. Log resultado
     if not healthy:
         print(f"\n[daily_pipeline] ❌ UNHEALTHY (required collectors)")
         print(f"  Missing: {len(data['missing'])}")

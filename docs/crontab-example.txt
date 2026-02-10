@@ -22,12 +22,14 @@ WHATSAPP_ENABLED=true
 0 23 * * 0 cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/sync_expected_set.py >> /var/log/sofia/sync.log 2>&1
 
 # ================================
-# Daily Pipeline v2 (23:55 BRT)
+# Daily Pipeline v3 (23:55 BRT)
 # ================================
-# Runs collectors in batches with priorities:
+# Runs collectors in batches with priorities + normalization + insights:
 # - Phase 1: Required (bacen-sgs, ibge-api, ipea-api)
-# - Phase 2: GA4 (with budget.guard)
+# - Phase 2: GA4 (with budget.guard - OBRIGATÓRIO)
 # - Phase 3: Other (tech, research, jobs, etc - best-effort)
+# - Phase 4: Normalize & Aggregate (research papers + entities)
+# - Phase 5: Generate Insights (real insights from normalized data)
 # Exit 1 if required collectors unhealthy
 55 23 * * * cd /path/to/sofia-pulse && source .venv/bin/activate && DATABASE_URL="$DATABASE_URL" python3 scripts/daily_pipeline.py >> /var/log/sofia/daily_pipeline.log 2>&1
 

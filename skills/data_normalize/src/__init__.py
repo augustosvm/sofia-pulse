@@ -15,12 +15,162 @@ import psycopg2.extras
 def load_registry():
     """Load normalization registry config."""
     registry_path = Path(__file__).resolve().parents[3] / "config" / "normalization_registry.json"
-    
+
     if not registry_path.exists():
         raise FileNotFoundError(f"Normalization registry not found: {registry_path}")
-    
+
     with open(registry_path, "r") as f:
         return json.load(f)
+
+
+def normalize_entities_for_research(cur, domain_config):
+    """
+    Normalize entities (authors, countries, organizations) from research_papers.
+    Populates: countries, organizations, authors, paper_authors, paper_countries, paper_organizations
+    """
+    target_table = domain_config["target_table"]
+
+    # 1. Normalize countries from author_countries array
+    cur.execute(f"""
+        INSERT INTO sofia.countries (country_name)
+        SELECT DISTINCT TRIM(unnest(author_countries)) AS country_name
+        FROM {target_table}
+        WHERE author_countries IS NOT NULL
+          AND array_length(author_countries, 1) > 0
+        ON CONFLICT (country_name) DO NOTHING
+    """)
+    countries_inserted = cur.rowcount
+
+    # 2. Normalize organizations from author_institutions + university
+    cur.execute(f"""
+        WITH all_orgs AS (
+            -- From author_institutions
+            SELECT DISTINCT TRIM(unnest(author_institutions)) AS org_name
+            FROM {target_table}
+            WHERE author_institutions IS NOT NULL
+              AND array_length(author_institutions, 1) > 0
+
+            UNION
+
+            -- From university (BDTD)
+            SELECT DISTINCT TRIM(university) AS org_name
+            FROM {target_table}
+            WHERE university IS NOT NULL
+        )
+        INSERT INTO sofia.organizations (organization_name, organization_type)
+        SELECT org_name, 'university'
+        FROM all_orgs
+        WHERE org_name IS NOT NULL AND org_name != ''
+        ON CONFLICT (organization_name) DO NOTHING
+    """)
+    orgs_inserted = cur.rowcount
+
+    # 3. Normalize authors from authors array
+    cur.execute(f"""
+        INSERT INTO sofia.authors (author_name, normalized_name)
+        SELECT DISTINCT
+            TRIM(unnest(authors)) AS author_name,
+            LOWER(TRIM(unnest(authors))) AS normalized_name
+        FROM {target_table}
+        WHERE authors IS NOT NULL
+          AND array_length(authors, 1) > 0
+        ON CONFLICT (author_name) DO NOTHING
+    """)
+    authors_inserted = cur.rowcount
+
+    # 4. Link papers ↔ authors (paper_authors junction)
+    cur.execute(f"""
+        WITH paper_author_pairs AS (
+            SELECT
+                p.id AS paper_id,
+                TRIM(unnest(p.authors)) AS author_name,
+                generate_subscripts(p.authors, 1) AS author_position
+            FROM {target_table} p
+            WHERE p.authors IS NOT NULL
+              AND array_length(p.authors, 1) > 0
+        )
+        INSERT INTO sofia.paper_authors (paper_id, author_id, author_position)
+        SELECT DISTINCT
+            pap.paper_id,
+            a.author_id,
+            pap.author_position
+        FROM paper_author_pairs pap
+        JOIN sofia.authors a ON a.author_name = pap.author_name
+        ON CONFLICT (paper_id, author_id) DO NOTHING
+    """)
+    paper_authors_linked = cur.rowcount
+
+    # 5. Link papers ↔ countries (paper_countries junction)
+    cur.execute(f"""
+        WITH paper_country_pairs AS (
+            SELECT
+                p.id AS paper_id,
+                TRIM(unnest(p.author_countries)) AS country_name
+            FROM {target_table} p
+            WHERE p.author_countries IS NOT NULL
+              AND array_length(p.author_countries, 1) > 0
+        )
+        INSERT INTO sofia.paper_countries (paper_id, country_id)
+        SELECT DISTINCT
+            pcp.paper_id,
+            c.country_id
+        FROM paper_country_pairs pcp
+        JOIN sofia.countries c ON c.country_name = pcp.country_name
+        ON CONFLICT (paper_id, country_id) DO NOTHING
+    """)
+    paper_countries_linked = cur.rowcount
+
+    # 6. Link papers ↔ organizations (paper_organizations junction)
+    cur.execute(f"""
+        WITH paper_org_pairs AS (
+            -- From author_institutions
+            SELECT
+                p.id AS paper_id,
+                TRIM(unnest(p.author_institutions)) AS org_name
+            FROM {target_table} p
+            WHERE p.author_institutions IS NOT NULL
+              AND array_length(p.author_institutions, 1) > 0
+
+            UNION
+
+            -- From university (BDTD)
+            SELECT
+                p.id AS paper_id,
+                TRIM(p.university) AS org_name
+            FROM {target_table} p
+            WHERE p.university IS NOT NULL
+        )
+        INSERT INTO sofia.paper_organizations (paper_id, organization_id)
+        SELECT DISTINCT
+            pop.paper_id,
+            o.organization_id
+        FROM paper_org_pairs pop
+        JOIN sofia.organizations o ON o.organization_name = pop.org_name
+        ON CONFLICT (paper_id, organization_id) DO NOTHING
+    """)
+    paper_orgs_linked = cur.rowcount
+
+    # 7. Update primary_organization_id for BDTD papers
+    cur.execute(f"""
+        UPDATE {target_table} p
+        SET primary_organization_id = o.organization_id
+        FROM sofia.organizations o
+        WHERE p.source = 'bdtd'
+          AND p.university IS NOT NULL
+          AND o.organization_name = TRIM(p.university)
+          AND p.primary_organization_id IS NULL
+    """)
+    primary_orgs_updated = cur.rowcount
+
+    return {
+        "countries_inserted": countries_inserted,
+        "organizations_inserted": orgs_inserted,
+        "authors_inserted": authors_inserted,
+        "paper_authors_linked": paper_authors_linked,
+        "paper_countries_linked": paper_countries_linked,
+        "paper_organizations_linked": paper_orgs_linked,
+        "primary_organizations_updated": primary_orgs_updated
+    }
 
 
 def build_normalization_query(domain_config, source_config, mode, since=None, until=None):
@@ -235,6 +385,16 @@ def execute(trace_id, actor, dry_run, params, context):
                     inserted += affected_rows // 3
                     updated += (affected_rows // 3) * 2
         
+        # Normalize entities for research domain (after papers are normalized)
+        entity_stats = {}
+        if not dry_run and not dry_run_param and domain == "research" and total_processed > 0:
+            try:
+                entity_stats = normalize_entities_for_research(cur, domain_config)
+                print(f"  [entity_normalization] {entity_stats}")
+            except Exception as e:
+                print(f"  [entity_normalization] Warning: {e}")
+                # Don't fail pipeline if entity normalization fails
+
         # Commit if not dry run
         if not dry_run and not dry_run_param:
             conn.commit()
@@ -259,20 +419,26 @@ def execute(trace_id, actor, dry_run, params, context):
     duration_ms = int((time.time() - start_time) * 1000)
     
     # Return success
+    data_output = {
+        "domain": domain,
+        "mode": mode,
+        "total_processed": total_processed,
+        "inserted": inserted,
+        "updated": updated,
+        "skipped": skipped,
+        "duration_ms": duration_ms,
+        "dry_run": dry_run or dry_run_param,
+        "sources_processed": len([s for s in domain_config["sources"] if not source_filter or s["source_id"] == source_filter]),
+        "queries": queries_executed if (dry_run or dry_run_param) else []
+    }
+
+    # Add entity normalization stats if present
+    if entity_stats:
+        data_output["entity_normalization"] = entity_stats
+
     return {
         "ok": True,
-        "data": {
-            "domain": domain,
-            "mode": mode,
-            "total_processed": total_processed,
-            "inserted": inserted,
-            "updated": updated,
-            "skipped": skipped,
-            "duration_ms": duration_ms,
-            "dry_run": dry_run or dry_run_param,
-            "sources_processed": len([s for s in domain_config["sources"] if not source_filter or s["source_id"] == source_filter]),
-            "queries": queries_executed if (dry_run or dry_run_param) else []
-        },
+        "data": data_output,
         "meta": {
             "skill": "data.normalize",
             "version": "1.0.0",
