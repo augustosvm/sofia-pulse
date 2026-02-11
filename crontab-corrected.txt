@@ -1,0 +1,30 @@
+# ============================================================================
+# SOFIA PULSE - CRON SCHEDULE (CORRIGIDO)
+# ============================================================================
+#
+# Timezone: America/Sao_Paulo (BRT)
+# Arquitetura: Python (sync_expected_set + daily_pipeline + run_and_verify)
+#
+# Schedule:
+# - 23:40 BRT - Sync expected set (atualiza config/daily_expected_collectors.json)
+# - 23:55 BRT - Daily pipeline (executa collectors)
+# - 00:05 BRT - Run & Verify (auditoria + WhatsApp consolidado)
+#
+# Logs: /var/log/sofia/*.log
+# Wrapper: cron-wrapper.sh (carrega env vars do .env)
+# ============================================================================
+
+# Garantir diretório de logs
+@reboot mkdir -p /var/log/sofia
+
+# Sync expected set (Segunda-Sexta 23:40 BRT)
+40 23 * * 1-5 /Users/augustovespermann/sofia-pulse/cron-wrapper.sh python3 /Users/augustovespermann/sofia-pulse/scripts/sync_expected_set.py >> /var/log/sofia/sync.log 2>&1
+
+# Daily pipeline (Segunda-Sexta 23:55 BRT)
+55 23 * * 1-5 /Users/augustovespermann/sofia-pulse/cron-wrapper.sh python3 /Users/augustovespermann/sofia-pulse/scripts/daily_pipeline.py >> /var/log/sofia/daily_pipeline.log 2>&1
+
+# Run & Verify com auditoria de 6h (Segunda-Sexta 00:05 BRT)
+5 0 * * 1-5 SOFIA_AUDIT_SINCE_HOURS=6 /Users/augustovespermann/sofia-pulse/cron-wrapper.sh python3 /Users/augustovespermann/sofia-pulse/scripts/run_and_verify.py >> /var/log/sofia/run_verify.log 2>&1
+
+# Limpeza semanal de logs antigos (Domingo 02:00 BRT)
+0 2 * * 0 find /var/log/sofia -name "*.log" -mtime +30 -delete
