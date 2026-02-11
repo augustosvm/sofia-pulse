@@ -17,9 +17,11 @@ if [ -f "$PROJECT_DIR/.env" ]; then
     set +a
 fi
 
-# DATABASE_URL obrigatório
+# DATABASE_URL obrigatório - SEM FALLBACK
 if [ -z "$DATABASE_URL" ]; then
-    export DATABASE_URL="postgresql://sofia:sofia123strong@localhost:5432/sofia_db"
+    echo "❌ ERRO CRÍTICO: DATABASE_URL não configurado"
+    echo "   Configure em .env: DATABASE_URL=postgresql://user:pass@host:port/dbname"
+    exit 1
 fi
 
 # Ativar venv
