@@ -1,47 +1,22 @@
 ================================================================================
 SOFIA PULSE - CAUSAL INSIGHTS (Machine Learning Enhanced)
 ================================================================================
-Generated: 2026-01-14 21:26:52
+Generated: 2026-02-10 22:00:06
 
 ================================================================================
 1. DATA OVERVIEW
 ================================================================================
 
 Available Data:
-  Funding Rounds: 612
-    Date Range: 2005-06-15 to 2026-01-14
-    Total Capital: $34.85B
-  GitHub Repos: 618
-    Total Stars: 17,643,834
-  Research Papers: 1,027
+  Funding Rounds: 0
+  GitHub Repos: 0
+  Research Papers: 3
 
 ================================================================================
 2. GITHUB SIGNALS (Weak Signal Detection)
 ================================================================================
 
-TOP LANGUAGES (by stars):
---------------------------------------------------
-  TypeScript        180 repos,    4,925,550 stars
-  Python            138 repos,    3,006,653 stars
-  JavaScript         53 repos,    1,937,187 stars
-  Go                 20 repos,      881,887 stars
-  Java               24 repos,      774,147 stars
-  C++                11 repos,      646,247 stars
-  Rust               18 repos,      502,125 stars
-  HTML               13 repos,      472,096 stars
-
-WEAK SIGNALS (trending but not heavily funded):
---------------------------------------------------
-  javascript: 3,930,409 stars (STRONG)
-    -> Potential funding opportunity in 3-6 months
-  react: 3,422,678 stars (STRONG)
-    -> Potential funding opportunity in 3-6 months
-  python: 2,757,614 stars (STRONG)
-    -> Potential funding opportunity in 3-6 months
-  typescript: 2,479,786 stars (STRONG)
-    -> Potential funding opportunity in 3-6 months
-  hacktoberfest: 2,313,247 stars (STRONG)
-    -> Potential funding opportunity in 3-6 months
+No weak signals detected with current data.
 
 ================================================================================
 3. RESEARCH TOPIC ANALYSIS (NLP)
@@ -49,58 +24,20 @@ WEAK SIGNALS (trending but not heavily funded):
 
 EMERGING RESEARCH TOPICS (extracted from titles):
 --------------------------------------------------
-  Vision                  60 papers
-  LLM/GPT                 35 papers
-  Robotics                35 papers
-  Reinforcement           29 papers
-  Diffusion               18 papers
-  Agents                  17 papers
-  Medical/Bio              9 papers
+  Vision                   1 papers
+  LLM/GPT                  1 papers
 
 PAPER CATEGORIES:
 --------------------------------------------------
-  cs.AI                       260 papers
-  cs.RO                       223 papers
-  cs.CV                       188 papers
-  cs.LG                       182 papers
-  cs.CL                       174 papers
+  cs.CL                         1 papers
+  quant-ph                      1 papers
+  cs.CV                         1 papers
 
 ================================================================================
 4. FUNDING PATTERNS
 ================================================================================
 
-TOP SECTORS:
-----------------------------------------------------------------------
-Sector                            Deals              Total             Avg
-----------------------------------------------------------------------
-Artificial Intelligence               2          $11300.0M        $5650.0M
-AI Safety                             1           $4000.0M        $4000.0M
-Autonomous Vehicles                   1           $2500.0M        $2500.0M
-Electric Vehicles                    21           $2500.0M         $119.0M
-Fast Fashion E-commerce               1           $2000.0M        $2000.0M
-Defense AI                            1           $1500.0M        $1500.0M
-Battery Manufacturing                 1           $1200.0M        $1200.0M
-Buy Now Pay Later                     1            $800.0M         $800.0M
-Neobank                               1            $750.0M         $750.0M
-Fintech                             102            $750.0M           $7.4M
-
-GEOGRAPHIC DISTRIBUTION:
---------------------------------------------------
-  USA                  10218 deals ($29039.0M)
-  Singapore                1 deals ($2000.0M)
-  Sweden                   2 deals ($2000.0M)
-  Brazil                   1 deals ($750.0M)
-  Switzerland              1 deals ($650.0M)
-  France                   1 deals ($415.0M)
-
-MONTHLY TREND (recent):
---------------------------------------------------
-  2026-01:   10 deals, $2080.0M
-  2025-12:   26 deals, N/A
-  2025-11:   10 deals, $2750.0M
-  2025-10:    8 deals, $11265.0M
-  2025-09:    6 deals, $4539.0M
-  2025-08:    6 deals, $1950.0M
+No funding data available.
 
 ================================================================================
 5. ML CORRELATION ANALYSIS (Sklearn)
@@ -126,14 +63,10 @@ ML libraries not available (sklearn).
 
 FOR INVESTORS:
 --------------------------------------------------
-  - Watch 'javascript' - trending on GitHub but not heavily funded
-  - 'Vision' is hot in research (60 papers)
-  - Top sector: Artificial Intelligence ($11300M, 2 deals)
+  - 'Vision' is hot in research (1 papers)
 
 FOR FOUNDERS:
 --------------------------------------------------
-  - Hot tech stack: TypeScript, Python, JavaScript
-  - Capital flowing to: USA, Singapore, Sweden
 
 FOR TALENT:
 --------------------------------------------------

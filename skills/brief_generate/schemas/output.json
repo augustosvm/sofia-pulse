@@ -1,0 +1,1 @@
+{"type":"object","properties":{"brief_markdown":{"type":"string"},"citations":{"type":"array"},"used_insights":{"type":"array"},"style_profile":{"type":"string"}}}

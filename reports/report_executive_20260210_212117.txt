@@ -1,0 +1,29 @@
+
+═══════════════════════════════════════════════════════════
+SOFIA PULSE - RELATÓRIO EXECUTIVO
+═══════════════════════════════════════════════════════════
+
+🚨 STATUS GERAL: UNHEALTHY
+
+Execução: e50572f0
+Evidência: PIPELINE COMPLETO
+Janela: 2026-02-09 21:34 → 21:34 BRT
+Duração: 4s
+
+NÚMEROS:
+• Esperados: 16
+• Rodaram: 2 (12%)
+• Sucessos: 2
+• Vazios: 0
+• Falhas: 0
+• Não rodaram: 14
+
+GATE (Required+GA4): Failed: [], Missing: ['ipea-api', 'ga4-analytics', 'ga4-events']
+
+Expected source: daily_expected_collectors.json
+Config hash: fc22fbe5f90ffa4a
+
+OBSERVAÇÕES:
+• 🚨 GATE UNHEALTHY: Required/GA4 ausentes: ipea-api, ga4-analytics, ga4-events
+• ⚠️ Coverage baixo: 12% (2/16 rodaram)
+• ⚠️ 14 collectors não rodaram (primeiros 5: ipea-api, ga4-analytics, ga4-events, cybersecurity, github-trends)

@@ -1,0 +1,16 @@
+*Sofia Pulse - Relatório Operacional*
+
+Trace: `e50572f0`
+Evidência: ✅ Pipeline
+Janela: 21:34→21:34 BRT
+
+*Gate:* 🚨 UNHEALTHY
+*Esperado/Rodou:* 16/2
+*OK/Vazios/Falhas/Missing:* 2/0/0/14
+
+*Expected:* daily_expected_collectors.json
+*Hash:* fc22fbe5f90ffa4a
+
+*Observações:*
+• ! GATE UNHEALTHY: Required/GA4 ausentes: ipea-api, ga4-analytics, ga4-events
+• ! Coverage baixo: 12% (2/16 rodaram)

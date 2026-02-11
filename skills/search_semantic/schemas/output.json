@@ -1,0 +1,1 @@
+{"type":"object","properties":{"hits":{"type":"array"},"query":{"type":"string"},"total_searched":{"type":"integer"}}}

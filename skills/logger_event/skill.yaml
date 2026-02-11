@@ -1,0 +1,8 @@
+name: logger.event
+version: "1.0.0"
+description: "Logging JSON estruturado com trace_id. Substitui print/console.log."
+layer: plumbing
+dependencies: {db: false, network: false, llm: false, filesystem: true}
+permissions: {write_db: false, call_external_api: false}
+limits: {timeout_ms: 1000, max_retries: 0}
+idempotent: true

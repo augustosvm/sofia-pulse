@@ -1,0 +1,8 @@
+name: _template
+version: "1.0.0"
+description: "REPLACE"
+layer: plumbing  # plumbing | governance | domain | product
+dependencies: {db: false, network: false, llm: false, filesystem: false}
+permissions: {write_db: false, call_external_api: false}
+limits: {timeout_ms: 30000, max_retries: 3, backoff_ms: 1000}
+idempotent: true

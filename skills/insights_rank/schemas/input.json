@@ -1,0 +1,1 @@
+{"type":"object","properties":{"insights":{"type":"array","items":{"type":"object"}},"weights":{"type":"object"},"top_k":{"type":"integer","default":10},"since_days":{"type":"integer","default":7}},"required":["insights"]}

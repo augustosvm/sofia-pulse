@@ -1,0 +1,1 @@
+{"type":"object","properties":{"level":{"type":"string","enum":["debug","info","warn","error","critical"]},"event":{"type":"string"},"skill":{"type":"string"},"message":{"type":"string"},"fields":{"type":"object"}},"required":["level","event","skill"]}

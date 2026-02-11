@@ -1,0 +1,1 @@
+{"type":"object","properties":{"status":{"type":"integer"},"headers":{"type":"object"},"body":{},"json":{},"retries_used":{"type":"integer"}}}

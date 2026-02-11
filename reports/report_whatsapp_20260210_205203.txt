@@ -1,0 +1,8 @@
+*Sofia Pulse - Relatório Operacional*
+
+Trace: `e50572f0`
+Janela: 21:34→21:34 BRT
+
+*Gate:* 🚨 UNHEALTHY
+*Esperado/Rodou:* 23/2
+*OK/Vazios/Falhas/Missing:* 2/0/0/21

@@ -1,0 +1,81 @@
+
+═══════════════════════════════════════════════════════════
+SOFIA PULSE - RELATÓRIO TÉCNICO COMPLETO
+═══════════════════════════════════════════════════════════
+
+1️⃣ EXECUÇÃO DETECTADA
+
+Trace ID: e50572f0-2cc1-4ae4-847a-e7463fc43231
+Evidência de Pipeline: ✅ PIPELINE COMPLETO
+Início (BRT): 2026-02-09 21:34:30
+Fim (BRT): 2026-02-09 21:34:35
+Duração total: 4s (2 collectors)
+Gate Status: 🚨 UNHEALTHY
+  Motivo: Failed: [], Missing: ['ipea-api', 'ga4-analytics', 'ga4-events']
+
+Expected Source: daily_expected_collectors.json
+Config Hash: fc22fbe5f90ffa4a
+Generated At: 2026-02-09 22:04:33
+
+───────────────────────────────────────────────────────────
+
+2️⃣ RESUMO NUMÉRICO
+
+Collectors esperados: 16
+Collectors que rodaram: 2
+Sucessos (saved > 0): 2
+Vazios (saved = 0 ou < min): 0
+Falhas (ok = false): 0
+Não rodaram: 14
+
+───────────────────────────────────────────────────────────
+
+3️⃣ SUCESSOS (saved > 0): 2
+
+• ibge-api
+  saved=72 | fetched=0 | 2558ms
+  horário: 21:34:35 BRT
+
+• bacen-sgs
+  saved=366 | fetched=0 | 4507ms
+  horário: 21:34:30 BRT
+
+───────────────────────────────────────────────────────────
+
+4️⃣ VAZIOS (rodou mas não gerou dados): 0
+
+Nenhum vazio.
+
+───────────────────────────────────────────────────────────
+
+5️⃣ FALHAS (ok = false): 0
+
+Nenhuma falha.
+
+───────────────────────────────────────────────────────────
+
+6️⃣ NÃO RODARAM (esperados mas ausentes): 14
+• ipea-api (grupo: required, esperado mín: 1)
+• ga4-analytics (grupo: ga4, esperado mín: 1)
+• ga4-events (grupo: ga4, esperado mín: 1)
+• cybersecurity (grupo: tech, esperado mín: 1)
+• github-trends (grupo: tech, esperado mín: 1)
+• hackernews (grupo: tech, esperado mín: 1)
+• npm-packages (grupo: tech, esperado mín: 1)
+• pypi-packages (grupo: tech, esperado mín: 1)
+• openalex (grupo: research, esperado mín: 1)
+• research-papers (grupo: research, esperado mín: 1)
+• brazil-security (grupo: other, esperado mín: 1)
+• commodity-prices (grupo: other, esperado mín: 1)
+• currency-rates (grupo: other, esperado mín: 1)
+• gdelt (grupo: other, esperado mín: 1)
+
+───────────────────────────────────────────────────────────
+
+7️⃣ OBSERVAÇÕES OPERACIONAIS (AUTOMÁTICAS)
+
+🚨 GATE UNHEALTHY: Required/GA4 ausentes: ipea-api, ga4-analytics, ga4-events
+⚠️ Coverage baixo: 12% (2/16 rodaram)
+⚠️ 14 collectors não rodaram (primeiros 5: ipea-api, ga4-analytics, ga4-events, cybersecurity, github-trends)
+
+═══════════════════════════════════════════════════════════

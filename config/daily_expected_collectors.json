@@ -1,15 +1,16 @@
 {
   "_comment": "Expected set sincronizado automaticamente via sync_expected_set.py",
-  "_generated_at": "1770685473.8434384",
+  "_generated_at": "1770761927.965079",
   "_stats": {
-    "total_allowed": 16,
+    "total_allowed": 30,
     "total_blocked": 1,
     "required_count": 5,
     "groups": {
       "required": 3,
       "ga4": 2,
-      "tech": 5,
+      "tech": 6,
       "research": 2,
+      "jobs": 13,
       "other": 4
     }
   },
@@ -76,6 +77,13 @@
         "allow_empty": false
       },
       {
+        "collector_id": "jobs-github",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
         "collector_id": "npm-packages",
         "required": false,
         "timeout_s": 300,
@@ -100,6 +108,99 @@
       },
       {
         "collector_id": "research-papers",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      }
+    ],
+    "jobs": [
+      {
+        "collector_id": "jobs-adzuna",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-catho",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-findwork",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-freejobs-api",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-greenhouse",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-infojobs-brasil",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-jooble",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-linkedin",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-rapidapi-activejobs",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-serpapi-googlejobs",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-themuse",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-usajobs",
+        "required": false,
+        "timeout_s": 300,
+        "expected_min": 1,
+        "allow_empty": false
+      },
+      {
+        "collector_id": "jobs-weworkremotely",
         "required": false,
         "timeout_s": 300,
         "expected_min": 1,

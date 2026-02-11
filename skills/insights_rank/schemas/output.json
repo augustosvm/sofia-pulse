@@ -1,0 +1,1 @@
+{"type":"object","properties":{"ranked":{"type":"array"},"total_evaluated":{"type":"integer"},"weights_used":{"type":"object"}}}

@@ -1,0 +1,8 @@
+name: insights.rank
+version: "1.0.0"
+description: "Ranking determinístico por impact, novelty, credibility, coverage. Sem LLM."
+layer: domain
+dependencies: {db: false, network: false, llm: false}
+permissions: {write_db: false, call_external_api: false}
+limits: {timeout_ms: 30000, max_retries: 0}
+idempotent: true

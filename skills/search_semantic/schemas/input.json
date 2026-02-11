@@ -1,0 +1,1 @@
+{"type":"object","properties":{"query":{"type":"string"},"top_k":{"type":"integer","default":5},"filters":{"type":"object"},"embedding_provider":{"type":"string","enum":["gemini","openai"],"default":"gemini"},"similarity_threshold":{"type":"number","default":0.7}},"required":["query"]}

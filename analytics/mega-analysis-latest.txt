@@ -1,7 +1,7 @@
 ================================================================================
 🌍 SOFIA PULSE - MEGA ANALYSIS REPORT
 ================================================================================
-Generated: 2026-01-04 14:53:24 UTC
+Generated: 2026-02-10 22:00:08 UTC
 
 This report combines data from 30+ sources:
 • Socioeconomic indicators (World Bank - 56 indicators)
@@ -16,369 +16,77 @@ This report combines data from 30+ sources:
 📊 DATABASE SUMMARY
 ================================================================================
 
-Total Records: 4,383,890
-Total Tables: 185
+Total Records: 1,965
+Total Tables: 28
 
 Records by table:
-  • paper_authors: 1,320,137
-  • gender_indicators: 874,391
-  • women_eurostat_data: 808,061
-  • authors: 245,965
-  • persons: 230,732
-  • person_papers: 221,696
-  • acled_aggregated: 197,932
-  • person_roles: 130,933
-  • socioeconomic_indicators: 94,704
-  • women_world_bank_data: 62,700
-  • who_health_data: 51,774
-  • world_tourism_data: 18,580
-  • industry_signals: 15,733
-  • world_drugs_data: 9,868
-  • jobs: 8,995
-  • research_papers: 8,528
-  • funding_rounds: 8,100
-  • tech_trends: 7,779
-  • space_industry: 6,700
-  • world_sports_data: 5,546
-  • fao_agriculture_data: 4,433
-  • women_ilo_data: 3,825
-  • tech_jobs: 3,675
-  • organizations: 3,504
-  • world_security_data: 3,414
-  • cepal_latam_data: 3,392
-  • unicef_children_data: 3,095
-  • gdelt_events: 2,871
-  • port_traffic: 2,462
-  • central_banks_women_data: 2,225
-  • cybersecurity_events: 1,661
-  • comexstat_trade: 1,596
-  • cities: 1,098
-  • bacen_sgs_series: 1,025
-  • cardboard_production: 1,000
-  • github_embeddings: 955
-  • hackernews_stories: 917
-  • pypi_stats: 909
-  • ipea_series: 879
-  • github_niches: 769
-  • emerging_tech_niches: 618
-  • collector_runs: 545
-  • npm_stats: 493
-  • arxiv_ai_papers: 476
-  • github_trending: 473
-  • states: 385
-  • global_universities_progress: 370
-  • market_data_brazil: 352
-  • publications: 350
-  • sports_regional: 308
-  • energy_global: 307
-  • reddit_tech: 300
-  • fiesp_ina: 298
-  • world_religion_data: 297
-  • tech_metrics: 294
-  • hackernews_embeddings: 271
-  • insights_acceleration: 243
-  • insights_variations: 243
-  • electricity_consumption: 239
-  • fiesp_sensor: 234
-  • advanced_metrics: 217
-  • gender_names: 207
-  • insights_rankings: 200
-  • world_ngos: 200
-  • hdx_humanitarian_data: 196
-  • countries: 195
-  • brazil_security_data: 180
-  • commodity_prices: 171
-  • mega_tech_niches: 152
-  • data_quality_report: 151
-  • ai_tech_categories: 137
-  • baseline_snapshots: 114
-  • brazil_ministries_data: 113
-  • hkex_ipos: 106
-  • cybersecurity_events_view: 100
-  • developer_tools: 100
-  • stackoverflow_trends: 100
-  • v_recent_publications: 100
-  • nih_grants: 92
-  • market_data_nasdaq: 91
-  • data_quality_dashboard: 82
-  • tables_by_source: 82
-  • startups: 80
-  • data_sources: 78
-  • sources_summary: 78
-  • openalex_papers: 69
-  • ibge_indicators: 62
-  • insights_alerts: 47
-  • v_active_alerts: 47
-  • trends: 46
-  • dim_country: 40
-  • embedding_audit: 37
-  • emerging_tech_summary: 34
-  • central_banks: 32
-  • dim_sector: 32
-  • brazil_security_cities: 30
-  • github_metrics: 30
-  • pypi_embeddings: 27
-  • collector_health: 25
-  • insights_anomalies: 24
-  • women_brazil_data: 24
-  • dim_technology: 22
-  • religions: 22
-  • types: 22
-  • table_provenance: 20
-  • dim_language: 19
-  • npm_embeddings: 19
-  • cepal_femicide: 18
-  • insight_narratives: 18
-  • v_tech_signals: 18
-  • vw_yc_batch_analysis: 18
-  • collector_stale: 15
-  • sources: 14
-  • currency_rates: 11
-  • epo_patents: 11
-  • wipo_china_patents: 10
-  • sports_federations: 9
-  • ai_regulation: 6
-  • cni_industrial_indicators: 6
-  • documents: 6
-  • dim_university: 5
-  • embedding_standards: 4
-  • semiconductor_sales: 4
-  • latest_research_papers: 3
-  • failed_collectors_today: 2
-  • api_insights_today: 1
-  • exits: 1
-  • olympics_medals: 1
-  • sports_rankings: 1
-  • v_daily_summary: 1
-  • ai_arxiv_keywords: 0
-  • ai_huggingface_models: 0
-  • alerts: 0
-  • api_geopolitical_impacts: 0
-  • api_tech_momentum: 0
-  • api_top_movers: 0
-  • author_embeddings: 0
-  • canonical_entities: 0
-  • change_velocity: 0
-  • changesets: 0
-  • clinical_trials: 0
-  • column_provenance: 0
-  • countries_normalization: 0
-  • cross_source_coverage: 0
-  • embedding_jobs: 0
-  • entity_mappings: 0
-  • entity_relationships: 0
-  • entity_stats_by_type: 0
-  • fda_approvals: 0
-  • funding_metrics: 0
-  • geopolitical_impacts: 0
-  • geopolitical_metrics: 0
-  • global_research_institutions: 0
-  • innovation_clusters: 0
+  • bacen_sgs_series: 923
+  • ipea_series: 885
+  • ibge_indicators: 61
+  • collector_inventory: 23
+  • collector_runs: 17
+  • countries: 10
+  • authors: 9
+  • paper_authors: 9
+  • research_papers: 6
+  • facts_research_monthly: 5
+  • schema_migrations: 4
+  • arxiv_ai_papers: 3
+  • latest_facts_summary: 2
+  • openalex_papers: 2
+  • bdtd_theses: 1
+  • budget_limits: 1
+  • organizations: 1
+  • paper_organizations: 1
+  • v_empty_runs_today: 1
+  • v_missing_runs_today: 1
+  • budget_usage: 0
+  • critical_insights: 0
+  • facts_tech_weekly: 0
   • insights: 0
-  • insights_clusters: 0
-  • insights_correlations: 0
-  • investors: 0
-  • ipo_calendar: 0
-  • linkedin_jobs: 0
-  • mastra_conversations: 0
-  • paper_embeddings: 0
-  • patents: 0
-  • person_collaborations: 0
-  • person_funding: 0
-  • person_github_repos: 0
-  • person_patents: 0
-  • recent_changes: 0
-  • reddit_embeddings: 0
-  • reddit_tech_posts: 0
-  • relationship_network_summary: 0
-  • socioeconomic_metrics: 0
-  • tech_conferences: 0
-  • tech_embedding_jobs: 0
-  • tech_funding_correlation: 0
-  • tech_job_salary_trends: 0
-  • test_table: 0
-  • top_modified_records: 0
-  • trademe_jobs: 0
-  • university_embeddings: 0
-  • user_monthly_usage: 0
-  • v_accelerating_tech: 0
-  • v_top_movers: 0
-  • vpic_vehicles: 0
-  • vw_time_to_exit: 0
+  • latest_insights_by_domain: 0
+  • notifications_sent: 0
+  • paper_countries: 0
+  • skill_state: 0
 
 ================================================================================
 💰 SOCIOECONOMIC INDICATORS (World Bank)
 ================================================================================
 
-Total Records: 94,704
-Countries: 262
-Indicators: 54
-
-🏆 Top 10 GDP per Capita (2023):
-   1. Monaco                         $  256,799.79
-   2. Liechtenstein                  $  206,780.59
-   3. Luxembourg                     $  133,230.62
-   4. Bermuda                        $  132,604.44
-   5. Ireland                        $  106,818.92
-   6. Switzerland                    $  100,623.55
-   7. Cayman Islands                 $   99,143.52
-   8. Norway                         $   87,497.22
-   9. Singapore                      $   85,412.23
-  10. Iceland                        $   82,138.79
-
-🏚️  Top 10 Extreme Poverty (<$2.15/day - 2023):
-   1. Sub-Saharan Africa              46.50%
-   2. Fragile and conflict affected situations  41.50%
-   3. Rwanda                          38.60%
-   4. IDA total                       35.20%
-   5. Honduras                        17.00%
-   6. Low & middle income             12.20%
-   7. World                           10.50%
-   8. Guatemala                        9.70%
-   9. Colombia                         7.70%
-  10. Tajikistan                       7.30%
-
-🔬 Top 10 R&D Investment (% of GDP - 2023):
-   1. Canada                           1.70%
-   2. Hong Kong SAR, China             1.10%
-   3. Egypt, Arab Rep.                 1.03%
-   4. Serbia                           0.95%
-   5. Kenya                            0.81%
-   6. Rwanda                           0.79%
-   7. Belarus                          0.58%
-   8. Saudi Arabia                     0.56%
-   9. North Macedonia                  0.40%
-  10. Oman                             0.37%
-
-👨‍👩‍👧‍👦 Fertility vs Urbanization (2023):
-Country                         Fertility    Urban %
-----------------------------------------------------
-Somalia, Fed. Rep.                   6.13       54.1%
-Chad                                 6.12       26.3%
-Niger                                6.06       17.8%
-Congo, Dem. Rep.                     6.05       44.4%
-Central African Republic             6.01       43.7%
-Mali                                 5.61       31.0%
-Angola                               5.12       69.9%
-Burundi                              4.88       23.6%
-Afghanistan                          4.84       25.5%
-Mozambique                           4.76       35.7%
-Mauritania                           4.70       59.7%
-Tanzania                             4.61       35.5%
-Yemen, Rep.                          4.59       36.6%
-Pre-demographic dividend             4.56       44.9%
-Benin                                4.56       51.7%
+Total Records: 0
+Countries: 0
+Indicators: 0
 
 ================================================================================
 📈 TECH TRENDS
 ================================================================================
 
-🔥 GitHub Top Languages (by stars):
-   1. TypeScript              143 repos     4,878,264 stars
-   2. Python                   97 repos     2,484,131 stars
-   3. JavaScript               43 repos     1,729,822 stars
-   4. Java                     23 repos       773,076 stars
-   5. Go                       16 repos       662,536 stars
-   6. C++                       8 repos       644,068 stars
-   7. Rust                     13 repos       497,816 stars
-   8. Markdown                  1 repos       453,367 stars
-   9. PHP                      19 repos       354,040 stars
-  10. C                         7 repos       350,520 stars
-
-📦 NPM Top Packages (monthly downloads):
-   1. lodash                             362,775,563
-   2. esbuild                            341,108,533
-   3. axios                              324,569,782
-   4. express                            206,504,285
-   5. jest                               151,891,774
-   6. dayjs                              134,100,649
-   7. moment                             116,803,571
-   8. koa                                 18,357,265
-   9. fastify                             12,148,135
-  10. angular                              1,927,782
-
-🐍 PyPI Top Packages (monthly downloads):
-   1. click                              462,077,987
-   2. aiohttp                            268,969,218
-   3. beautifulsoup4                     199,462,243
-   4. fastapi                            191,333,892
-   5. flask                              168,979,078
-   6. matplotlib                         115,249,347
-   7. black                               80,157,668
-   8. mypy                                77,902,647
-   9. django                              25,380,093
-  10. keras                               16,321,122
-
 ================================================================================
 💵 FUNDING & INVESTMENT (Last 30 days)
 ================================================================================
 
-Total Deals: 41
-Total Amount: $14,015,000,000.00
-
-🏆 Top 10 Deals:
-   1. OpenAI                         $10,000,000,000.00 Series C        USA       
-   2. Anduril Industries             $1,500,000,000.00 Series F        USA       
-   3. Nubank                         $ 750,000,000.00 Series H        Brazil    
-   4. Shield AI                      $ 500,000,000.00 Series E        USA       
-   5. Databricks                     $ 500,000,000.00 Series I        USA       
-   6. Mistral AI                     $ 415,000,000.00 Series A        France    
-   7. Adept AI                       $ 350,000,000.00 Series B        USA       
-
-🌍 Top 10 Countries by Funding:
-   1. United States                    16 deals  $12,850,000,000.00
-   2. Brazil                            1 deals  $ 750,000,000.00
-   3. France                            1 deals  $ 415,000,000.00
+Total Deals: 0
+Total Amount: $0.00
 
 ================================================================================
 🔒 CRITICAL SECTORS
 ================================================================================
 
-Cybersecurity Events (30d): 312
-Space Launches: 6,700
-AI Regulations: 6
-
-🔒 Top CVEs (last 30 days):
-  • MongoDB and MongoDB Server Improper Handling of Length Param high       CVSS:None
-  • Digiever DS-2105 Pro Missing Authorization Vulnerability     high       CVSS:None
-  • WatchGuard Firebox Out of Bounds Write Vulnerability         high       CVSS:None
-  • ASUS Live Update Embedded Malicious Code Vulnerability       high       CVSS:None
-  • SonicWall SMA1000 Missing Authorization Vulnerability        high       CVSS:None
-  • Cisco Multiple Products Improper Input Validation Vulnerabil high       CVSS:None
-  • Fortinet Multiple Products Improper Verification of Cryptogr high       CVSS:None
-  • Gladinet CentreStack and Triofox Hard Coded Cryptographic Vu high       CVSS:None
-  • Apple Multiple Products Use-After-Free WebKit Vulnerability  high       CVSS:None
-  • Sierra Wireless AirLink ALEOS Unrestricted Upload of File wi high       CVSS:None
+Cybersecurity Events (30d): 0
+Space Launches: 0
+AI Regulations: 0
 
 ================================================================================
 🌐 GLOBAL ECONOMY
 ================================================================================
 
-Electricity Data (countries): 239
-Port Traffic Records: 2,462
-
-📈 Latest Commodity Prices:
-  • crude_oil_wti        $     76.20 USD/barrel
-  • crude_oil_brent      $     79.80 USD/barrel
-  • Platinum             $   2137.00 USD
-  • copper               $      4.15 USD/lb
-  • gold                 $   2068.00 USD/oz
-  • gold                 $   2068.00 USD/oz
-  • crude_oil_wti        $     76.20 USD/barrel
-  • crude_oil_brent      $     79.80 USD/barrel
-  • Platinum             $   2161.80 USD
-  • copper               $      4.15 USD/lb
-
-💾 Semiconductor Sales (latest quarters):
-  • Global               $  167.70B  QQ1 2025
-  • Global               $   55.90B  QQ1 2025
-  • Global               $  208.40B  QQ3 2024
-  • Global               $   69.50B  QQ3 2024
+Electricity Data (countries): 0
+Port Traffic Records: 0
 
 ================================================================================
 ✅ MEGA ANALYSIS COMPLETE
 ================================================================================
 
-Report generated: 2026-01-04 14:54:27 UTC
+Report generated: 2026-02-10 22:00:08 UTC
 Total data sources: 30+
-Total records analyzed: 4,383,890
+Total records analyzed: 1,965

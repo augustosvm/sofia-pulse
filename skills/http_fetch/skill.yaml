@@ -1,0 +1,8 @@
+name: http.fetch
+version: "1.0.0"
+description: "Cliente HTTP com retry, backoff, rate-limit e timeout."
+layer: plumbing
+dependencies: {db: false, network: true, llm: false}
+permissions: {write_db: false, call_external_api: true}
+limits: {timeout_ms: 30000, max_retries: 3, backoff_ms: 1000}
+idempotent: true

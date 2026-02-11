@@ -1,0 +1,81 @@
+
+═══════════════════════════════════════════════════════════
+SOFIA PULSE - RELATÓRIO TÉCNICO COMPLETO
+═══════════════════════════════════════════════════════════
+
+1️⃣ EXECUÇÃO DETECTADA
+
+Trace ID: e50572f0-2cc1-4ae4-847a-e7463fc43231
+Início (BRT): 2026-02-09 21:34:30
+Fim (BRT): 2026-02-09 21:34:35
+Duração total: 4s (2 collectors)
+Gate Status: 🚨 UNHEALTHY
+  Motivo: Failed: [], Missing: ['ipea-api', 'ga4-analytics', 'ga4-events']
+
+───────────────────────────────────────────────────────────
+
+2️⃣ RESUMO NUMÉRICO
+
+Collectors esperados: 23
+Collectors que rodaram: 2
+Sucessos (saved > 0): 2
+Vazios (saved = 0 ou < min): 0
+Falhas (ok = false): 0
+Não rodaram: 21
+
+───────────────────────────────────────────────────────────
+
+3️⃣ SUCESSOS (saved > 0): 2
+
+• ibge-api
+  saved=72 | fetched=0 | 2558ms
+  horário: 21:34:35 BRT
+
+• bacen-sgs
+  saved=366 | fetched=0 | 4507ms
+  horário: 21:34:30 BRT
+
+───────────────────────────────────────────────────────────
+
+4️⃣ VAZIOS (rodou mas não gerou dados): 0
+
+Nenhum vazio.
+
+───────────────────────────────────────────────────────────
+
+5️⃣ FALHAS (ok = false): 0
+
+Nenhuma falha.
+
+───────────────────────────────────────────────────────────
+
+6️⃣ NÃO RODARAM (esperados mas ausentes): 21
+• brazil-security (esperado mín: 1)
+• commodity-prices (esperado mín: 3)
+• currency-rates (esperado mín: 1)
+• cybersecurity (esperado mín: 1)
+• electricity (esperado mín: 1)
+• ga4-analytics (esperado mín: 10)
+• ga4-events (esperado mín: 50)
+• gdelt (esperado mín: 50)
+• github-trends (esperado mín: 5)
+• hackernews (esperado mín: 10)
+• ipea-api (esperado mín: 1)
+• nih-grants (esperado mín: 1)
+• npm-packages (esperado mín: 1)
+• openalex (esperado mín: 5)
+• patents-bigquery-export (esperado mín: 100)
+• pypi-packages (esperado mín: 1)
+• research-papers (esperado mín: 1)
+• un-sdg (esperado mín: 1)
+• unicef (esperado mín: 1)
+• who-health (esperado mín: 1)
+• world-bank-gender (esperado mín: 1)
+
+───────────────────────────────────────────────────────────
+
+7️⃣ OBSERVAÇÕES OPERACIONAIS (AUTOMÁTICAS)
+
+Nenhuma anomalia detectada.
+
+═══════════════════════════════════════════════════════════

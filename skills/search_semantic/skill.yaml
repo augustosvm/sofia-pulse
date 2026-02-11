@@ -1,0 +1,9 @@
+name: search.semantic
+version: "1.0.0"
+description: "RAG/busca semântica sobre pgvector. Embedding + retrieval com filtros."
+layer: domain
+dependencies: {db: true, network: true, llm: true}
+permissions: {write_db: true, call_external_api: true}
+limits: {timeout_ms: 30000, max_retries: 2}
+idempotent: true
+cost: {report_estimate: true}
