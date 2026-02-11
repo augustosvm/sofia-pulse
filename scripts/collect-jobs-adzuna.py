@@ -110,10 +110,18 @@ def collect_adzuna_jobs():
     print("💼 Adzuna Jobs API Collector")
     print("=" * 60)
 
+    # Validação robusta de credenciais
     if not ADZUNA_APP_ID or not ADZUNA_API_KEY:
-        print("❌ ADZUNA_APP_ID and ADZUNA_API_KEY are required!")
-        print("\n📝 Get your free API key at: https://developer.adzuna.com/")
-        return 0
+        print("❌ ERROR: AUTH_MISSING")
+        print("   ADZUNA_APP_ID and ADZUNA_APP_KEY are required!")
+        print("   Get your free API key at: https://developer.adzuna.com/")
+        sys.exit(1)  # FAIL hard - sem credenciais
+
+    if ADZUNA_APP_ID == ADZUNA_API_KEY:
+        print("❌ ERROR: CONFIG_INVALID")
+        print("   ADZUNA_APP_ID and ADZUNA_APP_KEY must be different!")
+        print("   Check your .env file - they should be separate values")
+        sys.exit(1)  # FAIL hard - config inválido
 
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
@@ -263,12 +271,23 @@ def collect_adzuna_jobs():
                             page += 1
                             consecutive_errors = 0
 
-                        elif response.status_code in [429, 401, 402, 403]:
-                            # KILL SWITCH: Exit immediately
-                            print(f"\n⛔ CRITICAL API ERROR: {response.status_code} - Quota Exceeded or Auth Failed.")
-                            print("   Exiting collector to save resources.")
+                        elif response.status_code == 401:
+                            print(f"\n⛔ ERROR: AUTH_MISSING (HTTP 401)")
+                            print("   Adzuna API rejected credentials - check ADZUNA_APP_ID/KEY")
                             conn.close()
-                            return total_collected
+                            sys.exit(1)  # FAIL - credenciais inválidas
+
+                        elif response.status_code == 403:
+                            print(f"\n⛔ ERROR: FORBIDDEN (HTTP 403)")
+                            print("   Adzuna API access denied - account may be suspended")
+                            conn.close()
+                            sys.exit(1)  # FAIL - forbidden
+
+                        elif response.status_code == 429:
+                            print(f"\n⛔ ERROR: RATE_LIMIT (HTTP 429)")
+                            print(f"   Adzuna quota exceeded - used {api_call_count}/{MAX_DAILY_CALLS} calls")
+                            conn.close()
+                            sys.exit(1)  # FAIL - rate limit
 
                         elif response.status_code == 400:
                             # End of results

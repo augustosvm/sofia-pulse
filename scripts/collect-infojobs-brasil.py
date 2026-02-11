@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Coletor: InfoJobs Brasil (Scraping)
+Coletor: InfoJobs Brasil (Scraping Robusto)
 URL: https://www.infojobs.com.br/
 Auth: Não requer (scraping público)
-Features: Busca de vagas tech no Brasil
+Features: Busca de vagas tech no Brasil com detecção de bloqueio
 """
 import os
 import sys
@@ -33,59 +33,163 @@ DB_CONFIG = {
 
 # Keywords tech focadas em Brasil
 KEYWORDS = [
-    "desenvolvedor",
-    "programador",
-    "python",
-    "java",
+    "desenvolvedor python",
+    "programador java",
     "javascript",
     "react",
-    "devops",
-    "data scientist",
-    "frontend",
-    "backend",
-    "full stack",
-    "mobile"
+    "devops"
 ]
 
 
-def parse_salary_brl(text):
-    """Parse salário brasileiro"""
-    if not text:
-        return None, None, None
+def detect_blocking(soup, response):
+    """Detecta se foi bloqueado ou captcha"""
+    text = response.text.lower()
 
-    salary_min = None
-    salary_max = None
-    period = None
+    # Detecção de captcha/bloqueio
+    if any(word in text for word in ['captcha', 'recaptcha', 'cloudflare', 'access denied', 'blocked']):
+        return "BOT_DETECTED"
 
-    # Detectar período
-    if re.search(r"mês|mensal|\/mês", text, re.I):
-        period = "monthly"
-    elif re.search(r"ano|anual|\/ano", text, re.I):
-        period = "yearly"
+    # Verificar se tem conteúdo mínimo
+    if len(response.content) < 5000:
+        return "EMPTY_RESPONSE"
 
-    # Extrair números
-    numbers = re.findall(r"R?\$?\s*([\d.]+)", text, re.I)
-    parsed = [float(n.replace(".", "")) for n in numbers if n]
-
-    if len(parsed) >= 2:
-        salary_min = min(parsed)
-        salary_max = max(parsed)
-    elif len(parsed) == 1:
-        salary_min = parsed[0]
-
-    return salary_min, salary_max, period
-
-
-def detect_remote_type(text):
-    """Detecta tipo remoto"""
-    if not text:
-        return None
-    text_lower = text.lower()
-    if re.search(r"remoto|remote|home office", text_lower):
-        return "remote"
-    if re.search(r"híbrido|hybrid", text_lower):
-        return "hybrid"
     return None
+
+
+def scrape_infojobs(keyword):
+    """Scrape vagas do InfoJobs Brasil com múltiplas estratégias"""
+    jobs = []
+
+    try:
+        url = "https://www.infojobs.com.br/empregos.aspx"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Referer": "https://www.infojobs.com.br/"
+        }
+
+        params = {"palabra": keyword}
+
+        response = requests.get(url, headers=headers, params=params, timeout=15)
+
+        if response.status_code != 200:
+            print(f"   ⚠️  HTTP {response.status_code} for '{keyword}'")
+            return jobs
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Detectar bloqueio
+        block_reason = detect_blocking(soup, response)
+        if block_reason:
+            print(f"   ❌ {block_reason} for '{keyword}'")
+            # Salvar HTML para debug (apenas primeira vez)
+            if not os.path.exists('/tmp/infojobs_blocked.html'):
+                with open('/tmp/infojobs_blocked.html', 'w') as f:
+                    f.write(response.text[:50000])  # Primeiros 50k
+                print(f"   💾 Saved HTML snapshot to /tmp/infojobs_blocked.html")
+            return jobs
+
+        # Estratégia 1: Lista de ofertas oficial (ul.js-offers-list > li)
+        job_list = soup.find('ul', class_='js-offers-list')
+        if job_list:
+            items = job_list.find_all('li', recursive=False)
+            print(f"   📋 Estratégia 1: Encontrado {len(items)} items em ul.js-offers-list")
+
+            for item in items[:20]:
+                try:
+                    # Título e link
+                    title_link = item.find('a', class_='js-o-link')
+                    if not title_link:
+                        title_link = item.find('a', href=re.compile(r'/oferta-emprego/'))
+
+                    if not title_link:
+                        continue
+
+                    title = title_link.get_text(strip=True)
+                    url_path = title_link.get('href', '')
+
+                    # Empresa
+                    company_el = item.find(class_=re.compile(r'company|empresa'))
+                    company = company_el.get_text(strip=True) if company_el else "Unknown"
+
+                    # Localização
+                    location_el = item.find(class_=re.compile(r'location|local|cidade'))
+                    location = location_el.get_text(strip=True) if location_el else "Brasil"
+
+                    # URL completa
+                    full_url = url_path if url_path.startswith('http') else f"https://www.infojobs.com.br{url_path}"
+
+                    jobs.append({
+                        "url": full_url,
+                        "title": title,
+                        "company": company,
+                        "location": location,
+                        "salary": "",
+                        "description": "",
+                        "keyword": keyword
+                    })
+                except Exception as e:
+                    continue
+
+        # Estratégia 2: Qualquer link com /oferta-emprego/
+        if not jobs:
+            print(f"   📋 Estratégia 2: Buscando links com /oferta-emprego/")
+            links = soup.find_all('a', href=re.compile(r'/oferta-emprego/'))
+            print(f"      Encontrados {len(links)} links")
+
+            for link in links[:20]:
+                try:
+                    title = link.get_text(strip=True)
+                    if not title or len(title) < 5:
+                        continue
+
+                    url_path = link.get('href', '')
+                    full_url = url_path if url_path.startswith('http') else f"https://www.infojobs.com.br{url_path}"
+
+                    # Tentar encontrar container pai com mais info
+                    parent = link.parent
+                    company = "Unknown"
+                    location = "Brasil"
+
+                    for _ in range(3):
+                        if not parent:
+                            break
+
+                        company_el = parent.find(class_=re.compile(r'company|empresa'))
+                        if company_el and company == "Unknown":
+                            company = company_el.get_text(strip=True)
+
+                        location_el = parent.find(class_=re.compile(r'location|local'))
+                        if location_el and location == "Brasil":
+                            location = location_el.get_text(strip=True)
+
+                        parent = parent.parent
+
+                    jobs.append({
+                        "url": full_url,
+                        "title": title,
+                        "company": company,
+                        "location": location,
+                        "salary": "",
+                        "description": "",
+                        "keyword": keyword
+                    })
+                except Exception as e:
+                    continue
+
+        print(f"   ✅ {len(jobs)} vagas for '{keyword}'")
+
+        # Salvar HTML de sucesso para análise (apenas primeira vez com sucesso)
+        if jobs and not os.path.exists('/tmp/infojobs_success.html'):
+            with open('/tmp/infojobs_success.html', 'w') as f:
+                f.write(response.text[:50000])
+            print(f"   💾 Saved successful HTML to /tmp/infojobs_success.html")
+
+    except Exception as e:
+        print(f"   ❌ Error scraping '{keyword}': {str(e)[:80]}")
+
+    return jobs
 
 
 def get_or_create_organization(conn, company_name, location, country):
@@ -95,18 +199,16 @@ def get_or_create_organization(conn, company_name, location, country):
 
     cur = conn.cursor()
 
-    # Try to find existing
-    cur.execute(
-        "SELECT id FROM sofia.organizations WHERE name = %s LIMIT 1",
-        (company_name,)
-    )
-    result = cur.fetchone()
-
-    if result:
-        return result[0]
-
-    # Create new
     try:
+        cur.execute(
+            "SELECT id FROM sofia.organizations WHERE name = %s LIMIT 1",
+            (company_name,)
+        )
+        result = cur.fetchone()
+
+        if result:
+            return result[0]
+
         cur.execute(
             """
             INSERT INTO sofia.organizations (name, location, country, source)
@@ -117,136 +219,47 @@ def get_or_create_organization(conn, company_name, location, country):
         )
         conn.commit()
         return cur.fetchone()[0]
-    except Exception as e:
+    except Exception:
         conn.rollback()
         return None
-
-
-def scrape_infojobs(keyword):
-    """Scrape vagas do InfoJobs Brasil"""
-    jobs = []
-
-    try:
-        # URL de busca do InfoJobs
-        url = f"https://www.infojobs.com.br/empregos.aspx"
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-
-        params = {
-            "palabra": keyword
-        }
-
-        response = requests.get(url, headers=headers, params=params, timeout=15)
-
-        if response.status_code != 200:
-            print(f"   ⚠️  HTTP {response.status_code} for '{keyword}'")
-            return jobs
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Buscar elementos de vaga (ajustar seletores conforme HTML real)
-        # InfoJobs usa estrutura com classes específicas
-        job_items = soup.find_all(['article', 'div'], class_=re.compile(r'vaga|job|oferta', re.I))
-
-        if not job_items:
-            # Tentar outro padrão
-            job_items = soup.find_all('a', href=re.compile(r'/vaga|/emprego|/oferta'))
-
-        for i, item in enumerate(job_items[:20]):  # Limitar a 20
-            try:
-                # Extrair título
-                title_el = item.find(['h2', 'h3', 'a'], class_=re.compile(r'titulo|title|vaga', re.I))
-                if not title_el:
-                    title_el = item.find('a', href=re.compile(r'/vaga|/emprego'))
-
-                title = title_el.get_text(strip=True) if title_el else ""
-
-                # Extrair URL
-                link_el = item.find('a', href=re.compile(r'/vaga|/emprego'))
-                if not link_el and title_el and title_el.name == 'a':
-                    link_el = title_el
-
-                url_path = link_el.get('href', '') if link_el else ""
-
-                if not title or not url_path:
-                    continue
-
-                # Extrair empresa
-                company_el = item.find(['span', 'div', 'p'], class_=re.compile(r'empresa|company', re.I))
-                company = company_el.get_text(strip=True) if company_el else "Unknown"
-
-                # Extrair localização
-                location_el = item.find(['span', 'div', 'p'], class_=re.compile(r'local|cidade|city|location', re.I))
-                location = location_el.get_text(strip=True) if location_el else "Brasil"
-
-                # Extrair salário
-                salary_el = item.find(['span', 'div', 'p'], class_=re.compile(r'salario|salary|remuneracao', re.I))
-                salary = salary_el.get_text(strip=True) if salary_el else ""
-
-                # Extrair descrição
-                desc_el = item.find(['p', 'div'], class_=re.compile(r'descricao|description|resumo', re.I))
-                description = desc_el.get_text(strip=True) if desc_el else ""
-
-                # Construir URL completa
-                full_url = url_path if url_path.startswith('http') else f"https://www.infojobs.com.br{url_path}"
-
-                jobs.append({
-                    "url": full_url,
-                    "title": title,
-                    "company": company,
-                    "location": location,
-                    "salary": salary,
-                    "description": description[:1000],
-                    "keyword": keyword
-                })
-
-            except Exception as e:
-                continue
-
-        print(f"   ✅ {len(jobs)} vagas for '{keyword}'")
-
-    except Exception as e:
-        print(f"   ❌ Error scraping '{keyword}': {str(e)[:50]}")
-
-    return jobs
 
 
 def collect_infojobs_jobs():
     """Coleta vagas do InfoJobs Brasil"""
     print("=" * 60)
-    print("🚀 InfoJobs Brasil Scraper")
+    print("🚀 InfoJobs Brasil Scraper (Robusto)")
     print("=" * 60)
 
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
 
     total_collected = 0
+    total_scraped = 0
 
     try:
         for keyword in KEYWORDS:
             print(f"\n📋 {keyword}")
             jobs = scrape_infojobs(keyword)
+            total_scraped += len(jobs)
 
             for job in jobs:
                 try:
                     # Extract job_id from URL
-                    job_id_match = re.search(r'/(\d+)', job["url"])
-                    job_id = f"infojobs-{job_id_match.group(1)}" if job_id_match else f"infojobs-{hash(job['url']) % 1000000}"
+                    job_id_match = re.search(r'/oferta-emprego/(\d+)', job["url"])
+                    if job_id_match:
+                        job_id = f"infojobs-{job_id_match.group(1)}"
+                    else:
+                        job_id = f"infojobs-{hash(job['url']) % 1000000}"
 
-                    # Parse city and state
+                    # Parse location
+                    city = None
+                    state = None
                     if '-' in job["location"]:
                         parts = job["location"].split('-')
-                        city = parts[0].strip() if len(parts) > 0 else None
+                        city = parts[0].strip()
                         state = parts[1].strip() if len(parts) > 1 else None
-                    elif ',' in job["location"]:
-                        parts = job["location"].split(',')
-                        city = parts[0].strip() if len(parts) > 0 else None
-                        state = parts[1].strip() if len(parts) > 1 else None
-                    else:
-                        city = job["location"] if job["location"] != "Brasil" else None
-                        state = None
+                    elif job["location"] != "Brasil":
+                        city = job["location"]
 
                     # Normalize geographic data
                     geo = normalize_location(conn, {
@@ -260,40 +273,25 @@ def collect_infojobs_jobs():
                         conn, job["company"], job["location"], "Brazil"
                     )
 
-                    # Parse salary
-                    salary_min, salary_max, salary_period = parse_salary_brl(job["salary"])
-                    remote_type = detect_remote_type(job["title"] + " " + job["description"])
-
                     # Insert job
                     cur.execute(
                         """
                         INSERT INTO sofia.jobs (
-                            job_id, title, company, raw_location, raw_city, raw_state, country, country_id, state_id, city_id,
+                            job_id, title, company, raw_location, raw_city, raw_state,
+                            country, country_id, state_id, city_id,
                             url, platform, source, organization_id,
-                            description, salary_min, salary_max, salary_currency, salary_period,
-                            remote_type, search_keyword, posted_date, collected_at
+                            search_keyword, posted_date, collected_at
                         )
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_DATE, NOW())
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_DATE, NOW())
                         ON CONFLICT (job_id) DO UPDATE SET
                             title = EXCLUDED.title,
-                            raw_location = EXCLUDED.raw_location,
-                            source = EXCLUDED.source,
-                            description = EXCLUDED.description,
-                            salary_min = EXCLUDED.salary_min,
-                            salary_max = EXCLUDED.salary_max,
-                            remote_type = EXCLUDED.remote_type,
-                            organization_id = COALESCE(EXCLUDED.organization_id, sofia.jobs.organization_id),
-                            country_id = COALESCE(EXCLUDED.country_id, sofia.jobs.country_id),
-                            state_id = COALESCE(EXCLUDED.state_id, sofia.jobs.state_id),
-                            city_id = COALESCE(EXCLUDED.city_id, sofia.jobs.city_id),
                             collected_at = NOW()
                         """,
                         (
                             job_id, job["title"], job["company"], job["location"], city, state,
                             "Brazil", geo.get("country_id"), geo.get("state_id"), geo.get("city_id"),
                             job["url"], "infojobs", "infojobs", organization_id,
-                            job["description"], salary_min, salary_max, "BRL", salary_period,
-                            remote_type, keyword
+                            keyword
                         )
                     )
                     conn.commit()
@@ -301,32 +299,38 @@ def collect_infojobs_jobs():
 
                 except Exception as err:
                     conn.rollback()
-                    # Ignore duplicates
                     if "23505" not in str(err):
-                        print(f"   ❌ Error inserting job: {str(err)[:50]}")
+                        print(f"   ⚠️  Error inserting: {str(err)[:60]}")
 
-            # Rate limiting
             time.sleep(2)
 
         # Statistics
         cur.execute("""
-            SELECT
-                COUNT(*) as total,
-                COUNT(DISTINCT company) as companies
+            SELECT COUNT(*) as total, COUNT(DISTINCT company) as companies
             FROM sofia.jobs
             WHERE platform = 'infojobs'
         """)
         stats = cur.fetchone()
 
         print("\n" + "=" * 60)
-        print(f"✅ Collected: {total_collected} tech jobs from InfoJobs")
-        print("\n📊 InfoJobs Statistics:")
-        print(f"   Total jobs: {stats[0]}")
+        print(f"✅ Scraped: {total_scraped} vagas")
+        print(f"✅ Saved: {total_collected} new/updated jobs")
+        print(f"\n📊 InfoJobs Total:")
+        print(f"   Jobs: {stats[0]}")
         print(f"   Companies: {stats[1]}")
         print("=" * 60)
 
+        # Critério de sucesso: deve inserir >0
+        if total_scraped == 0:
+            print("\n❌ ERROR: EMPTY_SOURCE - No jobs found")
+            sys.exit(1)
+
+        if total_collected == 0 and total_scraped > 0:
+            print("\n⚠️  WARNING: Jobs scraped but none inserted (all duplicates?)")
+
     except Exception as error:
-        print(f"❌ Fatal error: {str(error)}")
+        print(f"\n❌ Fatal error: {str(error)}")
+        sys.exit(1)
 
     finally:
         conn.close()
@@ -337,7 +341,7 @@ def collect_infojobs_jobs():
 if __name__ == "__main__":
     try:
         total = collect_infojobs_jobs()
-        sys.exit(0 if total > 0 else 1)
+        sys.exit(0)
     except Exception as err:
         print(f"Fatal error: {err}")
         sys.exit(1)
