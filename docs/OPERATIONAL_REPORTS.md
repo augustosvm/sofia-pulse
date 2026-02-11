@@ -18,16 +18,18 @@ O relatório responde objetivamente:
 **Localização:** `scripts/generate_operational_report.py`
 
 **Fonte da Verdade:**
-- `sofia.collector_runs` (execuções reais)
-- `sofia.collector_inventory` (collectors esperados)
+- `sofia.collector_runs` (execuções reais no banco)
+- **`config/daily_expected_collectors.json`** (expected set OFICIAL - gerado por sync_expected_set.py)
 - `sofia.notifications_sent` (opcional)
 - `sofia.insights` (opcional)
 
 **NÃO usa:**
 - ❌ Mensagens antigas
-- ❌ Arquivos estáticos
+- ❌ `collector_inventory` (desatualizado)
 - ❌ Números hardcoded
 - ❌ Outputs simulados
+
+**IMPORTANTE:** O expected set é a ÚNICA fonte da verdade para saber quais collectors DEVEM rodar. Hash SHA256 do arquivo é incluído em todos os relatórios para rastreabilidade.
 
 ---
 
@@ -270,6 +272,30 @@ python3 scripts/generate_operational_report.py | \
 
 ---
 
+## Diferença: Pipeline Completo vs Runs Avulsas
+
+### Pipeline Completo ✅
+- Execução orquestrada por `run_and_verify.py` ou `daily_pipeline.py`
+- Possui `trace_id` (UUID) para rastreamento
+- Garante execução coordenada de todos os grupos (required, ga4, tech, research, etc.)
+- WhatsApp enviado automaticamente pelo `run_and_verify.py`
+- **Evidência:** Todos os runs compartilham o mesmo `trace_id`
+
+### Runs Avulsas ⚠️
+- Execuções individuais de collectors fora do pipeline
+- Sem `trace_id` ou `trace_id=NULL`
+- Pode indicar:
+  - Teste manual de collector
+  - Execução de GDELT a cada hora (caso configurado)
+  - Re-run de collector isolado após falha
+- **Evidência:** Runs sem `trace_id` ou com `trace_id` diferentes
+
+**No relatório:**
+- Pipeline completo → "Evidência: ✅ PIPELINE COMPLETO"
+- Runs avulsas → "Evidência: ⚠️ RUNS AVULSAS DETECTADAS (pipeline completo não comprovado)"
+
+---
+
 ## Diferença: Relatório vs WhatsApp (run_and_verify.py)
 
 | Aspecto | run_and_verify.py | generate_operational_report.py |
@@ -279,10 +305,16 @@ python3 scripts/generate_operational_report.py | \
 | **Objetivo** | Notificação em tempo real | Auditoria retrospectiva |
 | **Formato** | 1 mensagem WhatsApp | 3 versões (Exec, Tech, WhatsApp) |
 | **Uso** | Automático (cron 00:05) | Manual ou cron posterior |
+| **Expected Source** | daily_expected_collectors.json | daily_expected_collectors.json |
 
 **Complementares:**
 - `run_and_verify.py`: "O que acabou de acontecer?"
 - `generate_operational_report.py`: "O que aconteceu nas últimas N horas?"
+
+**Ambos incluem:**
+- Hash SHA256 do expected set para rastreabilidade
+- 4 listas obrigatórias (sucessos, vazios, falhas, missing)
+- Detecção de pipeline completo vs runs avulsas
 
 ---
 

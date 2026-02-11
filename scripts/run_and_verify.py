@@ -9,6 +9,7 @@ import os
 import uuid
 import json
 import time
+import hashlib
 import subprocess
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -17,6 +18,22 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from lib.skill_runner import run
+
+
+def get_expected_set_hash():
+    """Calcula hash do expected set para rastreabilidade."""
+    project_root = Path(__file__).resolve().parents[1]
+    config_path = project_root / "config" / "daily_expected_collectors.json"
+
+    if not config_path.exists():
+        return "NOT_FOUND"
+
+    try:
+        with open(config_path, 'r') as f:
+            content = f.read()
+        return hashlib.sha256(content.encode()).hexdigest()[:16]
+    except Exception:
+        return "ERROR"
 
 
 def execute_collector(cid, config, trace, max_retries=2):
@@ -108,7 +125,7 @@ def format_saved(saved_value):
     return str(saved_value)
 
 
-def build_whatsapp_message(trace_id, audit_data, gate_status, max_offenders=12):
+def build_whatsapp_message(trace_id, audit_data, gate_status, expected_hash, max_offenders=12):
     """Compõe mensagem WhatsApp operacional com 4 listas obrigatórias."""
     summary = audit_data["summary"]
     failed = audit_data.get("failed", [])
@@ -122,7 +139,8 @@ def build_whatsapp_message(trace_id, audit_data, gate_status, max_offenders=12):
 
     message = f"{status_emoji} *Sofia Pulse - Execução & Verificação*\n"
     message += f"Trace: `{trace_id[:8]}`\n"
-    message += f"Janela: BRT {time.strftime('%Y-%m-%d %H:%M')}\n\n"
+    message += f"Janela: BRT {time.strftime('%Y-%m-%d %H:%M')}\n"
+    message += f"Expected: daily_expected_collectors.json (`{expected_hash}`)\n\n"
 
     message += f"*Gate (Required+GA4):* {gate_emoji}\n"
     message += f"*Esperado vs Rodado:* {summary['expected']} esperados | {summary['ran']} rodaram\n"
@@ -355,7 +373,8 @@ def main():
         print(f"[run_and_verify] WHATSAPP NOTIFICATION")
         print(f"[run_and_verify] ========================================")
 
-        message = build_whatsapp_message(trace, audit_data, gate_status, max_offenders)
+        expected_hash = get_expected_set_hash()
+        message = build_whatsapp_message(trace, audit_data, gate_status, expected_hash, max_offenders)
 
         severity = "critical" if not gate_healthy else "warning"
         title = "🚨 Sofia Pulse - UNHEALTHY" if not gate_healthy else "✅ Sofia Pulse - Execução OK"
