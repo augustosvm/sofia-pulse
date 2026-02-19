@@ -303,102 +303,84 @@ async function insertStory(client: Client, story: HNStory): Promise<void> {
 // ============================================================================
 
 async function main() {
-  console.log('🚀 Sofia Pulse - HackerNews Collector');
-  console.log('='.repeat(60));
-  console.log('');
-  console.log('🔥 WHY HACKERNEWS IS CRITICAL:');
-  console.log('   - HN = tech community interest thermometer');
-  console.log('   - Stories appear BEFORE funding rounds/IPOs');
-  console.log('   - Comments reveal real sentiment (not marketing)');
-  console.log('   - Influential authors = strong signal');
-  console.log('');
-  console.log('💡 WEAK SIGNALS DETECTED:');
-  console.log('   - 100+ points in <24h: Explosive interest');
-  console.log('   - 50+ comments: Active debate');
-  console.log('   - Show HN: Products being launched');
-  console.log('   - Ask HN: Latent community demand');
-  console.log('');
-  console.log('='.repeat(60));
-  console.log('');
+  // V2 JSON output contract
+  const v2Metrics: Record<string, any> = {
+    status: 'ok',
+    source: 'hackernews-algolia-api',
+    items_read: 0,
+    items_candidate: 0,
+    items_inserted: 0,
+    items_updated: 0,
+    items_ignored_conflict: 0,
+    tables_affected: ['sofia.hackernews_stories'],
+    meta: {},
+  };
+  let exitCode = 0;
+
+  // V2: All logs go to stderr
+  const log = (...args: any[]) => console.error(...args);
+
+  log('🚀 Sofia Pulse - HackerNews Collector');
+  log('='.repeat(60));
 
   const client = new Client(dbConfig);
 
   try {
     await client.connect();
-    console.log('✅ Connected to PostgreSQL');
+    log('✅ Connected to PostgreSQL');
 
     // Run migration
     const migrationPath = 'db/migrations/010_create_hackernews_stories.sql';
-    console.log(`📦 Running migration: ${migrationPath}`);
-
+    log(`📦 Running migration: ${migrationPath}`);
     const fs = await import('fs/promises');
     const migrationSQL = await fs.readFile(migrationPath, 'utf-8');
     await client.query(migrationSQL);
-    console.log('✅ Migration complete');
-    console.log('');
+    log('✅ Migration complete');
 
-    console.log('📊 Fetching top stories from HackerNews...');
-    console.log('');
-
+    log('📊 Fetching top stories from HackerNews...');
     const stories = await fetchTopStories('24h');
-    console.log(`   ✅ Fetched ${stories.length} stories`);
-    console.log('');
+    log(`   ✅ Fetched ${stories.length} stories`);
 
-    console.log('💾 Inserting into database...');
+    v2Metrics.items_read = stories.length;
+    v2Metrics.items_candidate = stories.length;
+
+    log('💾 Inserting into database...');
+    let inserted = 0;
     for (const story of stories) {
-      await insertStory(client, story);
+      try {
+        await insertStory(client, story);
+        inserted++;
+      } catch (err: any) {
+        log(`⚠️ Skip story ${story.story_id}: ${err.message}`);
+        v2Metrics.items_ignored_conflict++;
+      }
     }
-    console.log(`✅ ${stories.length} stories inserted/updated`);
-    console.log('');
+    v2Metrics.items_inserted = inserted;
+    log(`✅ ${inserted} stories inserted/updated out of ${stories.length}`);
 
-    // Top stories by points
-    console.log('🔥 Top 10 Stories (by points):');
-    console.log('');
-
+    // Report top stories to stderr (for human inspection)
     const topStories = await client.query(`
-      SELECT title, author, points, num_comments, mentioned_technologies
+      SELECT title, author, points, num_comments
       FROM sofia.hackernews_stories
-      ORDER BY points DESC
-      LIMIT 10;
+      ORDER BY points DESC LIMIT 5;
     `);
-
+    log('🔥 Top 5:');
     topStories.rows.forEach((row, idx) => {
-      console.log(`   ${idx + 1}. ${row.title}`);
-      console.log(`      Author: ${row.author}`);
-      console.log(`      Points: ${row.points} | Comments: ${row.num_comments}`);
-      console.log(`      Tech: ${row.mentioned_technologies.join(', ') || 'N/A'}`);
-      console.log('');
+      log(`  ${idx + 1}. ${row.title} (${row.points}pt, ${row.num_comments} comments)`);
     });
 
-    // Trending technologies
-    console.log('🏷️  Trending Technologies:');
-    console.log('');
-
-    const techSummary = await client.query(`
-      SELECT
-        unnest(mentioned_technologies) as tech,
-        COUNT(*) as mentions,
-        SUM(points) as total_points
-      FROM sofia.hackernews_stories
-      WHERE mentioned_technologies IS NOT NULL
-        AND array_length(mentioned_technologies, 1) > 0
-      GROUP BY tech
-      ORDER BY mentions DESC
-      LIMIT 15;
-    `);
-
-    techSummary.rows.forEach((row) => {
-      console.log(`   ${row.tech}: ${row.mentions} mentions (${row.total_points} points)`);
-    });
-
-    console.log('');
-    console.log('✅ Collection complete!');
-  } catch (error) {
-    console.error('❌ Error:', error);
-    process.exit(1);
+  } catch (error: any) {
+    log('❌ Fatal Error:', error);
+    v2Metrics.status = 'fail';
+    v2Metrics.meta = { error: error?.message || String(error) };
+    exitCode = 1;
   } finally {
-    await client.end();
+    await client.end().catch(() => { });
   }
+
+  // SINGLE STDOUT OUTPUT POINT — V2 contract
+  console.log(JSON.stringify(v2Metrics));
+  process.exit(exitCode);
 }
 
 // ============================================================================

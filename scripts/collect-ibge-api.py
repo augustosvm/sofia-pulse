@@ -9,20 +9,37 @@ Documentação: https://apisidra.ibge.gov.br/home/ajuda
 
 import os
 import sys
+import json
 from datetime import datetime
 from typing import Dict, List
 
 import psycopg2
 import requests
 
-# Database connection
-DB_CONFIG = {
-    "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
-    "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
-    "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
-    "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
-    "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
-}
+# V2: All collector logs go to stderr. Only final JSON goes to stdout.
+def _log(*args, **kwargs):
+    print(*args, **kwargs, file=sys.stderr)
+
+# Database connection — supports DATABASE_URL (set by tracked_runner) or individual vars
+_DATABASE_URL = os.getenv("DATABASE_URL")
+if _DATABASE_URL:
+    import urllib.parse as _urlparse
+    _u = _urlparse.urlparse(_DATABASE_URL)
+    DB_CONFIG = {
+        "host": _u.hostname or "localhost",
+        "port": _u.port or 5432,
+        "user": _u.username or "sofia",
+        "password": _urlparse.unquote(_u.password or ""),
+        "database": (_u.path or "/sofia_db").lstrip("/"),
+    }
+else:
+    DB_CONFIG = {
+        "host": os.getenv("POSTGRES_HOST", os.getenv("DB_HOST", "localhost")),
+        "port": int(os.getenv("POSTGRES_PORT", os.getenv("DB_PORT", "5432"))),
+        "user": os.getenv("POSTGRES_USER", os.getenv("DB_USER", "sofia")),
+        "password": os.getenv("POSTGRES_PASSWORD", os.getenv("DB_PASSWORD", "")),
+        "database": os.getenv("POSTGRES_DB", os.getenv("DB_NAME", "sofia_db")),
+    }
 
 # IBGE Agregados (indicators)
 # Ref: https://servicodados.ibge.gov.br/api/docs/agregados?versao=3
@@ -259,60 +276,75 @@ def save_to_database(conn, records: List[Dict]) -> int:
 
 
 def main():
-    print("=" * 80)
-    print("📊 IBGE SIDRA API - Instituto Brasileiro de Geografia e Estatística")
-    print("=" * 80)
-    print("")
-    print(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"📡 Source: https://apisidra.ibge.gov.br/")
-    print("")
+    # V2 JSON output contract
+    v2_metrics = {
+        "status": "ok",
+        "source": "ibge-sidra-api",
+        "items_read": 0,
+        "items_candidate": 0,
+        "items_inserted": 0,
+        "items_updated": 0,
+        "items_ignored_conflict": 0,
+        "tables_affected": ["sofia.ibge_indicators"],
+        "meta": {}
+    }
 
-    # Connect to database
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        print("✅ Database connected")
-        print("")
+        _log("=" * 80)
+        _log("📊 IBGE SIDRA API - Instituto Brasileiro de Geografia e Estatística")
+        _log("=" * 80)
+        _log(f"⏰ Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        _log(f"📡 Source: https://apisidra.ibge.gov.br/")
+        _log("")
+
+        # Connect to database
+        try:
+            conn = psycopg2.connect(**DB_CONFIG)
+            _log("✅ Database connected")
+        except Exception as e:
+            raise RuntimeError(f"Database connection failed: {e}")
+
+        total_inserted = 0
+        total_updated = 0
+        total_read = 0
+
+        _log("📊 Fetching IBGE indicators...")
+
+        for table_code, indicator_info in IBGE_INDICATORS.items():
+            _log(f"📈 {indicator_info['name']} (Table: {table_code})")
+
+            raw_data = fetch_ibge_sidra(table_code, indicator_info)
+            if raw_data:
+                records = parse_ibge_sidra_data(table_code, indicator_info, raw_data)
+                total_read += len(records)
+                _log(f"   📋 Parsed: {len(records)} records")
+
+                if records:
+                    inserted = save_to_database(conn, records)
+                    total_inserted += inserted
+                    _log(f"   💾 Saved: {inserted} records")
+
+        conn.close()
+
+        v2_metrics["items_read"] = total_read
+        v2_metrics["items_candidate"] = total_read
+        v2_metrics["items_inserted"] = total_inserted
+        v2_metrics["items_updated"] = 0
+        v2_metrics["items_ignored_conflict"] = max(0, total_read - total_inserted)
+
+        _log("")
+        _log(f"✅ IBGE collection complete. Inserted: {total_inserted} / Read: {total_read}")
+
     except Exception as e:
-        print(f"❌ Database connection failed: {e}")
+        _log(f"❌ Fatal error: {e}")
+        v2_metrics["status"] = "fail"
+        v2_metrics["meta"]["error"] = str(e)
+        # CRITICAL: print JSON before exit so runner can capture status=fail
+        print(json.dumps(v2_metrics))
         sys.exit(1)
 
-    total_records = 0
-
-    print("📊 Fetching IBGE indicators...")
-    print("")
-
-    for table_code, indicator_info in IBGE_INDICATORS.items():
-        print(f"📈 {indicator_info['name']} (Table: {table_code})")
-
-        # Fetch data from SIDRA API (last 12 periods)
-        raw_data = fetch_ibge_sidra(table_code, indicator_info)
-
-        if raw_data:
-            # Parse SIDRA format data
-            records = parse_ibge_sidra_data(table_code, indicator_info, raw_data)
-            print(f"   📋 Parsed: {len(records)} records")
-
-            if records:
-                # Save to database
-                inserted = save_to_database(conn, records)
-                total_records += inserted
-                print(f"   💾 Saved: {inserted} records")
-
-        print("")
-
-    conn.close()
-
-    print("=" * 80)
-    print("✅ IBGE API COLLECTION COMPLETE")
-    print("=" * 80)
-    print("")
-    print(f"📊 Total indicators: {len(IBGE_INDICATORS)}")
-    print(f"💾 Total records: {total_records}")
-    print("")
-    print("Indicators collected:")
-    for agregado_id, info in IBGE_INDICATORS.items():
-        print(f"  • {info['name']} ({info['frequency']})")
-    print("")
+    # SINGLE STDOUT OUTPUT POINT
+    print(json.dumps(v2_metrics))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,198 @@
+# Collector → Table Mapping for Sofia Pulse
+# Used by tracked_runner.py to count saved records accurately
+
+# ============================================================================
+# JOBS COLLECTORS (table: sofia.jobs)
+# ============================================================================
+
+jobs-adzuna:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "source = 'adzuna' OR platform = 'adzuna'"
+
+jobs-greenhouse:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "platform = 'greenhouse'"
+
+himalayas:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "platform = 'himalayas'"
+
+remoteok:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "platform = 'remoteok'"
+
+arbeitnow:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "platform = 'arbeitnow'"
+
+jobs-jooble:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "platform = 'jooble'"
+
+jobs-infojobs-brasil:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "platform = 'infojobs'"
+
+jobs-catho:
+  table: sofia.jobs
+  ts_col: created_at
+  where: "platform = 'catho'"
+
+# ============================================================================
+# TECH TRENDS COLLECTORS
+# ============================================================================
+
+github:
+  table: sofia.github_trending
+  ts_col: collected_at
+
+npm:
+  table: sofia.npm_stats
+  ts_col: collected_at
+
+pypi:
+  table: sofia.pypi_stats
+  ts_col: collected_at
+
+hackernews:
+  table: sofia.hackernews_stories
+  ts_col: created_at
+
+stackoverflow:
+  table: sofia.stackoverflow_trends
+  ts_col: collected_at
+
+# ============================================================================
+# RESEARCH PAPERS COLLECTORS
+# ============================================================================
+
+arxiv:
+  table: sofia.arxiv_ai_papers
+  ts_col: created_at
+
+openalex:
+  table: sofia.openalex_papers
+  ts_col: created_at
+
+# ============================================================================
+# ORGANIZATIONS COLLECTORS
+# ============================================================================
+
+ai-companies:
+  table: sofia.organizations
+  ts_col: created_at
+  where: "type = 'ai_company'"
+
+universities:
+  table: sofia.organizations
+  ts_col: created_at
+  where: "type = 'university'"
+
+# ============================================================================
+# FUNDING COLLECTORS
+# ============================================================================
+
+yc-companies:
+  table: sofia.funding_rounds
+  ts_col: created_at
+
+crunchbase:
+  table: sofia.funding_rounds
+  ts_col: created_at
+
+producthunt:
+  table: sofia.funding_rounds
+  ts_col: created_at
+
+# ============================================================================
+# DEVELOPER TOOLS COLLECTORS
+# ============================================================================
+
+vscode-marketplace:
+  table: sofia.developer_tools
+  ts_col: created_at
+  where: "platform = 'vscode'"
+
+jetbrains-marketplace:
+  table: sofia.developer_tools
+  ts_col: created_at
+  where: "platform = 'jetbrains'"
+
+# ============================================================================
+# INDUSTRY SIGNALS COLLECTORS
+# ============================================================================
+
+nvd:
+  table: sofia.cybersecurity_events
+  ts_col: created_at
+
+space:
+  table: sofia.space_industry
+  ts_col: created_at
+
+gdelt:
+  table: sofia.gdelt_events
+  ts_col: created_at
+
+ai_regulation:
+  table: sofia.ai_regulation
+  ts_col: created_at
+
+# ============================================================================
+# BRAZIL DATA COLLECTORS
+# ============================================================================
+
+mdic-regional:
+  table: sofia.comexstat_trade
+  ts_col: created_at
+
+fiesp-sensor:
+  table: sofia.fiesp_sensor
+  ts_col: created_at
+
+# ============================================================================
+# PATENTS & GRANTS COLLECTORS
+# ============================================================================
+
+nih-grants:
+  table: sofia.nih_grants
+  ts_col: created_at
+
+epo-patents:
+  table: sofia.epo_patents
+  ts_col: created_at
+
+wipo-china:
+  table: sofia.wipo_china_patents
+  ts_col: created_at
+
+# ============================================================================
+# FINANCE & MARKETS COLLECTORS
+# ============================================================================
+
+hkex-ipos:
+  table: sofia.hkex_ipos
+  ts_col: created_at
+
+bacen-sgs:
+  table: sofia.bacen_sgs_series
+  ts_col: created_at
+
+cardboard-production:
+  table: sofia.cardboard_production
+  ts_col: created_at
+
+# ============================================================================
+# CONFERENCES COLLECTORS
+# ============================================================================
+
+tech-conferences:
+  table: sofia.tech_conferences
+  ts_col: created_at
