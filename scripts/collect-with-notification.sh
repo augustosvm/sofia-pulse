@@ -1,5 +1,5 @@
 #!/bin/bash
-# Wrapper to run collector and send WhatsApp notification
+# Wrapper to run collector and send WhatsApp notification (BEST-EFFORT)
 # Usage: ./collect-with-notification.sh <collector-name>
 
 COLLECTOR_NAME="$1"
@@ -13,64 +13,37 @@ fi
 
 # Run collector and capture output
 OUTPUT=$(npx tsx scripts/collect.ts "$COLLECTOR_NAME" 2>&1)
-EXIT_CODE=$?
+COLLECTOR_EXIT_CODE=$?
 
 # Extract insert count from output (try multiple patterns)
-# Pattern 1: "Collected: 123" or "Total collected: 123"
 INSERTS=$(echo "$OUTPUT" | grep -oP "(Total\s+)?[Cc]ollected:\s*\K\d+" | tail -1)
+if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "Inserted\s*\K\d+" | tail -1); fi
+if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "Inseridas:\s*\K\d+" | tail -1); fi
+if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "Saved\s*\K\d+" | tail -1); fi
+if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "✅\s*\K\d+" | tail -1); fi
+if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "\d+(?=\s+(records|vagas|jobs|items|entries|papers|companies|organizations))" | tail -1); fi
+if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "(Salvos|Novos):\s*\K\d+" | tail -1); fi
+if [ -z "$INSERTS" ]; then INSERTS="?"; fi
 
-# Pattern 2: "Inserted 123" or "✅ Inserted 123"
-if [ -z "$INSERTS" ]; then
-    INSERTS=$(echo "$OUTPUT" | grep -oP "Inserted\s*\K\d+" | tail -1)
-fi
-
-# Pattern 3: "Inseridas: 123" (Portuguese - InfoJobs)
-if [ -z "$INSERTS" ]; then
-    INSERTS=$(echo "$OUTPUT" | grep -oP "Inseridas:\s*\K\d+" | tail -1)
-fi
-
-# Pattern 4: "✅ Saved 123" or "Saved 123"
-if [ -z "$INSERTS" ]; then
-    INSERTS=$(echo "$OUTPUT" | grep -oP "Saved\s*\K\d+" | tail -1)
-fi
-
-# Pattern 5: "✅ 123" at end of output (common pattern)
-if [ -z "$INSERTS" ]; then
-    INSERTS=$(echo "$OUTPUT" | grep -oP "✅\s*\K\d+" | tail -1)
-fi
-
-# Pattern 6: Generic number before "records", "vagas", "jobs", "items"
-if [ -z "$INSERTS" ]; then
-    INSERTS=$(echo "$OUTPUT" | grep -oP "\d+(?=\s+(records|vagas|jobs|items|entries|papers|companies|organizations))" | tail -1)
-fi
-
-# Pattern 7: "Salvos: 123" or "Novos: 123" (Portuguese)
-if [ -z "$INSERTS" ]; then
-    INSERTS=$(echo "$OUTPUT" | grep -oP "(Salvos|Novos):\s*\K\d+" | tail -1)
-fi
-
-# Fallback
-if [ -z "$INSERTS" ]; then
-    INSERTS="?"
-fi
-
-# Send WhatsApp notification
-if [ $EXIT_CODE -eq 0 ]; then
-    MESSAGE="✅ $COLLECTOR_NAME
-📊 $INSERTS novos registros"
+# Build message
+if [ $COLLECTOR_EXIT_CODE -eq 0 ]; then
+    MESSAGE="✅ $COLLECTOR_NAME\n📊 $INSERTS novos registros"
 else
     ERROR=$(echo "$OUTPUT" | grep -i "error" | head -1 | cut -c1-100)
-    MESSAGE="❌ $COLLECTOR_NAME
-⚠️ Erro: ${ERROR:-Falha desconhecida}"
+    MESSAGE="❌ $COLLECTOR_NAME\n⚠️ Erro: ${ERROR:-Falha desconhecida}"
 fi
 
-# Send via Python
-python3 << EOF
+# Send WhatsApp notification (BEST-EFFORT - does not affect exit code)
+python3 -c "
 import sys
-sys.path.append('$SCRIPT_DIR/utils')
-from sofia_whatsapp_integration import SofiaWhatsAppIntegration
-integration = SofiaWhatsAppIntegration()
-integration.send_whatsapp_direct('''$MESSAGE''')
-EOF
+sys.path.insert(0, '$SCRIPT_DIR/utils')
+try:
+    from sofia_whatsapp_integration import SofiaWhatsAppIntegration
+    integration = SofiaWhatsAppIntegration()
+    integration.send_whatsapp_direct('''$MESSAGE''')
+except Exception as e:
+    print(f'[WhatsApp] Warning: notification failed - {type(e).__name__}: {str(e)[:100]}', file=sys.stderr)
+" 2>&1 | grep -E '\[WhatsApp\]' || true
 
-exit $EXIT_CODE
+# CRITICAL: Return collector exit code, NOT WhatsApp exit code
+exit $COLLECTOR_EXIT_CODE
