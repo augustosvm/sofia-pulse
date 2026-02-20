@@ -7,7 +7,7 @@
 set -e
 
 # Diretório do projeto
-PROJECT_DIR="/Users/augustovespermann/sofia-pulse"
+PROJECT_DIR="/home/ubuntu/sofia-pulse"
 cd "$PROJECT_DIR" || exit 1
 
 # Carregar env vars do .env
@@ -25,7 +25,7 @@ if [ -z "$DATABASE_URL" ]; then
 fi
 
 # Ativar venv
-source "$PROJECT_DIR/.venv/bin/activate"
+# source "$PROJECT_DIR/.venv/bin/activate" # Commented: venv not in use
 
 # Executar comando passado como argumento
 exec "$@"

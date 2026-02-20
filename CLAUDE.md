@@ -815,3 +815,42 @@ bash update-crontab-distributed.sh
 ✅ Automatic cron schedule with WhatsApp notifications
 
 **Próximo**: Investigar fontes brasileiras (IBGE, BACEN, IPEA, MDIC)
+
+---
+
+## 🔄 PRÓXIMA SESSÃO
+
+### ⏳ PENDENTE: Modificar 6 Standalone Collectors para V2 JSON
+
+**Status:** Collectors estão no REGISTRY (75 total) e agendados no cron, mas ainda não retornam JSON V2.
+
+**Collectors que precisam de V2:**
+1. **epo-patents** (`scripts/collect-epo-patents.ts`)
+2. **wipo-china-patents** (`scripts/collect-wipo-china-patents.ts`)
+3. **nih-grants** (`scripts/collect-nih-grants.ts` ou Python?)
+4. **currency-rates** (`scripts/collect-currency-rates.ts`)
+5. **gitguardian-incidents** (`scripts/collect-gitguardian-incidents.ts`)
+6. **hkex-ipos** (`scripts/collect-hkex-ipos.ts`)
+
+**Processo (mesmo do catho):**
+1. Adicionar interface V2Metrics após imports
+2. Modificar função principal para:
+   - Inicializar `const metrics = initV2Metrics('source')`
+   - Wrap em try/catch
+   - Rastrear items_read, items_inserted
+   - Imprimir JSON V2 na última linha: `console.log(JSON.stringify(metrics))`
+   - process.exit(0) para sucesso, process.exit(1) para erro
+
+**Template V2 disponível:** `/tmp/v2-contract-template.ts`
+
+**Exemplo (catho):** `scripts/collect-catho-final.ts` (commit 34c90f0)
+
+**Resultado esperado:**
+- ✅ 75/75 collectors com V2 JSON (100%)
+- ✅ Zero "invalid_output" no tracking
+- ✅ Métricas precisas (items_inserted, tables_affected)
+
+---
+
+**Última atualização:** 2026-02-20 01:45 UTC  
+**Sessão anterior:** TypeScript V2 + Standalone Collectors (catho completo)

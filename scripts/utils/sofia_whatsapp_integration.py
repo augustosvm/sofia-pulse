@@ -44,10 +44,10 @@ WHATSAPP_RECEIVER = (
 )
 
 _sofia_api = os.getenv("SOFIA_API_URL", "")
-SOFIA_API_URL = "http://91.98.158.19:8001/api/v2/chat" if not _sofia_api else _sofia_api
+SOFIA_API_URL = "http://46.62.214.105:8001/api/v2/chat" if not _sofia_api else _sofia_api
 
 _whatsapp_api = os.getenv("WHATSAPP_API_URL", "")
-WHATSAPP_API_URL = "http://91.98.158.19:3001/send" if _whatsapp_api in ["your_api_url_here", ""] else _whatsapp_api
+WHATSAPP_API_URL = "http://46.62.214.105:3001/send" if _whatsapp_api in ["your_api_url_here", ""] else _whatsapp_api
 
 _enabled = os.getenv("WHATSAPP_ENABLED") or os.getenv("ALERT_WHATSAPP_ENABLED", "true")
 WHATSAPP_ENABLED = _enabled.lower() == "true"

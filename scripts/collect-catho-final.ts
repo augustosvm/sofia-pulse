@@ -20,6 +20,37 @@ const DB_CONFIG = {
   database: process.env.POSTGRES_DB || 'sofia_db',
 };
 
+
+// ============================================================================
+// V2 CONTRACT - Metrics Interface
+// ============================================================================
+
+interface V2Metrics {
+  status: 'ok' | 'fail';
+  source: string;
+  items_read: number;
+  items_candidate: number;
+  items_inserted: number;
+  items_updated: number;
+  items_ignored_conflict: number;
+  tables_affected: string[];
+  meta: Record<string, any>;
+}
+
+function initV2Metrics(source: string): V2Metrics {
+  return {
+    status: 'ok',
+    source,
+    items_read: 0,
+    items_candidate: 0,
+    items_inserted: 0,
+    items_updated: 0,
+    items_ignored_conflict: 0,
+    tables_affected: [],
+    meta: {},
+  };
+}
+
 // ========== PARSE HELPERS (from collect-catho-stealth.ts) ==========
 
 function parseSalaryBRL(text: string): { min: number | null; max: number | null; period: string | null } {
@@ -217,6 +248,9 @@ async function scrapeCatho(keywords: string[]) {
 }
 
 export async function collectCathoJobs() {
+  const metrics = initV2Metrics("catho");
+  
+  try {
   console.log('🚀 Catho Scraper - Centralized Keywords');
   console.log('='.repeat(50));
 
@@ -325,8 +359,26 @@ export async function collectCathoJobs() {
     }
   }
 
-  console.log(`\n✅ Saved ${jobs.length} jobs!`);
-  await pool.end();
+  metrics.items_read = jobs.length;
+    metrics.items_candidate = jobs.length;
+    metrics.items_inserted = jobs.length;
+    metrics.tables_affected = ['jobs'];
+    
+    await pool.end();
+    
+    console.log(JSON.stringify(metrics));
+    process.exit(0);
+    
+  } catch (error: any) {
+    metrics.status = 'fail';
+    metrics.meta = { error: error.message };
+    if (error.stack) {
+      metrics.meta.stack = error.stack.split('\n').slice(0, 5).join('\n');
+    }
+    
+    console.log(JSON.stringify(metrics));
+    process.exit(1);
+  }
 }
 
 
