@@ -15,8 +15,23 @@ fi
 OUTPUT=$(npx tsx scripts/collect.ts "$COLLECTOR_NAME" 2>&1)
 COLLECTOR_EXIT_CODE=$?
 
-# Extract insert count from output (try multiple patterns)
-INSERTS=$(echo "$OUTPUT" | grep -oP "(Total\s+)?[Cc]ollected:\s*\K\d+" | tail -1)
+# Extract insert count from output
+# PRIORITY 1: Try to parse V2 JSON from last line
+LAST_LINE=$(echo "$OUTPUT" | tail -1)
+INSERTS=$(echo "$LAST_LINE" | python3 -c "
+import sys
+import json
+try:
+    data = json.loads(sys.stdin.read().strip())
+    print(data.get('items_inserted', 0))
+except:
+    pass
+" 2>/dev/null)
+
+# FALLBACK: Try legacy patterns if JSON parsing failed
+if [ -z "$INSERTS" ] || [ "$INSERTS" = "0" ]; then
+    INSERTS=$(echo "$OUTPUT" | grep -oP "(Total\s+)?[Cc]ollected:\s*\K\d+" | tail -1)
+fi
 if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "Inserted\s*\K\d+" | tail -1); fi
 if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "Inseridas:\s*\K\d+" | tail -1); fi
 if [ -z "$INSERTS" ]; then INSERTS=$(echo "$OUTPUT" | grep -oP "Saved\s*\K\d+" | tail -1); fi
