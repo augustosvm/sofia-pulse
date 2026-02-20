@@ -17,12 +17,16 @@ const DB_CONFIG = {
   port: parseInt(process.env.POSTGRES_PORT || '5432'),
   user: process.env.POSTGRES_USER || 'sofia',
   password: process.env.POSTGRES_PASSWORD || 'sofia123strong',
+  database: process.env.POSTGRES_DB || 'sofia_db',
+};
+
+
 // ============================================================================
 // V2 CONTRACT - Metrics Interface
 // ============================================================================
 
 interface V2Metrics {
-  status: "ok" | "fail";
+  status: 'ok' | 'fail';
   source: string;
   items_read: number;
   items_candidate: number;
@@ -35,7 +39,7 @@ interface V2Metrics {
 
 function initV2Metrics(source: string): V2Metrics {
   return {
-    status: "ok",
+    status: 'ok',
     source,
     items_read: 0,
     items_candidate: 0,
@@ -46,9 +50,6 @@ function initV2Metrics(source: string): V2Metrics {
     meta: {},
   };
 }
-
-  database: process.env.POSTGRES_DB || 'sofia_db',
-};
 
 // ========== PARSE HELPERS (from collect-catho-stealth.ts) ==========
 
@@ -365,17 +366,14 @@ export async function collectCathoJobs() {
     
     await pool.end();
     
-    // V2 Contract: Print JSON on last line
     console.log(JSON.stringify(metrics));
     process.exit(0);
     
   } catch (error: any) {
     metrics.status = 'fail';
-    metrics.meta.error = error.message;
+    metrics.meta = { error: error.message };
     if (error.stack) {
-      metrics.meta.stack = error.stack.split('
-').slice(0, 5).join('
-');
+      metrics.meta.stack = error.stack.split('\n').slice(0, 5).join('\n');
     }
     
     console.log(JSON.stringify(metrics));
