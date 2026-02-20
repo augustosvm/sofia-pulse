@@ -87,15 +87,26 @@ REGISTRY = {
     "yc-companies": {"cmd": ["bash", "scripts/collect-with-notification.sh", "yc-companies"], "timeout": 300, "v2": True},
 
     # ============================================================================
-    # STANDALONE COLLECTORS (Special cases converted to V2)
+    # STANDALONE TS COLLECTORS (run via npx tsx directly, not via collect.ts dispatcher)
     # ============================================================================
-    "catho": {"cmd": ["bash", "scripts/collect-with-notification.sh", "catho"], "timeout": 600, "v2": True},
-    "epo-patents": {"cmd": ["bash", "scripts/collect-with-notification.sh", "epo-patents"], "timeout": 300, "v2": True},
-    "wipo-china-patents": {"cmd": ["bash", "scripts/collect-with-notification.sh", "wipo-china-patents"], "timeout": 300, "v2": True},
-    "nih-grants": {"cmd": ["bash", "scripts/collect-with-notification.sh", "nih-grants"], "timeout": 300, "v2": True},
-    "currency-rates": {"cmd": ["bash", "scripts/collect-with-notification.sh", "currency-rates"], "timeout": 300, "v2": True},
-    "gitguardian-incidents": {"cmd": ["bash", "scripts/collect-with-notification.sh", "gitguardian-incidents"], "timeout": 300, "v2": True},
-    "hkex-ipos": {"cmd": ["bash", "scripts/collect-with-notification.sh", "hkex-ipos"], "timeout": 300, "v2": True},
+    "catho":                  {"cmd": ["bash", "scripts/collect-with-notification.sh", "catho"], "timeout": 600, "v2": True},
+    "epo-patents":            {"cmd": ["npx", "tsx", "scripts/collect-epo-patents.ts"], "timeout": 300, "v2": True},
+    "wipo-china-patents":     {"cmd": ["npx", "tsx", "scripts/collect-wipo-china-patents.ts"], "timeout": 300, "v2": True},
+    "nih-grants":             {"cmd": ["npx", "tsx", "scripts/collect-nih-grants.ts"], "timeout": 300, "v2": True},
+    "currency-rates":         {"cmd": ["npx", "tsx", "scripts/collect-currency-rates.ts"], "timeout": 300, "v2": True},
+    "gitguardian-incidents":  {"cmd": ["npx", "tsx", "scripts/collect-gitguardian-incidents.ts"], "timeout": 300, "v2": True},
+    "hkex-ipos":              {"cmd": ["npx", "tsx", "scripts/collect-hkex-ipos.ts"], "timeout": 300, "v2": True},
+    "jobs-greenhouse":        {"cmd": ["npx", "tsx", "scripts/collect-greenhouse-jobs.ts"], "timeout": 300, "v2": True},
+    "jobs-infojobs-brasil":   {"cmd": ["npx", "tsx", "scripts/collect-infojobs-brasil.ts"], "timeout": 300, "v2": True},
+    "jobs-linkedin":          {"cmd": ["npx", "tsx", "scripts/collect-linkedin-jobs.ts"], "timeout": 600, "v2": True},
+    # ============================================================================
+    # STANDALONE PYTHON COLLECTORS (run via python3 directly)
+    # ============================================================================
+    "careerjet":              {"cmd": ["python3", "scripts/collect-careerjet-api.py"], "timeout": 300, "v2": True},
+    "theirstack":             {"cmd": ["python3", "scripts/collect-theirstack-api.py"], "timeout": 300, "v2": True},
+    "jobs-serpapi-googlejobs":{"cmd": ["python3", "scripts/collect-serpapi-googlejobs.py"], "timeout": 300, "v2": True},
+    "jobs-rapidapi-activejobs":{"cmd": ["python3", "scripts/collect-rapidapi-linkedin.py"], "timeout": 300, "v2": True},
+    "jobs-freejobs-api":      {"cmd": ["python3", "scripts/collect-freejobs-api.py"], "timeout": 300, "v2": True},
     # ============================================================================
     # DIRECT PILOTS (patched for V2 contract, invoked without wrapper)
     # ============================================================================
