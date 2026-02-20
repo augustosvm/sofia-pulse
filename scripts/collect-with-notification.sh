@@ -45,5 +45,8 @@ except Exception as e:
     print(f'[WhatsApp] Warning: notification failed - {type(e).__name__}: {str(e)[:100]}', file=sys.stderr)
 " 2>&1 | grep -E '\[WhatsApp\]' || true
 
+# CRITICAL: Echo output to stdout for tracked_runner.py V2 parsing
+echo "$OUTPUT"
+
 # CRITICAL: Return collector exit code, NOT WhatsApp exit code
 exit $COLLECTOR_EXIT_CODE

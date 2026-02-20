@@ -60,6 +60,96 @@ import * as legacyConfig from './configs/legacy-python-config.js';
 const legacyPythonCollectors = legacyConfig.collectors || {};
 console.log(`🐍 Legacy Python Collectors Loaded: ${Object.keys(legacyPythonCollectors).length}`);
 
+// ============================================================================
+// V2 CONTRACT - Metrics Interface
+// ============================================================================
+
+interface V2Metrics {
+  status: 'ok' | 'fail';
+  source: string;
+  items_read: number;
+  items_candidate: number;
+  items_inserted: number;
+  items_updated: number;
+  items_ignored_conflict: number;
+  tables_affected: string[];
+  meta: Record<string, any>;
+}
+
+function initV2Metrics(source: string): V2Metrics {
+  return {
+    status: 'ok',
+    source,
+    items_read: 0,
+    items_candidate: 0,
+    items_inserted: 0,
+    items_updated: 0,
+    items_ignored_conflict: 0,
+    tables_affected: [],
+    meta: {},
+  };
+}
+
+function printV2Metrics(metrics: V2Metrics): void {
+  console.log(JSON.stringify(metrics));
+}
+
+function exitWithV2(metrics: V2Metrics, exitCode: number): never {
+  printV2Metrics(metrics);
+  process.exit(exitCode);
+}
+
+/**
+ * V2 Wrapper - Adiciona output JSON V2 para collectors TypeScript
+ * Captura stdout original, suprime console.log internos, adiciona JSON final
+ */
+async function withV2Wrapper(
+  collectorName: string,
+  fn: () => Promise<void>
+): Promise<void> {
+  const metrics = initV2Metrics(collectorName);
+
+  // Captura console.log original
+  const originalLog = console.log;
+  const logs: string[] = [];
+
+  // Redireciona console.log temporariamente
+  console.log = (...args: any[]) => {
+    logs.push(args.map(String).join(' '));
+  };
+
+  try {
+    await fn();
+
+    // Restaura console.log
+    console.log = originalLog;
+
+    // Sucesso
+    metrics.status = 'ok';
+
+    // Tenta extrair metrics dos logs (se disponível)
+    const collectedMatch = logs.join('\n').match(/collected:\s*(\d+)/i);
+    if (collectedMatch) {
+      metrics.items_inserted = parseInt(collectedMatch[1]);
+      metrics.items_read = parseInt(collectedMatch[1]);
+    }
+
+    exitWithV2(metrics, 0);
+
+  } catch (error: any) {
+    // Restaura console.log
+    console.log = originalLog;
+
+    // Falha
+    metrics.status = 'fail';
+    metrics.meta.error = error.message;
+    if (error.stack) {
+      metrics.meta.stack = error.stack.split('\n').slice(0, 5).join('\n');
+    }
+
+    exitWithV2(metrics, 1);
+  }
+}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -132,31 +222,42 @@ async function main() {
 
     // Verifica se é tech trends collector
     if (collectorName in techTrendsCollectors) {
-      await runTechTrendsCLI(techTrendsCollectors);
+      await withV2Wrapper(collectorName, () => runTechTrendsCLI(techTrendsCollectors));
       return;
     }
 
     // Verifica se é research papers collector
     if (collectorName in researchPapersCollectors) {
-      await runResearchPapersCLI(researchPapersCollectors);
+      await withV2Wrapper(collectorName, () => runResearchPapersCLI(researchPapersCollectors));
       return;
     }
 
     // Verifica se é jobs collector
     if (collectorName in jobsCollectors) {
-      await runJobsCLI(jobsCollectors);
+      await withV2Wrapper(collectorName, () => runJobsCLI(jobsCollectors));
       return;
     }
 
     // Special case: NGOs (standalone bulk download collector)
     if (collectorName === 'ngos') {
+      const metrics = initV2Metrics('ngos');
       const collector = new NGOsCollector();
       try {
         const result = await collector.collect();
+        metrics.items_inserted = result.saved || 0;
+        metrics.items_read = result.saved || 0;
+
         if (!result.success || result.saved === 0) {
-          process.exit(1);
+          metrics.status = 'fail';
+          exitWithV2(metrics, 1);
         }
-        process.exit(0);
+
+        metrics.status = 'ok';
+        exitWithV2(metrics, 0);
+      } catch (error: any) {
+        metrics.status = 'fail';
+        metrics.meta.error = error.message;
+        exitWithV2(metrics, 1);
       } finally {
         await collector.close();
       }
@@ -165,37 +266,37 @@ async function main() {
 
     // Verifica se é organizations collector
     if (collectorName in organizationsCollectors) {
-      await runOrganizationsCLI(organizationsCollectors);
+      await withV2Wrapper(collectorName, () => runOrganizationsCLI(organizationsCollectors));
       return;
     }
 
     // Verifica se é funding collector
     if (collectorName in fundingCollectors) {
-      await runFundingCLI(fundingCollectors);
+      await withV2Wrapper(collectorName, () => runFundingCLI(fundingCollectors));
       return;
     }
 
     // Verifica se é developer tools collector
     if (collectorName in developerToolsCollectors) {
-      await runDeveloperToolsCLI(developerToolsCollectors);
+      await withV2Wrapper(collectorName, () => runDeveloperToolsCLI(developerToolsCollectors));
       return;
     }
 
     // Verifica se é tech conferences collector
     if (collectorName in techConferencesCollectors) {
-      await runTechConferencesCLI(techConferencesCollectors);
+      await withV2Wrapper(collectorName, () => runTechConferencesCLI(techConferencesCollectors));
       return;
     }
 
     // Verifica se é Brazil collector
     if (collectorName in brazilCollectors) {
-      await runBrazilCLI(brazilCollectors);
+      await withV2Wrapper(collectorName, () => runBrazilCLI(brazilCollectors));
       return;
     }
 
     // Verifica se é Industry Signals collector
     if (collectorName in industrySignalsCollectors) {
-      await runIndustrySignalsCLI(industrySignalsCollectors);
+      await withV2Wrapper(collectorName, () => runIndustrySignalsCLI(industrySignalsCollectors));
       return;
     }
 
