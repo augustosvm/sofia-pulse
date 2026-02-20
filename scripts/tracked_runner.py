@@ -85,6 +85,17 @@ REGISTRY = {
 
     "wto-trade": {"cmd": ["bash", "scripts/collect-with-notification.sh", "wto-trade"], "timeout": 300, "v2": True},
     "yc-companies": {"cmd": ["bash", "scripts/collect-with-notification.sh", "yc-companies"], "timeout": 300, "v2": True},
+
+    # ============================================================================
+    # STANDALONE COLLECTORS (Special cases converted to V2)
+    # ============================================================================
+    "catho": {"cmd": ["bash", "scripts/collect-with-notification.sh", "catho"], "timeout": 600, "v2": True},
+    "epo-patents": {"cmd": ["bash", "scripts/collect-with-notification.sh", "epo-patents"], "timeout": 300, "v2": True},
+    "wipo-china-patents": {"cmd": ["bash", "scripts/collect-with-notification.sh", "wipo-china-patents"], "timeout": 300, "v2": True},
+    "nih-grants": {"cmd": ["bash", "scripts/collect-with-notification.sh", "nih-grants"], "timeout": 300, "v2": True},
+    "currency-rates": {"cmd": ["bash", "scripts/collect-with-notification.sh", "currency-rates"], "timeout": 300, "v2": True},
+    "gitguardian-incidents": {"cmd": ["bash", "scripts/collect-with-notification.sh", "gitguardian-incidents"], "timeout": 300, "v2": True},
+    "hkex-ipos": {"cmd": ["bash", "scripts/collect-with-notification.sh", "hkex-ipos"], "timeout": 300, "v2": True},
 }
 LOCK_DIR = "/tmp/sofia-locks"
 LOG_DIR = os.path.join(os.getcwd(), "logs")
