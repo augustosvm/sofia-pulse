@@ -6,6 +6,12 @@ COLLECTOR_NAME="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 
+# Load .env so TypeScript collectors get POSTGRES_* and DATABASE_URL
+set -a
+# shellcheck disable=SC1091
+source .env 2>/dev/null || true
+set +a
+
 if [ -z "$COLLECTOR_NAME" ]; then
     echo "Usage: $0 <collector-name>"
     exit 1

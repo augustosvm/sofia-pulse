@@ -68,13 +68,25 @@ export interface TechConferenceCollectorConfig {
 // DATABASE CONFIG
 // ============================================================================
 
-const dbConfig = {
-  host: process.env.POSTGRES_HOST || process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.POSTGRES_PORT || process.env.DB_PORT || '5432'),
-  user: process.env.POSTGRES_USER || process.env.DB_USER || 'sofia',
-  password: process.env.POSTGRES_PASSWORD || process.env.DB_PASSWORD,
-  database: process.env.POSTGRES_DB || process.env.DB_NAME || 'sofia_db',
-};
+// Supports DB_*, POSTGRES_*, and DATABASE_URL env var conventions
+function getDbConfig() {
+    const databaseUrl = process.env.DATABASE_URL;
+    if (databaseUrl) {
+        try {
+            const u = new URL(databaseUrl);
+            return { host: u.hostname, port: parseInt(u.port||'5432'), user: u.username||'sofia',
+                     password: decodeURIComponent(u.password||''), database: (u.pathname||'/sofia_db').slice(1) };
+        } catch {}
+    }
+    return {
+        host: process.env.DB_HOST || process.env.POSTGRES_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || process.env.POSTGRES_PORT || '5432'),
+        user: process.env.DB_USER || process.env.POSTGRES_USER || 'sofia',
+        password: process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD,
+        database: process.env.DB_NAME || process.env.POSTGRES_DB || 'sofia_db',
+    };
+}
+const dbConfig = getDbConfig();
 
 // ============================================================================
 // TECH CONFERENCES COLLECTOR ENGINE
